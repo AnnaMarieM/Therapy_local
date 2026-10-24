@@ -116,3 +116,27 @@ To prove this product works end-to-end today:
 - **Traceable to the Exact Words:** The therapist is never asked to trust a black box. Every recalled memory links directly to the session date and raw transcript excerpt.
 - **Therapeutic Presence First (No "Clippy"):** Prompts are silent, subtle, and require therapist interaction to expand—preserving real human connection.
 - **Consent & Privacy as a Core Feature:** Clear on-screen consent tracking and hardware-level assurance that no data ever leaves the phone.
+
+
+---
+
+## 7. How We Work (Hackathon Edition)
+
+**Trunk-based development: `main` always builds.**
+
+1. Branch off `main`: `git checkout -b feature/<name>`.
+2. Keep it small. Merge within hours, not days.
+3. Open a PR into `main`.
+4. CI runs lint and a debug build. **Green means you can merge. Red means fix it first.**
+5. Merge, delete the branch, repeat.
+
+Unfinished work goes behind a flag or stays out of the UI. No long-lived branches.
+
+## 8. Releases
+
+1. Make sure the latest `main` is green.
+2. Tag it: `git tag v0.1.0 && git push origin v0.1.0`.
+3. Download the APK from that commit's CI run (Actions, then Artifacts) and install it on the phone.
+4. Something broken? Fix on `main` and tag the next version.
+
+The model is never bundled in the APK. It downloads on first launch. Never commit keys or tokens.
