@@ -1,0 +1,42 @@
+# Marta — Session 4 — 2026-04-21 — ground-truth facts
+
+- Client is Marta Novak, 29; turns 30 in October.
+- Works as a UX researcher at Greenfield Health (health-tech startup) in Manchester.
+- Manager is Sam, who offered her leave; she has not decided and sees it as "a bigger room to be sad in".
+- Presented the clinic onboarding research readout on Wednesday 15 April 2026; hands shook; told Sam "yes, of course".
+- Sleeps roughly 3-4 hours; lights off between 11.30 and 12.15 p.m. per her sleep diary.
+- Wakes reliably around 3 a.m., usually replaying her last phone call with her mother.
+- At 3 a.m. she goes to the kitchen and stands at the open fridge; feeds the cat Pepa at 4 a.m.
+- Cries in the shower most days, for about 20 minutes.
+- Skips lunch; eats toast standing up around 11 p.m.; says she "eats" but is unsure.
+- Has not cooked a single one of her mother's recipes since last summer.
+- Keeps her mother's handwritten recipe notebook in the drawer under the microwave.
+- Mother Elena sang loudly while cooking (a song about a girl and a river); Marta now avoids it.
+- Last week she walked out of a supermarket, leaving her basket in the aisle, after the song played.
+- Applied to a bereavement counselling group in March; it started 14 April; she did not go.
+- Her inner critic speaks in the angry voice of her brother Michal; therapist asked her to notice it.
+- Cat Pepa is nine and came with her from Bratislava in a box.
+- Downloaded a dating app in December 2025 at Jana's urging; her profile photo was from the Lake District.
+- Had matches with roughly thirty people between December and March, most of them unproductive.
+- Matched in March with Oliver, 35, a geography teacher at a secondary school in Stockport.
+- Date with Oliver on Saturday 11 April 2026 at a wine bar in the Northern Quarter near Oldham Street.
+- Wore a green jumper bought at a market in Bratislava; her mother said green is a colour for brave people.
+- Drank a white wine costing nine pounds fifty; the first forty minutes went well and she laughed a lot.
+- Began crying when sourdough bread arrived, which reminded her of her mother giving her the crust on Sundays.
+- Told Oliver "My mum died last July" and then cried at the table; he offered a napkin and then left early.
+- Walked about 40 minutes home along the canal rather than take the tram, to avoid being seen crying.
+- Oliver texted on Sunday asking for another drink; she replied minimally and did not commit.
+- On Sunday 12 April 2026 she deleted the dating app, choosing the "Other" reason, and felt both relief and emptiness.
+- Her mother Elena was a seamstress who made wedding dresses; she died in July 2025.
+- Friend Jana has known Marta since age 16 (gymnasium in Bratislava); they were flatmates at 19 above a bakery.
+- Jana lives in Walthamstow, London, works in finance operations, and attended the funeral.
+- Jana has invited Marta to London for the weekend of 16-17 May 2026; Marta has not yet answered.
+- Marta's stated conditions for going: she must be able to leave early, Jana must not be angry, and she must not have to cry in public.
+- Marta often does not answer Jana's Sunday calls and has been avoiding her since the date.
+- Colleague Aisha brings her biscuits in a paper bag and invited her to lunch on Thursday 23 April at an Italian place by the station.
+- Father Pavol is 61, lives in Petrzalka, Bratislava; their Sunday calls last about eight minutes; he asked whether she had eaten.
+- Mother used to ask "Have you eaten, my girl?"; Marta notices the father now asks the same question.
+- Marta describes herself as having been "a catastrophe with nice shoes" on the date; therapist reframed the evening as honest.
+- Loneliness is felt as an "empty chair opposite" at her kitchen table; she sometimes puts her bag on it.
+- Homework agreed: sofa, not the fridge, at 3 a.m.; keep the sleep diary; eat one meal at the table each week, with Pepa on the chair.
+- Homework agreed: notice the critical voice and answer it a little more kindly; decide on London and Thursday lunch.

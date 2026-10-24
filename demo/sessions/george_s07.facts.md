@@ -1,0 +1,38 @@
+- Client George Hale, 41, senior auditor at Brightwell & Co (mid-size accounting firm), Bristol.
+- Session 7 of 10, dated 2026-07-28; therapist Dr. Anna, whom George calls Anna.
+- George arrived about 12 minutes late after a lane closure on the Portway; he sat in the car park before going into the house.
+- Wakes around 4 a.m. most days and then runs work emails in his head; this persisted even after four nights of no screens or wine after nine.
+- Drinks on five of seven nights, two or three glasses each (his own "true number"), more on bad days.
+- Says he would tell the GP "two a night" and that this would be a lie.
+- Booked a GP callback for 11 August 2026 after saying the drinking and poor sleep were "not urgent".
+- Thursday before session: three glasses of wine, no sleep, and "useless" on Friday.
+- Dennis Marsh (partner) returned the Harrowgate variance schedule with about forty red comments, many just "why".
+- Dennis asked for the variance schedule on a Friday at about 11 a.m. and George froze and could not respond.
+- Dennis emailed about the Harrowgate file at 8:10 a.m. on a Sunday; George replied within seven minutes and timed it.
+- Milo the beagle (six) wakes George around 4:45 a.m. wanting breakfast.
+- Tom was given the Manager promotion in March; George was passed over.
+- Dennis's review said George had "great technical instincts" but needed to "bring more of the commercial side"; George thanked him and cried in a cubicle.
+- Priya Raman, 34, colleague and friend, six years at Brightwell, previously at a smaller firm in Cardiff; she often covers George's Hollis Lane sign-offs without complaint.
+- Priya brings samosas on Fridays after good weeks; there were none the Friday before session, which George noticed.
+- Priya described Dennis at a Costa on Park Street as "a bully in a nice jacket" and urged George to go home and rest.
+- George has been at Brightwell for fourteen years in March, having joined straight from university around age 27.
+- George is known for rescuing the Penrose audit in 2019.
+- George saw an Audit Manager advert from rival firm Ashby Lyle for its Bristol office on LinkedIn at about 1 a.m. the week before; this is the first time he disclosed it.
+- George saved the advert, has read it about eleven times, and has not told Laura or Priya about it.
+- George wrote a four-paragraph draft cover letter named "AL draft v1", which he has not sent and does not intend to send.
+- The Ashby Lyle advert listed a salary of roughly £78k to £85k; George earns about £71k plus bonus (about £4k last year).
+- George and Laura have a mortgage on their house in Knowle; savings are partly set aside for a baby.
+- Father Richard, 71, retired engineer, does the Telegraph crossword; on hearing of the job application he said "Well, I'm not surprised, are you?"
+- Sister Claire, 37, lives in Leeds with two children, told their father about the Manager application; in March she told George he had been "robbed".
+- Mother Joan's usual line is "Whatever makes you happy, love", said to close the subject.
+- Laura knows the rough drinking level, makes him tea around 9:30 p.m. as her way of signalling concern, and wants a child.
+- In May Laura asked "are you unhappy with me?" and George could not answer; she sat with him without pushing.
+- Core fear George named: "I'm frightened that I'll turn into my dad."
+- George's cabinet-making memory: a weekend course in Bath with Laura early in their relationship, where he made a small box with a sliding lid and did not check his phone for six hours.
+- The box was stored in the loft, then moved to a living-room shelf after a clear-out around his mother's birthday last year; he rarely notices it.
+- George's fantasy is a cottage in Somerset with a workshop; he does not want to sell what he makes because he dislikes criticism.
+- George described wanting "a choice, not a verdict" about leaving Brightwell.
+- George's navy wool coat from Harvey Nichols, bought for his first job, has felt too big since about 2016, a metaphor he used for wearing a grown-up role he doesn't feel.
+- Weekend routine includes walking Milo to the harbour; a Sunday email from Dennis interrupted one.
+- Agreed homework: switch the phone off for an hour, write the true drinking number in phone notes, put the 4 a.m. worry list on paper instead of in bed, and reread the Ashby Lyle advert in daylight and sober.
+- Next session agreed for Tuesday 4 August 2026, same time.

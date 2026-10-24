@@ -1,0 +1,41 @@
+# George — Session 3 — 2026-03-03 — ground-truth facts
+
+- George is 41 and a senior auditor at Brightwell & Co.
+- George and Laura have been married nine years and together about twelve.
+- Laura is 39 and a primary school teacher.
+- Laura has wanted a child since their first years in the flat in Clifton.
+- Laura's stated timeline is to be pregnant by about age forty.
+- In December, Laura asked George at the kitchen table to be honest, "not nice", about wanting a child.
+- George's answer in December was "I want to want one."
+- George says he is frightened of becoming a father like his own father, not of being a bad father in general.
+- George pictures himself "standing at the edge" of family life, watching from the car.
+- Laura's friend Hannah had a baby, Sonny, in January; Hannah's husband is Ben.
+- Holding Sonny, George felt calmer for about five minutes and his shoulders dropped.
+- Laura has been saying "when we have a little one" and then correcting to "if".
+- Laura made a doctor's appointment about her cycle in the autumn and reads articles about fertility at night.
+- George and Laura have not been physically intimate for several months, since about the summer.
+- Laura asked "Are you unhappy with me?" in the car after Sainsbury's on Gloucester Road; George stayed silent.
+- Laura has said George goes "soft" and is like "arguing with a jellyfish".
+- George's father, Richard, used to respond to nine out of ten with "Where did the other point go?"
+- George says he has never told Laura about the "car" image or his fear of becoming his father.
+- The couple have savings in an ISA and have paid down part of the mortgage; they have not reviewed the finances together.
+- George cannot afford to drop to four days a week at Brightwell.
+- Hartwell audit closed on a Thursday; the team worked until about nine that week.
+- George stayed at the office until about 8:30 p.m. on a Friday to avoid going home.
+- Dennis Marsh checked the Hartwell workpapers on the Thursday and George had already cross-referenced them on Tuesday.
+- Dennis has told the team to "show ownership" ahead of the spring bonus review.
+- George wakes around 4 a.m. most days and cannot get back to sleep.
+- George drinks two glasses of wine most nights, three on bad nights, a pattern that started in the summer.
+- George says the wine "puts the lid on" the worries he has at night and he is not yet ready to stop.
+- George has not run since about September and used to run half-marathons, including the Bristol one.
+- George snapped at Laura about bread on a Saturday morning and apologised on a walk by the harbour with Milo.
+- The family dog is Milo, a six-year-old beagle.
+- George's sister Claire lives in Leeds with her two children, Harry and Ruby, and is the "easy" child.
+- George's mother's birthday is the week after the Saturday dinner with Laura's friends Ash and Kirsty.
+- Richard texts Laura about the tyre pressure on George's Golf.
+- George listens to Radio 4 in the car and says driving is the only time he is not expected to talk.
+- George's colleague Priya covers his Thursday call if he attends the next session; she is named as a favour-giver.
+- The next session is booked for 2026-03-17 in the afternoon.
+- Homework: tell Laura that she is good at the reading corner with children, as a true statement.
+- Homework: notice evenings and the moment before the second glass of wine, recorded in a notes app called "Things".
+- Homework: ask Laura for a plain "can we not talk about babies at Mum's" for the birthday weekend.

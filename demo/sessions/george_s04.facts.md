@@ -1,0 +1,37 @@
+# George — Session 4 — 2026-04-14 — ground-truth facts
+
+- George is 41 and works as a senior auditor; his boss is Dennis Marsh, a partner he has worked under for about four years.
+- Tom Ferris (27, joined about three years after George) was given the Manager role; Dennis told George on Wednesday 11 March 2026 in a fourth-floor meeting room.
+- Dennis said George is "indispensable where I am" and that a review would take place in September.
+- George reads "indispensable" as a polite trap that keeps him in the detail work.
+- Dennis rewrites George's draft wording in client documents and then emails "thanks for the draft, I've tidied it up".
+- At an April one-to-one, Dennis questioned a hard-coded number in the Halden cash flow tab; George apologised twice and fixed it that evening.
+- George re-read the Halden file on a Thursday at 4.30 a.m. and spent a morning correcting a page reference in an appendix footnote, then re-sent the whole pack.
+- Priya is a colleague and friend who checks on George; she knows only the work-side version of his story.
+- Easter: lunch at his parents' house on the Saturday; Richard carved the lamb; Claire came up from Leeds with her daughter Ellie (9).
+- Ellie told Richard his carving looked like a crime scene, and Richard laughed.
+- Milo (beagle) ate Easter chocolate on the Sunday; the emergency vet bill was about £180.
+- George wakes around 4 a.m. most mornings and runs through unfinished work in his head.
+- Richard once responded to a 9/10 maths test score with "where did the other point go?"; George was about twelve.
+- Year 10 chemistry, around 2001, teacher Mr Haversham: George scored 8/10 on a practice paper and told his father at dinner; Richard asked where the other two marks had gone.
+- Before the end-of-unit test George wrote rate-equation and mole formulas on graph paper, folded it to the size of a stamp, and hid it in the zip pocket of his pencil case.
+- George used the hidden sheet during the test; he sat by the radiator, and a classmate, Jamie Bolton, sat next to him.
+- George scored 100%, and Mr Haversham praised his "working" on question six in front of the class, which was the worst praise George had ever received.
+- Richard said "A hundred. Right." and went back to his paper; Joan said "marvellous" and gave him a biscuit.
+- George has never told anyone about the cheating: not Laura, not Priya, not Claire.
+- After the test George studied two hours every weeknight and an extra hour on Sundays, and never cheated again, including at GCSE and A level.
+- George describes checking his pockets before exams as a habit that began in his teens.
+- Dennis's written review called George "thorough to a fault"; George looked up "fault" and was not satisfied with it.
+- George describes his perfectionism as checking things repeatedly, and feels calm while doing so until the point of being "exposed".
+- George stopped running in September after struggling to start runs; he had done the Bristol half-marathon yearly, with a best of just under 1:40, and kept a pace spreadsheet.
+- Laura has asked "are you unhappy with me?"; George answered "God, no, Laura" and has not yet given a considered answer.
+- George cried in front of Laura when his granddad died, about six years ago; he also once went silent for about three hours after an angry moment in traffic.
+- Physical signs George reports: clenched jaw, headaches by about 11 a.m., cold feet, and wearing two pairs of socks at the office.
+- On the phone with his father George's voice goes up "about an octave"; Laura says he sounds about twelve.
+- George fears repeating his father's "where did the other point go" with a child, and fears becoming Richard; he says Laura raises children on Sunday mornings and he keeps deferring the conversation.
+- George looked at Tom's LinkedIn in March and then promised himself to stop; he has broken similar promises to himself.
+- George said he is not going to discuss wine today; he put it on his list for a later session.
+- Claire's birthday is next week and George expects Richard to phone and ask about the promotion.
+- Homework agreed: notice and write down the fear behind each re-check; send one document or email without re-reading it, possibly as a practice run with Priya.
+- Dr Anna declined to share personal details when George asked whether she has children.
+- Next session: Tuesday 21 April 2026, same time; George plans to rehearse a phone call with his father.

@@ -1,0 +1,38 @@
+# George — Session 10 — ground-truth facts (2026-10-20)
+
+- George is 41, a senior auditor at Brightwell & Co. in Bristol.
+- Wife Laura is a primary school teacher; they have been married 9 years.
+- Boss Dennis Marsh emailed at 23:10 on Saturday asking for the revised Carrow account memo by 9 a.m. Monday.
+- George declined weekend work for the first time, replying Sunday evening that he would look at it first thing Monday.
+- Dennis responded on Monday with "We'll need to talk about turnaround on this sort of thing"; George did not apologise.
+- Tom, a junior colleague promoted to manager instead of George in March, is about 29.
+- Last Thursday George spent about 90 minutes showing Tom how to trace a 42,000 pound reconciliation gap on the Hallam Foods account.
+- Tom thanked George and said George should have had the job; George felt anger, then sadness, then guilt about the anger.
+- George recalls Dennis saying he was "too much of a technician" when the promotion was given.
+- George wakes around 3:30 to 4:20 a.m.; most mornings now he is back to sleep by about 5:00 to 5:15.
+- George keeps his phone on the landing charger and set a rule to leave it downstairs after 9 p.m.; the rule slipped on Thursday.
+- Over the last 14 nights George had no alcohol on 9, one glass on 2, and two to three glasses on 3.
+- George's GP appointment is on 3 November at 9:10 a.m., about sleep and drinking.
+- George bought grey running trainers with orange heels about two weeks ago; they are still unopened in their box.
+- Priya, a colleague and friend, first told George "You're not okay" in the staff kitchen after the promotion decision.
+- George met Priya for coffee on Friday; she asked whether he had applied for the Meridian role at the rival firm, and he said no.
+- George has kept the Meridian job ad in a laptop folder named "Just In Case" (formerly "Escape") and reviewed it again in August.
+- George's father Richard, 71, had a follow-up cardiology appointment and was moved to a different tablet; he rang George on Sunday to talk about it.
+- In September George visited Richard in the garden; Richard said, "I was frightened, when they told me about the heart," and George cried in the car park afterwards.
+- The exam memory: in a maths exam in 2000 George had answers written on his wrist, and he got a six out of ten anyway, and Richard's reaction would have been the same either way.
+- Mother Joan, 68, keeps the peace; George has never asked her a real question about how she is, and proposes a weekly call to ask one.
+- Before last session George told Laura, at the kitchen table on a Thursday, that he was not sure he was unhappy with her but was unhappy with "the shape of everything".
+- Laura replied, "I thought you were going to say you'd met someone," and said she wanted him "actually being in the room".
+- Laura booked the Lisbon anniversary trip: flights on Saturday 14 November, returning 18 November, staying in Alfama with a roof terrace.
+- George's current position on children is still "unsure", but he describes it as a long road rather than a deadline.
+- George's fear about children is that he would become his father, with the "that's good, but" pattern he hears himself using with Tom.
+- George has a soft feeling about children, prompted by his seven-year-old niece Ruby, who is Claire's daughter; he says this feeling sits close to the fear.
+- George's stated goal is to build "a bit of evidence" that he can say "well done" without a "but", before deciding about children.
+- Goals on George's list: back to sleep by 5 a.m. most nights by end of November; no more than two nights a week with more than one glass; one completely alcohol-free night a week that he will tell Laura about.
+- Goal: attend the Ashton Court Parkrun on 21 November, with the rule "don't time it".
+- Goal: have one direct, in-person conversation with Dennis about feedback and weekend work, then stop without apologising.
+- Goal: tell Laura, before Lisbon, that children will not be decided during the trip, and have no phone at dinner in Lisbon.
+- Goal: ring his mother once a week, alone, and ask one real question.
+- George's top three goals are the GP appointment, the conversation with Dennis, and the Laura conversation about nights and phone use.
+- A check-in is provisionally booked for late January; George is in Leeds for an audit for a week in mid-January.
+- For Christmas, George and Laura agreed to stay two days at his parents' house instead of four, the first time they have set a limit.

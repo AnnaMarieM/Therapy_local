@@ -1,0 +1,36 @@
+# Marta — Session 3 — ground-truth facts (2026-03-24)
+
+- Session 3 of 10, held 2026-03-24 with Dr. Anna; Marta is 29 and a UX researcher at Greenfield Health.
+- Marta's sleep diary (kept on phone notes) shows Mon ~3h40, Tue ~4h, Wed ~5h, Thu ~4h, Fri ~5h on the sofa, Sat ~7h, Sun awake all night.
+- She wakes at about 3 a.m. every night, replaying the last call to her mother ("I'm busy, I'll call you tomorrow").
+- After waking she checks her phone, then counts the ceiling cracks (seven or eight).
+- She set a 7 a.m. alarm every day, including weekends, as the sleep routine.
+- She took a pharmacist-recommended antihistamine once (Wednesday), felt drowsy and sluggish all morning, and stopped.
+- Early tree-pollen hay fever is making her eyes red in March.
+- She drinks around eleven cups of tea a day by her own count.
+- Her cat Pepa is, in Marta's view, getting fat.
+- Sam (her manager) met her Monday 23 March and offered up to six weeks' paid leave plus unused holiday.
+- Sam had already worked out the leave figures on paper before the meeting.
+- A follow-up with Sam and HR (Priya) is set for Thursday 26 March.
+- Marta believes she has about 11 unused holiday days (Sam says 12).
+- Per Marta, the leave scheme pays six weeks at full pay, then half pay for a further period.
+- Marta's main fear about leave is who would present the Northgate readout, due to the client on Friday 27 March.
+- The rebooking-flow usability readout was originally due Friday 13 March and was missed.
+- The rebooking study had 14 participant interviews from six clinic sites.
+- Auto-generated agency transcripts had errors (e.g. "Greenfield" as "green field"), and Marta corrected them by hand, about four hours per interview.
+- A survey of 212 responses needed cleaning; free-text junk included a participant's cat named Gerald.
+- Marta worked late for about three weeks before the missed deadline, sometimes going home at seven and returning at nine.
+- Aisha (colleague and close friend) found Marta sitting on the stairs on Wednesday with a dizzy spell and gave her half a sandwich.
+- Marta has been skipping lunch most days and has had dizzy spells around 4 p.m.; she agreed to report dizziness to the therapist.
+- Her current eating is bread, peanut butter, cheese on crackers and apples; she has stopped cooking.
+- Jana (friend) remarks that an apple is not a meal.
+- Marta describes her mother's food as her mother's answer to everything (halusky, potato soup, pastries from the corner bakery).
+- Marta refers to her mother in the conditional ("she would have said") and the therapist reflects this pattern.
+- Her childhood memory: her parents' quiet fights, and her mother ironing the pillowcases; the sound of the iron is a memory Marta finds both painful and good.
+- Family glassware from a Bratislava department store is a recurring image: Marta feels she is being handled as fragile, like her mother's glasses.
+- Brother Michal phoned on Sunday: grandmother Babka Ruzena fell in the kitchen (a neighbour found her), and Michal asked Marta to come home for a few weeks; the call ended with him hanging up without goodbye.
+- Marta says Michal cared for their mother through her last year (bathing, medication, night shifts) while she was in Manchester.
+- Marta wants any leave framed as a work decision rather than a withdrawal from life.
+- Marta wants recognition for the effort on the readout, not only sympathy for her exhaustion.
+- Marta's stated plan for the leave decision: get written clarity on who runs the readout, her return role, and whether leave is truly six weeks or includes Friday meetings.
+- Agreed small tasks for the week: sit down at the kitchen table to eat one proper meal, and bring the 3 a.m. phone habit to the next session.
