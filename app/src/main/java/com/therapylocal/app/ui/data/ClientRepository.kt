@@ -4,6 +4,7 @@ import android.content.Context
 import com.therapylocal.app.log.AppLog
 import com.therapylocal.app.log.LogCtx
 import com.therapylocal.app.memory.Fact
+import com.therapylocal.app.memory.MemoryProcessor
 import com.therapylocal.app.memory.MemoryQueue
 import com.therapylocal.app.memory.MemoryStore
 import com.therapylocal.app.ui.models.Patient
@@ -19,6 +20,7 @@ data class Theme(val fact: Fact, val count: Int)
  * Blocking calls: run them off the main thread.
  */
 class ClientRepository(context: Context, private val store: MemoryStore = MemoryStore(context)) {
+    private val appContext = context.applicationContext
     private val prefs = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
 
     val demoMode: Boolean get() = prefs.getBoolean(DEMO_MODE_KEY, false)
@@ -41,7 +43,29 @@ class ClientRepository(context: Context, private val store: MemoryStore = Memory
         AppLog.i(TAG, "delete_client_verified", LogCtx.NONE, "client" to id, "removed_clients" to r.clients, "removed_chunks" to r.chunks, "removed_facts" to r.facts, "removed_supports" to r.supports, "removed_sessions" to r.sessions)
     }
 
+    /** The client id to record a session under: [p]'s id if it is stored, else [p] (a mock patient) is created as a client first. */
+    fun ensureClient(p: Patient): String =
+        if (p.id in clients()) p.id else createClient(p.name, p.age.takeIf { it > 0 }, p.presenting).id
+
     fun facts(client: String): List<Fact> = store.facts(client)
+
+    fun sessionFacts(client: String, session: String): List<Fact> = facts(client).filter { it.session == session }
+
+    fun observations(client: String, session: String): String = store.observations(client, session)
+
+    fun saveObservations(client: String, session: String, text: String) = store.setObservations(client, session, text)
+
+    /** Queues the session transcript for fact extraction (runs in the background service). False for a blank transcript. */
+    fun processSession(client: String, session: String, date: String, transcript: String): Boolean =
+        MemoryProcessor.enqueueSession(appContext, client, session, date, transcript)
+
+    /** Deletes one session: its facts, chunks, repeats and observations, the queued job and its transcript file. */
+    fun deleteSession(client: String, session: String) {
+        MemoryQueue.dropSession(session)
+        java.io.File(appContext.getExternalFilesDir(null), "memory/in/$session.md").delete()
+        val r = store.deleteSession(client, session)
+        AppLog.i(TAG, "delete_session_verified", LogCtx.NONE, "client" to client, "session" to session, "removed_chunks" to r.chunks, "removed_facts" to r.facts, "removed_supports" to r.supports)
+    }
 
     fun sessions(client: String): List<MemoryStore.SessionInfo> = store.sessions(client)
 

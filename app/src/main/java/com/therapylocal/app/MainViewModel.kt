@@ -274,6 +274,12 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         return r.text
     }
 
+    /** Chunk transcripts of one recording, in order. For the MindVault UI, which shows the live transcript. */
+    suspend fun recordingChunks(rid: Long): List<ChunkRow> = withContext(Dispatchers.IO) { store.chunks(rid) }
+
+    /** The whole recording as one text (overlap words removed): what the memory pipeline gets when a session ends. */
+    suspend fun recordingTranscript(rid: Long): String = withContext(Dispatchers.IO) { mergedText(rid, store.chunks(rid)) }
+
     fun select(id: Long?) {
         _state.update { it.copy(selected = id, selectedChunks = emptyList(), selectedMerged = "") }
         refreshRecordings()

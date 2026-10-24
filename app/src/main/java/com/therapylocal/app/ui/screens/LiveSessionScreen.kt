@@ -17,12 +17,14 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -40,7 +42,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -50,7 +57,9 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.therapylocal.app.BuildConfig
 import com.therapylocal.app.ui.components.PillBadge
+import com.therapylocal.app.ui.data.UiCue
 import com.therapylocal.app.ui.models.Patient
 import com.therapylocal.app.ui.models.SurfacedQuote
 import com.therapylocal.app.ui.theme.BorderSubtle
@@ -71,7 +80,11 @@ fun LiveSessionScreen(
     sessionSecs: Long,
     isPaused: Boolean,
     surfacedQuotes: List<SurfacedQuote>,
-    onTogglePause: () -> Unit,
+    transcript: List<String>,
+    statusLine: String?,
+    cues: List<UiCue>,
+    cuesError: String?,
+    loadSource: suspend (UiCue) -> String?,
     onEndSession: () -> Unit,
     onSwitchPatient: () -> Unit,
     onTriggerTopic: (String, String, String, String) -> Unit,
@@ -80,6 +93,7 @@ fun LiveSessionScreen(
     val fmt = { n: Long -> "%02d".format(n) }
     val timeFormatted = "${fmt(sessionSecs / 3600)}:${fmt((sessionSecs / 60) % 60)}:${fmt(sessionSecs % 60)}"
 
+    val isPaused = false // TODO: pausing needs ChunkRecorder support; until then there is no pause button.
     val simulatedTriggers = listOf(
         "Father" to "Strained relationship; client stated 'he never acknowledges the loss.'",
         "Grief" to "Mother passed Nov 2025; grief wave triggers around holidays.",
@@ -178,7 +192,7 @@ fun LiveSessionScreen(
                 )
 
                 Text(
-                    text = if (isPaused) "Session Paused" else "Listening on device",
+                    text = statusLine ?: "Listening on device",
                     fontSize = 12.sp,
                     color = MutedText,
                     modifier = Modifier.padding(top = 4.dp)
@@ -191,28 +205,6 @@ fun LiveSessionScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    OutlinedButton(
-                        onClick = onTogglePause,
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(44.dp),
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
-                        Icon(
-                            imageVector = if (isPaused) Icons.Default.PlayArrow else Icons.Default.Pause,
-                            contentDescription = null,
-                            modifier = Modifier.size(16.dp),
-                            tint = CharcoalText
-                        )
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text(
-                            text = if (isPaused) "Resume" else "Pause",
-                            fontSize = 13.sp,
-                            color = CharcoalText,
-                            fontWeight = FontWeight.Medium
-                        )
-                    }
-
                     Button(
                         onClick = onEndSession,
                         modifier = Modifier
@@ -237,6 +229,30 @@ fun LiveSessionScreen(
                         )
                     }
                 }
+            }
+        }
+
+        // Transcript of the chunks processed so far (newest first)
+        if (transcript.isNotEmpty()) {
+            Spacer(modifier = Modifier.height(10.dp))
+            Text(
+                text = "LIVE TRANSCRIPT",
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Bold,
+                color = MutedText
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = 110.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(SurfaceCard.copy(alpha = 0.6f))
+                    .verticalScroll(rememberScrollState())
+                    .padding(10.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                transcript.asReversed().forEach { Text(text = it, fontSize = 12.sp, color = CharcoalText, lineHeight = 16.sp) }
             }
         }
 
@@ -268,7 +284,12 @@ fun LiveSessionScreen(
             modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            if (surfacedQuotes.isEmpty()) {
+            cuesError?.let { err ->
+                item { Text(text = err, fontSize = 11.sp, color = DangerRed) }
+            }
+            items(cues, key = { it.factId + "@" + it.session }) { cue -> CueRow(cue, loadSource) }
+
+            if (surfacedQuotes.isEmpty() && cues.isEmpty()) {
                 item {
                     Box(
                         modifier = Modifier
@@ -350,8 +371,8 @@ fun LiveSessionScreen(
                 }
             }
 
-            item {
-                // Topic Simulation Chips
+            if (BuildConfig.DEBUG) item {
+                // Topic Simulation Chips (debug only: simulated recall, not real memory)
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -434,6 +455,61 @@ fun WaveformDisplay(isPaused: Boolean) {
                     .clip(CircleShape)
                     .background(color)
             )
+        }
+    }
+}
+
+/** One live cue: category and fact text, the match score as a thin bar; tap to show the transcript passage it came from. */
+@Composable
+private fun CueRow(cue: UiCue, loadSource: suspend (UiCue) -> String?) {
+    var expanded by remember { mutableStateOf(false) }
+    var source by remember { mutableStateOf<String?>(null) }
+    LaunchedEffect(expanded) {
+        if (expanded && source == null) source = loadSource(cue) ?: "Source passage not stored."
+    }
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { expanded = !expanded },
+        shape = RoundedCornerShape(14.dp),
+        colors = CardDefaults.cardColors(containerColor = SurfaceCard),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+    ) {
+        Column(modifier = Modifier.padding(12.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                PillBadge(text = cue.category, color = SageDark, background = SageLight)
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(3.dp)
+                        .clip(CircleShape)
+                        .background(BorderSubtle)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth(cue.score.coerceIn(0f, 1f))
+                            .height(3.dp)
+                            .background(SageGreen.copy(alpha = 0.6f))
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(text = cue.text, fontSize = 13.sp, color = CharcoalText, lineHeight = 18.sp)
+            if (expanded) {
+                Spacer(modifier = Modifier.height(6.dp))
+                Text(
+                    text = source ?: "...",
+                    fontSize = 12.sp,
+                    fontStyle = FontStyle.Italic,
+                    color = MutedText,
+                    lineHeight = 16.sp,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(SageLight.copy(alpha = 0.5f))
+                        .padding(8.dp)
+                )
+            }
         }
     }
 }

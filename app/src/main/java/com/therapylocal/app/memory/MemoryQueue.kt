@@ -99,6 +99,9 @@ object MemoryQueue {
         update { it.copy(jobs = it.jobs + job) }
     }
 
+    /** Drops one queued or finished job; a running one is left alone. */
+    fun dropSession(id: String) = update { s -> s.copy(jobs = s.jobs.filterNot { it.id == id && it.status != JobStatus.Running }) }
+
     fun hasQueued(): Boolean = _state.value.jobs.any { it.status == JobStatus.Queued }
 
     /** Drops every job of [client] that is not running, for when the client is deleted. */
