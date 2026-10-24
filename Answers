@@ -1,0 +1,36 @@
+Here are answers you can rehearse, based on the inspected Android code. The Android implementation goes beyond the separate web UI prototype, but I haven’t run it on a phone.
+1. “How is your product better than the same model without your layer, and how did you check that?”
+“The models provide transcription and embeddings. Our software turns recordings into persistent, searchable memory: it handles overlapping chunks, cleans and merges transcripts, stores them locally, and retrieves passages with their recording and time range.
+The code includes an embedding self-test and six transcript-cleaning and merging tests. However, we haven’t completed a benchmark against the same model without our software, so we’re not claiming a measured accuracy improvement yet.”
+Don’t invent comparison numbers. Code tests alone do not prove better retrieval quality.
+2. “Where does your product not work?”
+“This is a prototype for synthetic demonstration data. Transcription can make mistakes, and similarity search can return an irrelevant passage. We haven’t implemented a calibrated threshold for saying ‘no relevant memory found.’
+Patient isolation, database encryption, and clinical summaries are unfinished. Performance also depends on the phone’s ability to load and run the models.”
+Avoid claiming clinical readiness, guaranteed factual accuracy, or universal device support.
+3. “How many steps does a new user need to get something useful?”
+“After installation, permissions, and automatic model preparation, two main actions produce a transcript: Start recording and Stop recording. To retrieve a memory, open Search, enter a query, and tap Search. Voice search is also available.
+First launch requires approximately 645 MB of model downloads with the default configuration. We haven’t measured total first-use time yet.”
+4. “Show us where your expertise lives.”
+“Our implemented expertise is in the recording and retrieval pipeline: chunking, overlap handling, transcript cleanup, ranking, and source metadata. Therapist-specific summaries and clinical rules are not implemented yet.”
+Have these files open:
+	•	AppConfig.kt — chunk sizes, overlap, embedding and search settings.
+	•	TranscriptClean.kt and TranscriptMerge.kt — cleanup and overlap handling.
+	•	Search.kt — similarity ranking and result grouping.
+	•	MainViewModel.kt — pipeline orchestration.
+5. “Show us where you call the model.”
+“Gemma transcription calls sendMessageAsync in GemmaAsr.kt. Audio and text embeddings call computeEmbeddingin Embedder.kt. The default transcription engine is Whisper, so we’ll show the implementation matching the engine selected for this demonstration.”
+6. “Show us the agent’s steps.”
+“This version uses a fixed processing pipeline, rather than an autonomous agent. The Logs tab shows the stages: audio embedding, transcription, text embedding, storage, query embedding, search, and result grouping, along with timings and scores.”
+For a text search, show query embedding → search → result grouping. Don’t imply every recording stage runs again for each query.
+Other questions worth preparing
+Possible question	Honest answer based on the code
+Does it need internet?	Initial model downloads need internet. Inference and retrieval are implemented locally afterward; verify offline operation on the demo phone before claiming it works.
+What phone does it require?	It needs a compatible Android device with enough storage and memory for the selected models. Exact minimum requirements and supported-device coverage haven’t been established by this inspection.
+Is it encrypted?	The application database is explicitly unencrypted in this version.
+Can different patients’ data mix?	Search currently has no patient filter. Patient isolation is unfinished.
+Do you store the original audio?	The storage implementation retains transcripts and embeddings, not recorded audio. Time ranges identify transcript context; they do not establish audio playback.
+What happens when nothing matches?	Search may still return the nearest passages. A reliable “no relevant result” decision is not implemented.
+Does it diagnose or recommend treatment?	No implemented diagnostic or treatment-advice pipeline was found. The demonstrated function is transcription and retrieval.
+What languages does it support?	Whisper exposes automatic language selection and explicit English, Slovak, and Czech options. This is not evidence that those languages have been validated.
+Can you handle a judge’s new request?	You can attempt a fresh text or voice search over existing synthetic recordings. Rehearse this on the actual phone.
+How will you evaluate it?	Use fixed synthetic recordings and labeled queries. Compare retrieval success, irrelevant results, transcription quality, and latency against a clearly defined baseline. This evaluation is still proposed.
