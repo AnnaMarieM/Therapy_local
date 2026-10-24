@@ -16,9 +16,8 @@
 ---
 
 ## Slide 2: The Problem & The Ethical Wall (0:00 – 0:45)
-**Headline:** The Cognitive Load & Privacy Barrier  
-- **The Problem:** Information Overload Across Sessions
-- **The Ethical Wall:** Cloud AI Is Strictly Prohibited
+# The Cognitive Load & Privacy Barrier
+> **Therapists conduct 5–8 emotionally intensive sessions daily. Finding critical details across months of notes is broken.**
 
 ---
 
