@@ -3,6 +3,7 @@ package com.therapylocal.app.ui.data
 import android.content.Context
 import com.therapylocal.app.log.AppLog
 import com.therapylocal.app.log.LogCtx
+import com.therapylocal.app.memory.DemoMemory
 import com.therapylocal.app.memory.Fact
 import com.therapylocal.app.memory.MemoryProcessor
 import com.therapylocal.app.memory.MemoryQueue
@@ -26,6 +27,28 @@ class ClientRepository(context: Context, private val store: MemoryStore = Memory
     val demoMode: Boolean get() = prefs.getBoolean(DEMO_MODE_KEY, false)
 
     fun clients(): List<String> = store.clients()
+
+    /** Switches demo mode. Turning it on imports the bundled demo memory (debug builds ship `assets/demo_memory.json`); turning it off keeps the imported data. */
+    fun setDemoMode(on: Boolean) {
+        prefs.edit().putBoolean(DEMO_MODE_KEY, on).apply()
+        if (on) importDemo(force = true)
+    }
+
+    /** Imports the demo asset if demo mode is on and this version of it is not imported yet (or [force]). Returns whether it imported. Blocking. */
+    fun importDemo(force: Boolean = false): Boolean {
+        if (!force && !demoMode) return false
+        return try {
+            val data = DemoMemory.parse(appContext.assets.open("demo_memory.json").bufferedReader().use { it.readText() })
+            if (!force && prefs.getInt(DEMO_IMPORTED_KEY, 0) == data.version) return false
+            DemoMemory.import(store, data)
+            prefs.edit().putInt(DEMO_IMPORTED_KEY, data.version).putBoolean(MOCK_DISMISSED_KEY, true).apply()
+            AppLog.i(TAG, "demo_imported", LogCtx.NONE, "clients" to data.clients.size, "facts" to data.clients.sumOf { it.facts.size })
+            true
+        } catch (e: java.io.IOException) {
+            AppLog.w(TAG, "demo_asset_missing", LogCtx.NONE, "reason" to e.message)
+            false
+        }
+    }
 
     /** Creates a client from the add-patient form and returns its UI patient. The id is a free slug of the name. */
     fun createClient(name: String, age: Int?, occupation: String): Patient {
@@ -124,6 +147,7 @@ class ClientRepository(context: Context, private val store: MemoryStore = Memory
     companion object {
         const val TAG = "ClientRepository"
         const val DEMO_MODE_KEY = "demoMode"
+        private const val DEMO_IMPORTED_KEY = "demoImportedVersion"
 
         /** Set once the therapist creates or deletes a client, so the mock patients never come back after the real list was emptied. */
         const val MOCK_DISMISSED_KEY = "mockDismissed"

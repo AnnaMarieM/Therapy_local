@@ -16,12 +16,24 @@ class ClientsViewModel(app: Application) : AndroidViewModel(app) {
     private val _patients = MutableStateFlow<List<Patient>>(emptyList())
     val patients: StateFlow<List<Patient>> = _patients.asStateFlow()
 
+    private val _demoMode = MutableStateFlow(repo.demoMode)
+    val demoMode: StateFlow<Boolean> = _demoMode.asStateFlow()
+
     init {
         refresh()
     }
 
+    fun setDemoMode(on: Boolean) {
+        _demoMode.value = on
+        viewModelScope.launch(Dispatchers.IO) {
+            repo.setDemoMode(on)
+            refresh()
+        }
+    }
+
     fun refresh() {
         viewModelScope.launch(Dispatchers.IO) {
+            repo.importDemo() // no-op unless demo mode is on and the bundled data changed
             val stored = repo.patients()
             _patients.value = stored
         }

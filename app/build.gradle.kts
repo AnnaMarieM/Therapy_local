@@ -94,6 +94,7 @@ dependencies {
     implementation("com.google.ai.edge.litertlm:litertlm-android:0.18.1")
     implementation(files("libs/sherpa-onnx-2.0.0.aar"))
     testImplementation("junit:junit:4.13.2")
+    testImplementation("org.json:json:20240303") // the Android stub of org.json does nothing in unit tests
 }
 
 kotlin {

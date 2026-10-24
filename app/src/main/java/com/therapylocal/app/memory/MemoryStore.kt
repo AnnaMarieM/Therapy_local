@@ -92,6 +92,22 @@ class MemoryStore(context: Context) : SQLiteOpenHelper(context, "memory.db", nul
         writableDatabase.delete("session_meta", "client = ?", arrayOf(client))
     }
 
+    /** Runs [body] in one transaction (used by the demo import). */
+    fun inTransaction(body: () -> Unit) {
+        val db = writableDatabase
+        db.beginTransaction()
+        try {
+            body()
+            db.setTransactionSuccessful()
+        } finally {
+            db.endTransaction()
+        }
+    }
+
+    fun deleteClientRow(id: String) {
+        writableDatabase.delete("clients", "id = ?", arrayOf(id))
+    }
+
     /** A client the therapist created. Data stored by the pipeline for a client that was never created here still lists (see [listClients]). */
     data class ClientRow(val id: String, val name: String, val age: Int?, val occupation: String)
 
