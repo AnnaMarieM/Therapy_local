@@ -59,7 +59,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.therapylocal.app.BuildConfig
 import com.therapylocal.app.ui.components.PillBadge
-import com.therapylocal.app.ui.data.UiCue
+import com.therapylocal.app.memory.Cue
 import com.therapylocal.app.ui.models.Patient
 import com.therapylocal.app.ui.models.SurfacedQuote
 import com.therapylocal.app.ui.theme.BorderSubtle
@@ -78,13 +78,12 @@ import com.therapylocal.app.ui.theme.WarmBg
 fun LiveSessionScreen(
     patient: Patient,
     sessionSecs: Long,
-    isPaused: Boolean,
     surfacedQuotes: List<SurfacedQuote>,
     transcript: List<String>,
     statusLine: String?,
-    cues: List<UiCue>,
+    cues: List<Cue>,
     cuesError: String?,
-    loadSource: suspend (UiCue) -> String?,
+    loadSource: suspend (Cue) -> String?,
     onEndSession: () -> Unit,
     onSwitchPatient: () -> Unit,
     onTriggerTopic: (String, String, String, String) -> Unit,
@@ -461,7 +460,7 @@ fun WaveformDisplay(isPaused: Boolean) {
 
 /** One live cue: category and fact text, the match score as a thin bar; tap to show the transcript passage it came from. */
 @Composable
-private fun CueRow(cue: UiCue, loadSource: suspend (UiCue) -> String?) {
+private fun CueRow(cue: Cue, loadSource: suspend (Cue) -> String?) {
     var expanded by remember { mutableStateOf(false) }
     var source by remember { mutableStateOf<String?>(null) }
     LaunchedEffect(expanded) {
