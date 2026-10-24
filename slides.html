@@ -1,12 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>MindVault — Presentation Deck</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+    rel="stylesheet">
   <style>
     :root {
       --bg: #0B0F17;
@@ -44,7 +47,7 @@
       position: absolute;
       width: 600px;
       height: 600px;
-      background: radial-gradient(circle, var(--primary-glow) 0%, rgba(16,185,129,0) 70%);
+      background: radial-gradient(circle, var(--primary-glow) 0%, rgba(16, 185, 129, 0) 70%);
       top: -200px;
       right: -200px;
       pointer-events: none;
@@ -56,7 +59,7 @@
       position: absolute;
       width: 500px;
       height: 500px;
-      background: radial-gradient(circle, rgba(56, 189, 248, 0.15) 0%, rgba(0,0,0,0) 70%);
+      background: radial-gradient(circle, rgba(56, 189, 248, 0.15) 0%, rgba(0, 0, 0, 0) 70%);
       bottom: -150px;
       left: -150px;
       pointer-events: none;
@@ -265,9 +268,20 @@
       margin-bottom: 8px;
     }
 
-    .badge-primary { background: rgba(16, 185, 129, 0.2); color: var(--primary); }
-    .badge-sky { background: rgba(56, 189, 248, 0.2); color: var(--accent); }
-    .badge-amber { background: rgba(245, 158, 11, 0.2); color: var(--warning); }
+    .badge-primary {
+      background: rgba(16, 185, 129, 0.2);
+      color: var(--primary);
+    }
+
+    .badge-sky {
+      background: rgba(56, 189, 248, 0.2);
+      color: var(--accent);
+    }
+
+    .badge-amber {
+      background: rgba(245, 158, 11, 0.2);
+      color: var(--warning);
+    }
 
     /* Comparison Table */
     .compare-table {
@@ -346,7 +360,7 @@
       border: 1px solid var(--card-border);
       border-radius: 12px;
       padding: 20px;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
       backdrop-filter: blur(16px);
       z-index: 100;
       display: none;
@@ -435,11 +449,19 @@
     }
 
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
   </style>
 </head>
+
 <body>
 
   <div class="glow-sphere"></div>
@@ -449,7 +471,10 @@
   <header>
     <div class="logo-container">
       <div class="logo-icon">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.5"><path d="M12 2a10 10 0 0 0-10 10c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.1-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2z"/></svg>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.5">
+          <path
+            d="M12 2a10 10 0 0 0-10 10c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.1-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2z" />
+        </svg>
       </div>
       <span class="logo-text">MindVault</span>
       <span class="logo-tag">Hackathon 2026</span>
@@ -469,69 +494,85 @@
   <main class="deck-container">
 
     <!-- SLIDE 1: Title -->
-    <section class="slide active" data-speaker="Overview" data-time="0:00" data-notes="Welcome judges. Today we are presenting MindVault — our on-device memory co-pilot built specifically for psychotherapists. We will walk through the core problem, our software layer around the models, a live demo on Android, and our honest benchmark evaluation.">
+    <section class="slide active" data-speaker="Overview" data-time="0:00"
+      data-notes="Welcome judges. Today we are presenting MindVault — our on-device memory co-pilot built specifically for psychotherapists. We will walk through the core problem, our software layer around the models, a live demo on Android, and our honest benchmark evaluation.">
       <span class="speaker-tag">🎯 Pitch Presentation · 4 Minutes</span>
       <h1 class="slide-title">Private, Verifiable Memory<br>for Psychotherapists</h1>
-      <p class="slide-subtitle">100% on-device longitudinal recall co-pilot. Built with on-device Whisper, Google EmbeddingGemma, and Kotlin Jetpack Compose.</p>
-      
+      <p class="slide-subtitle">100% on-device longitudinal recall co-pilot. Built with on-device Whisper, Google
+        EmbeddingGemma, and Kotlin Jetpack Compose.</p>
+
       <div class="grid-3">
         <div class="card card-highlight">
           <span class="badge badge-primary">Zero Cloud</span>
           <h3>100% On-Device</h3>
-          <p>Audio recording, Whisper transcription, and vector search run completely locally inside the Android phone.</p>
+          <p>Audio recording, Whisper transcription, and vector search run completely locally inside the Android phone.
+          </p>
         </div>
         <div class="card">
           <span class="badge badge-sky">Traceable</span>
           <h3>Verifiable Recall</h3>
-          <p>Every surfaced past memory links to the exact recording date and millisecond audio time range. Zero hallucinations.</p>
+          <p>Every surfaced past memory links to the exact recording date and millisecond audio time range. Zero
+            hallucinations.</p>
         </div>
         <div class="card">
           <span class="badge badge-amber">Human First</span>
           <h3>Clinical Discretion</h3>
-          <p>The model never diagnoses or plays psychologist. It is strictly an indexing layer; all clinical judgment remains human.</p>
+          <p>The model never diagnoses or plays psychologist. It is strictly an indexing layer; all clinical judgment
+            remains human.</p>
         </div>
       </div>
     </section>
 
     <!-- SLIDE 2: Problem -->
-    <section class="slide" data-speaker="The Problem & Purpose" data-time="0:00 - 0:45" data-notes="Therapists see 5 to 8 patients a day with heavy emotional stories. Weeks later, a patient brings up a conflict, but finding the exact words from session one means flipping through handwritten binders. Cloud AI like ChatGPT or Claude is strictly off-limits due to HIPAA and ethics. MindVault gives therapists searchable memory while leaving judgment with the human.">
+    <section class="slide" data-speaker="The Problem & Purpose" data-time="0:00 - 0:45"
+      data-notes="Therapists see 5 to 8 patients a day with heavy emotional stories. Weeks later, a patient brings up a conflict, but finding the exact words from session one means flipping through handwritten binders. Cloud AI like ChatGPT or Claude is strictly off-limits due to HIPAA and ethics. MindVault gives therapists searchable memory while leaving judgment with the human.">
       <span class="speaker-tag">⚠️ The Core Problem · 45s</span>
       <h2 class="slide-title">The Cognitive Load & Privacy Barrier</h2>
-      <p class="slide-subtitle">Therapists conduct 5–8 emotionally intensive sessions daily. Finding critical details across months of notes is broken.</p>
+      <p class="slide-subtitle">Therapists conduct 5–8 emotionally intensive sessions daily. Finding critical details
+        across months of notes is broken.</p>
 
       <div class="grid-2">
         <div class="card">
           <span class="badge badge-amber">The Problem</span>
           <h3>Information Overload Across Sessions</h3>
-          <p style="margin-bottom: 12px;">Patients circle back to foundational conflicts months apart. Remembering that a conflict with a boss in November connects to a father's criticism in May is daunting when handling 30+ active clients.</p>
+          <p style="margin-bottom: 12px;">Patients circle back to foundational conflicts months apart. Remembering that
+            a conflict with a boss in November connects to a father's criticism in May is daunting when handling 30+
+            active clients.</p>
           <p>Manual note-taking takes hours after sessions, causing burnout and fragmented clinical continuity.</p>
         </div>
 
         <div class="card">
           <span class="badge badge-primary">The Ethical Wall</span>
           <h3>Cloud AI Is Strictly Prohibited</h3>
-          <p style="margin-bottom: 12px;">Therapists <strong>cannot upload audio or transcripts to OpenAI, Anthropic, or cloud vector databases</strong> due to doctor-patient confidentiality, ethics, and GDPR/HIPAA regulations.</p>
-          <p>The solution must be <strong>100% air-gapped on-device</strong> or it cannot legally exist in a clinical therapy room.</p>
+          <p style="margin-bottom: 12px;">Therapists <strong>cannot upload audio or transcripts to OpenAI, Anthropic, or
+              cloud vector databases</strong> due to doctor-patient confidentiality, ethics, and GDPR/HIPAA regulations.
+          </p>
+          <p>The solution must be <strong>100% air-gapped on-device</strong> or it cannot legally exist in a clinical
+            therapy room.</p>
         </div>
       </div>
     </section>
 
     <!-- SLIDE 3: How It Works / What We Built -->
-    <section class="slide" data-speaker="What We Built" data-time="0:45 - 1:30" data-notes="The models give us two pieces: Whisper for transcription, and EmbeddingGemma for vector similarity. But raw models alone fail at therapy speech. Our software layer adds a 20-second chunker with 5-second overlap so hesitant pauses aren't split in half, deterministic transcript merging without calling an LLM, and persistent local storage that tags every chunk with its exact session date and time range.">
+    <section class="slide" data-speaker="What We Built" data-time="0:45 - 1:30"
+      data-notes="The models give us two pieces: Whisper for transcription, and EmbeddingGemma for vector similarity. But raw models alone fail at therapy speech. Our software layer adds a 20-second chunker with 5-second overlap so hesitant pauses aren't split in half, deterministic transcript merging without calling an LLM, and persistent local storage that tags every chunk with its exact session date and time range.">
       <span class="speaker-tag">⚙️ Memory Architecture · 45s</span>
-      <h2 class="slide-title" style="font-size: 3.4rem; max-width: 950px; margin-bottom: 24px;">What We Built: The Memory Pipeline</h2>
-      <p class="slide-subtitle" style="font-size: 1.5rem; max-width: 900px; line-height: 1.6;">Foundation models only transcribe or produce vectors. Our software turns raw chunks into persistent, searchable memory.</p>
+      <h2 class="slide-title" style="font-size: 3.4rem; max-width: 950px; margin-bottom: 24px;">What We Built</h2>
+      <p class="slide-subtitle" style="font-size: 1.5rem; max-width: 900px; line-height: 1.6;">Foundation models only
+        transcribe or produce vectors. Our software turns raw chunks into persistent, searchable memory.</p>
     </section>
 
     <!-- SLIDE 4: Live Demo -->
-    <section class="slide" data-speaker="Live Demonstration" data-time="1:30 - 2:30" data-notes="[Action: Switch to Android Phone / Compose App] Here is our Android app running on Pixel 8. We have synthetic demonstration sessions loaded for George M. In Session 1, he discussed work anxiety and feeling 'never good enough' due to his father. In Session 2 today, when he mentions his boss criticizing his work, watch what happens: the app retrieves the exact past quote from Session 1 with its timestamp. Let's open the Logs tab: here is the real pipeline trace showing embedding score and latency.">
+    <section class="slide" data-speaker="Live Demonstration" data-time="1:30 - 2:30"
+      data-notes="[Action: Switch to Android Phone / Compose App] Here is our Android app running on Pixel 8. We have synthetic demonstration sessions loaded for George M. In Session 1, he discussed work anxiety and feeling 'never good enough' due to his father. In Session 2 today, when he mentions his boss criticizing his work, watch what happens: the app retrieves the exact past quote from Session 1 with its timestamp. Let's open the Logs tab: here is the real pipeline trace showing embedding score and latency.">
       <span class="speaker-tag">📱 Live Android Demo · 1m</span>
       <h2 class="slide-title" style="font-size: 3.4rem; max-width: 950px;">Live Demonstration: The "George M." Case</h2>
     </section>
 
 
     <!-- SLIDE 6: Honest Limitations & What's Next -->
-    <section class="slide" data-speaker="Limitations & First Use" data-time="3:20 - 4:05" data-notes="We believe in honesty with judges about current prototype limits: If a search has no matching memories, similarity search currently returns the closest available passage; we are actively calibrating a confidence threshold for 'no memory found.' Production also requires SQLCipher database encryption. On first use, the user grants permissions, downloads 645 MB of models once, and then taps 'Start Recording'. Retrieval takes under 3 seconds. MindVault's goal: Retrieve the history, keep judgment human.">
+    <section class="slide" data-speaker="Limitations & First Use" data-time="3:20 - 4:05"
+      data-notes="We believe in honesty with judges about current prototype limits: If a search has no matching memories, similarity search currently returns the closest available passage; we are actively calibrating a confidence threshold for 'no memory found.' Production also requires SQLCipher database encryption. On first use, the user grants permissions, downloads 645 MB of models once, and then taps 'Start Recording'. Retrieval takes under 3 seconds. MindVault's goal: Retrieve the history, keep judgment human.">
       <span class="speaker-tag">🎯 First Use & Closing · 45s</span>
       <h2 class="slide-title">Honest Limitations & Next Steps</h2>
       <p class="slide-subtitle">Transparent engineering boundaries and clinical roadmap.</p>
@@ -540,20 +581,60 @@
         <div class="card">
           <span class="badge badge-amber">Current Limitations</span>
           <h3 style="margin-bottom: 12px;">Where We Don't Work Yet</h3>
-          <ul style="list-style: none; display: flex; flex-direction: column; gap: 10px; color: var(--text-muted); font-size: 0.9rem;">
-            <li>⚠️ <strong>No-Match Thresholding:</strong> Currently surfaces nearest chunk if nothing matches; threshold calibration is in progress.</li>
-            <li>⚠️ <strong>Ambient Acoustic Noise:</strong> Heavy background chatter degrades 16 kHz on-device feature extraction.</li>
-            <li>⚠️ <strong>Database Encryption:</strong> Debug prototype uses Room SQLite; production will enforce SQLCipher AES-256.</li>
+          <ul
+            style="list-style: none; display: flex; flex-direction: column; gap: 10px; color: var(--text-muted); font-size: 0.9rem;">
+            <li>⚠️ <strong>No-Match Thresholding:</strong> Currently surfaces nearest chunk if nothing matches;
+              threshold calibration is in progress.</li>
+            <li>⚠️ <strong>Ambient Acoustic Noise:</strong> Heavy background chatter degrades 16 kHz on-device feature
+              extraction.</li>
+            <li>⚠️ <strong>Database Encryption:</strong> Debug prototype uses Room SQLite; production will enforce
+              SQLCipher AES-256.</li>
           </ul>
         </div>
 
         <div class="card card-highlight">
           <span class="badge badge-primary">First-Time Use & Closing</span>
           <h3 style="margin-bottom: 12px;">Immediate First-Use Path</h3>
-          <p style="margin-bottom: 12px;"><strong>Time to first transcript:</strong> 2 taps (Start Session → Stop Session). Model preparation runs automatically on first launch (~645 MB download once over Wi-Fi).</p>
-          <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; padding: 14px; font-weight: 700; color: var(--primary); text-align: center; margin-top: 18px; font-size: 1.1rem;">
+          <p style="margin-bottom: 12px;"><strong>Time to first transcript:</strong> 2 taps (Start Session → Stop
+            Session). Model preparation runs automatically on first launch (~645 MB download once over Wi-Fi).</p>
+          <div
+            style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; padding: 14px; font-weight: 700; color: var(--primary); text-align: center; margin-top: 18px; font-size: 1.1rem;">
             “Retrieve the history. Keep judgment human.”
           </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 6: Q & A -->
+    <section class="slide" data-speaker="Q & A" data-time="Judges Q&A"
+      data-notes="Judges Q&A Reference:
+1. How is it better than plain models? Software turns recordings into persistent searchable memory with overlapping chunking, deterministic merging, and verifiable source time ranges. Code has self-tests and 6 transcript-cleaning tests.
+2. Where does it not work? No-match threshold calibration is in progress, requires at least 6GB RAM, and ambient noise degrades audio extraction.
+3. Steps to first use? Exactly 2 taps: Start Session and Stop Session. Models download automatically on first launch.">
+      <span class="speaker-tag">💬 Discussion</span>
+      <h2 class="slide-title" style="font-size: 3.4rem; margin-bottom: 16px;">Questions & Answers</h2>
+      <p class="slide-subtitle" style="margin-bottom: 28px;">“Retrieve the history. Keep judgment human.”</p>
+
+      <div class="grid-3">
+        <div class="card card-highlight">
+          <span class="badge badge-primary">Open Source</span>
+          <h3>Repository</h3>
+          <p style="font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: var(--primary); margin-bottom: 8px;">github.com/AnnaMarieM/Therapy_local</p>
+          <p>MIT License · Public repo · Kotlin Jetpack Compose UI · On-Device Inference</p>
+        </div>
+        <div class="card">
+          <span class="badge badge-sky">On-Device Models</span>
+          <h3>Architecture</h3>
+          <p style="margin-bottom: 6px;">• <strong>STT:</strong> sherpa-onnx Whisper</p>
+          <p style="margin-bottom: 6px;">• <strong>Vectors:</strong> Google EmbeddingGemma 2</p>
+          <p>• <strong>Extraction:</strong> LiteRT-LM Gemma</p>
+        </div>
+        <div class="card">
+          <span class="badge badge-amber">Code Navigation</span>
+          <h3>Key Files</h3>
+          <p style="margin-bottom: 6px;">• <code>AppConfig.kt</code> (chunking & overlap)</p>
+          <p style="margin-bottom: 6px;">• <code>TranscriptMerge.kt</code> (dedup)</p>
+          <p>• <code>Search.kt</code> (ranking & grouping)</p>
         </div>
       </div>
     </section>
@@ -576,7 +657,8 @@
     <div style="display: flex; align-items: center; gap: 12px;">
       <button class="nav-btn" id="prevBtn" title="Previous Slide (Left Arrow)">◀</button>
       <button class="nav-btn" id="nextBtn" title="Next Slide (Right Arrow)">▶</button>
-      <span style="font-size: 0.85rem; color: var(--text-muted); margin-left: 8px;" id="slideCounter">Slide 1 of 6</span>
+      <span style="font-size: 0.85rem; color: var(--text-muted); margin-left: 8px;" id="slideCounter">Slide 1 of
+        6</span>
     </div>
 
     <div class="progress-bar-container">
@@ -584,9 +666,11 @@
     </div>
 
     <div style="display: flex; align-items: center; gap: 16px; font-size: 0.85rem; color: var(--text-muted);">
-      <span>Use <kbd style="background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px;">←</kbd> <kbd style="background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px;">→</kbd> keys</span>
+      <span>Use <kbd style="background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px;">←</kbd> <kbd
+          style="background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px;">→</kbd> keys</span>
       <span>•</span>
-      <a href="https://github.com/AnnaMarieM/Therapy_local" target="_blank" style="color: var(--primary); text-decoration: none; font-weight: 600;">GitHub Repo ↗</a>
+      <a href="https://github.com/AnnaMarieM/Therapy_local" target="_blank"
+        style="color: var(--primary); text-decoration: none; font-weight: 600;">GitHub Repo ↗</a>
     </div>
   </footer>
 
@@ -699,4 +783,5 @@
     startTimer();
   </script>
 </body>
+
 </html>

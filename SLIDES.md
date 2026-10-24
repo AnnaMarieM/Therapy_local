@@ -48,6 +48,16 @@
 
 ---
 
+## Slide 6: Questions & Answers (Q&A)
+# Questions & Answers
+> **“Retrieve the history. Keep judgment human.”**
+
+- **Repository:** `github.com/AnnaMarieM/Therapy_local` (MIT License)
+- **On-Device Models:** sherpa-onnx Whisper + Google EmbeddingGemma 2 (740M)
+- **Key Files:** `AppConfig.kt` (chunking & overlap), `TranscriptMerge.kt` (dedup), `Search.kt` (ranking)
+
+---
+
 ## Rehearsal & Judges' Q&A Reference
 
 ### Question 1: "How is your product better than the same model without your layer, and how did you check that?"
