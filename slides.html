@@ -523,33 +523,26 @@
       </div>
     </section>
 
-    <!-- SLIDE 2: Problem -->
-    <section class="slide" data-speaker="The Problem & Purpose" data-time="0:00 - 0:45"
-      data-notes="Therapists see 5 to 8 patients a day with heavy emotional stories. Weeks later, a patient brings up a conflict, but finding the exact words from session one means flipping through handwritten binders. Cloud AI like ChatGPT or Claude is strictly off-limits due to HIPAA and ethics. MindVault gives therapists searchable memory while leaving judgment with the human.">
-      <h2 class="slide-title" style="font-size: 3.4rem; max-width: 950px; margin-bottom: 24px;">The Cognitive Load &
-        Privacy Barrier</h2>
-      <p class="slide-subtitle" style="font-size: 1.5rem; max-width: 900px; line-height: 1.6;">Therapists conduct 5–8
-        emotionally intensive sessions daily. Finding critical details across months of notes is broken.</p>
-    </section>
-
     <!-- SLIDE 3: How It Works / What We Built -->
     <section class="slide" data-speaker="What We Built" data-time="0:45 - 1:30"
       data-notes="The models give us two pieces: Whisper for transcription, and EmbeddingGemma for vector similarity. But raw models alone fail at therapy speech. Our software layer adds a 20-second chunker with 5-second overlap so hesitant pauses aren't split in half, deterministic transcript merging without calling an LLM, and persistent local storage that tags every chunk with its exact session date and time range.">
-      <h2 class="slide-title" style="font-size: 3.4rem; max-width: 950px;">What We Built: The Memory Pipeline</h2>
+      <h2 class="slide-title" style="font-size: 3.4rem; max-width: 950px;">What We Built? How Did We Build It?</h2>
     </section>
 
     <!-- SLIDE 4: Live Demo -->
     <section class="slide" data-speaker="Live Demonstration" data-time="1:30 - 2:30"
       data-notes="[Action: Switch to Android Phone / Compose App] Here is our Android app running on Pixel 8. We have synthetic demonstration sessions loaded for George M. In Session 1, he discussed work anxiety and feeling 'never good enough' due to his father. In Session 2 today, when he mentions his boss criticizing his work, watch what happens: the app retrieves the exact past quote from Session 1 with its timestamp. Let's open the Logs tab: here is the real pipeline trace showing embedding score and latency.">
       <span class="speaker-tag">📱 Live Android Demo · 1m</span>
-      <h2 class="slide-title" style="font-size: 3.4rem; max-width: 950px;">Live Demonstration: The "George M." Case</h2>
+      <h2 class="slide-title" style="font-size: 3.4rem; max-width: 950px;">Live Demonstration</h2>
     </section>
 
 
     <!-- SLIDE 5: Honest Limitations & What's Next -->
     <section class="slide" data-speaker="Limitations & First Use" data-time="3:20 - 4:05"
       data-notes="We believe in honesty with judges about current prototype limits: If a search has no matching memories, similarity search currently returns the closest available passage; we are actively calibrating a confidence threshold for 'no memory found.' Production also requires SQLCipher database encryption. On first use, the user grants permissions, downloads 645 MB of models once, and then taps 'Start Recording'. Retrieval takes under 3 seconds. MindVault's goal: Retrieve the history, keep judgment human.">
-      <h2 class="slide-title" style="font-size: 3.4rem; max-width: 950px;">Honest Limitations & Next Steps</h2>
+      <span class="speaker-tag">🎯 First Use & Closing · 45s</span>
+      <h2 class="slide-title" style="font-size: 3.4rem; max-width: 950px; margin-bottom: 24px;">Honest Limitations &
+        Next Steps</h2>
     </section>
 
     <!-- SLIDE 6: Q & A -->
@@ -557,8 +550,8 @@
 1. How is it better than plain models? Software turns recordings into persistent searchable memory with overlapping chunking, deterministic merging, and verifiable source time ranges. Code has self-tests and 6 transcript-cleaning tests.
 2. Where does it not work? No-match threshold calibration is in progress, requires at least 6GB RAM, and ambient noise degrades audio extraction.
 3. Steps to first use? Exactly 2 taps: Start Session and Stop Session. Models download automatically on first launch.">
-      <h2 class="slide-title" style="font-size: 3.4rem; margin-bottom: 24px;">Questions & Answers</h2>
-
+      <span class="speaker-tag">💬 Discussion</span>
+      <h2 class="slide-title" style="font-size: 3.4rem; margin-bottom: 16px;">Questions & Answers</h2>
       <div class="grid-2">
         <div class="card card-highlight">
           <span class="badge badge-primary">Open Source</span>

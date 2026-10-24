@@ -15,29 +15,23 @@
 
 ---
 
-## Slide 2: The Problem & The Ethical Wall (0:00 – 0:45)
-# The Cognitive Load & Privacy Barrier
-> **Therapists conduct 5–8 emotionally intensive sessions daily. Finding critical details across months of notes is broken.**
+## Slide 2: What We Built (0:45 – 1:30)
+# What We Built? How Did We Build It?
 
 ---
 
-## Slide 3: What We Built (0:45 – 1:30)
-# What We Built: The Memory Pipeline
-
----
-
-## Slide 4: Live Demonstration (1:30 – 2:30)
-# Live Demonstration: The "George M." Case
+## Slide 3: Live Demonstration (1:30 – 2:30)
+# Live Demonstration
 *(Live demonstration on device / app)*
 
 ---
 
-## Slide 5: Limitations, First Use & Closing (2:30 – 3:30)
+## Slide 4: Limitations, First Use & Closing (2:30 – 3:30)
 # Honest Limitations & Next Steps
 
 ---
 
-## Slide 6: Questions & Answers (Q&A)
+## Slide 5: Questions & Answers (Q&A)
 # Questions & Answers
 
 - **Repository:** `github.com/AnnaMarieM/Therapy_local` (MIT License)
