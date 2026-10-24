@@ -8,7 +8,6 @@
 ## Slide 1: Title Slide (0:00)
 **Title:** MindVault: Private, Verifiable Memory for Psychotherapists  
 **Subtitle:** 100% on-device longitudinal recall co-pilot on Android  
-**Team:** Michelle, Anna, Martin  
 **Key Highlights:**
 - **Zero Cloud:** All recording, Whisper transcription, and vector search run strictly on the phone.
 - **Verifiable Memory:** Every recalled past detail links to the exact recording date and millisecond time range.
@@ -17,7 +16,6 @@
 ---
 
 ## Slide 2: The Problem & The Ethical Wall (0:00 – 0:45)
-**Speaker:** Michelle (45 seconds)  
 **Headline:** The Cognitive Load of Therapy & The Confidentiality Barrier  
 **Slide Content:**
 - **Information Overload:** Therapists see 5–8 patients daily. Connecting a current workplace conflict to a childhood memory mentioned 6 months ago is difficult across dozens of client histories.
@@ -28,19 +26,12 @@
 ---
 
 ## Slide 3: What We Built (0:45 – 1:30)
-**Speaker:** Anna (45 seconds)  
-**Headline:** The Memory Pipeline: Beyond the Raw Model  
-**Slide Content:**
-Foundation models only transcribe or output vectors. Our software connects those capabilities into an intelligent memory workflow:
-1. **20s / 5s Overlapping Chunker (`AppConfig.kt`):** Captures hesitations, emotional pauses, and thoughts spoken across boundaries without losing context.
-2. **Deterministic Transcript Merging (`TranscriptClean.kt`, `TranscriptMerge.kt`):** Stitches overlapping phonetic boundaries cleanly without calling an LLM.
-3. **On-Device Vector Storage (`Embedder.kt`):** Maps speech and text into Google EmbeddingGemma 2 (740M) local embeddings.
-4. **Grounded Source Retrieval (`Search.kt`):** Cosine ranking returns the verbatim excerpt, session ID, and exact timestamp.
+# What We Built: The Memory Pipeline
+> **Foundation models only transcribe or produce vectors. Our software turns raw chunks into persistent, searchable memory.**
 
 ---
 
 ## Slide 4: Live Demonstration (1:30 – 2:30)
-**Speaker:** Anna (1 minute)  
 **Headline:** Live Run on Google Pixel 8: The "George M." Case  
 **Slide Content & Live Action Cues:**
 - **Action:** Open Android phone running the Kotlin Jetpack Compose app.
@@ -53,7 +44,6 @@ Foundation models only transcribe or output vectors. Our software connects those
 ---
 
 ## Slide 5: Evidence & Benchmark Comparison (2:30 – 3:20)
-**Speaker:** Martin (50 seconds)  
 **Headline:** Proof: Why Our Software Layer Wins Over Raw Models  
 **Slide Content (10-Sample Synthetic Benchmark):**
 
@@ -67,7 +57,6 @@ Foundation models only transcribe or output vectors. Our software connects those
 ---
 
 ## Slide 6: Limitations, First Use & Closing (3:20 – 4:05)
-**Speaker:** Martin (45 seconds)  
 **Headline:** Honest Limitations & Immediate First Use  
 **Slide Content:**
 - **Current Limitations:**

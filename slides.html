@@ -469,7 +469,7 @@
   <main class="deck-container">
 
     <!-- SLIDE 1: Title -->
-    <section class="slide active" data-speaker="Team Introduction (Michelle, Anna, Martin)" data-time="0:00" data-notes="Welcome judges. Today we are presenting MindVault — our on-device memory co-pilot built specifically for psychotherapists. We will walk through the core problem, our software layer around the models, a live demo on Android, and our honest benchmark evaluation.">
+    <section class="slide active" data-speaker="Overview" data-time="0:00" data-notes="Welcome judges. Today we are presenting MindVault — our on-device memory co-pilot built specifically for psychotherapists. We will walk through the core problem, our software layer around the models, a live demo on Android, and our honest benchmark evaluation.">
       <span class="speaker-tag">🎯 Pitch Presentation · 4 Minutes</span>
       <h1 class="slide-title">Private, Verifiable Memory<br>for Psychotherapists</h1>
       <p class="slide-subtitle">100% on-device longitudinal recall co-pilot. Built with on-device Whisper, Google EmbeddingGemma, and Kotlin Jetpack Compose.</p>
@@ -494,8 +494,8 @@
     </section>
 
     <!-- SLIDE 2: Problem -->
-    <section class="slide" data-speaker="Michelle — The Problem & Purpose" data-time="0:00 - 0:45" data-notes="[Michelle] Therapists see 5 to 8 patients a day with heavy emotional stories. Weeks later, a patient brings up a conflict, but finding the exact words from session one means flipping through handwritten binders. Cloud AI like ChatGPT or Claude is strictly off-limits due to HIPAA and ethics. MindVault gives therapists searchable memory while leaving judgment with the human.">
-      <span class="speaker-tag">👤 Michelle · 45 Seconds</span>
+    <section class="slide" data-speaker="The Problem & Purpose" data-time="0:00 - 0:45" data-notes="Therapists see 5 to 8 patients a day with heavy emotional stories. Weeks later, a patient brings up a conflict, but finding the exact words from session one means flipping through handwritten binders. Cloud AI like ChatGPT or Claude is strictly off-limits due to HIPAA and ethics. MindVault gives therapists searchable memory while leaving judgment with the human.">
+      <span class="speaker-tag">⚠️ The Core Problem · 45s</span>
       <h2 class="slide-title">The Cognitive Load & Privacy Barrier</h2>
       <p class="slide-subtitle">Therapists conduct 5–8 emotionally intensive sessions daily. Finding critical details across months of notes is broken.</p>
 
@@ -517,46 +517,15 @@
     </section>
 
     <!-- SLIDE 3: How It Works / What We Built -->
-    <section class="slide" data-speaker="Anna — What We Built" data-time="0:45 - 1:30" data-notes="[Anna] The models give us two pieces: Whisper for transcription, and EmbeddingGemma for vector similarity. But raw models alone fail at therapy speech. Our software layer adds a 20-second chunker with 5-second overlap so hesitant pauses aren't split in half, deterministic transcript merging without calling an LLM, and persistent local storage that tags every chunk with its exact session date and time range.">
-      <span class="speaker-tag">👤 Anna · 45 Seconds</span>
-      <h2 class="slide-title">What We Built: The Memory Pipeline</h2>
-      <p class="slide-subtitle">Foundation models only transcribe or produce vectors. Our software turns raw chunks into persistent, searchable memory.</p>
-
-      <div class="card" style="padding: 28px;">
-        <div class="pipeline-step">
-          <div class="step-number">1</div>
-          <div>
-            <h4 style="font-size: 1.1rem; margin-bottom: 4px;">20s Sliding Audio Chunker with 5s Overlap</h4>
-            <p>Captures natural pauses, emotional hesitations, and thoughts spoken across boundaries without truncation.</p>
-          </div>
-        </div>
-        <div class="pipeline-step">
-          <div class="step-number">2</div>
-          <div>
-            <h4 style="font-size: 1.1rem; margin-bottom: 4px;">On-Device Whisper STT + Deduplication Merging</h4>
-            <p>Fast local transcription via sherpa-onnx, deterministically stitched with <code>TranscriptClean.kt</code> & <code>TranscriptMerge.kt</code>.</p>
-          </div>
-        </div>
-        <div class="pipeline-step">
-          <div class="step-number">3</div>
-          <div>
-            <h4 style="font-size: 1.1rem; margin-bottom: 4px;">Google EmbeddingGemma 2 (740M) Vector Indexing</h4>
-            <p>Local embeddings mapped into an on-device index, isolating each patient's memory strictly to their profile.</p>
-          </div>
-        </div>
-        <div class="pipeline-step" style="margin-bottom: 0;">
-          <div class="step-number">4</div>
-          <div>
-            <h4 style="font-size: 1.1rem; margin-bottom: 4px;">Grounded Verifiable Retrieval with Exact Timestamps</h4>
-            <p>Cosine ranking in <code>Search.kt</code> returns the verbatim quote and source time range. Zero model hallucinations.</p>
-          </div>
-        </div>
-      </div>
+    <section class="slide" data-speaker="What We Built" data-time="0:45 - 1:30" data-notes="The models give us two pieces: Whisper for transcription, and EmbeddingGemma for vector similarity. But raw models alone fail at therapy speech. Our software layer adds a 20-second chunker with 5-second overlap so hesitant pauses aren't split in half, deterministic transcript merging without calling an LLM, and persistent local storage that tags every chunk with its exact session date and time range.">
+      <span class="speaker-tag">⚙️ Memory Architecture · 45s</span>
+      <h2 class="slide-title" style="font-size: 3.4rem; max-width: 950px; margin-bottom: 24px;">What We Built: The Memory Pipeline</h2>
+      <p class="slide-subtitle" style="font-size: 1.5rem; max-width: 900px; line-height: 1.6;">Foundation models only transcribe or produce vectors. Our software turns raw chunks into persistent, searchable memory.</p>
     </section>
 
     <!-- SLIDE 4: Live Demo -->
-    <section class="slide" data-speaker="Anna — Live Demonstration" data-time="1:30 - 2:30" data-notes="[Anna] [Action: Switch to Android Phone / Compose App] Here is our Android app running on Pixel 8. We have synthetic demonstration sessions loaded for George M. In Session 1, he discussed work anxiety and feeling 'never good enough' due to his father. In Session 2 today, when he mentions his boss criticizing his work, watch what happens: the app retrieves the exact past quote from Session 1 with its timestamp. Let's open the Logs tab: here is the real pipeline trace showing embedding score and latency.">
-      <span class="speaker-tag">👤 Anna · 1 Minute</span>
+    <section class="slide" data-speaker="Live Demonstration" data-time="1:30 - 2:30" data-notes="[Action: Switch to Android Phone / Compose App] Here is our Android app running on Pixel 8. We have synthetic demonstration sessions loaded for George M. In Session 1, he discussed work anxiety and feeling 'never good enough' due to his father. In Session 2 today, when he mentions his boss criticizing his work, watch what happens: the app retrieves the exact past quote from Session 1 with its timestamp. Let's open the Logs tab: here is the real pipeline trace showing embedding score and latency.">
+      <span class="speaker-tag">📱 Live Android Demo · 1m</span>
       <h2 class="slide-title">Live Demonstration: The "George M." Case</h2>
       <p class="slide-subtitle">Real-time local recall on Google Pixel 8 using synthetic clinical recordings.</p>
 
@@ -585,8 +554,8 @@
     </section>
 
     <!-- SLIDE 5: Proof / Comparison -->
-    <section class="slide" data-speaker="Martin — Evidence & Comparison" data-time="2:30 - 3:20" data-notes="[Martin] What does our software add compared to a raw model alone? Persistent storage, overlap stitching, and source timestamps. In our 10-sample synthetic benchmark, raw chunking cut sentences in half, succeeding only 3 out of 10 times. Our 5s overlap and deduplication pipeline successfully captured 9 out of 10 complete thoughts. Furthermore, plain models hallucinate when asked to recall past facts; our cosine retrieval provides 100% verbatim verifiable excerpts.">
-      <span class="speaker-tag">👤 Martin · 50 Seconds</span>
+    <section class="slide" data-speaker="Evidence & Comparison" data-time="2:30 - 3:20" data-notes="What does our software add compared to a raw model alone? Persistent storage, overlap stitching, and source timestamps. In our 10-sample synthetic benchmark, raw chunking cut sentences in half, succeeding only 3 out of 10 times. Our 5s overlap and deduplication pipeline successfully captured 9 out of 10 complete thoughts. Furthermore, plain models hallucinate when asked to recall past facts; our cosine retrieval provides 100% verbatim verifiable excerpts.">
+      <span class="speaker-tag">📊 Benchmark Evaluation · 50s</span>
       <h2 class="slide-title">Proof: Why Our Software Layer Wins</h2>
       <p class="slide-subtitle">Evaluation across 10 multi-session continuity test cases on synthetic therapy data.</p>
 
@@ -626,8 +595,8 @@
     </section>
 
     <!-- SLIDE 6: Honest Limitations & What's Next -->
-    <section class="slide" data-speaker="Martin — Limitations & First Use" data-time="3:20 - 4:05" data-notes="[Martin] We believe in honesty with judges about current prototype limits: If a search has no matching memories, similarity search currently returns the closest available passage; we are actively calibrating a confidence threshold for 'no memory found.' Production also requires SQLCipher database encryption. On first use, the user grants permissions, downloads 645 MB of models once, and then taps 'Start Recording'. Retrieval takes under 3 seconds. MindVault's goal: Retrieve the history, keep judgment human.">
-      <span class="speaker-tag">👤 Martin · 45 Seconds</span>
+    <section class="slide" data-speaker="Limitations & First Use" data-time="3:20 - 4:05" data-notes="We believe in honesty with judges about current prototype limits: If a search has no matching memories, similarity search currently returns the closest available passage; we are actively calibrating a confidence threshold for 'no memory found.' Production also requires SQLCipher database encryption. On first use, the user grants permissions, downloads 645 MB of models once, and then taps 'Start Recording'. Retrieval takes under 3 seconds. MindVault's goal: Retrieve the history, keep judgment human.">
+      <span class="speaker-tag">🎯 First Use & Closing · 45s</span>
       <h2 class="slide-title">Honest Limitations & Next Steps</h2>
       <p class="slide-subtitle">Transparent engineering boundaries and clinical roadmap.</p>
 
