@@ -32,14 +32,8 @@
 ---
 
 ## Slide 4: Live Demonstration (1:30 – 2:30)
-**Headline:** Live Run on Google Pixel 8: The "George M." Case  
-**Slide Content & Live Action Cues:**
-- **Action:** Open Android phone running the Kotlin Jetpack Compose app.
-- **Step 1: Pre-Session Brief:** Show the scannable summary of George's previous session themes.
-- **Step 2: Live Recording:** Start recording; show the audio waveform and the persistent floating bar when navigating tabs.
-- **Step 3: Grounded Recall:** Type a query (*"boss criticism"*); show the surfaced verbatim quote:
-  > 💡 *Session 1 (Oct 12): "Whenever my dad looked over my homework, he said I'd never make it."*
-- **Step 4: Pipeline Trace:** Open the **Logs** tab to show the exact embedding latency, cosine scores, and result grouping.
+# Live Demonstration: The "George M." Case
+*(Live demonstration on device / app)*
 
 ---
 
