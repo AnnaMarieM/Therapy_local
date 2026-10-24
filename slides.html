@@ -526,8 +526,10 @@
     <!-- SLIDE 2: Problem -->
     <section class="slide" data-speaker="The Problem & Purpose" data-time="0:00 - 0:45"
       data-notes="Therapists see 5 to 8 patients a day with heavy emotional stories. Weeks later, a patient brings up a conflict, but finding the exact words from session one means flipping through handwritten binders. Cloud AI like ChatGPT or Claude is strictly off-limits due to HIPAA and ethics. MindVault gives therapists searchable memory while leaving judgment with the human.">
-      <h2 class="slide-title" style="font-size: 3.4rem; max-width: 950px; margin-bottom: 24px;">The Cognitive Load & Privacy Barrier</h2>
-      <p class="slide-subtitle" style="font-size: 1.5rem; max-width: 900px; line-height: 1.6;">Therapists conduct 5–8 emotionally intensive sessions daily. Finding critical details across months of notes is broken.</p>
+      <h2 class="slide-title" style="font-size: 3.4rem; max-width: 950px; margin-bottom: 24px;">The Cognitive Load &
+        Privacy Barrier</h2>
+      <p class="slide-subtitle" style="font-size: 1.5rem; max-width: 900px; line-height: 1.6;">Therapists conduct 5–8
+        emotionally intensive sessions daily. Finding critical details across months of notes is broken.</p>
     </section>
 
     <!-- SLIDE 3: How It Works / What We Built -->
@@ -547,26 +549,23 @@
     <!-- SLIDE 5: Honest Limitations & What's Next -->
     <section class="slide" data-speaker="Limitations & First Use" data-time="3:20 - 4:05"
       data-notes="We believe in honesty with judges about current prototype limits: If a search has no matching memories, similarity search currently returns the closest available passage; we are actively calibrating a confidence threshold for 'no memory found.' Production also requires SQLCipher database encryption. On first use, the user grants permissions, downloads 645 MB of models once, and then taps 'Start Recording'. Retrieval takes under 3 seconds. MindVault's goal: Retrieve the history, keep judgment human.">
-      <span class="speaker-tag">🎯 First Use & Closing · 45s</span>
-      <h2 class="slide-title" style="font-size: 3.4rem; max-width: 950px; margin-bottom: 24px;">Honest Limitations & Next Steps</h2>
-      <p class="slide-subtitle" style="font-size: 1.5rem; max-width: 900px; line-height: 1.6;">“Retrieve the history. Keep judgment human.”</p>
+      <h2 class="slide-title" style="font-size: 3.4rem; max-width: 950px;">Honest Limitations & Next Steps</h2>
     </section>
 
     <!-- SLIDE 6: Q & A -->
-    <section class="slide" data-speaker="Q & A" data-time="Judges Q&A"
-      data-notes="Judges Q&A Reference:
+    <section class="slide" data-speaker="Q & A" data-time="Judges Q&A" data-notes="Judges Q&A Reference:
 1. How is it better than plain models? Software turns recordings into persistent searchable memory with overlapping chunking, deterministic merging, and verifiable source time ranges. Code has self-tests and 6 transcript-cleaning tests.
 2. Where does it not work? No-match threshold calibration is in progress, requires at least 6GB RAM, and ambient noise degrades audio extraction.
 3. Steps to first use? Exactly 2 taps: Start Session and Stop Session. Models download automatically on first launch.">
-      <span class="speaker-tag">💬 Discussion</span>
-      <h2 class="slide-title" style="font-size: 3.4rem; margin-bottom: 16px;">Questions & Answers</h2>
-      <p class="slide-subtitle" style="margin-bottom: 28px;">“Retrieve the history. Keep judgment human.”</p>
+      <h2 class="slide-title" style="font-size: 3.4rem; margin-bottom: 24px;">Questions & Answers</h2>
 
       <div class="grid-2">
         <div class="card card-highlight">
           <span class="badge badge-primary">Open Source</span>
           <h3>Repository</h3>
-          <p style="font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: var(--primary); margin-bottom: 8px;">github.com/AnnaMarieM/Therapy_local</p>
+          <p
+            style="font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: var(--primary); margin-bottom: 8px;">
+            github.com/AnnaMarieM/Therapy_local</p>
           <p>MIT License · Public repo · Kotlin Jetpack Compose UI · On-Device Inference</p>
         </div>
         <div class="card">

@@ -34,13 +34,11 @@
 
 ## Slide 5: Limitations, First Use & Closing (2:30 – 3:30)
 # Honest Limitations & Next Steps
-> **“Retrieve the history. Keep judgment human.”**
 
 ---
 
 ## Slide 6: Questions & Answers (Q&A)
 # Questions & Answers
-> **“Retrieve the history. Keep judgment human.”**
 
 - **Repository:** `github.com/AnnaMarieM/Therapy_local` (MIT License)
 - **On-Device Models:** sherpa-onnx Whisper + Google EmbeddingGemma 2 (740M)
