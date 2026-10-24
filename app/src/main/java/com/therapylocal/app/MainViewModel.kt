@@ -99,7 +99,8 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             models.status.collect { m -> _state.update { it.copy(models = needed().mapNotNull { s -> m[s.id] }) } }
         }
         refreshRecordings()
-        prepare()
+        // Memory-lab launches only need the LLM; loading the embedder and Whisper too would take memory the lab model needs.
+        if (!skipPrepare) prepare()
     }
 
     // ---- settings -------------------------------------------------------------------------------------------
@@ -383,5 +384,9 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     companion object {
         const val TAG = "App"
+
+        /** Set by a debug memory-lab launch before the view model is created. */
+        @Volatile
+        var skipPrepare = false
     }
 }

@@ -1,0 +1,42 @@
+# Marta — Session 7 — 2026-07-07 — ground-truth facts
+
+- Session held Tuesday 7 July 2026 with Dr. Anna; Marta arrived five minutes early after walking eight minutes from the tram stop.
+- Marta works as a UX researcher at Greenfield Health; Sam praised her research summary on Monday.
+- Marta slept about 4 to 4.5 hours on Thursday and about 7 hours on Friday.
+- Marta woke at around 3 a.m. on Saturday and replayed the 12 July phone call with her mother.
+- Marta had lunch with Aisha at a Thai place near the office; Aisha's sister in Leeds is due a baby in October.
+- Michal called on Thursday about money for the grave stone cleaning (he asked Marta to pay half) and said Babka asked whether Marta is coming for the anniversary.
+- Babka Ruzena is 86.
+- On 7 July Marta counted twelve days to the first anniversary of her mother's death on 19 July.
+- Sam asked about summer leave; Marta had not decided and said she would tell him by end of week.
+- Later in the session Marta says Sam approved leave in principle by Slack, roughly 14 to 22 July (about nine days), to go home for the anniversary.
+- Elena Novak was a seamstress in Petrzalka who was working on a large wedding-dress order in January last year.
+- In January last year Elena reported back pain, tiredness and weight loss, joking that she was "not eating enough cake."
+- In February last year Elena fainted at a vegetable stall in the Petrzalka market; the GP said stress and low iron.
+- Elena sent Marta a photo of her iron tablets in February; Marta replied "good, take them."
+- Elena asked Michal in February not to tell Marta, saying Marta would come and lose her job during the launch.
+- In March Elena sent Marta a balcony photo in a blue cardigan; Marta later noticed yellowing in her mother's eyes and joked about the phone filter.
+- On Sunday 20 April Elena told Marta it was high blood pressure, said "I'm not dying" as a joke, and asked Marta not to come in May because of the launch.
+- On 28 April Michal called Marta from his car to say Elena was in hospital in Bratislava and had pancreatic cancer.
+- Marta sat on the steps of a stairwell at work when she heard the diagnosis.
+- Marta had booked a flight home for Wednesday 2 May (via Vienna); Elena, through Michal, asked her not to come, and Marta felt relief.
+- In May Marta sent her mother a photo of a sunflower in a plastic cup; Elena replied "you are beautiful."
+- In early June Marta flew home for one weekend (Friday to Sunday); Elena was in a hospital bed in the living room, wearing a green headscarf, and rang a yellow bell for water.
+- On that June visit Marta had to ask where the kettle was, because Michal had moved it by the window for the nurse.
+- On a Saturday night during the June visit Marta asked Elena why she did not tell her in February; Elena said she did not want Marta to stop living and wanted one thing to go right for her.
+- Marta sat on the edge of her mother's bed until about 4 a.m. after that conversation.
+- On the airport drive Michal turned off the radio when a song Elena used to sing came on; Marta describes it as his only kind act that weekend.
+- Greenfield Health launched the triage module on 14 July last year; Marta was lead on the clinician-side user research (18 interviews in three weeks).
+- In April Elena told Marta to go and do the launch, saying "I'll be here."
+- The last call was on Saturday 12 July last year at about 6:40 p.m.; Elena said "I just wanted to hear you" and Marta replied "I'm busy, I'll call tomorrow."
+- Marta did not call Elena on Sunday or Monday; she flew home on Thursday night and Elena died on Saturday 19 July.
+- At the funeral there was a wooden cross with Elena's name in marker, written by Michal, because the stone was not ready.
+- Marta has not visited the grave since the funeral; Michal's handwriting is neat and resembles their father's.
+- Jana (friend in London) sent a twelve-minute voice message and said she was thinking of Marta on the 19th; Marta cried on the Underground.
+- Marta describes her coping style as "I'm fine" and the "soup rule": not talking about feelings, which she learned from her mother.
+- Marta is angry at her mother for deciding what she was allowed to know and angry at herself for the 12 July call; she also misses her mother.
+- Marta describes the 3 a.m. replay as "the three o'clock film."
+- Therapist asked Marta to keep a one-week sleep diary (bedtime, wake time, first waking thought).
+- Therapist asked Marta to consider a small role at home or at the grave, possibly by asking Babka what she would like her to do.
+- Marta's image for her place at family events is standing "outside the room with my hands in my pockets."
+- Next session is planned in about two weeks.

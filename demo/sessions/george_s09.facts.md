@@ -1,0 +1,39 @@
+# George — Session 9 — 2026-09-22 — ground-truth facts
+
+- Session date is 22 September 2026, a Tuesday; the previous session was at the start of September.
+- Milo (beagle) ate a sock on Saturday 19 September; emergency vet removed it for £210.
+- Father Richard had a stent after his angina and was discharged on the Wednesday before George's September visit.
+- George felt nothing when told about his father's heart, then felt guilty; describes it as "watching someone else do it."
+- Mother Joan phoned George every day for about a week after Richard's stent.
+- Sleep: wakes around 4 a.m.; a sleep tracker app averages 5 h 40 min; Laura sometimes makes him tea on bad mornings.
+- Drinks two or three glasses of wine most nights, sometimes one; had one alcohol-free week in August, ticked off on the calendar.
+- Stopped running; bought grey trainers in August; ran about 2 km and stopped with chest tightness; used to run 13 miles on Sundays.
+- Sunday 13 September 2026: walk in Clevedon with Laura (fish and chips on the seafront).
+- On the seafront Laura asked "Are you unhappy with me?", the same question she asked in the spring.
+- George answered that he is unhappy with himself and has been putting it onto the marriage.
+- Laura said she had known for ages; she is not leaving but asked George to stop pretending everything is fine, because it makes her feel "mad."
+- Laura teaches a Year Two class of 31 children.
+- Dennis Marsh sends work emails at 8 to 9 p.m.; George drafts replies on the sofa with his laptop.
+- George agreed with Laura to talk properly about having children by December; he logged "Talk to L. re: kids" in his phone diary.
+- George's core fear on children is becoming his father; he admits he already notices the "look" in himself (with Milo).
+- Laura's request: "Tell me when you're scared." George agreed to try.
+- Lisbon: Laura first raised the trip in June; George booked a guesthouse in Chiado on Sunday 13 September night, on his laptop in bed.
+- Lisbon dates are Thursday 12 to Monday 16 November 2026 (four nights); room cost £612; free cancellation until 1 November; the guesthouse is above a bookshop and has about eleven rooms.
+- Laura has asked for Friday 13 and Monday 16 November off; it is not half-term.
+- George needs annual leave for Thursday 12 and Friday 13 November and had not yet asked Dennis; planned to send the request in writing by Friday 25 September.
+- Laura's Lisbon list: Belém tower, the tram, custard tarts, fado in Alfama, a day trip to Sintra, the Gulbenkian museum and garden.
+- The last holiday was a Cornwall cottage the year before last, where George worked on his laptop throughout.
+- Plan to keep his phone out of reach on holiday and turn off email notifications.
+- Friday 18 September, about 4:50 p.m.: Dennis asked George to work Saturday 19 September for the Hartley response pack due Monday.
+- George refused the Saturday, offering to deliver by 10 a.m. Monday instead; Dennis said "Tom'll have to do the Saturday bit"; Tom worked the Saturday.
+- Priya texted after the refusal; she had said no to Dennis in March over the Dunmore reviews and told George he is "allowed to have a life."
+- George had three glasses of wine with Laura on Friday 18 September and finished a bottle of Rioja; he felt ashamed afterwards.
+- Saturday 19 September: George woke at about 3:50 a.m., checked email, and slept again for about 90 minutes.
+- Monday 21 September: Dennis rewrote the Hartley executive summary in front of George and said the formatting was poor; no sanction or follow-up was seen.
+- "What's the point" thoughts now come mainly on Thursday train journeys; George denies suicidal ideation or self-harm thoughts; crisis number kept in his wallet.
+- Sunday 20 September, around 2 p.m.: George phoned Richard, who now takes a tablet each morning; Richard said "a small job for a senior is still a job" and "You sound tired."
+- After the call George felt anger for the rest of the day, the first real feeling he has had about his father in this period.
+- Sister Claire, in Leeds, texted a photo of her two children and invited George to visit in October; he has not replied yet.
+- George plans to stop drinking on Monday, Wednesday and Thursday nights; Laura knows the plan.
+- George has saved the GP surgery number on his phone but has not yet rung it.
+- Next session is booked for Tuesday 6 October 2026, same time.
