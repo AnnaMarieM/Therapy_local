@@ -80,3 +80,16 @@ The model (about 2.6 GB) lives in the app's own folder on the phone:
 - **Check the model:** `scripts/model.sh check` (file, size, sha256).
 - **Seed it without downloading:** `scripts/model.sh push gemma-4-E2B-it.litertlm`, then open the app.
 - The app trusts the file size on launch, so starting is instant. It only verifies the sha256 right after a download.
+- Models now live in sub-folders: Gemma stays at the top level, `embeddinggemma-2-740m/` (485 MB, text and audio embeddings) and `whisper-<size>/` (tiny 103 MB, base 160 MB, small 375 MB) are fetched on demand with the same resumable, checksummed downloader.
+
+## Repeatable audio tests (debug builds)
+
+Debug builds can replay a WAV through the real chunker instead of the microphone, and use one as a voice query.
+
+```bash
+python3 -I scripts/make_test_audio.py <dir with 0.wav 1.wav 8k.wav> /tmp/testaudio   # known-speech sources: see the script
+adb shell mkdir -p /sdcard/Android/data/com.therapylocal.app/files/test
+adb push /tmp/testaudio/. /sdcard/Android/data/com.therapylocal.app/files/test/
+```
+
+Then use the "Record from ..." buttons on the Record tab and the "Query ..." buttons on the Search tab. Read the result with `scripts/traces.sh summary`.
