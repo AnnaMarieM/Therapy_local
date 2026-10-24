@@ -120,9 +120,8 @@ fun MindVaultApp(
                                     selectedPatient = p
                                     currentScreen = "profile"
                                 },
-                                onAddPatient = { newP ->
-                                    clientsVm.addLocal(newP)
-                                },
+                                onAddPatient = { newP -> clientsVm.create(newP.name, newP.age.takeIf { it > 0 }, newP.presenting) },
+                                onDeletePatient = { p -> clientsVm.delete(p.id) },
                                 onOpenSettings = {
                                     currentTab = "settings"
                                     currentScreen = "settings"
@@ -136,6 +135,11 @@ fun MindVaultApp(
                                 patient = activeP,
                                 isSessionActive = isSessionActive && sessionPatient?.id == activeP.id,
                                 onBack = {
+                                    currentScreen = "patients"
+                                },
+                                onDeletePatient = { p ->
+                                    clientsVm.delete(p.id)
+                                    selectedPatient = null
                                     currentScreen = "patients"
                                 },
                                 onStartSession = { p -> startSession(p) },

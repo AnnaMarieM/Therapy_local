@@ -86,6 +86,9 @@ object MemoryQueue {
         update { it.copy(jobs = fresh.map { j -> saved[j.id]?.takeIf { s -> s.status == JobStatus.Done } ?: saved[j.id]?.takeIf { s -> s.status == JobStatus.Failed }?.copy(status = JobStatus.Queued, error = null) ?: j }) }
     }
 
+    /** Drops a deleted client's jobs and profile from the state (and the saved queue). */
+    fun removeClient(client: String) = update { s -> s.copy(jobs = s.jobs.filter { it.client != client }, profiles = s.profiles - client) }
+
     fun retryFailed() = update { s -> s.copy(jobs = s.jobs.map { if (it.status == JobStatus.Failed || it.status == JobStatus.Cancelled) it.copy(status = JobStatus.Queued, error = null, stage = "") else it }) }
 
     private fun readSaved(): List<SessionJob> = try {

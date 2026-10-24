@@ -52,6 +52,18 @@ class MemoryStore(context: Context) : SQLiteOpenHelper(context, "memory.db", nul
                  chunk INTEGER NOT NULL)""",
         )
         createSessionMeta(db)
+        createClients(db)
+    }
+
+    private fun createClients(db: SQLiteDatabase) {
+        db.execSQL(
+            """CREATE TABLE IF NOT EXISTS clients(
+                 id TEXT PRIMARY KEY,
+                 name TEXT NOT NULL,
+                 age INTEGER,
+                 occupation TEXT NOT NULL DEFAULT '',
+                 created_at INTEGER NOT NULL)""",
+        )
     }
 
     /** Per-session extras the pipeline does not produce: the session date and the therapist's own observations. */
@@ -67,7 +79,10 @@ class MemoryStore(context: Context) : SQLiteOpenHelper(context, "memory.db", nul
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-        if (oldVersion < 2) createSessionMeta(db)
+        if (oldVersion < 2) {
+            createSessionMeta(db)
+            createClients(db)
+        }
     }
 
     fun clearClient(client: String) {
@@ -75,6 +90,54 @@ class MemoryStore(context: Context) : SQLiteOpenHelper(context, "memory.db", nul
         writableDatabase.delete("facts", "client = ?", arrayOf(client))
         writableDatabase.delete("fact_support", "client = ?", arrayOf(client))
         writableDatabase.delete("session_meta", "client = ?", arrayOf(client))
+    }
+
+    /** A client the therapist created. Data stored by the pipeline for a client that was never created here still lists (see [listClients]). */
+    data class ClientRow(val id: String, val name: String, val age: Int?, val occupation: String)
+
+    fun createClient(id: String, name: String, age: Int?, occupation: String) {
+        writableDatabase.insertOrThrow(
+            "clients", null,
+            ContentValues().apply {
+                put("id", id); put("name", name); if (age != null) put("age", age); put("occupation", occupation); put("created_at", System.currentTimeMillis())
+            },
+        )
+    }
+
+    /** Created clients plus clients that only exist through stored chunks, facts or sessions (their name is the capitalised id). Sorted by name. */
+    fun listClients(): List<ClientRow> {
+        val out = LinkedHashMap<String, ClientRow>()
+        readableDatabase.rawQuery("SELECT id, name, age, occupation FROM clients", null).use { c ->
+            while (c.moveToNext()) out[c.getString(0)] = ClientRow(c.getString(0), c.getString(1), if (c.isNull(2)) null else c.getInt(2), c.getString(3))
+        }
+        readableDatabase.rawQuery(
+            "SELECT client FROM chunks UNION SELECT client FROM facts UNION SELECT client FROM session_meta", null,
+        ).use { c ->
+            while (c.moveToNext()) c.getString(0).let { id -> if (id !in out) out[id] = ClientRow(id, id.replaceFirstChar { it.uppercase() }, null, "") }
+        }
+        return out.values.sortedBy { it.name.lowercase() }
+    }
+
+    data class ClientDelete(val clients: Int, val chunks: Int, val facts: Int, val supports: Int, val sessions: Int)
+
+    /** Removes a client and everything stored for it, in one transaction. Returns the removed row counts. */
+    fun deleteClient(id: String): ClientDelete {
+        val db = writableDatabase
+        db.beginTransaction()
+        try {
+            val key = arrayOf(id)
+            val r = ClientDelete(
+                db.delete("clients", "id = ?", key),
+                db.delete("chunks", "client = ?", key),
+                db.delete("facts", "client = ?", key),
+                db.delete("fact_support", "client = ?", key),
+                db.delete("session_meta", "client = ?", key),
+            )
+            db.setTransactionSuccessful()
+            return r
+        } finally {
+            db.endTransaction()
+        }
     }
 
     fun putChunk(client: String, session: String, idx: Int, text: String, vec: FloatArray) {
@@ -140,14 +203,8 @@ class MemoryStore(context: Context) : SQLiteOpenHelper(context, "memory.db", nul
 
     // ---- clients, sessions, source text, recurrence (read by the UI repository) ----------------------------------
 
-    /** Every client that has any stored data, sorted by name. */
-    fun clients(): List<String> {
-        val out = ArrayList<String>()
-        readableDatabase.rawQuery(
-            "SELECT client FROM chunks UNION SELECT client FROM facts UNION SELECT client FROM session_meta ORDER BY 1", null,
-        ).use { c -> while (c.moveToNext()) out += c.getString(0) }
-        return out
-    }
+    /** Ids of every client, created or only present through stored data. */
+    fun clients(): List<String> = listClients().map { it.id }
 
     /** One session of a client: its date (empty if unknown) and how much was stored for it. */
     data class SessionInfo(val id: String, val date: String, val chunks: Int, val facts: Int)

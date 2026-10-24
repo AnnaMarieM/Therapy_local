@@ -22,6 +22,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -37,6 +38,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -65,11 +67,13 @@ fun ProfileScreen(
     patient: Patient,
     isSessionActive: Boolean,
     onBack: () -> Unit,
+    onDeletePatient: (Patient) -> Unit,
     onStartSession: (Patient) -> Unit,
     onReturnToActiveSession: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }
+    var confirmDelete by remember { mutableStateOf(false) }
     val tabs = listOf("Overview", "Sessions", "Facts")
 
     Column(
@@ -103,7 +107,7 @@ fun ProfileScreen(
 
             Spacer(modifier = Modifier.width(12.dp))
 
-            Column {
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = patient.name,
                     fontSize = 22.sp,
@@ -117,6 +121,26 @@ fun ProfileScreen(
                     color = MutedText
                 )
             }
+
+            IconButton(onClick = { confirmDelete = true }, modifier = Modifier.size(36.dp)) {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = "Delete patient",
+                    tint = MutedText,
+                    modifier = Modifier.size(18.dp)
+                )
+            }
+        }
+
+        if (confirmDelete) {
+            ConfirmDeletePatientDialog(
+                patient = patient,
+                onDismiss = { confirmDelete = false },
+                onConfirm = {
+                    confirmDelete = false
+                    onDeletePatient(patient)
+                }
+            )
         }
 
         Spacer(modifier = Modifier.height(14.dp))

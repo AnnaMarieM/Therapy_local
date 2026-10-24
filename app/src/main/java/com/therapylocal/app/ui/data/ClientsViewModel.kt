@@ -10,10 +10,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-/** Holds the client list for the UI. Reloads from the memory store on [refresh]; patients added in the UI only live in memory for now. */
+/** Holds the client list for the UI. Reloads from the memory store on [refresh]. */
 class ClientsViewModel(app: Application) : AndroidViewModel(app) {
     val repo = ClientRepository(app)
-    private val local = ArrayList<Patient>()
     private val _patients = MutableStateFlow<List<Patient>>(emptyList())
     val patients: StateFlow<List<Patient>> = _patients.asStateFlow()
 
@@ -24,14 +23,23 @@ class ClientsViewModel(app: Application) : AndroidViewModel(app) {
     fun refresh() {
         viewModelScope.launch(Dispatchers.IO) {
             val stored = repo.patients()
-            _patients.value = local.filter { l -> stored.none { it.id == l.id } } + stored
+            _patients.value = stored
         }
     }
 
-    /** TODO: persist new clients; until then they vanish on restart. */
-    fun addLocal(p: Patient) {
-        local.add(0, p)
-        _patients.value = listOf(p) + _patients.value
+    /** Creates the client in the memory store and returns it (with its real id). */
+    fun create(name: String, age: Int?, occupation: String): Patient {
+        val p = repo.createClient(name, age, occupation)
+        _patients.value = listOf(p) + _patients.value.filter { it.id != p.id }
+        return p
+    }
+
+    fun delete(id: String) {
+        _patients.value = _patients.value.filter { it.id != id }
+        viewModelScope.launch(Dispatchers.IO) {
+            repo.deleteClient(id)
+            refresh()
+        }
     }
 
     /** In-memory update of one patient, used for the mock fallback data only. */
