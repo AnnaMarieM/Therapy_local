@@ -529,46 +529,6 @@
       <h2 class="slide-title" style="font-size: 3.4rem; max-width: 950px;">Live Demonstration: The "George M." Case</h2>
     </section>
 
-    <!-- SLIDE 5: Proof / Comparison -->
-    <section class="slide" data-speaker="Evidence & Comparison" data-time="2:30 - 3:20" data-notes="What does our software add compared to a raw model alone? Persistent storage, overlap stitching, and source timestamps. In our 10-sample synthetic benchmark, raw chunking cut sentences in half, succeeding only 3 out of 10 times. Our 5s overlap and deduplication pipeline successfully captured 9 out of 10 complete thoughts. Furthermore, plain models hallucinate when asked to recall past facts; our cosine retrieval provides 100% verbatim verifiable excerpts.">
-      <span class="speaker-tag">📊 Benchmark Evaluation · 50s</span>
-      <h2 class="slide-title">Proof: Why Our Software Layer Wins</h2>
-      <p class="slide-subtitle">Evaluation across 10 multi-session continuity test cases on synthetic therapy data.</p>
-
-      <div class="card" style="padding: 16px 24px;">
-        <table class="compare-table">
-          <thead>
-            <tr>
-              <th>Evaluation Metric</th>
-              <th>Raw Baseline Model (Plain Whisper/Gemma)</th>
-              <th>MindVault Layer</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td><strong>Sentence Boundary Recall</strong></td>
-              <td><span class="val-bad">❌ 3 / 10</span> (sentences cut in half)</td>
-              <td><span class="val-good">✅ 9 / 10</span> (5s overlap + deduplication)</td>
-            </tr>
-            <tr>
-              <td><strong>Verbatim Source Attribution</strong></td>
-              <td><span class="val-bad">❌ 0 / 10</span> (no session/timestamp link)</td>
-              <td><span class="val-good">✅ 10 / 10</span> (recording ID + ms timestamp)</td>
-            </tr>
-            <tr>
-              <td><strong>Hallucination / Speculation</strong></td>
-              <td><span class="val-bad">⚠️ High</span> (confabulates past statements)</td>
-              <td><span class="val-good">✅ Zero</span> (deterministic vector search)</td>
-            </tr>
-            <tr>
-              <td><strong>Patient Privacy & Air-gap</strong></td>
-              <td>Varies by deployment</td>
-              <td><span class="val-good">✅ 100% On-Device</span> (zero cloud APIs)</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
 
     <!-- SLIDE 6: Honest Limitations & What's Next -->
     <section class="slide" data-speaker="Limitations & First Use" data-time="3:20 - 4:05" data-notes="We believe in honesty with judges about current prototype limits: If a search has no matching memories, similarity search currently returns the closest available passage; we are actively calibrating a confidence threshold for 'no memory found.' Production also requires SQLCipher database encryption. On first use, the user grants permissions, downloads 645 MB of models once, and then taps 'Start Recording'. Retrieval takes under 3 seconds. MindVault's goal: Retrieve the history, keep judgment human.">

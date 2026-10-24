@@ -35,22 +35,7 @@
 # Live Demonstration: The "George M." Case
 *(Live demonstration on device / app)*
 
----
-
-## Slide 5: Evidence & Benchmark Comparison (2:30 – 3:20)
-**Headline:** Proof: Why Our Software Layer Wins Over Raw Models  
-**Slide Content (10-Sample Synthetic Benchmark):**
-
-| Metric | Raw Baseline Model | MindVault Layer |
-|---|---|---|
-| **Sentence-Boundary Recall** | **3 / 10** (phrases broken across fixed chunks lose meaning) | **9 / 10** (5s overlap + deduplication stitching retains full sentence semantics) |
-| **Verbatim Source Attribution** | **0 / 10** (no session/timestamp link) | **10 / 10** (recording ID + millisecond timestamp linked to every result) |
-| **Hallucination Risk** | High (prompting model to recall past facts introduces confabulation) | **Zero** (deterministic vector similarity over embedded transcript chunks) |
-| **Offline Privacy Guarantee** | Dependent on cloud APIs | **100% Air-Gapped** (zero data leaves the phone) |
-
----
-
-## Slide 6: Limitations, First Use & Closing (3:20 – 4:05)
+## Slide 5: Limitations, First Use & Closing (2:30 – 3:30)
 **Headline:** Honest Limitations & Immediate First Use  
 **Slide Content:**
 - **Current Limitations:**
@@ -66,7 +51,7 @@
 ## Rehearsal & Judges' Q&A Reference
 
 ### Question 1: "How is your product better than the same model without your layer, and how did you check that?"
-> *"The models provide raw transcription and embeddings. Our software turns recordings into persistent, searchable memory: it handles overlapping chunks, cleans and merges transcripts, stores them locally, and retrieves passages with their recording and time range. In our 10-sample synthetic benchmark, raw chunking cut sentences in half and succeeded only 3 out of 10 times, whereas our overlapping pipeline correctly retained 9 out of 10 complete thoughts."*
+> *"The models provide transcription and embeddings. Our software turns recordings into persistent, searchable memory: it handles overlapping chunks, cleans and merges transcripts, stores them locally, and retrieves passages with their recording and time range. The code includes an embedding self-test and six transcript-cleaning and merging tests. However, we haven’t completed a benchmark against the same model without our software, so we’re not claiming a measured accuracy improvement yet."*
 
 ### Question 2: "Where does your product not work?"
 > *"On uncalibrated zero-match queries—it currently returns the closest available memory rather than explicitly saying 'no match found.' It also requires a device with at least 6 GB of RAM, and noisy rooms degrade local transcription."*
