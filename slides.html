@@ -547,10 +547,7 @@
     <!-- SLIDE 3: How It Works / What We Built -->
     <section class="slide" data-speaker="What We Built" data-time="0:45 - 1:30"
       data-notes="The models give us two pieces: Whisper for transcription, and EmbeddingGemma for vector similarity. But raw models alone fail at therapy speech. Our software layer adds a 20-second chunker with 5-second overlap so hesitant pauses aren't split in half, deterministic transcript merging without calling an LLM, and persistent local storage that tags every chunk with its exact session date and time range.">
-      <span class="speaker-tag">⚙️ Memory Architecture · 45s</span>
-      <h2 class="slide-title" style="font-size: 3.4rem; max-width: 950px; margin-bottom: 24px;">What We Built</h2>
-      <p class="slide-subtitle" style="font-size: 1.5rem; max-width: 900px; line-height: 1.6;">Foundation models only
-        transcribe or produce vectors. Our software turns raw chunks into persistent, searchable memory.</p>
+      <h2 class="slide-title" style="font-size: 3.4rem; max-width: 950px;">What We Built: The Memory Pipeline</h2>
     </section>
 
     <!-- SLIDE 4: Live Demo -->

@@ -24,7 +24,6 @@
 
 ## Slide 3: What We Built (0:45 – 1:30)
 # What We Built: The Memory Pipeline
-> **Foundation models only transcribe or produce vectors. Our software turns raw chunks into persistent, searchable memory.**
 
 ---
 
