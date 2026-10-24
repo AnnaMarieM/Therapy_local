@@ -13,3 +13,7 @@ node_modules/
 dist/
 **/dist/
 .tempmediaStorage/
+.env
+.env.local
+.env.*.local
+*.env
