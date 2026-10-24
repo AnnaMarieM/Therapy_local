@@ -16,12 +16,9 @@
 ---
 
 ## Slide 2: The Problem & The Ethical Wall (0:00 – 0:45)
-**Headline:** The Cognitive Load of Therapy & The Confidentiality Barrier  
-**Slide Content:**
-- **Information Overload:** Therapists see 5–8 patients daily. Connecting a current workplace conflict to a childhood memory mentioned 6 months ago is difficult across dozens of client histories.
-- **Manual Burnout:** Post-session note-taking consumes hours after clinical hours.
-- **The Ethical Barrier:** Therapists **cannot** upload patient audio, transcripts, or disclosures to cloud APIs (OpenAI, Anthropic) due to doctor-patient confidentiality, ethics, and GDPR/HIPAA.
-- **Core Principle:** The memory co-pilot must be 100% air-gapped on-device.
+**Headline:** The Cognitive Load & Privacy Barrier  
+- **The Problem:** Information Overload Across Sessions
+- **The Ethical Wall:** Cloud AI Is Strictly Prohibited
 
 ---
 
@@ -35,16 +32,11 @@
 # Live Demonstration: The "George M." Case
 *(Live demonstration on device / app)*
 
+---
+
 ## Slide 5: Limitations, First Use & Closing (2:30 – 3:30)
-**Headline:** Honest Limitations & Immediate First Use  
-**Slide Content:**
-- **Current Limitations:**
-  - *No-Match Threshold:* Cosine similarity currently returns nearest passages; calibrated confidence rejection is under active development.
-  - *Acoustic Noise:* Background chatter degrades 16 kHz feature extraction.
-  - *Storage:* Debug prototype uses Room SQLite; production will enforce SQLCipher AES-256.
-- **First Use:** Permissions + automatic one-time model preparation (~645 MB). Producing a transcript requires just 2 taps (Start Session → Stop Session).
-- **Closing Motto:**  
-  > **“Retrieve the history. Keep judgment human.”**
+# Honest Limitations & Next Steps
+> **“Retrieve the history. Keep judgment human.”**
 
 ---
 

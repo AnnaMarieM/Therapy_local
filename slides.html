@@ -534,21 +534,12 @@
       <div class="grid-2">
         <div class="card">
           <span class="badge badge-amber">The Problem</span>
-          <h3>Information Overload Across Sessions</h3>
-          <p style="margin-bottom: 12px;">Patients circle back to foundational conflicts months apart. Remembering that
-            a conflict with a boss in November connects to a father's criticism in May is daunting when handling 30+
-            active clients.</p>
-          <p>Manual note-taking takes hours after sessions, causing burnout and fragmented clinical continuity.</p>
+          <h3 style="font-size: 1.35rem;">Information Overload Across Sessions</h3>
         </div>
 
-        <div class="card">
+        <div class="card card-highlight">
           <span class="badge badge-primary">The Ethical Wall</span>
-          <h3>Cloud AI Is Strictly Prohibited</h3>
-          <p style="margin-bottom: 12px;">Therapists <strong>cannot upload audio or transcripts to OpenAI, Anthropic, or
-              cloud vector databases</strong> due to doctor-patient confidentiality, ethics, and GDPR/HIPAA regulations.
-          </p>
-          <p>The solution must be <strong>100% air-gapped on-device</strong> or it cannot legally exist in a clinical
-            therapy room.</p>
+          <h3 style="font-size: 1.35rem;">Cloud AI Is Strictly Prohibited</h3>
         </div>
       </div>
     </section>
@@ -570,39 +561,12 @@
     </section>
 
 
-    <!-- SLIDE 6: Honest Limitations & What's Next -->
+    <!-- SLIDE 5: Honest Limitations & What's Next -->
     <section class="slide" data-speaker="Limitations & First Use" data-time="3:20 - 4:05"
       data-notes="We believe in honesty with judges about current prototype limits: If a search has no matching memories, similarity search currently returns the closest available passage; we are actively calibrating a confidence threshold for 'no memory found.' Production also requires SQLCipher database encryption. On first use, the user grants permissions, downloads 645 MB of models once, and then taps 'Start Recording'. Retrieval takes under 3 seconds. MindVault's goal: Retrieve the history, keep judgment human.">
       <span class="speaker-tag">🎯 First Use & Closing · 45s</span>
-      <h2 class="slide-title">Honest Limitations & Next Steps</h2>
-      <p class="slide-subtitle">Transparent engineering boundaries and clinical roadmap.</p>
-
-      <div class="grid-2">
-        <div class="card">
-          <span class="badge badge-amber">Current Limitations</span>
-          <h3 style="margin-bottom: 12px;">Where We Don't Work Yet</h3>
-          <ul
-            style="list-style: none; display: flex; flex-direction: column; gap: 10px; color: var(--text-muted); font-size: 0.9rem;">
-            <li>⚠️ <strong>No-Match Thresholding:</strong> Currently surfaces nearest chunk if nothing matches;
-              threshold calibration is in progress.</li>
-            <li>⚠️ <strong>Ambient Acoustic Noise:</strong> Heavy background chatter degrades 16 kHz on-device feature
-              extraction.</li>
-            <li>⚠️ <strong>Database Encryption:</strong> Debug prototype uses Room SQLite; production will enforce
-              SQLCipher AES-256.</li>
-          </ul>
-        </div>
-
-        <div class="card card-highlight">
-          <span class="badge badge-primary">First-Time Use & Closing</span>
-          <h3 style="margin-bottom: 12px;">Immediate First-Use Path</h3>
-          <p style="margin-bottom: 12px;"><strong>Time to first transcript:</strong> 2 taps (Start Session → Stop
-            Session). Model preparation runs automatically on first launch (~645 MB download once over Wi-Fi).</p>
-          <div
-            style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; padding: 14px; font-weight: 700; color: var(--primary); text-align: center; margin-top: 18px; font-size: 1.1rem;">
-            “Retrieve the history. Keep judgment human.”
-          </div>
-        </div>
-      </div>
+      <h2 class="slide-title" style="font-size: 3.4rem; max-width: 950px; margin-bottom: 24px;">Honest Limitations & Next Steps</h2>
+      <p class="slide-subtitle" style="font-size: 1.5rem; max-width: 900px; line-height: 1.6;">“Retrieve the history. Keep judgment human.”</p>
     </section>
 
     <!-- SLIDE 6: Q & A -->
