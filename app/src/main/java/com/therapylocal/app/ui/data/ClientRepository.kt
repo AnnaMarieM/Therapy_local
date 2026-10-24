@@ -36,7 +36,7 @@ class ClientRepository(context: Context, private val store: MemoryStore = Memory
     /** Deletes the client and all its stored data, and drops it from the pipeline queue state. */
     fun deleteClient(id: String) {
         val r = store.deleteClient(id)
-        MemoryQueue.removeClient(id)
+        MemoryQueue.dropClient(id)
         prefs.edit().putBoolean(MOCK_DISMISSED_KEY, true).apply()
         AppLog.i(TAG, "delete_client_verified", LogCtx.NONE, "client" to id, "removed_clients" to r.clients, "removed_chunks" to r.chunks, "removed_facts" to r.facts, "removed_supports" to r.supports, "removed_sessions" to r.sessions)
     }

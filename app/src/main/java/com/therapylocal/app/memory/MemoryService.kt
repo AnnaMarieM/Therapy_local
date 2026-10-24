@@ -47,7 +47,9 @@ class MemoryService : Service() {
                 }
             }, "memory-notif").also { it.isDaemon = true; it.start() }
             try {
-                MemoryLab(app).run()
+                do {
+                    MemoryLab(app).run()
+                } while (MemoryQueue.hasQueued() && !MemoryQueue.cancelRequested) // a session enqueued just as the run ended
             } catch (t: Throwable) {
                 AppLog.e(MemoryLlm.TAG, "memory_lab_failed", LogCtx.NONE, t)
                 java.io.File(app.getExternalFilesDir(null), "memory/out/ERROR").apply { parentFile?.mkdirs() }.writeText(t.stackTraceToString())
