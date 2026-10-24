@@ -82,9 +82,27 @@ object MemoryQueue {
 
     /** Replaces the job list. With [resume], jobs already Done in the saved queue keep their status and are skipped. */
     fun load(fresh: List<SessionJob>, resume: Boolean) {
-        val saved = if (resume) readSaved().associateBy { it.id } else emptyMap()
+        val savedList = if (resume) readSaved() else emptyList()
+        // App mode has no fixed job list: whatever was queued (and not finished) before the process died simply continues.
+        if (fresh.isEmpty()) {
+            update { it.copy(jobs = savedList) }
+            return
+        }
+        val saved = savedList.associateBy { it.id }
         update { it.copy(jobs = fresh.map { j -> saved[j.id]?.takeIf { s -> s.status == JobStatus.Done } ?: saved[j.id]?.takeIf { s -> s.status == JobStatus.Failed }?.copy(status = JobStatus.Queued, error = null) ?: j }) }
     }
+
+    /** Adds a job at the end of the queue unless one with that id exists. Safe to call while the runner is working: it picks up new Queued jobs. */
+    @Synchronized
+    fun enqueue(job: SessionJob) {
+        if (_state.value.jobs.any { it.id == job.id }) return
+        update { it.copy(jobs = it.jobs + job) }
+    }
+
+    fun hasQueued(): Boolean = _state.value.jobs.any { it.status == JobStatus.Queued }
+
+    /** Drops every job of [client] that is not running, for when the client is deleted. */
+    fun dropClient(client: String) = update { s -> s.copy(jobs = s.jobs.filterNot { it.client == client && it.status != JobStatus.Running }, profiles = s.profiles - client) }
 
     fun retryFailed() = update { s -> s.copy(jobs = s.jobs.map { if (it.status == JobStatus.Failed || it.status == JobStatus.Cancelled) it.copy(status = JobStatus.Queued, error = null, stage = "") else it }) }
 
