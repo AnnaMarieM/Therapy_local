@@ -45,7 +45,6 @@
 
 - **Repository:** `github.com/AnnaMarieM/Therapy_local` (MIT License)
 - **On-Device Models:** sherpa-onnx Whisper + Google EmbeddingGemma 2 (740M)
-- **Key Files:** `AppConfig.kt` (chunking & overlap), `TranscriptMerge.kt` (dedup), `Search.kt` (ranking)
 
 ---
 
