@@ -38,6 +38,11 @@ android {
     }
     // jvmTarget is set via the kotlin { compilerOptions } block below
     buildFeatures { compose = true }
+    lint {
+        // The Compose runtime lint jar bundles an old kotlinx-metadata and crashes on Kotlin 2.4 types (LiteRT-LM needs Kotlin 2.4).
+        // These two detectors read Flow metadata. Re-enable once androidx ships lint built against newer metadata.
+        disable += listOf("FlowOperatorInvokedInComposition", "StateFlowValueCalledInComposition")
+    }
     packaging { jniLibs { useLegacyPackaging = true } }
 }
 
