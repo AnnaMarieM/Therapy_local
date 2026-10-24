@@ -1,0 +1,35 @@
+- George is 41, a senior auditor, and works with Dennis Marsh, who publicly criticises his reports.
+- Dennis rewrote the executive summary of the Carrow report and put his own name on it in June, which is when George's drinking began to creep up.
+- Carrow report went back to George for a third round of changes before Dennis's rewrite.
+- George's father Richard had chest pains on the stairs on Sunday 16 August 2026 and sat on the top step; Joan called an ambulance.
+- Joan phoned George at about 2:30 p.m. on 16 August; George was in the kitchen doing expenses for the Hallam account.
+- George felt no emotion on the phone and went back to a spreadsheet, finishing the expenses task in about forty minutes.
+- George did not feel the impact until Wednesday night in bed, when he imagined standing at Richard's funeral and felt sick enough to go to the bathroom.
+- Richard was diagnosed with angina, had an angiogram on Wednesday 19 August, and had a stent placed in an artery (possibly the left).
+- Richard was admitted to Cheltenham General Hospital.
+- George visited the ward on Saturday 22 August, driving from Bristol (about an hour and a bit, roughly two hours with traffic).
+- Richard greeted George with "Well, you've made it, then."
+- Richard's medication list, which he read out, included aspirin, a statin, a blood pressure drug and a spray he called "the squirty thing".
+- Richard's cardiologist told him to cut out salt, alcohol and the stairs; Richard complained that the stairs advice was ridiculous.
+- Richard told George "don't let him walk all over you" about Dennis, which George found to be the first time his father sided with him.
+- Richard said "You've put on weight, George"; George has not weighed himself since June.
+- Richard said George "looked very smart" on speakerphone to Claire, which George said he had never heard before.
+- Joan brought Richard homemade flapjack and chicken in a Tupperware box, despite salt restrictions.
+- Joan has a green-tube hand cream that George associates with her; George noticed she has become smaller.
+- Claire (37) lives in Leeds with two children and comes down for major family events.
+- Laura's response to the hospital visit was "Well, that's something," and George felt tired of her being kind about his father.
+- George sat in his car in the Cheltenham General car park for about forty minutes without starting the engine and could not cry; a man in a fleece knocked on the window.
+- George drank two glasses of red wine on the evening of 22 August and then a second glass; Laura noticed the glasses without commenting.
+- George drinks two to three glasses of wine most nights, since roughly June.
+- George wakes at about 4:10 a.m. with the "four o'clock list" and cannot get back to sleep; he falls asleep easily at night.
+- George has typed "sleep" and "stress" into the GP surgery booking form on the Sunday before this session and then closed the laptop without submitting.
+- George does not want to use the online booking, which he compares to applying for a loan.
+- George has occasional "what's the point" thoughts, particularly in traffic at about 4 p.m. on the M4; he says his dog Milo is his reason to keep going.
+- Milo is a six-year-old beagle who eats socks.
+- Priya commented at a July drinks event that George was on "your fourth one".
+- George was caught copying in his maths exam at sixteen after a mock grade of seven; he copied from Jason Pickering and got an eight.
+- George stopped running in March after being passed over for promotion; he had completed the Bath and Cardiff half-marathons in one year and used to run on the canal path early in the morning.
+- George is reading a book about the Second World War and has been on the same page for a month.
+- Richard asked after Milo through Joan; George plans to bring Milo to the hospital on the coming Sunday.
+- George agreed to phone the GP surgery on Thursday and say "I'm not sleeping" at minimum.
+- George describes his own fear as the fear of being caught, which he links to being found wrong, with his father as the source of the rule that feelings must stay hidden.

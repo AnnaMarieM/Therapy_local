@@ -1,0 +1,39 @@
+# Marta — Session 9 — 2026-09-08 — ground-truth facts
+
+- Session date is Tuesday 2026-09-08, held in the Manchester consulting room; Marta walked over and took the number 50 bus to the bottom of Oxford Road.
+- Marta's cat Pepa has been hiding under the bed since the previous Thursday.
+- Marta slept about four hours the night before the session and was no longer watching the clock.
+- Marta now wakes around 3 a.m. mostly about work slides, not always the phone call.
+- Marta is presenting findings from twelve nurse interviews (June, nurse scheduling app) at a Greenfield Health review on Thursday 2026-09-10, with a fifteen-minute slot.
+- The nurse interviews produced about twelve hours of audio and about sixty pages of notes.
+- Nurse Ilona said the app makes her feel like a bad nurse; Marta wants to use this quote, and Sam thinks it is too emotional for the product people.
+- Aisha is Marta's colleague and backup for the review; Aisha said Marta "turns her feelings into a deliverable."
+- Sam sends Marta articles about sustainable pace.
+- Marta cooked her mother's halušky for the first time on Saturday 2026-09-05, starting around one o'clock and taking almost five hours.
+- Marta bought Liptov bryndza at the Polish deli on Wilmslow Road, and the shopkeeper said she needed the real kind.
+- Marta first bought the wrong potatoes (waxy salad potatoes, from the Co-op on Friday night) and went back on Saturday morning for floury potatoes.
+- Elena never gave Marta exact quantities; she described the recipe as "a feeling" (phone call in 2019).
+- Marta bought a plastic halušky sieve online on Thursday; it arrived too small, so she cut the dough with a knife.
+- Marta's first dough was too wet; she retrieved an egg she had thrown in the bin.
+- Marta let the dough rest for about two hours.
+- Marta ate roughly 400 grams of halušky, felt sick afterwards, and said it was good.
+- Marta cried at the kitchen window while watching a man and a grey dog on the corner of Beech Road, and laughed and cried in the same minute.
+- Elena sang while cooking, often with the wrong words to Slovak songs.
+- Jana texted Marta in Slovak ("Mama by bola hrdá") after the cooking plan was shared.
+- Marta's last call with Elena was Saturday 2025-07-12, about 22 seconds long, at Elena's usual Saturday time; Marta cut it short with "I'm busy, I'll call tomorrow."
+- Elena took a breath before answering that call, which Marta has replayed nightly since.
+- The voicemail from Elena was left Monday 2025-07-14 at 21:41 and is one minute fifty-two seconds long; Marta saw the notification at a Greenfield launch dinner in Ancoats and did not listen.
+- Marta had kept the old iPhone 8 in a drawer, with a dead battery, and first listened to the voicemail on Sunday 2026-09-06, stopping after about ten seconds before finishing it.
+- Marta flew to Bratislava on Thursday 2025-07-17, arrived about seven in the evening, and Elena died on Saturday 2025-07-19 early in the morning.
+- In the voicemail Elena says the doctor said she was tired, gave her stomach tablets, and asked Marta not to tell Babka; Marta now feels anger about this secrecy alongside tenderness.
+- In the voicemail Elena gives Marta the silver thimble from the blue tin in the bottom drawer, saying "It's yours," and says it fits Marta's finger.
+- Marta took the thimble from the blue tin in August 2025, the week after the funeral, and has carried it in her jeans pocket since.
+- Elena asked Marta to make halušky together when she came home; the voicemail ends with "Love you, moja" and a pause in which Marta did not say it back.
+- Marta's friend Jana, in London, pushed her in June to charge the old phone, and said Marta was avoiding ("ty sa vyhýbaš").
+- Marta moved from the Brook Street flat to Chorlton in autumn 2025.
+- Michal texted Marta on the Friday before the session about the grave and the anniversary; Marta says she went to the grave in July and does not want to discuss Michal's comment today.
+- Babka Ruzena is 86, turns 87 in November, calls Marta on Sundays, and said "Soon is not a date."
+- Marta is considering visiting Babka in October or in the winter and bringing the thimble.
+- Marta is considering making halušky again next July on the anniversary, or inviting Michal to Chorlton to eat it.
+- Marta's body signal of distress is tightness in the chest and raised shoulders; she used breathing to settle.
+- Next session is in two weeks, around 2026-09-22; therapist plans to cover sleep, the Babka visit, and whether the voicemail changes the trip.

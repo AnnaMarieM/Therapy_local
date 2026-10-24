@@ -67,11 +67,20 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        maybeRunMemoryLab(intent)
         setContent { MaterialTheme { Surface(Modifier.fillMaxSize()) { Screen(viewModel) } } }
     }
 }
 
-private val TABS = listOf("Record", "Recordings", "Search", "Logs")
+/** Debug only: `adb shell am start -n .../.MainActivity --ez memory_lab true` starts the queue described by files/memory/job.json. */
+private fun ComponentActivity.maybeRunMemoryLab(intent: Intent?) {
+    if (!BuildConfig.DEBUG || intent?.getBooleanExtra("memory_lab", false) != true) return
+    MainViewModel.skipPrepare = true
+    com.therapylocal.app.memory.MemoryLab.start(applicationContext)
+}
+
+private const val MEMORY_TAB = 3
+private val TABS = listOf("Record", "Recordings", "Search", "Memory", "Logs")
 
 private fun fmt(ms: Long) = "%d:%02d".format(ms / 60000, ms / 1000 % 60)
 
@@ -104,12 +113,14 @@ private fun Screen(vm: MainViewModel) {
                 0 -> RecordTab(state, vm, hasMic, requestMic)
                 1 -> RecordingsTab(state, vm)
                 2 -> SearchTab(state, vm, hasMic, requestMic)
+                MEMORY_TAB -> com.therapylocal.app.memory.MemoryTab()
                 else -> LogsTab()
             }
         }
     }
 
-    if (state.phase != Phase.Ready) PrepareDialog(state, onRetry = vm::retry)
+    // The Memory tab (and a lab launch, which skips model preloading) never needs the Record/Search models, so no blocking dialog there.
+    if (state.phase != Phase.Ready && tab != MEMORY_TAB && !MainViewModel.skipPrepare) PrepareDialog(state, onRetry = vm::retry)
 }
 
 @Composable
