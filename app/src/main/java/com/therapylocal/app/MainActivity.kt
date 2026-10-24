@@ -62,13 +62,61 @@ import com.therapylocal.app.config.ChunkConfig
 import com.therapylocal.app.log.AppLog
 import com.therapylocal.app.models.ModelState
 
+import com.therapylocal.app.ui.MindVaultApp
+
 class MainActivity : ComponentActivity() {
     private val viewModel: MainViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         maybeRunMemoryLab(intent)
-        setContent { MaterialTheme { Surface(Modifier.fillMaxSize()) { Screen(viewModel) } } }
+        setContent {
+            val context = LocalContext.current
+            var showDebugScreen by rememberSaveable { mutableStateOf(MainViewModel.skipPrepare) }
+
+            val permissions = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {}
+            LaunchedEffect(Unit) {
+                val wanted = buildList {
+                    add(Manifest.permission.RECORD_AUDIO)
+                    if (Build.VERSION.SDK_INT >= 33) add(Manifest.permission.POST_NOTIFICATIONS)
+                }.filter { ContextCompat.checkSelfPermission(context, it) != PackageManager.PERMISSION_GRANTED }
+                if (wanted.isNotEmpty()) permissions.launch(wanted.toTypedArray())
+            }
+            val hasMic = { ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED }
+            val requestMic = { permissions.launch(arrayOf(Manifest.permission.RECORD_AUDIO)) }
+
+            if (showDebugScreen) {
+                MaterialTheme {
+                    Surface(Modifier.fillMaxSize()) {
+                        Column(Modifier.fillMaxSize()) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text("Diagnostics & Raw ML", fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
+                                Button(onClick = { showDebugScreen = false }) {
+                                    Text("Back to MindVault")
+                                }
+                            }
+                            Box(modifier = Modifier.weight(1f)) {
+                                Screen(viewModel)
+                            }
+                        }
+                    }
+                }
+            } else {
+                MindVaultApp(
+                    viewModel = viewModel,
+                    hasMicPermission = hasMic,
+                    requestMicPermission = requestMic,
+                    // The developer harness (Record/Recordings/Search/Memory/Logs) is a Settings menu item in debug builds only.
+                    onShowLegacyDebugView = if (BuildConfig.DEBUG) ({ showDebugScreen = true }) else null
+                )
+            }
+        }
     }
 }
 
@@ -91,18 +139,11 @@ private fun Screen(vm: MainViewModel) {
     var tab by rememberSaveable { mutableIntStateOf(0) }
 
     val permissions = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {}
-    LaunchedEffect(Unit) {
-        val wanted = buildList {
-            add(Manifest.permission.RECORD_AUDIO)
-            if (Build.VERSION.SDK_INT >= 33) add(Manifest.permission.POST_NOTIFICATIONS)
-        }.filter { ContextCompat.checkSelfPermission(context, it) != PackageManager.PERMISSION_GRANTED }
-        if (wanted.isNotEmpty()) permissions.launch(wanted.toTypedArray())
-    }
     val hasMic = { ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED }
     val requestMic = { permissions.launch(arrayOf(Manifest.permission.RECORD_AUDIO)) }
 
     Column(Modifier.fillMaxSize()) {
-        Row(Modifier.fillMaxWidth().padding(top = 24.dp), horizontalArrangement = Arrangement.SpaceEvenly) {
+        Row(Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.SpaceEvenly) {
             TABS.forEachIndexed { i, t ->
                 if (i == tab) Button(onClick = { tab = i }) { Text(t, fontSize = 12.sp) }
                 else OutlinedButton(onClick = { tab = i }) { Text(t, fontSize = 12.sp) }
