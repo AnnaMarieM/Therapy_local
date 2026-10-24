@@ -46,8 +46,14 @@ android {
     }
     lint {
         // The Compose runtime lint jar bundles an old kotlinx-metadata and crashes on Kotlin 2.4 types (LiteRT-LM needs Kotlin 2.4).
-        // These two detectors read Flow metadata. Re-enable once androidx ships lint built against newer metadata.
-        disable += listOf("FlowOperatorInvokedInComposition", "StateFlowValueCalledInComposition")
+        // The detectors of that jar read Kotlin metadata and each crashes in turn on our Compose code, so all of androidx.compose.runtime's
+        // lint ids (runtime-lint 1.6.8) are off. Re-enable once androidx ships lint built against newer metadata.
+        disable += listOf(
+            "AutoboxingStateCreation", "AutoboxingStateValueProperty", "ComposableLambdaParameterNaming", "ComposableLambdaParameterPosition",
+            "ComposableNaming", "CompositionLocalNaming", "CoroutineCreationDuringComposition", "FlowOperatorInvokedInComposition",
+            "MutableCollectionMutableState", "OpaqueUnitKey", "ProduceStateDoesNotAssignValue", "RememberReturnType",
+            "StateFlowValueCalledInComposition", "UnrememberedMutableState",
+        )
     }
     packaging { jniLibs { useLegacyPackaging = true } }
 
