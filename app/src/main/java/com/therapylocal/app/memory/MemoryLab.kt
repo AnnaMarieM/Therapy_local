@@ -25,7 +25,7 @@ import java.io.File
  *   4. false: the fact is committed (append-only, never overwrites). true: the repeat is recorded against the matching fact.
  * Steps 3 and 4 run one fact at a time, so a fact committed from chunk 2 is already visible when chunk 3's repeat of it is checked.
  */
-class MemoryLab(private val context: Context) {
+class MemoryLab(private val context: Context, private val useJobFile: Boolean = false) {
     private val root = File(context.getExternalFilesDir(null), "memory")
     private val out = File(root, "out").apply { mkdirs() }
     private val prompts = File(root, "prompts")
@@ -74,7 +74,8 @@ class MemoryLab(private val context: Context) {
     fun run() {
         // job.json is optional: the debug harness uses it for a fixed list and settings; in the app the queue is fed by MemoryProcessor.
         val settings = File(root, "job.json")
-        val job = Job(if (settings.exists()) JSONObject(settings.readText()) else JSONObject())
+        // Only a debug launch reads it: a leftover file from a test run must never reset clients or re-run old sessions in the real app.
+        val job = Job(if (useJobFile && settings.exists()) JSONObject(settings.readText()) else JSONObject())
         val bench = File(out, "bench.jsonl")
         MemoryQueue.bind(File(out, "queue.json"))
         val fresh = job.sessions.map { (file, date) -> SessionJob(file.removeSuffix(".md"), file.substringBefore('_'), file, date) }
@@ -282,7 +283,7 @@ class MemoryLab(private val context: Context) {
     }
 
     companion object {
-        /** Starts the queue in the foreground service (survives leaving the app) unless it is already running. */
-        fun start(context: Context) = MemoryService.start(context.applicationContext)
+        /** Starts the queue in the foreground service (survives leaving the app) unless it is already running. This is the debug entry (Memory tab, `memory_lab` intent): it reads job.json. */
+        fun start(context: Context) = MemoryService.start(context.applicationContext, debugJob = true)
     }
 }
