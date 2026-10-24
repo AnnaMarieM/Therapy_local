@@ -52,11 +52,6 @@ object FactSchemas {
       "evidence":{"type":"string","minLength":5,"maxLength":160}},
       "required":["category","subject","fact","evidence"],"additionalProperties":false}}},"required":["facts"],"additionalProperties":false}
     """.trimIndent()
-
-    /** Review answer. Tiny on purpose, so constrained decoding has no room to loop. */
-    val REVIEW = """
-    {"type":"object","properties":{"duplicate":{"type":"boolean"},"of":{"type":"string"}},"required":["duplicate","of"],"additionalProperties":false}
-    """.trimIndent()
 }
 
 object FactParser {

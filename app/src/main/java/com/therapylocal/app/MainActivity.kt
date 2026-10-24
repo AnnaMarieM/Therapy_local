@@ -72,7 +72,7 @@ class MainActivity : ComponentActivity() {
         maybeRunMemoryLab(intent)
         setContent {
             val context = LocalContext.current
-            var showDebugScreen by rememberSaveable { mutableStateOf(false) }
+            var showDebugScreen by rememberSaveable { mutableStateOf(MainViewModel.skipPrepare) }
 
             val permissions = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {}
             LaunchedEffect(Unit) {
@@ -112,7 +112,8 @@ class MainActivity : ComponentActivity() {
                     viewModel = viewModel,
                     hasMicPermission = hasMic,
                     requestMicPermission = requestMic,
-                    onShowLegacyDebugView = { showDebugScreen = true }
+                    // The developer harness (Record/Recordings/Search/Memory/Logs) is a Settings menu item in debug builds only.
+                    onShowLegacyDebugView = if (BuildConfig.DEBUG) ({ showDebugScreen = true }) else null
                 )
             }
         }

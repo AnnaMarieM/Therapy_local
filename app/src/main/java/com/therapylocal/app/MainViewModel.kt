@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.therapylocal.app.asr.AsrEngine
 import com.therapylocal.app.asr.GemmaAsr
 import com.therapylocal.app.asr.SherpaWhisperAsr
+import com.therapylocal.app.audio.AudioChunk
 import com.therapylocal.app.audio.ChunkRecorder
 import com.therapylocal.app.audio.TestAudio
 import com.therapylocal.app.config.BackendPolicy
@@ -22,6 +23,8 @@ import com.therapylocal.app.data.TranscriptMerge
 import com.therapylocal.app.embed.Embedder
 import com.therapylocal.app.log.AppLog
 import com.therapylocal.app.log.LogCtx
+import com.therapylocal.app.memory.LiveCues
+import com.therapylocal.app.memory.MemoryStore
 import com.therapylocal.app.models.ModelManager
 import com.therapylocal.app.models.ModelRegistry
 import com.therapylocal.app.models.ModelSpec
@@ -29,6 +32,7 @@ import com.therapylocal.app.models.ModelState
 import com.therapylocal.app.models.ModelStatus
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -85,6 +89,9 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     private val store = Store(app)
     private val models = ModelManager(app, viewModelScope)
     private val embedder = Embedder(app)
+
+    /** Realtime fact cues while recording: call `liveCues.start(client)` before startRecording(); it stops itself when the recording ends. */
+    val liveCues = LiveCues(embedder, MemoryStore(app))
     private var asr: AsrEngine? = null
     private var prepareJob: Job? = null
 
@@ -192,6 +199,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             val rid = withContext(Dispatchers.IO) { store.createRecording(engine.engineName, engine.modelName) }
             val c = LogCtx(rid)
             val rec = ChunkRecorder.recording(c)
+            rec.tap = liveCues::feed
             try {
                 startSource(rec)
             } catch (t: Throwable) {
@@ -222,7 +230,14 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     private suspend fun runPipeline(rid: Long, rec: ChunkRecorder, engine: AsrEngine) {
         val ctx0 = LogCtx(rid)
         var processed = 0
-        for (chunk in rec.chunks) {
+        // While live cues run they own the embedder, so chunks are only collected (in memory) until the recording ends; embedding, ASR and storing happen after.
+        val held = ArrayList<AudioChunk>()
+        if (liveCues.running.value) {
+            for (chunk in rec.chunks) held += chunk
+            liveCues.stop()
+        }
+        val queued = if (held.isEmpty()) rec.chunks else Channel<AudioChunk>(Channel.UNLIMITED).also { ch -> held.forEach { ch.trySend(it) }; ch.close() }
+        for (chunk in queued) {
             val c = ctx0.chunk(chunk.idx)
             _state.update { it.copy(pendingChunks = it.pendingChunks + 1, status = "Chunk ${chunk.idx}: embedding audio") }
             try {
@@ -273,6 +288,12 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         AppLog.i(TAG, "transcript_merge", LogCtx(rid = rid), "chunks" to chunks.size, "removed_words" to r.removedWords.joinToString(","), "merged_chars" to r.text.length)
         return r.text
     }
+
+    /** Chunk transcripts of one recording, in order. For the MindVault UI, which shows the live transcript. */
+    suspend fun recordingChunks(rid: Long): List<ChunkRow> = withContext(Dispatchers.IO) { store.chunks(rid) }
+
+    /** The whole recording as one text (overlap words removed): what the memory pipeline gets when a session ends. */
+    suspend fun recordingTranscript(rid: Long): String = withContext(Dispatchers.IO) { mergedText(rid, store.chunks(rid)) }
 
     fun select(id: Long?) {
         _state.update { it.copy(selected = id, selectedChunks = emptyList(), selectedMerged = "") }

@@ -25,7 +25,7 @@ import java.io.File
  *   4. false: the fact is committed (append-only, never overwrites). true: the repeat is recorded against the matching fact.
  * Steps 3 and 4 run one fact at a time, so a fact committed from chunk 2 is already visible when chunk 3's repeat of it is checked.
  */
-class MemoryLab(private val context: Context) {
+class MemoryLab(private val context: Context, private val useJobFile: Boolean = false) {
     private val root = File(context.getExternalFilesDir(null), "memory")
     private val out = File(root, "out").apply { mkdirs() }
     private val prompts = File(root, "prompts")
@@ -41,10 +41,10 @@ class MemoryLab(private val context: Context) {
         val stripLabels = o.optBoolean("stripLabels", false)
         val maxOutputTokens = o.optInt("maxOutputTokens", 1600)
         val extractTemperature = o.optDouble("extractTemperature", 0.1)
-        val resetProfiles = o.optBoolean("resetProfiles", true)
+        val resetProfiles = o.optBoolean("resetProfiles", false)
         val benchPrefill = o.optBoolean("benchPrefill", false)
         val jobAttempts = o.optInt("jobAttempts", 3)
-        val sessions: List<Pair<String, String>> = o.getJSONArray("sessions").let { a ->
+        val sessions: List<Pair<String, String>> = (o.optJSONArray("sessions") ?: JSONArray()).let { a ->
             (0 until a.length()).map { val s = a.getJSONObject(it); s.getString("file") to s.optString("date", "") }
         }
     }
@@ -72,7 +72,10 @@ class MemoryLab(private val context: Context) {
 
     /** Runs the whole queue: clients in order, each client's sessions in date order. Safe to call again after a stop or crash (resume). */
     fun run() {
-        val job = Job(JSONObject(File(root, "job.json").readText()))
+        // job.json is optional: the debug harness uses it for a fixed list and settings; in the app the queue is fed by MemoryProcessor.
+        val settings = File(root, "job.json")
+        // Only a debug launch reads it: a leftover file from a test run must never reset clients or re-run old sessions in the real app.
+        val job = Job(if (useJobFile && settings.exists()) JSONObject(settings.readText()) else JSONObject())
         val bench = File(out, "bench.jsonl")
         MemoryQueue.bind(File(out, "queue.json"))
         val fresh = job.sessions.map { (file, date) -> SessionJob(file.removeSuffix(".md"), file.substringBefore('_'), file, date) }
@@ -89,9 +92,10 @@ class MemoryLab(private val context: Context) {
             runBlocking { embedder.load() }
             MemoryQueue.update { it.copy(backend = llm.backend, message = "Running") }
             if (job.benchPrefill) benchPrefill(llm, job, bench)
-            for (item in MemoryQueue.state.value.jobs) {
-                publishProfile(item.client)
-                if (item.status == JobStatus.Done) continue
+            // Jobs can be added while this runs, so take the next Queued one each time instead of iterating a snapshot.
+            MemoryQueue.state.value.clients.forEach { publishProfile(it) }
+            while (true) {
+                val item = MemoryQueue.state.value.jobs.firstOrNull { it.status == JobStatus.Queued } ?: break
                 if (MemoryQueue.cancelRequested) {
                     MemoryQueue.updateJob(item.id) { it.copy(status = JobStatus.Cancelled, stage = "stopped") }
                     continue
@@ -154,6 +158,7 @@ class MemoryLab(private val context: Context) {
         MemoryQueue.updateJob(sid) { it.copy(windows = chunks.size, windowsDone = 0, extracted = 0, added = 0, stage = "extracting 1/${chunks.size}") }
 
         // 1 + 2: embed and store every chunk, extract candidate facts from it.
+        if (item.date.isNotEmpty()) store.putSession(client, sid, item.date)
         val candidates = ArrayList<Fact>()
         chunks.forEachIndexed { i, chunk ->
             if (MemoryQueue.cancelRequested) return stopped(sid)
@@ -224,8 +229,8 @@ class MemoryLab(private val context: Context) {
     private class Verdict(val duplicate: Boolean, val of: Fact?, val note: String)
 
     /**
-     * Asks Gemma for a true/false duplicate verdict as JSON, greedy, against the [near] known facts (always shown, whatever their score).
-     * Tries constrained decoding first (the schema is tiny), then free text, then once more; an unreadable answer counts as "not a duplicate",
+     * Asks Gemma for a true/false duplicate verdict as JSON (greedy), against the [near] known facts (always shown, whatever their score).
+     * Asks for a JSON answer and validates it, up to 3 attempts; an unreadable answer counts as "not a duplicate",
      * so a model failure can never lose a fact. Every decision is logged with the neighbours it saw.
      */
     private fun review(llm: MemoryLlm, cand: Fact, near: List<Pair<Fact, Float>>, sid: String, n: Int, bench: File): Verdict {
@@ -237,7 +242,8 @@ class MemoryLab(private val context: Context) {
         for (attempt in 1..3) {
             attempts = attempt
             try {
-                val reply = llm.ask(prompt("review.system.txt"), user, if (attempt == 1) FactSchemas.REVIEW else null, 40, 0.1, 1)
+                // Not schema-constrained: turning constrained decoding on makes createConversation take about 4 s (measured), against 2 ms without it.
+                val reply = llm.ask(prompt("review.system.txt"), user, null, 40, 0.1, 1)
                 raw = reply.text
                 val o = FactParser.json(raw)
                 val dup = o?.opt("duplicate")
@@ -277,7 +283,7 @@ class MemoryLab(private val context: Context) {
     }
 
     companion object {
-        /** Starts the queue in the foreground service (survives leaving the app) unless it is already running. */
-        fun start(context: Context) = MemoryService.start(context.applicationContext)
+        /** Starts the queue in the foreground service (survives leaving the app) unless it is already running. This is the debug entry (Memory tab, `memory_lab` intent): it reads job.json. */
+        fun start(context: Context) = MemoryService.start(context.applicationContext, debugJob = true)
     }
 }

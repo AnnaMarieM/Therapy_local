@@ -29,6 +29,7 @@ class MemoryService : Service() {
             notify(build("Stopping after the current step"))
             return START_NOT_STICKY
         }
+        val debugJob = intent?.getBooleanExtra(EXTRA_DEBUG_JOB, false) == true
         val nm = getSystemService(NotificationManager::class.java)
         nm.createNotificationChannel(NotificationChannel(CHANNEL, "Memory processing", NotificationManager.IMPORTANCE_LOW))
         startForeground(NOTIF_ID, build("Starting"), ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
@@ -47,7 +48,9 @@ class MemoryService : Service() {
                 }
             }, "memory-notif").also { it.isDaemon = true; it.start() }
             try {
-                MemoryLab(app).run()
+                do {
+                    MemoryLab(app, debugJob).run()
+                } while (MemoryQueue.hasQueued() && !MemoryQueue.cancelRequested) // a session enqueued just as the run ended
             } catch (t: Throwable) {
                 AppLog.e(MemoryLlm.TAG, "memory_lab_failed", LogCtx.NONE, t)
                 java.io.File(app.getExternalFilesDir(null), "memory/out/ERROR").apply { parentFile?.mkdirs() }.writeText(t.stackTraceToString())
@@ -96,9 +99,11 @@ class MemoryService : Service() {
         private const val CHANNEL = "memory"
         private const val NOTIF_ID = 42
         const val ACTION_STOP = "com.therapylocal.app.memory.STOP"
+        private const val EXTRA_DEBUG_JOB = "debug_job"
 
-        fun start(context: Context) {
-            context.startForegroundService(Intent(context, MemoryService::class.java))
+        /** [debugJob] makes the run honour files/memory/job.json (fixed session list, settings, optional reset). The app itself never does. */
+        fun start(context: Context, debugJob: Boolean = false) {
+            context.startForegroundService(Intent(context, MemoryService::class.java).putExtra(EXTRA_DEBUG_JOB, debugJob))
         }
     }
 }

@@ -1,7 +1,9 @@
 package com.therapylocal.app.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.border
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -65,12 +67,14 @@ import com.therapylocal.app.ui.theme.WarmBg
 fun PatientsScreen(
     patients: List<Patient>,
     onSelectPatient: (Patient) -> Unit,
-    onAddPatient: (Patient) -> Unit,
+    onAddPatient: (Patient) -> Patient,
+    onDeletePatient: (Patient) -> Unit,
     onOpenSettings: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     var searchQuery by remember { mutableStateOf("") }
     var showAddDialog by remember { mutableStateOf(false) }
+    var patientToDelete by remember { mutableStateOf<Patient?>(null) }
 
     // Search across patient names, facts, and past notes/quotes
     val filteredPatients by remember(searchQuery, patients) {
@@ -167,7 +171,8 @@ fun PatientsScreen(
             items(filteredPatients, key = { it.id }) { patient ->
                 PatientCard(
                     patient = patient,
-                    onClick = { onSelectPatient(patient) }
+                    onClick = { onSelectPatient(patient) },
+                    onLongClick = { patientToDelete = patient }
                 )
             }
 
@@ -210,24 +215,57 @@ fun PatientsScreen(
         AddPatientDialog(
             onDismiss = { showAddDialog = false },
             onConfirm = { newPatient ->
-                onAddPatient(newPatient)
+                val created = onAddPatient(newPatient)
                 showAddDialog = false
-                onSelectPatient(newPatient)
+                onSelectPatient(created)
+            }
+        )
+    }
+
+    patientToDelete?.let { p ->
+        ConfirmDeletePatientDialog(
+            patient = p,
+            onDismiss = { patientToDelete = null },
+            onConfirm = {
+                onDeletePatient(p)
+                patientToDelete = null
             }
         )
     }
 }
 
+/** Asks before deleting a patient; deletion removes the profile, sessions, transcripts and facts for good. */
+@Composable
+fun ConfirmDeletePatientDialog(
+    patient: Patient,
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Delete ${patient.name}?", fontWeight = FontWeight.Bold, fontFamily = FontFamily.Serif, color = CharcoalText) },
+        text = { Text("Removes the profile, all sessions, transcripts and facts stored on this device. This cannot be undone.", fontSize = 13.sp, color = MutedText) },
+        confirmButton = {
+            Button(onClick = onConfirm, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFB3261E))) { Text("Delete") }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel", color = MutedText) } },
+        containerColor = SurfaceCard,
+        shape = RoundedCornerShape(20.dp)
+    )
+}
+
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun PatientCard(
     patient: Patient,
     onClick: () -> Unit,
+    onLongClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .clickable { onClick() },
+            .combinedClickable(onClick = onClick, onLongClick = onLongClick),
         shape = RoundedCornerShape(18.dp),
         colors = CardDefaults.cardColors(containerColor = SurfaceCard),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
@@ -252,7 +290,7 @@ fun PatientCard(
                         color = CharcoalText
                     )
                     Text(
-                        text = "Age ${patient.age} · Last session: ${patient.lastSession}",
+                        text = (if (patient.age > 0) "Age ${patient.age} · " else "") + "Last session: ${patient.lastSession}",
                         fontSize = 12.sp,
                         color = MutedText,
                         modifier = Modifier.padding(top = 2.dp)

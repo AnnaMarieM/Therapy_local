@@ -32,6 +32,10 @@ class ChunkRecorder private constructor(
 ) {
     val chunks = Channel<AudioChunk>(Channel.UNLIMITED)
 
+    /** Sees every block of raw samples (buffer, count) on the capture thread, before chunking. Must be fast and must not keep the buffer. */
+    @Volatile
+    var tap: ((ShortArray, Int) -> Unit)? = null
+
     @Volatile
     private var running = false
     private var record: AudioRecord? = null
@@ -97,6 +101,7 @@ class ChunkRecorder private constructor(
                 if (readErrors > 5) break
                 continue
             }
+            tap?.invoke(tmp, n)
             var off = 0
             while (off < n) {
                 val take = minOf(n - off, chunkSamples - filled)
