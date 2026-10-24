@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import {
-  Users, Mic, Settings, ChevronLeft, ChevronRight, ChevronDown, FileText, Lock,
+  Users, Mic, Settings, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, FileText, Lock,
   ShieldCheck, Pause, Play, Square, Plus, Check, CalendarDays, Lightbulb, HardDrive,
   Trash2, PenLine, Wifi, Battery, KeyRound, User, Search, X, Sparkles,
 } from "lucide-react";
@@ -62,11 +62,35 @@ const removeStorageItem = (key: string) => {
   } catch {}
 };
 
+interface SurfacedNote {
+  at: string;
+  now: string;
+  d: string;
+  theme: string;
+  q: string;
+}
+
 function App() {
   const [screen, setScreen] = useState<Screen>("patients");
   const [prev, setPrev] = useState<Screen>("patients");
   const [patients, setPatients] = useState<Patient[]>(defaultPatients);
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
+
+  // Persistent Active Session State across all tabs
+  const [isSessionActive, setIsSessionActive] = useState<boolean>(false);
+  const [sessionPatient, setSessionPatient] = useState<Patient | null>(null);
+  const [sessionSecs, setSessionSecs] = useState<number>(0);
+  const [sessionPaused, setSessionPaused] = useState<boolean>(false);
+  const [surfacedNotes, setSurfacedNotes] = useState<SurfacedNote[]>([]);
+
+  // Session timer persists across all tabs and screens when active and not paused
+  useEffect(() => {
+    if (!isSessionActive || sessionPaused) return;
+    const timer = setInterval(() => {
+      setSessionSecs((s) => s + 1);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [isSessionActive, sessionPaused]);
 
   // Authentication & Onboarding state
   const [hasAccount, setHasAccount] = useState<boolean>(true);
@@ -86,6 +110,49 @@ function App() {
 
   const go: Go = (s) => { setPrev(screen); setScreen(s); };
 
+  const handleStartSession = (p: Patient) => {
+    setSessionPatient(p);
+    setSelectedPatient(p);
+    setIsSessionActive(true);
+    setSessionSecs(0);
+    setSessionPaused(false);
+    setSurfacedNotes([]);
+    go("live");
+  };
+
+  const handleEndSession = () => {
+    setIsSessionActive(false);
+    go("summary");
+  };
+
+  const handleTogglePause = () => {
+    setSessionPaused((p) => !p);
+  };
+
+  const handleSwitchSessionPatient = () => {
+    setIsSessionActive(false);
+    setSessionPatient(null);
+    setSessionSecs(0);
+    setSessionPaused(false);
+    setSurfacedNotes([]);
+    go("live");
+  };
+
+  const handleTriggerLiveTopic = (t: { topic: string; date: string; title: string; quote: string }) => {
+    const fmt = (n: number) => String(n).padStart(2, "0");
+    const timeStr = `${fmt(Math.floor(sessionSecs / 60))}:${fmt(sessionSecs % 60)}`;
+    setSurfacedNotes((prev) => [
+      {
+        at: timeStr,
+        now: t.topic,
+        d: t.date,
+        theme: t.title,
+        q: t.quote,
+      },
+      ...prev,
+    ]);
+  };
+
   const handleSelectPatient = (p: Patient) => {
     setSelectedPatient(p);
     go("profile");
@@ -104,6 +171,10 @@ function App() {
   };
 
   const handleDeletePatient = (id: string) => {
+    if (sessionPatient?.id === id) {
+      setIsSessionActive(false);
+      setSessionPatient(null);
+    }
     setPatients((prev) => prev.filter((p) => p.id !== id));
     go("patients");
   };
@@ -190,19 +261,35 @@ function App() {
                   onAddPatient={handleAddPatient}
                 />
               )}
-              {screen === "profile" && selectedPatient && <ProfileScreen go={go} patient={selectedPatient} onDelete={handleDeletePatient} />}
+              {screen === "profile" && selectedPatient && (
+                <ProfileScreen
+                  go={go}
+                  patient={selectedPatient}
+                  onDelete={handleDeletePatient}
+                  onStartSession={handleStartSession}
+                  isSessionActive={isSessionActive && sessionPatient?.id === selectedPatient.id}
+                />
+              )}
               {screen === "session" && selectedPatient && <SessionDetailScreen go={go} patient={selectedPatient} />}
               {screen === "prepare" && selectedPatient && <PrepareScreen go={go} patient={selectedPatient} />}
               {screen === "details" && selectedPatient && <DetailsScreen go={go} patient={selectedPatient} />}
               {screen === "live" && (
                 <LiveScreen
                   go={go}
-                  patient={selectedPatient}
+                  patient={sessionPatient || selectedPatient}
                   patients={patients}
-                  onSelectPatient={setSelectedPatient}
+                  isSessionActive={isSessionActive}
+                  sessionSecs={sessionSecs}
+                  sessionPaused={sessionPaused}
+                  surfacedNotes={surfacedNotes}
+                  onStartSession={handleStartSession}
+                  onEndSession={handleEndSession}
+                  onTogglePause={handleTogglePause}
+                  onSwitchPatient={handleSwitchSessionPatient}
+                  onTriggerTopic={handleTriggerLiveTopic}
                 />
               )}
-              {screen === "summary" && <SummaryScreen go={go} patient={selectedPatient} />}
+              {screen === "summary" && <SummaryScreen go={go} patient={sessionPatient || selectedPatient} />}
               {screen === "source" && <SourceScreen go={go} back={prev} />}
               {screen === "settings" && (
                 <SettingsScreen
@@ -216,7 +303,19 @@ function App() {
                 />
               )}
             </div>
-            <NavBar screen={screen} go={go} />
+
+            {/* Minimized persistent session bar across all other tabs */}
+            {isSessionActive && sessionPatient && screen !== "live" && (
+              <MinimizedSessionBar
+                patient={sessionPatient}
+                secs={sessionSecs}
+                paused={sessionPaused}
+                onExpand={() => go("live")}
+                onTogglePause={handleTogglePause}
+              />
+            )}
+
+            <NavBar screen={screen} go={go} isSessionActive={isSessionActive} />
           </>
         )}
       </div>
@@ -224,7 +323,91 @@ function App() {
   );
 }
 
-function NavBar({ screen, go }: { screen: Screen; go: Go }) {
+function MinimizedSessionBar({
+  patient,
+  secs,
+  paused,
+  onExpand,
+  onTogglePause,
+}: {
+  patient: Patient;
+  secs: number;
+  paused: boolean;
+  onExpand: () => void;
+  onTogglePause: () => void;
+}) {
+  const fmt = (n: number) => String(n).padStart(2, "0");
+  const timeFormatted = `${fmt(Math.floor(secs / 3600))}:${fmt(Math.floor(secs / 60) % 60)}:${fmt(secs % 60)}`;
+
+  return (
+    <div className="px-4 pb-2 pt-1">
+      <div
+        onClick={onExpand}
+        className="flex items-center justify-between gap-3 rounded-2xl bg-primary text-primary-foreground px-3.5 py-2.5 shadow-md hover:opacity-95 transition-all cursor-pointer border border-primary/20"
+      >
+        <div className="flex items-center gap-2.5 min-w-0 flex-1">
+          <div className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-primary-foreground/15">
+            {paused ? (
+              <span className="size-2 rounded-full bg-amber-300" />
+            ) : (
+              <div className="flex items-center gap-0.5 h-3.5">
+                <span className="w-0.5 h-2 bg-primary-foreground rounded-full animate-pulse" />
+                <span className="w-0.5 h-3.5 bg-primary-foreground rounded-full animate-pulse delay-75" />
+                <span className="w-0.5 h-2 bg-primary-foreground rounded-full animate-pulse delay-150" />
+              </div>
+            )}
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-1.5">
+              <span className="font-serif text-sm font-medium truncate">{patient.name}</span>
+              <span className="text-[10px] text-primary-foreground/75 font-normal">· Session running</span>
+            </div>
+            <div className="flex items-center gap-2 text-xs text-primary-foreground/90 tabular-nums">
+              <span className="font-medium">{timeFormatted}</span>
+              <span className="text-[10px] opacity-60">•</span>
+              <span className="text-[10px]">{paused ? "Paused" : "Recording locally"}</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onTogglePause();
+            }}
+            className="flex size-7 items-center justify-center rounded-lg bg-primary-foreground/15 hover:bg-primary-foreground/25 text-primary-foreground transition-colors"
+            title={paused ? "Resume recording" : "Pause recording"}
+          >
+            {paused ? <Play className="size-3.5" /> : <Pause className="size-3.5" />}
+          </button>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onExpand();
+            }}
+            className="flex size-7 items-center justify-center rounded-lg bg-primary-foreground/15 hover:bg-primary-foreground/25 text-primary-foreground transition-colors"
+            title="Open full session"
+          >
+            <ChevronUp className="size-4" />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function NavBar({
+  screen,
+  go,
+  isSessionActive,
+}: {
+  screen: Screen;
+  go: Go;
+  isSessionActive?: boolean;
+}) {
   const items = [
     { id: "patients" as Screen, icon: Users, label: "Patients", on: ["patients", "profile", "session", "prepare", "details"] },
     { id: "live" as Screen, icon: Mic, label: "Session", on: ["live", "summary", "source"] },
@@ -235,8 +418,16 @@ function NavBar({ screen, go }: { screen: Screen; go: Go }) {
       {items.map(({ id, icon: Icon, label, on }) => {
         const active = on.includes(screen);
         return (
-          <button key={id} onClick={() => go(id)} className="flex flex-col items-center gap-1 text-[11px]">
-            <span className={`rounded-full px-5 py-1 ${active ? "bg-accent text-accent-foreground" : "text-muted-foreground"}`}><Icon className="size-5" /></span>
+          <button key={id} onClick={() => go(id)} className="flex flex-col items-center gap-1 text-[11px] relative">
+            <span className={`relative rounded-full px-5 py-1 ${active ? "bg-accent text-accent-foreground" : "text-muted-foreground"}`}>
+              <Icon className="size-5" />
+              {id === "live" && isSessionActive && (
+                <span className="absolute top-0 right-3 flex size-2.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sage opacity-75"></span>
+                  <span className="relative inline-flex rounded-full size-2.5 bg-sage ring-1.5 ring-card"></span>
+                </span>
+              )}
+            </span>
             <span className={active ? "font-medium text-foreground" : "text-muted-foreground"}>{label}</span>
           </button>
         );
@@ -806,7 +997,19 @@ function HistoryList({ go }: { go: Go }) {
   );
 }
 
-function ProfileScreen({ go, patient, onDelete }: { go: Go; patient: Patient; onDelete?: (id: string) => void }) {
+function ProfileScreen({
+  go,
+  patient,
+  onDelete,
+  onStartSession,
+  isSessionActive,
+}: {
+  go: Go;
+  patient: Patient;
+  onDelete?: (id: string) => void;
+  onStartSession: (p: Patient) => void;
+  isSessionActive?: boolean;
+}) {
   return (
     <>
       <header className="pt-3 pb-4">
@@ -860,15 +1063,23 @@ function ProfileScreen({ go, patient, onDelete }: { go: Go; patient: Patient; on
         </button>
 
         <button
-          onClick={() => go("live")}
+          onClick={() => {
+            if (isSessionActive) {
+              go("live");
+            } else {
+              onStartSession(patient);
+            }
+          }}
           className="flex w-full items-center gap-3.5 rounded-2xl bg-primary p-4 text-left text-primary-foreground shadow-sm hover:opacity-95 transition-opacity"
         >
           <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary-foreground/15">
             <Mic className="size-5" />
           </span>
           <div className="flex-1">
-            <p className="text-sm font-medium">Start Session</p>
-            <p className="text-xs text-primary-foreground/80 mt-0.5">Records locally & surfaces past notes</p>
+            <p className="text-sm font-medium">{isSessionActive ? "Return to Active Session" : "Start Session"}</p>
+            <p className="text-xs text-primary-foreground/80 mt-0.5">
+              {isSessionActive ? "Session currently recording in background" : "Records locally & surfaces past notes"}
+            </p>
           </div>
           <ChevronRight className="size-4 text-primary-foreground/70" />
         </button>
@@ -970,45 +1181,36 @@ function SessionDetailScreen({ go, patient }: { go: Go; patient: Patient }) {
 }
 const bars = [8, 14, 22, 12, 30, 18, 26, 10, 20, 34, 16, 24, 12, 28, 18, 8, 22, 30, 14, 20, 10, 26, 16, 12];
 
-interface SurfacedNote {
-  at: string;
-  now: string;
-  d: string;
-  theme: string;
-  q: string;
-}
-
 function LiveScreen({
   go,
   patient,
   patients,
-  onSelectPatient,
+  isSessionActive,
+  sessionSecs,
+  sessionPaused,
+  surfacedNotes,
+  onStartSession,
+  onEndSession,
+  onTogglePause,
+  onSwitchPatient,
+  onTriggerTopic,
 }: {
   go: Go;
   patient?: Patient | null;
   patients: Patient[];
-  onSelectPatient: (p: Patient | null) => void;
+  isSessionActive: boolean;
+  sessionSecs: number;
+  sessionPaused: boolean;
+  surfacedNotes: SurfacedNote[];
+  onStartSession: (p: Patient) => void;
+  onEndSession: () => void;
+  onTogglePause: () => void;
+  onSwitchPatient: () => void;
+  onTriggerTopic: (t: { topic: string; date: string; title: string; quote: string }) => void;
 }) {
-  const [secs, setSecs] = useState(0);
-  const [paused, setPaused] = useState(false);
-  const [surfacedNotes, setSurfacedNotes] = useState<SurfacedNote[]>([]);
-
-  // Reset session timer and surfaced notes whenever the patient changes or session screen opens
-  useEffect(() => {
-    setSecs(0);
-    setPaused(false);
-    setSurfacedNotes([]);
-  }, [patient?.id]);
-
-  useEffect(() => {
-    if (paused || !patient) return;
-    const id = setInterval(() => setSecs((s) => s + 1), 1000);
-    return () => clearInterval(id);
-  }, [paused, patient]);
-
   const fmt = (n: number) => String(n).padStart(2, "0");
 
-  if (!patient) {
+  if (!isSessionActive || !patient) {
     return (
       <>
         <Header title="Start Session" sub="Select a patient to begin ambient recording" go={go} />
@@ -1024,7 +1226,7 @@ function LiveScreen({
           {patients.map((p) => (
             <button
               key={p.id}
-              onClick={() => onSelectPatient(p)}
+              onClick={() => onStartSession(p)}
               className="w-full flex items-center justify-between p-3.5 rounded-2xl border bg-card hover:border-sage transition-all text-left group shadow-xs"
             >
               <div className="flex items-center gap-3">
@@ -1056,20 +1258,6 @@ function LiveScreen({
     }))
   ).slice(0, 4);
 
-  const handleTriggerTopic = (t: { topic: string; date: string; title: string; quote: string }) => {
-    const timeStr = `${fmt(Math.floor(secs / 60))}:${fmt(secs % 60)}`;
-    setSurfacedNotes((prev) => [
-      {
-        at: timeStr,
-        now: t.topic,
-        d: t.date,
-        theme: t.title,
-        q: t.quote,
-      },
-      ...prev,
-    ]);
-  };
-
   return (
     <>
       <div className="flex items-center justify-between pt-3 pb-3">
@@ -1078,7 +1266,7 @@ function LiveScreen({
           <p className="mt-0.5 text-xs text-muted-foreground">Ambient clinical memory</p>
         </div>
         <button
-          onClick={() => onSelectPatient(null)}
+          onClick={onSwitchPatient}
           className="flex items-center gap-1 rounded-full border bg-card px-2.5 py-1 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors shadow-xs"
           title="Switch patient"
         >
@@ -1096,9 +1284,9 @@ function LiveScreen({
           {bars.map((h, i) => (
             <span
               key={i}
-              className={`w-1 rounded-full transition-all duration-500 ${paused ? "bg-border" : "bg-sage wave-bar-active"}`}
+              className={`w-1 rounded-full transition-all duration-500 ${sessionPaused ? "bg-border" : "bg-sage wave-bar-active"}`}
               style={{
-                height: paused ? 4 : h + 6,
+                height: sessionPaused ? 4 : h + 6,
                 "--delay": `${((i * 0.11) % 1.6).toFixed(2)}s`,
                 "--duration": `${(1.6 + ((i * 19) % 5) * 0.25).toFixed(2)}s`,
               } as React.CSSProperties}
@@ -1106,15 +1294,15 @@ function LiveScreen({
           ))}
         </div>
         <p className="mt-4 font-serif text-4xl tabular-nums">
-          {fmt(Math.floor(secs / 3600))}:{fmt(Math.floor(secs / 60) % 60)}:{fmt(secs % 60)}
+          {fmt(Math.floor(sessionSecs / 3600))}:{fmt(Math.floor(sessionSecs / 60) % 60)}:{fmt(sessionSecs % 60)}
         </p>
-        <p className="text-xs text-muted-foreground mt-1">{paused ? "Paused" : "Listening on device"}</p>
+        <p className="text-xs text-muted-foreground mt-1">{sessionPaused ? "Paused" : "Listening on device"}</p>
 
         <div className="mt-5 grid grid-cols-2 gap-2.5">
-          <Btn variant="outline" onClick={() => setPaused(!paused)}>
-            {paused ? <><Play className="size-4" /> Resume</> : <><Pause className="size-4" /> Pause</>}
+          <Btn variant="outline" onClick={onTogglePause}>
+            {sessionPaused ? <><Play className="size-4" /> Resume</> : <><Pause className="size-4" /> Pause</>}
           </Btn>
-          <Btn variant="danger" onClick={() => go("summary")}>
+          <Btn variant="danger" onClick={onEndSession}>
             <Square className="size-4" /> End Session
           </Btn>
         </div>
@@ -1142,7 +1330,7 @@ function LiveScreen({
                   {sampleTopics.map((t, idx) => (
                     <button
                       key={idx}
-                      onClick={() => handleTriggerTopic(t)}
+                      onClick={() => onTriggerTopic(t)}
                       className="text-[11px] rounded-full border bg-card px-2.5 py-1 text-muted-foreground hover:text-foreground hover:border-sage hover:bg-sage/10 transition-colors"
                     >
                       + "{t.topic}"
@@ -1159,7 +1347,7 @@ function LiveScreen({
                 {sampleTopics.map((t, idx) => (
                   <button
                     key={idx}
-                    onClick={() => handleTriggerTopic(t)}
+                    onClick={() => onTriggerTopic(t)}
                     className="text-[10px] rounded-full border bg-card px-2 py-0.5 text-muted-foreground hover:text-foreground hover:border-sage transition-colors"
                   >
                     + "{t.topic}"
