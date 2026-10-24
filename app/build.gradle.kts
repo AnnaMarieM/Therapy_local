@@ -86,6 +86,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
     implementation("com.google.ai.edge.litertlm:litertlm-android:0.18.1")
     implementation(files("libs/sherpa-onnx-2.0.0.aar"))
+    testImplementation("junit:junit:4.13.2")
 }
 
 kotlin {

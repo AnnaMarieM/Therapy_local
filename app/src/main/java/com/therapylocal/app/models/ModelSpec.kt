@@ -40,30 +40,20 @@ object ModelRegistry {
         ),
     )
 
-    const val EMBED_GENERIC_FILE = "embeddinggemma-2-text-270m.litertlm"
-    const val EMBED_SM8750_FILE = "embeddinggemma-2-text-270m_Qualcomm_SM8750.litertlm"
-    private const val EMBED_REPO = "$HF/litert-community/embeddinggemma-2-text-270m-litert-lm/resolve/main"
+    /**
+     * EmbeddingGemma 2 740M, natively multimodal: text and audio map into one 768-d space.
+     * Source: https://huggingface.co/litert-community/embeddinggemma-2-740m-litert-lm (Apache-2.0, CPU/GPU file).
+     */
+    const val EMBED_FILE = "embeddinggemma-2-740m.litertlm"
 
-    val EMBED_GENERIC = ModelSpec(
-        id = "embeddinggemma-2-270m",
-        title = "EmbeddingGemma 2 270M (CPU/GPU)",
-        subdir = "embeddinggemma-2-270m",
+    val EMBED = ModelSpec(
+        id = "embeddinggemma-2-740m",
+        title = "EmbeddingGemma 2 740M (text + audio)",
+        subdir = "embeddinggemma-2-740m",
         files = listOf(
             ModelFile(
-                EMBED_GENERIC_FILE, "$EMBED_REPO/$EMBED_GENERIC_FILE", 164_626_432L,
-                "2d079ee2f6f066b1f368e8d7c819f55214eaef1d0513b312321901f30ab286fb",
-            ),
-        ),
-    )
-
-    val EMBED_SM8750 = ModelSpec(
-        id = "embeddinggemma-2-270m-sm8750",
-        title = "EmbeddingGemma 2 270M (SM8750 NPU)",
-        subdir = "embeddinggemma-2-270m",
-        files = listOf(
-            ModelFile(
-                EMBED_SM8750_FILE, "$EMBED_REPO/$EMBED_SM8750_FILE", 187_596_800L,
-                "b5615709768db4ca4fb4f04514e7e41b0680ccb12dd5f90371193f7fd12e7c99",
+                EMBED_FILE, "$HF/litert-community/embeddinggemma-2-740m-litert-lm/resolve/main/$EMBED_FILE", 484_622_336L,
+                "e7a8a2204b91e0f96e92960e84a09a89212e1633dcb7575a9bf3378b4df77f4c",
             ),
         ),
     )
@@ -98,7 +88,7 @@ object ModelRegistry {
         262_226_114L, "acad50b5c782696e91b55914cc5ab4f756f1532f76e22aa6fc615f39fb69a8ee",
     )
 
-    val ALL = listOf(GEMMA, EMBED_GENERIC, EMBED_SM8750, WHISPER_TINY, WHISPER_BASE, WHISPER_SMALL)
+    val ALL = listOf(GEMMA, EMBED, WHISPER_TINY, WHISPER_BASE, WHISPER_SMALL)
     fun byId(id: String): ModelSpec = ALL.first { it.id == id }
     fun whisperFor(size: String): ModelSpec = when (size) {
         "tiny" -> WHISPER_TINY
