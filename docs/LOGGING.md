@@ -32,18 +32,26 @@ Values with spaces or `=` are double-quoted. Grep any id: `scripts/traces.sh gre
 
 | Span | Tag | Notes |
 |---|---|---|
-| `chunk_cut` | Audio | one chunk cut from the live stream; `rms` is the signal level |
-| `audio_wav_encode` / `audio_to_float` | ASR | preprocessing for Gemma (WAV) or Whisper (float) |
+| `chunk_cut` | Audio | one chunk cut from the live stream: `idx`, `start_ms`, `end_ms`, `overlap_ms` (all from `ChunkConfig`), `rms` is the signal level |
+| `chunk_dropped_short` | Audio | the trailing chunk added too little new audio (`new_ms` against `min_new_ms`) and was not kept |
+| `audio_wav_encode` / `audio_to_float` | ASR / Embed | preprocessing: WAV for Gemma and for the audio embedder, float for Whisper |
 | `model_download`, `model_verify` | Download | bytes fetched, resume offset, sha256 check |
 | `asr_load`, `engine_init`, `engine_warmup` | ASR | which backend loaded (`backend`), model file, size; failed attempts are `backend_failed` with `reason` |
 | `asr_transcribe` | ASR | `engine`, `model`, `backend`, `audio_sec`, `chars`, `rtf` (wall time / audio time), `chars_per_sec` |
 | `whisper_decode` | ASR | the decode step alone |
-| `embed_load`, `embed_engine_init`, `embed_selftest` | Embed | the self-test logs `sim_related` and `sim_unrelated` |
-| `embed` | Embed | `role` (document or query), `dim`, `norm`, `backend` |
-| `db_create_recording`, `db_insert_chunk`, `db_list_recordings` | DB | row counts and ids |
-| `chunk_pipeline` | App | the whole chunk: transcribe, embed, store |
-| `search`, `search_scan`, `voice_query_transcribe` | Search/App | `kind` (text or voice), `embed_ms`, `scan_ms`, `rows_scanned`, `top` as `rid.idx:score` |
+| `embed_load`, `embed_engine_init`, `embed_selftest` | Embed | the self-test logs `sim_related`, `sim_unrelated` and an audio smoke test |
+| `embed` | Embed | `modality` (audio or text), `role` (document or query), `backend` (text encoder), `audio_backend`, `dim`, `norm`; audio spans add `audio_sec` and `rtf` |
+| `db_create_recording`, `db_insert_chunk`, `db_list_recordings` | DB | row counts and ids; inserts carry `start_ms`, `end_ms`, `overlap_ms` |
+| `chunk_pipeline` | App | the whole chunk: embed audio, transcribe, embed transcript, store |
+| `search`, `search_scan` | Search/App | `kind` (text or voice), `embed_ms`, `scan_ms`, `rows_scanned`, `top` as `rid.idx:score` (audio vector) and `alt` (transcript text vector, for comparison) |
+| `search_collapse` | Search | `raw_hits`, `relevant` (within `SearchConfig.SCORE_MARGIN` of the best), `groups`, `merged` (adjacent chunks merged) |
+| `transcript_merge` | App | `removed_words` per chunk: how many words of each 5 s overlap were dropped when showing the whole recording |
 | `db_delete_recording`, `db_delete_all` | DB | rows removed and rows left |
+| `delete_verified`, `delete_all_verified` | App | counts read back after a delete: `remaining_recordings`, `remaining_chunks`, `audio_files_on_disk` (no audio is ever stored) |
+
+Voice and text queries have no recording id: they carry `cid=q<N>` (one counter per app session). A voice query is embedded as audio and is **never transcribed**, so its trace has an `embed modality=audio role=query` span and no `asr_transcribe`.
+
+Model and backend events: `model_info` (what the model bundle itself declares: modalities, supported backends per modality, NPU brand), `backend_selected` and `backend_failed` (with `reason`), and `npu_skipped reason=dispatch_library_missing`. NPU is attempted only when `libLiteRtDispatch_Qualcomm.so` is present in the native library dir (see `NpuRuntime`); the `litertlm-android` AAR does not ship it, so on this build the NPU is never used and the logs say so.
 
 Start-up events log device facts once: `startup` (SoC, Android, RAM, storage, app version), `backend_hints`, and `model_files` with sizes.
 

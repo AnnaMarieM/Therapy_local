@@ -67,7 +67,9 @@ def main(paths):
                 continue
             spans[(e.get("tag"), e.get("span"))].append(d)
             if e.get("cid"):
-                per_chunk[e["cid"]][e["span"]] = d
+                # the embed span runs twice per chunk (audio and text), so keep them apart
+                key = e["span"] + (":" + e["modality"] if e.get("modality") else "")
+                per_chunk[e["cid"]][key] = d
         elif e.get("evt") == "span_error" or e.get("lvl") == "E":
             errors.append(e)
 
@@ -78,7 +80,7 @@ def main(paths):
     table(rows, ["tag", "span", "n", "avg", "min", "max"])
     print()
 
-    stages = ["chunk_cut", "audio_wav_encode", "audio_to_float", "asr_transcribe", "embed", "db_insert_chunk", "chunk_pipeline"]
+    stages = ["chunk_cut", "audio_wav_encode", "embed:audio", "audio_to_float", "asr_transcribe", "embed:text", "db_insert_chunk", "chunk_pipeline"]
     present = [s for s in stages if any(s in v for v in per_chunk.values())]
     if per_chunk:
         print("== per chunk (ms) ==")
@@ -96,6 +98,20 @@ def main(paths):
         print("== transcription speed ==")
         rows = [[e.get("cid", ""), e.get("model"), e.get("backend"), e.get("audio_sec"), e.get("dur_ms"), e.get("rtf"), e.get("chars"), e.get("chars_per_sec")] for e in asr]
         table(rows, ["chunk", "model", "backend", "audio_s", "wall_ms", "rtf", "chars", "chars/s"])
+        print()
+
+    chunks = [e for e in events if e.get("evt") == "span_end" and e.get("span") == "chunk_cut"]
+    if chunks:
+        print("== chunking (see ChunkConfig) ==")
+        rows = [[e.get("cid", ""), e.get("start_ms"), e.get("end_ms"), e.get("overlap_ms"), e.get("audio_sec"), e.get("rms")] for e in chunks if e.get("cid", "").split(".")[0] != "0"]
+        table(rows, ["chunk", "start_ms", "end_ms", "overlap_ms", "audio_s", "rms"])
+        print()
+
+    audio = [e for e in events if e.get("evt") == "span_end" and e.get("span") == "embed" and e.get("modality") == "audio"]
+    if audio:
+        print("== audio embedding ==")
+        rows = [[e.get("cid", ""), e.get("role"), e.get("backend"), e.get("audio_backend"), e.get("audio_sec"), e.get("dur_ms"), e.get("rtf"), e.get("dim")] for e in audio]
+        table(rows, ["id", "role", "text_backend", "audio_backend", "audio_s", "wall_ms", "rtf", "dim"])
         print()
 
     searches = [e for e in events if e.get("evt") == "span_end" and e.get("span") == "search_scan"]
