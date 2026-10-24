@@ -154,6 +154,7 @@ class MemoryLab(private val context: Context) {
         MemoryQueue.updateJob(sid) { it.copy(windows = chunks.size, windowsDone = 0, extracted = 0, added = 0, stage = "extracting 1/${chunks.size}") }
 
         // 1 + 2: embed and store every chunk, extract candidate facts from it.
+        if (item.date.isNotEmpty()) store.putSession(client, sid, item.date)
         val candidates = ArrayList<Fact>()
         chunks.forEachIndexed { i, chunk ->
             if (MemoryQueue.cancelRequested) return stopped(sid)

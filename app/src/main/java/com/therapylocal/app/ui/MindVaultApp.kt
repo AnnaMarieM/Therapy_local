@@ -18,11 +18,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.therapylocal.app.MainViewModel
+import com.therapylocal.app.ui.data.ClientsViewModel
 import com.therapylocal.app.ui.components.MindVaultBottomNav
 import com.therapylocal.app.ui.components.MinimizedSessionBar
 import com.therapylocal.app.ui.models.Patient
-import com.therapylocal.app.ui.models.SeedData
 import com.therapylocal.app.ui.models.SessionRecord
 import com.therapylocal.app.ui.models.SurfacedQuote
 import com.therapylocal.app.ui.screens.LiveSessionScreen
@@ -48,7 +50,9 @@ fun MindVaultApp(
         var currentTab by rememberSaveable { mutableStateOf("patients") }
         var currentScreen by rememberSaveable { mutableStateOf("patients") }
 
-        val patients = remember { mutableStateListOf<Patient>().apply { addAll(SeedData.getInitialPatients()) } }
+        // Clients come from the on-device memory store (mock data only when it is empty and demo mode is off).
+        val clientsVm: ClientsViewModel = viewModel()
+        val patients by clientsVm.patients.collectAsStateWithLifecycle()
         var selectedPatient by remember { mutableStateOf<Patient?>(null) }
 
         // Persistent Session State
@@ -117,7 +121,7 @@ fun MindVaultApp(
                                     currentScreen = "profile"
                                 },
                                 onAddPatient = { newP ->
-                                    patients.add(0, newP)
+                                    clientsVm.addLocal(newP)
                                 },
                                 onOpenSettings = {
                                     currentTab = "settings"
@@ -191,10 +195,12 @@ fun MindVaultApp(
                                                 verbatimQuotes = surfacedQuotes.map { it.quote }
                                             )
                                         ) + p.sessions
-                                        patients[idx] = p.copy(
-                                            sessions = updatedSessions,
-                                            sessionCount = p.sessionCount + 1,
-                                            lastSession = "Oct 24, 2026"
+                                        clientsVm.replaceInMemory(
+                                            p.copy(
+                                                sessions = updatedSessions,
+                                                sessionCount = p.sessionCount + 1,
+                                                lastSession = "Oct 24, 2026"
+                                            )
                                         )
                                     }
                                     isSessionActive = false
@@ -243,7 +249,7 @@ fun MindVaultApp(
                                 } else if (selectedPatient != null) {
                                     startSession(selectedPatient!!)
                                 } else {
-                                    startSession(patients.first())
+                                    patients.firstOrNull()?.let(startSession)
                                 }
                             }
                             "settings" -> currentScreen = "settings"

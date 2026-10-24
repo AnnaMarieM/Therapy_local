@@ -252,7 +252,7 @@ fun PatientCard(
                         color = CharcoalText
                     )
                     Text(
-                        text = "Age ${patient.age} · Last session: ${patient.lastSession}",
+                        text = (if (patient.age > 0) "Age ${patient.age} · " else "") + "Last session: ${patient.lastSession}",
                         fontSize = 12.sp,
                         color = MutedText,
                         modifier = Modifier.padding(top = 2.dp)

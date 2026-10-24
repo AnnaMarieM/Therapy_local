@@ -112,7 +112,7 @@ fun ProfileScreen(
                     color = CharcoalText
                 )
                 Text(
-                    text = "Age ${patient.age} · ${patient.presenting}",
+                    text = (if (patient.age > 0) "Age ${patient.age} · " else "") + patient.presenting,
                     fontSize = 12.sp,
                     color = MutedText
                 )
