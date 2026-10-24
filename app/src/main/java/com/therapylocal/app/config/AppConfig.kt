@@ -87,3 +87,29 @@ object BackendPolicy {
 
     fun allows(backend: String) = override == "auto" || override.equals(backend, ignoreCase = true)
 }
+
+/** Realtime "possibly relevant" fact cues: the last WINDOW_SECONDS of live audio is embedded every TICK_MS and ranked against the client's facts. */
+object LiveCueConfig {
+    /** Audio window embedded per tick. Same length as a stored chunk, so it stays under Gemma's audio cap. */
+    const val WINDOW_SECONDS = ChunkConfig.CHUNK_SECONDS
+    const val WINDOW_SAMPLES = WINDOW_SECONDS * ChunkConfig.SAMPLE_RATE
+
+    /** Pause between ticks. A tick that overruns it is followed by the next one after MIN_GAP_MS, never queued up. */
+    const val TICK_MS = 5_000L
+    const val MIN_GAP_MS = 250L
+
+    /** No embedding before this much audio exists. */
+    const val MIN_AUDIO_SAMPLES = 3 * ChunkConfig.SAMPLE_RATE
+
+    /** A window quieter than this (RMS, 0..1) is silence: the previous cues stay and nothing is embedded. */
+    const val SILENCE_RMS = 0.003
+
+    /** Cues shown. */
+    const val TOP_K = 10
+
+    /** Weight of the newest tick in the per-fact score average. 1.0 = no smoothing. */
+    const val SMOOTH_ALPHA = 0.5f
+
+    /** Smoothed cosine a fact needs to be shown. To be calibrated on the phone: fact-to-fact cosines sit at 0.75-0.89, audio-to-fact is unmeasured. */
+    const val SCORE_FLOOR = 0f
+}
