@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <!-- Debug only: replays a test WAV through the live-cue pipeline, see LiveCuesBenchActivity. -->
+        <activity android:name=".debug.LiveCuesBenchActivity" android:exported="true" />
+    </application>
+</manifest>
