@@ -15,7 +15,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -47,8 +46,11 @@ class LiveCues(private val embedder: Embedder, private val store: MemoryStore) {
 
     private var job: Job? = null
     private var client: String? = null
-    private val smoothed = HashMap<String, Float>()
     private var tick = 0
+
+    /** Bumped by every start and stop. A tick that was already running when the session changed sees a different value and publishes nothing. */
+    @Volatile
+    private var generation = 0
 
     /** Hand this to [com.therapylocal.app.audio.ChunkRecorder.tap]. Cheap; ignored while not running. */
     fun feed(buf: ShortArray, n: Int) {
@@ -71,14 +73,14 @@ class LiveCues(private val embedder: Embedder, private val store: MemoryStore) {
         if (job?.isActive == true && this.client == client) return
         stop()
         this.client = client
-        synchronized(ring) { ringPos = 0; ringFilled = 0 }
-        smoothed.clear()
+        clearRing()
+        val gen = ++generation
         tick = 0
         _error.value = null
         _cues.value = emptyList()
         _running.value = true
         AppLog.i(TAG, "live_cues_start", LogCtx.NONE, "client" to client, "window_s" to LiveCueConfig.WINDOW_SECONDS, "tick_ms" to LiveCueConfig.TICK_MS)
-        job = scope.launch { loop(client) }
+        job = scope.launch { loop(client, gen, HashMap()) }
     }
 
     @Synchronized
@@ -88,17 +90,24 @@ class LiveCues(private val embedder: Embedder, private val store: MemoryStore) {
         job?.cancel()
         job = null
         client = null
-        synchronized(ring) { ringPos = 0; ringFilled = 0 }
-        smoothed.clear()
+        generation++
+        clearRing()
         _cues.value = emptyList()
         if (was) AppLog.i(TAG, "live_cues_stop", LogCtx.NONE, "ticks" to tick)
     }
 
-    private suspend fun loop(client: String) {
-        while (scope.isActive && _running.value) {
+    /** Forgets the audio: position reset and the samples overwritten, so nothing of the conversation stays in memory after a session. */
+    private fun clearRing() = synchronized(ring) {
+        ring.fill(0)
+        ringPos = 0
+        ringFilled = 0
+    }
+
+    private suspend fun loop(client: String, gen: Int, smoothed: HashMap<String, Float>) {
+        while (gen == generation) {
             val t0 = SystemClock.elapsedRealtime()
             try {
-                tick(client)
+                tick(client, gen, smoothed)
             } catch (e: CancellationException) {
                 throw e
             } catch (t: Throwable) {
@@ -120,7 +129,7 @@ class LiveCues(private val embedder: Embedder, private val store: MemoryStore) {
         out
     }
 
-    private suspend fun tick(client: String) {
+    private suspend fun tick(client: String, gen: Int, smoothed: HashMap<String, Float>) {
         val pcm = snapshot() ?: return
         val rms = Pcm.rms(pcm)
         val n = ++tick
@@ -144,7 +153,7 @@ class LiveCues(private val embedder: Embedder, private val store: MemoryStore) {
             }
             val top = now.sortedByDescending { it.second }.filter { it.second >= LiveCueConfig.SCORE_FLOOR }.take(LiveCueConfig.TOP_K)
             // A stopped or restarted session must not publish a stale tick.
-            if (_running.value && this.client == client) {
+            if (gen == generation) {
                 _cues.value = top.map { (f, s, _) -> Cue(f.id, f.fact, f.category, f.session, f.chunk, s) }
                 _error.value = null
             }
