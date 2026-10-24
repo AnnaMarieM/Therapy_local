@@ -12,6 +12,8 @@
         android:name=".App"
         android:allowBackup="false"
         android:hasFragileUserData="true"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
         android:label="Therapy Local"
         android:theme="@android:style/Theme.Material.Light.NoActionBar">
 
