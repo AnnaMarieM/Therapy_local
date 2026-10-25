@@ -1,5 +1,6 @@
 package com.therapylocal.app.ui
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -241,6 +242,26 @@ fun MindVaultApp(
             } else {
                 viewModel.pauseRecording()
                 sessionPaused = true
+            }
+        }
+
+        BackHandler(enabled = showChoosePatientDialog || currentScreen != "patients" || currentTab != "patients") {
+            when {
+                showChoosePatientDialog -> showChoosePatientDialog = false
+                currentScreen == "profile" -> currentScreen = "patients"
+                currentScreen == "settings" -> {
+                    currentTab = "patients"
+                    currentScreen = "patients"
+                }
+                currentScreen == "live" -> {
+                    currentTab = "patients"
+                    currentScreen = "patients"
+                }
+                currentScreen == "summary" -> resetSession()
+                currentTab != "patients" -> {
+                    currentTab = "patients"
+                    currentScreen = "patients"
+                }
             }
         }
 

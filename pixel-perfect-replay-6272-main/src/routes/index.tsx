@@ -106,7 +106,26 @@ function App() {
     if (p) setPassword(p);
   }, []);
 
-  const go: Go = (s) => { setPrev(screen); setScreen(s); };
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const handlePopState = (e: PopStateEvent) => {
+      if (e.state && e.state.screen) {
+        setScreen(e.state.screen);
+      } else {
+        setScreen("patients");
+      }
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
+
+  const go: Go = (s) => {
+    setPrev(screen);
+    setScreen(s);
+    if (typeof window !== "undefined") {
+      window.history.pushState({ screen: s }, "", "");
+    }
+  };
 
   const handleStartSession = (p: Patient) => {
     setSessionPatient(p);
@@ -194,6 +213,9 @@ function App() {
       setIsUnlocked(true);
       setScreen("patients");
       setConnectBanner(null);
+      if (typeof window !== "undefined") {
+        window.history.replaceState({ screen: "patients" }, "", "");
+      }
       return true;
     }
     return false;
