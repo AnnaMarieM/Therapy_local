@@ -93,18 +93,6 @@ class MemoryStore(context: Context) : SQLiteOpenHelper(context, "memory.db", Vau
         writableDatabase.delete("session_meta", "client = ?", arrayOf(client))
     }
 
-    /** Runs [body] in one transaction (used by the demo import). */
-    fun inTransaction(body: () -> Unit) {
-        val db = writableDatabase
-        db.beginTransaction()
-        try {
-            body()
-            db.setTransactionSuccessful()
-        } finally {
-            db.endTransaction()
-        }
-    }
-
     fun deleteClientRow(id: String) {
         writableDatabase.delete("clients", "id = ?", arrayOf(id))
     }
@@ -265,7 +253,7 @@ class MemoryStore(context: Context) : SQLiteOpenHelper(context, "memory.db", Vau
 
     data class ChunkHit(val session: String, val idx: Int, val text: String, val score: Float)
 
-    /** The [k] stored chunks of [client] closest to [query] by cosine. Chunks without a usable vector (demo data) are skipped. */
+    /** The [k] stored chunks of [client] closest to [query] by cosine. Chunks without a usable vector are skipped. */
     fun nearestChunks(client: String, query: FloatArray, k: Int): List<ChunkHit> {
         val scored = ArrayList<ChunkHit>()
         readableDatabase.rawQuery("SELECT session, idx, text, embedding FROM chunks WHERE client = ?", arrayOf(client)).use { c ->

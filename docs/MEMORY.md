@@ -22,9 +22,6 @@ Sessions are queued as `SessionJob`s (saved encrypted in `queue.json`) and run o
 ## Where the data lives (app mode)
 Internal storage `files/memory/` (private to the app, encrypted with the vault key, see [SECURITY.md](SECURITY.md)): `in/<session>.md` transcripts, `cache/<session>/<n>.json` per-chunk extraction cache, `queue.json` the job queue (resumed after the next unlock). Deleting a session or client removes its transcripts and caches too. The facts themselves are in `memory.db`.
 
-## Mock data
-`demo/profiles/` (two client narratives), `demo/sessions/` (10 sessions each, about 40 min, plus `.facts.md` ground truth), `demo/small/` (1,500-word excerpts for quick runs). All invented.
-
 ## Findings so far (Snapdragon 8 Elite, GPU; NPU is not available, the Qualcomm dispatch library is not in the app)
 - Prefill about 1,200-2,000 tok/s, decode about 37 tok/s unconstrained, about 17 tok/s constrained.
 - Schema-constrained decoding of the large extraction schema looped on whitespace; small schemas (the review answer) work.
