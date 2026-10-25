@@ -3,11 +3,14 @@ package com.therapylocal.app.ui.data
 import android.content.Context
 import com.therapylocal.app.log.AppLog
 import com.therapylocal.app.log.LogCtx
+import com.therapylocal.app.data.PendingAudio
 import com.therapylocal.app.memory.DemoMemory
 import com.therapylocal.app.memory.Fact
+import com.therapylocal.app.memory.MemoryFiles
 import com.therapylocal.app.memory.MemoryProcessor
 import com.therapylocal.app.memory.MemoryQueue
 import com.therapylocal.app.memory.MemoryStore
+import com.therapylocal.app.models.ModelSetup
 import com.therapylocal.app.ui.models.Patient
 import com.therapylocal.app.ui.models.SeedData
 import com.therapylocal.app.ui.models.SessionRecord
@@ -62,6 +65,10 @@ class ClientRepository(context: Context, private val store: MemoryStore = Memory
     fun deleteClient(id: String) {
         val r = store.deleteClient(id)
         MemoryQueue.dropClient(id)
+        // Session ids are "<client>_…", so a client's transcripts and extraction caches are recognised by the prefix.
+        listOf("in", "cache").forEach { dir ->
+            java.io.File(MemoryFiles.secureRoot(appContext), dir).listFiles { f -> f.name.startsWith("${id}_") }?.forEach { it.deleteRecursively() }
+        }
         prefs.edit().putBoolean(MOCK_DISMISSED_KEY, true).apply()
         AppLog.i(TAG, "delete_client_verified", LogCtx.NONE, "client" to id, "removed_clients" to r.clients, "removed_chunks" to r.chunks, "removed_facts" to r.facts, "removed_supports" to r.supports, "removed_sessions" to r.sessions)
     }
@@ -82,10 +89,19 @@ class ClientRepository(context: Context, private val store: MemoryStore = Memory
     fun processSession(client: String, session: String, date: String, transcript: String): Boolean =
         MemoryProcessor.enqueueSession(appContext, client, session, date, transcript)
 
-    /** Deletes one session: its facts, chunks, repeats and observations, the queued job and its transcript file. */
+    /** Queues a recording whose audio is still to be transcribed (made before setup finished); the background service does that, then processes the session. */
+    fun processRecording(client: String, session: String, date: String, recordingId: Long) =
+        MemoryProcessor.enqueueRecording(appContext, client, session, date, recordingId)
+
+    /** True while the AI files are still downloading: new sessions are kept and processed afterwards. */
+    fun waitingForSetup(): Boolean = !ModelSetup.isReady(appContext)
+
+    /** Deletes one session: its facts, chunks, repeats and observations, the queued job, its transcript and its extraction cache. */
     fun deleteSession(client: String, session: String) {
+        MemoryQueue.state.value.jobs.firstOrNull { it.id == session }?.takeIf { it.recordingId != 0L }?.let { PendingAudio.delete(appContext, it.recordingId) }
         MemoryQueue.dropSession(session)
-        java.io.File(appContext.getExternalFilesDir(null), "memory/in/$session.md").delete()
+        MemoryFiles.transcript(appContext, "$session.md").delete()
+        MemoryFiles.extractCache(appContext, session).deleteRecursively()
         val r = store.deleteSession(client, session)
         AppLog.i(TAG, "delete_session_verified", LogCtx.NONE, "client" to client, "session" to session, "removed_chunks" to r.chunks, "removed_facts" to r.facts, "removed_supports" to r.supports)
     }

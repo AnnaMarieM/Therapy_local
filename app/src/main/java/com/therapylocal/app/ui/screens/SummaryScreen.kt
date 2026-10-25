@@ -60,6 +60,7 @@ fun SummaryScreen(
     patient: Patient,
     durationFormatted: String,
     processing: String = "",
+    waitingForSetup: Boolean = false,
     facts: List<Fact> = emptyList(),
     observations: String = "",
     onObservationsChange: (String) -> Unit = {},

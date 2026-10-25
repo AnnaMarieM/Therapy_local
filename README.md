@@ -117,7 +117,7 @@ The raw foundation models (Whisper, Gemma) provide only raw transcription and em
 We believe in radical transparency about current prototype boundaries:
 1. **Relevance Thresholding:** If a query matches nothing in the patient's history, cosine similarity may still surface the nearest available chunk. A calibrated "No relevant memory found" threshold is currently under active development.
 2. **Noisy Backgrounds:** Heavy background ambient noise (air conditioning, street sounds) degrades on-device 16 kHz acoustic feature extraction.
-3. **Database Encryption:** In this debug prototype, SQLite/Room database entries are stored unencrypted; production deployment requires SQLCipher (AES-256-GCM).
+3. **Encryption:** Patient data (both databases via SQLCipher, transcripts, queue and extraction cache as AES-256-GCM files) is encrypted at rest under a key unlocked by the therapist's password or strong biometrics. Scope, key handling and limits (forgotten password = data unrecoverable) are in [`docs/SECURITY.md`](docs/SECURITY.md).
 4. **Hardware Requirements:** On-device inference requires an Android phone with at least 6 GB of RAM (tested on Google Pixel 8).
 
 ---
