@@ -256,7 +256,7 @@ fun MindVaultApp(
                                     selectedPatient = p
                                     currentScreen = "profile"
                                 },
-                                onAddPatient = { newP -> clientsVm.create(newP.name, newP.age.takeIf { it > 0 }, newP.presenting) },
+                                onAddPatient = { newP -> clientsVm.create(newP.name, null, "") },
                                 onDeletePatient = { p -> clientsVm.delete(p.id) },
                                 onOpenSettings = {
                                     currentTab = "settings"

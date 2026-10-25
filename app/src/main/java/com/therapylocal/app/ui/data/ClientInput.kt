@@ -4,8 +4,6 @@ import java.text.Normalizer
 
 /** Pure helpers for creating a client: turning a display name into a memory client id, and checking the form. */
 object ClientInput {
-    const val MAX_AGE = 120
-
     /** "Jörg M." -> "jorgm": lowercase ascii letters and digits only, same as MemoryProcessor.clientId. Empty if nothing usable is left. */
     fun slug(name: String): String =
         Normalizer.normalize(name.trim(), Normalizer.Form.NFD)
@@ -21,13 +19,9 @@ object ClientInput {
         return "$base$n"
     }
 
-    /** Null if the input is acceptable, else a short message. [ageText] may be empty (age is optional). */
-    fun validate(name: String, ageText: String): String? {
+    /** Null if the input is acceptable, else a short message. */
+    fun validate(name: String): String? {
         if (slug(name).isEmpty()) return "Enter a name"
-        if (ageText.isNotBlank()) {
-            val age = ageText.trim().toIntOrNull() ?: return "Age must be a number"
-            if (age !in 1..MAX_AGE) return "Age must be between 1 and $MAX_AGE"
-        }
         return null
     }
 }

@@ -110,8 +110,8 @@ class ClientRepository(context: Context, private val store: MemoryStore = Memory
         return Patient(
             id = client,
             name = row?.name ?: client.replaceFirstChar { it.uppercase() },
-            age = row?.age ?: 0,
-            presenting = facts.firstOrNull { it.category == "goal" || it.category == "emotion" }?.fact ?: row?.occupation.orEmpty(),
+            age = 0, // age is no longer shown; the column is kept only to avoid a schema change
+            presenting = facts.firstOrNull { it.category == "goal" || it.category == "emotion" }?.fact.orEmpty(),
             lastSession = last?.let { it.date.ifEmpty { label(it.id) } } ?: "-",
             sessionCount = sessions.size,
             preSessionNote = last?.let { l -> bySession[l.id].orEmpty().take(3).joinToString(" ") { it.fact } }.orEmpty(),

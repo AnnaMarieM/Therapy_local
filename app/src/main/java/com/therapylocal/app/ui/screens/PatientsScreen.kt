@@ -355,7 +355,7 @@ fun PatientCard(
                         }
                     } else {
                         Text(
-                            text = (if (patient.age > 0) "Age ${patient.age} · " else "") + "Last session: ${patient.lastSession}",
+                            text = "Last session: ${patient.lastSession}",
                             fontSize = 12.sp,
                             color = MutedText,
                             modifier = Modifier.padding(top = 2.dp)
@@ -381,8 +381,6 @@ fun AddPatientDialog(
 ) {
     var firstName by remember { mutableStateOf("") }
     var lastName by remember { mutableStateOf("") }
-    var ageText by remember { mutableStateOf("") }
-    var presenting by remember { mutableStateOf("") }
     var preSessionNote by remember { mutableStateOf("") }
 
     // Preview privacy name: "First Name" + first letter of "Last Name"
@@ -440,26 +438,6 @@ fun AddPatientDialog(
                 }
 
                 OutlinedTextField(
-                    value = ageText,
-                    onValueChange = { ageText = it.filter { ch -> ch.isDigit() } },
-                    label = { Text("Age", fontSize = 12.sp) },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    shape = RoundedCornerShape(10.dp)
-                )
-
-                OutlinedTextField(
-                    value = presenting,
-                    onValueChange = { presenting = it },
-                    label = { Text("Presenting issue", fontSize = 12.sp) },
-                    placeholder = { Text("e.g. Work anxiety, grief", fontSize = 11.sp) },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    shape = RoundedCornerShape(10.dp)
-                )
-
-                OutlinedTextField(
                     value = preSessionNote,
                     onValueChange = { preSessionNote = it },
                     label = { Text("Initial pre-session note", fontSize = 12.sp) },
@@ -473,11 +451,10 @@ fun AddPatientDialog(
             Button(
                 onClick = {
                     if (formattedName.isNotBlank()) {
-                        val age = ageText.toIntOrNull() ?: 30
                         val p = Patient(
                             name = formattedName,
-                            age = age,
-                            presenting = presenting.ifBlank { "General consultation" },
+                            age = 0,
+                            presenting = "",
                             lastSession = "Just added",
                             sessionCount = 0,
                             preSessionNote = preSessionNote.ifBlank { "Initial intake session" }
