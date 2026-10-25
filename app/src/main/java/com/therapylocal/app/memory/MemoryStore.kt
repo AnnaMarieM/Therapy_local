@@ -2,15 +2,16 @@ package com.therapylocal.app.memory
 
 import android.content.ContentValues
 import android.content.Context
-import android.database.sqlite.SQLiteDatabase
-import android.database.sqlite.SQLiteOpenHelper
+import net.zetetic.database.sqlcipher.SQLiteDatabase
+import net.zetetic.database.sqlcipher.SQLiteOpenHelper
 import com.therapylocal.app.data.Store
+import com.therapylocal.app.vault.Vault
 
 /**
  * Long-term memory per client: embedded transcript chunks (what a fact was said in) and the facts themselves, also embedded.
- * Facts point at their source chunk, so the therapist can always jump from a fact to the words. Not encrypted yet, like [Store].
+ * Facts point at their source chunk, so the therapist can always jump from a fact to the words. Encrypted like [Store]; opening it while the vault is locked throws VaultLockedException (fail closed).
  */
-class MemoryStore(context: Context) : SQLiteOpenHelper(context, "memory.db", null, 2) {
+class MemoryStore(context: Context) : SQLiteOpenHelper(context, "memory.db", Vault.dbPassword(), null, 2, 0, null, null, false) {
     override fun onConfigure(db: SQLiteDatabase) {
         db.setForeignKeyConstraintsEnabled(true)
     }

@@ -6,6 +6,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -17,6 +20,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -31,13 +35,14 @@ import com.therapylocal.app.ui.data.ClientsViewModel
 import com.therapylocal.app.ui.components.MindVaultBottomNav
 import com.therapylocal.app.ui.components.MinimizedSessionBar
 import com.therapylocal.app.ui.models.Patient
+import com.therapylocal.app.ui.security.findFragmentActivity
+import com.therapylocal.app.vault.Vault
 import com.therapylocal.app.ui.models.SurfacedQuote
 import com.therapylocal.app.ui.screens.LiveSessionScreen
 import com.therapylocal.app.ui.screens.PatientsScreen
 import com.therapylocal.app.ui.screens.ProfileScreen
 import com.therapylocal.app.ui.screens.SettingsScreen
 import com.therapylocal.app.ui.screens.SummaryScreen
-import com.therapylocal.app.ui.screens.UnlockScreen
 import com.therapylocal.app.ui.theme.MindVaultTheme
 import com.therapylocal.app.ui.theme.WarmBg
 import kotlinx.coroutines.Dispatchers
@@ -53,7 +58,6 @@ fun MindVaultApp(
     modifier: Modifier = Modifier
 ) {
     MindVaultTheme {
-        var isUnlocked by rememberSaveable { mutableStateOf(false) }
         var currentTab by rememberSaveable { mutableStateOf("patients") }
         var currentScreen by rememberSaveable { mutableStateOf("patients") }
 
@@ -86,6 +90,8 @@ fun MindVaultApp(
         val cuesError by viewModel.liveCues.error.collectAsStateWithLifecycle()
         val queue by MemoryQueue.state.collectAsStateWithLifecycle()
         val repo = clientsVm.repo
+        val activity = LocalContext.current.findFragmentActivity()
+        var confirmLock by remember { mutableStateOf(false) }
 
         // Elapsed time counts only while audio is really being recorded.
         LaunchedEffect(isSessionActive, vmState.recording) {
@@ -95,11 +101,11 @@ fun MindVaultApp(
             }
         }
 
-        // The recording starts as soon as the models are ready (they may still be loading when the therapist opens the session).
-        LaunchedEffect(isSessionActive, sessionEnded, recordingStarted, vmState.phase) {
-            if (isSessionActive && !sessionEnded && !recordingStarted && vmState.phase == Phase.Ready) {
+        // The recording starts immediately; without loaded engines it is stored and transcribed later (no live cues).
+        LaunchedEffect(isSessionActive, sessionEnded, recordingStarted) {
+            if (isSessionActive && !sessionEnded && !recordingStarted) {
                 recordingStarted = true
-                viewModel.liveCues.start(sessionClient)
+                if (vmState.phase == Phase.Ready) viewModel.liveCues.start(sessionClient)
                 viewModel.startRecording()
             }
         }
@@ -119,6 +125,12 @@ fun MindVaultApp(
                 return@LaunchedEffect
             }
             if (vmState.recording || vmState.activeRecordingId != null || vmState.status != "Done") return@LaunchedEffect
+            if (viewModel.isDeferred(rid)) {
+                // The queue transcribes the stored audio once setup is done, then removes the recording itself.
+                withContext(Dispatchers.IO) { repo.processRecording(sessionClient, sessionId, sessionDate, rid) }
+                enqueued = true
+                return@LaunchedEffect
+            }
             val text = viewModel.recordingTranscript(rid)
             val ok = withContext(Dispatchers.IO) { repo.processSession(sessionClient, sessionId, sessionDate, text) }
             if (ok) {
@@ -129,15 +141,6 @@ fun MindVaultApp(
             }
         }
         LaunchedEffect(queue.jobs.firstOrNull { it.id == sessionId }?.status) { clientsVm.refresh() }
-
-        if (!isUnlocked) {
-            UnlockScreen(onUnlock = {
-                isUnlocked = true
-                currentTab = "patients"
-                currentScreen = "patients"
-            })
-            return@MindVaultTheme
-        }
 
         val resetSession = {
             isSessionActive = false
@@ -184,6 +187,16 @@ fun MindVaultApp(
         }
 
         val togglePause = { }
+
+        if (confirmLock) {
+            AlertDialog(
+                onDismissRequest = { confirmLock = false },
+                title = { Text("Lock MindVault?") },
+                text = { Text("Session processing will pause and continue after you unlock.") },
+                confirmButton = { TextButton(onClick = { confirmLock = false; activity?.let(Vault::lock) }) { Text("Lock") } },
+                dismissButton = { TextButton(onClick = { confirmLock = false }) { Text("Cancel") } },
+            )
+        }
 
         Box(
             modifier = modifier
@@ -238,12 +251,11 @@ fun MindVaultApp(
                                 surfacedQuotes = surfacedQuotes,
                                 transcript = transcript,
                                 statusLine = when {
-                                    vmState.error != null -> vmState.error
-                                    vmState.phase == Phase.Failed -> "Models failed to load"
-                                    vmState.phase != Phase.Ready -> "Preparing models: ${vmState.prepareMsg}"
+                                    vmState.error != null -> "Recording problem: ${vmState.error}"
                                     vmState.recording -> null
                                     else -> vmState.status.ifEmpty { "Starting" }
                                 },
+                                deferredNote = vmState.deferred && vmState.recording,
                                 cues = cues,
                                 cuesError = cuesError,
                                 loadSource = { cue -> withContext(Dispatchers.IO) { repo.sourceChunk(sessionClient, cue.session, cue.chunk) } },
@@ -290,6 +302,7 @@ fun MindVaultApp(
                                     patient = p,
                                     durationFormatted = dur,
                                     processing = processing,
+                                    waitingForSetup = job?.status == JobStatus.Queued && repo.waitingForSetup(),
                                     facts = facts,
                                     observations = observations,
                                     onObservationsChange = { observations = it },
@@ -309,9 +322,7 @@ fun MindVaultApp(
 
                         "settings" -> {
                             SettingsScreen(
-                                onLockVault = {
-                                    isUnlocked = false
-                                },
+                                onLockVault = { if (queue.running) confirmLock = true else activity?.let(Vault::lock) },
                                 onOpenDebugMlView = onShowLegacyDebugView,
                                 demoMode = if (BuildConfig.DEBUG) demoMode else null,
                                 onDemoModeChange = clientsVm::setDemoMode

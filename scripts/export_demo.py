@@ -8,6 +8,9 @@ From a pulled memory.db (after a full pipeline run on the phone):
 Placeholder from the ground-truth facts only (no pipeline run, no evidence, no vectors):
   python3 scripts/export_demo.py --from-facts --sessions demo/sessions --out app/src/debug/assets/demo_memory.json --max-facts 12
 
+Note: memory.db is SQLCipher-encrypted since the patient-data encryption change, so `--db` needs a decrypted export of it (e.g. the sqlcipher CLI
+with the vault key, `PRAGMA key = "x'<hex>'"; ATTACH ... KEY ''; SELECT sqlcipher_export('plain');`). `--from-facts` needs no database.
+
 Session dates come from the first line of demo/sessions/<session>.md ("# George — Session 1 — 2026-01-14").
 Vectors are the float32 little-endian blobs of memory.db, base64 encoded.
 """

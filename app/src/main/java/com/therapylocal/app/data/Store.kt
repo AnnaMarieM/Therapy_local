@@ -2,10 +2,11 @@ package com.therapylocal.app.data
 
 import android.content.ContentValues
 import android.content.Context
-import android.database.sqlite.SQLiteDatabase
-import android.database.sqlite.SQLiteOpenHelper
+import net.zetetic.database.sqlcipher.SQLiteDatabase
+import net.zetetic.database.sqlcipher.SQLiteOpenHelper
 import com.therapylocal.app.log.AppLog
 import com.therapylocal.app.log.LogCtx
+import com.therapylocal.app.vault.Vault
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
@@ -41,9 +42,10 @@ data class DeleteResult(val recordings: Int, val chunks: Int)
  * Local store: recordings and their chunks. Each chunk keeps its transcript (for reading), an AUDIO embedding (what search
  * compares against) and a TEXT embedding of the transcript (kept so retrieval quality of the two can be compared). No audio is stored.
  * Foreign keys cascade, so deleting a recording removes its chunks, transcripts and embeddings in one transaction.
- * Not encrypted yet (SQLCipher is a follow-up for the patient-data milestone).
+ * Encrypted with SQLCipher (AES-256) under the vault key, see vault/Vault.kt. Opening the database while the vault is locked throws
+ * [com.therapylocal.app.vault.VaultLockedException] (fail closed: no key, no data).
  */
-class Store(context: Context) : SQLiteOpenHelper(context, "recordings.db", null, 2) {
+class Store(context: Context) : SQLiteOpenHelper(context, "recordings.db", Vault.dbPassword(), null, 2, 0, null, null, false) {
 
     override fun onConfigure(db: SQLiteDatabase) {
         db.setForeignKeyConstraintsEnabled(true)

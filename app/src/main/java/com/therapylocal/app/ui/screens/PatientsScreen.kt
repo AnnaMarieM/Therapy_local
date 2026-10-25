@@ -42,6 +42,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.therapylocal.app.models.ModelSetup
+import com.therapylocal.app.models.SetupState
+import com.therapylocal.app.ui.components.SetupBanner
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -72,6 +77,8 @@ fun PatientsScreen(
     onOpenSettings: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
+    val setup by ModelSetup.progress.collectAsStateWithLifecycle()
     var searchQuery by remember { mutableStateOf("") }
     var showAddDialog by remember { mutableStateOf(false) }
     var patientToDelete by remember { mutableStateOf<Patient?>(null) }
@@ -119,7 +126,7 @@ fun PatientsScreen(
                     color = CharcoalText
                 )
                 Text(
-                    text = "Encrypted clinical memory",
+                    text = "Your clients",
                     fontSize = 12.sp,
                     color = MutedText
                 )
@@ -168,6 +175,9 @@ fun PatientsScreen(
             modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
+            if (setup.state != SetupState.Ready) {
+                item(key = "setup-banner") { SetupBanner(progress = setup, onRetry = { ModelSetup.retry(context) }) }
+            }
             items(filteredPatients, key = { it.id }) { patient ->
                 PatientCard(
                     patient = patient,
@@ -244,7 +254,7 @@ fun ConfirmDeletePatientDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Delete ${patient.name}?", fontWeight = FontWeight.Bold, fontFamily = FontFamily.Serif, color = CharcoalText) },
-        text = { Text("Removes the profile, all sessions, transcripts and facts stored on this device. This cannot be undone.", fontSize = 13.sp, color = MutedText) },
+        text = { Text("Removes the profile, all sessions, transcripts and facts stored for them. This cannot be undone.", fontSize = 13.sp, color = MutedText) },
         confirmButton = {
             Button(onClick = onConfirm, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFB3261E))) { Text("Delete") }
         },
@@ -366,7 +376,7 @@ fun AddPatientDialog(
 
                 if (formattedName.isNotBlank()) {
                     Text(
-                        text = "Encrypted Record: $formattedName (surname initial only)",
+                        text = formattedName,
                         fontSize = 11.sp,
                         color = SageDark,
                         fontWeight = FontWeight.Medium

@@ -10,6 +10,7 @@ import com.therapylocal.app.log.AppLog
 import com.therapylocal.app.log.LogCtx
 import com.therapylocal.app.memory.LiveCues
 import com.therapylocal.app.memory.MemoryStore
+import com.therapylocal.app.vault.Vault
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -34,6 +35,11 @@ class LiveCuesBenchActivity : Activity() {
         super.onCreate(savedInstanceState)
         val status = TextView(this).apply { setPadding(32, 64, 32, 32) }
         setContentView(status)
+        if (!Vault.isUnlocked) {
+            status.text = "Unlock MindVault first, then rerun the bench."
+            AppLog.w("LiveCuesBench", "bench_vault_locked")
+            return
+        }
         val client = intent.getStringExtra("client") ?: "george"
         val file = intent.getStringExtra("file") ?: error("--es file <name.wav> is required")
         val speed = intent.getFloatExtra("speed", 1f)

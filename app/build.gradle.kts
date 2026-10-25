@@ -40,6 +40,8 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
     // jvmTarget is set via the kotlin { compilerOptions } block below
+    // The memory prompts ship in the app (assets/prompts/), so processing works on a fresh install without pushing files.
+    sourceSets.getByName("main").assets.srcDir(layout.buildDirectory.dir("generated/promptAssets"))
     buildFeatures {
         compose = true
         buildConfig = true
@@ -79,7 +81,11 @@ val fetchSherpa by tasks.registering {
         }
     }
 }
-tasks.named("preBuild") { dependsOn(fetchSherpa) }
+val promptAssets by tasks.registering(Copy::class) {
+    from(rootProject.file("demo/prompts"))
+    into(layout.buildDirectory.dir("generated/promptAssets/prompts"))
+}
+tasks.named("preBuild") { dependsOn(fetchSherpa, promptAssets) }
 
 dependencies {
     implementation(platform("androidx.compose:compose-bom:2024.06.00"))
@@ -93,6 +99,10 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
     implementation("com.google.ai.edge.litertlm:litertlm-android:0.18.1")
     implementation(files("libs/sherpa-onnx-2.0.0.aar"))
+    implementation("net.zetetic:sqlcipher-android:4.12.0@aar") // encrypted SQLite for recordings.db and memory.db (patient data at rest)
+    implementation("androidx.sqlite:sqlite:2.4.0") // SupportSQLite types required by sqlcipher-android
+    implementation("androidx.biometric:biometric:1.1.0")
+    implementation("androidx.fragment:fragment-ktx:1.8.2") // FragmentActivity for BiometricPrompt
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.json:json:20240303") // the Android stub of org.json does nothing in unit tests
 }

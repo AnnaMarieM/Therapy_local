@@ -246,7 +246,7 @@ fun OverviewTab(
                                 fontSize = 14.sp
                             )
                             Text(
-                                text = if (isSessionActive) "Session currently recording in background" else "Records locally & surfaces past notes",
+                                text = if (isSessionActive) "Session currently recording in background" else "Records the session and surfaces past notes",
                                 fontSize = 11.sp,
                                 color = Color.White.copy(alpha = 0.8f)
                             )
@@ -441,7 +441,7 @@ fun FactsTab(patient: Patient) {
                 color = CharcoalText
             )
             Text(
-                text = "Verified from on-device transcripts and encrypted locally.",
+                text = "Taken from your session transcripts.",
                 fontSize = 11.sp,
                 color = MutedText,
                 modifier = Modifier.padding(bottom = 6.dp)

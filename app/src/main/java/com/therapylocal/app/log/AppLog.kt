@@ -34,7 +34,7 @@ class Span {
  * Structured key=value logging to logcat (tag "TL") and a rotating file in the app's external files dir.
  *
  * Line format: ts=... lvl=I tag=ASR sid=ab12cd rid=3 cid=3.2 evt=span_end span=transcribe dur_ms=1234 ...
- * Transcript or audio content is never logged at INFO. [text] writes it only when [fullTextLogging] is on.
+ * Transcript or audio content is never logged at INFO. Fields "client" and "session" are written as [pseudonymize]d values. [text] writes it only when [fullTextLogging] is on.
  */
 object AppLog {
     const val LOGCAT_TAG = "TL"
@@ -46,6 +46,10 @@ object AppLog {
     /** Off by default (therapy app). Set the LOG_TEXT build flag in app/build.gradle.kts to enable. */
     @Volatile
     var fullTextLogging: Boolean = BuildConfig.LOG_TEXT
+
+    /** Maps patient identifiers (fields "client", "session") to a stable pseudonym; set by the Vault on unlock. */
+    @Volatile
+    var pseudonymize: (String) -> String = { "redacted" }
 
     private val timeFormat = ThreadLocal.withInitial { SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS", Locale.US) }
     private val executor = Executors.newSingleThreadExecutor { r -> Thread(r, "applog-writer").apply { isDaemon = true } }
@@ -117,7 +121,10 @@ object AppLog {
         ctx.rid?.let { sb.append(" rid=").append(it) }
         ctx.cid?.let { sb.append(" cid=").append(it) }
         sb.append(" evt=").append(evt)
-        for ((k, v) in f) sb.append(' ').append(k).append('=').append(format(v))
+        for ((k, v) in f) {
+            val shown = if (v != null && (k == "client" || k == "session")) pseudonymize(v.toString()) else v
+            sb.append(' ').append(k).append('=').append(format(shown))
+        }
         if (t != null) sb.append(" err=").append(format(t.javaClass.simpleName)).append(" err_msg=").append(format(t.message))
         val line = sb.toString()
         Log.println(level, LOGCAT_TAG, line)
