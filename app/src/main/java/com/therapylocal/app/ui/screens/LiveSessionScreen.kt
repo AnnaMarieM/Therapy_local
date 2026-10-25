@@ -59,6 +59,7 @@ import androidx.compose.ui.unit.sp
 import com.therapylocal.app.BuildConfig
 import com.therapylocal.app.ui.components.PillBadge
 import com.therapylocal.app.memory.Cue
+import com.therapylocal.app.ui.logic.SessionLogic
 import com.therapylocal.app.ui.models.Patient
 import com.therapylocal.app.ui.models.SurfacedQuote
 import com.therapylocal.app.ui.theme.BorderSubtle
@@ -92,8 +93,7 @@ fun LiveSessionScreen(
     isPaused: Boolean = false,
     onTogglePause: () -> Unit = {}
 ) {
-    val fmt = { n: Long -> "%02d".format(n) }
-    val timeFormatted = "${fmt(sessionSecs / 3600)}:${fmt((sessionSecs / 60) % 60)}:${fmt(sessionSecs % 60)}"
+    val timeFormatted = SessionLogic.formatHourMinSec(sessionSecs)
 
     val simulatedTriggers = listOf(
         "Father" to "Strained relationship; client stated 'he never acknowledges the loss.'",

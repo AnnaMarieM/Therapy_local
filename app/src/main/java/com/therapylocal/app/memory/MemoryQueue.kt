@@ -74,7 +74,11 @@ object MemoryQueue {
 
     private var file: File? = null
 
-    fun bind(queueFile: File) {
+    /** Test seam: the data key for the queue file. Production always uses the vault's key; JVM tests cannot unlock the Android-backed [Vault]. */
+    internal var keyProvider: () -> ByteArray = { Vault.key() }
+
+    /** Binds the queue file; null unbinds it (nothing is saved, the saved list reads as empty). */
+    fun bind(queueFile: File?) {
         file = queueFile
     }
 
@@ -121,14 +125,14 @@ object MemoryQueue {
     fun retryFailed() = update { s -> s.copy(jobs = s.jobs.map { if (it.status == JobStatus.Failed || it.status == JobStatus.Cancelled) it.copy(status = JobStatus.Queued, error = null, stage = "") else it }) }
 
     private fun readSaved(): List<SessionJob> = try {
-        JSONArray(file?.let { SecureFile.readText(it, Vault.key()) } ?: "[]").let { a -> (0 until a.length()).map { SessionJob.fromJson(a.getJSONObject(it)) } }
+        JSONArray(file?.let { SecureFile.readText(it, keyProvider()) } ?: "[]").let { a -> (0 until a.length()).map { SessionJob.fromJson(a.getJSONObject(it)) } }
     } catch (_: Exception) {
         emptyList()
     }
 
     private fun persist() {
         try {
-            file?.let { SecureFile.writeText(it, JSONArray(_state.value.jobs.map { j -> j.toJson() }).toString(), Vault.key()) }
+            file?.let { SecureFile.writeText(it, JSONArray(_state.value.jobs.map { j -> j.toJson() }).toString(), keyProvider()) }
         } catch (_: Exception) {
         }
     }
