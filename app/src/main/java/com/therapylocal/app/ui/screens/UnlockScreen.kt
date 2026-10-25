@@ -19,7 +19,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Fingerprint
 import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.AlertDialog
@@ -56,7 +55,6 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.therapylocal.app.ui.components.PillBadge
 import com.therapylocal.app.ui.security.authenticateWithBiometric
 import com.therapylocal.app.ui.security.findFragmentActivity
 import com.therapylocal.app.ui.theme.BorderSubtle
@@ -130,11 +128,6 @@ fun VaultGate(onDone: () -> Unit, modifier: Modifier = Modifier) {
                 fontSize = 13.sp,
                 color = MutedText,
                 modifier = Modifier.padding(top = 4.dp, bottom = 16.dp)
-            )
-
-            PillBadge(
-                text = "100% Offline · Zero Cloud",
-                icon = Icons.Default.Shield
             )
 
             Spacer(modifier = Modifier.height(32.dp))

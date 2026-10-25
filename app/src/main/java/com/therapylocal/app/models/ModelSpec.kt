@@ -19,6 +19,13 @@ data class ModelSpec(val id: String, val title: String, val subdir: String?, val
 
     fun file(context: Context, f: ModelFile): File = File(dir(context), f.name)
     fun part(context: Context, f: ModelFile): File = File(dir(context), f.name + ".part")
+    /** Bytes still to fetch: whole files that are missing minus what their .part files already hold. */
+    fun missingBytes(context: Context): Long = files.sumOf { f ->
+        val part = part(context, f)
+        if (isComplete(context, f)) 0L else f.size - (if (part.exists()) minOf(part.length(), f.size) else 0L)
+    }
+
+    fun isComplete(context: Context, f: ModelFile): Boolean = file(context, f).let { it.exists() && it.length() == f.size }
     fun isReady(context: Context): Boolean = files.all { file(context, it).let { x -> x.exists() && x.length() == it.size } }
     fun path(context: Context, name: String): String = File(dir(context), name).path
 }

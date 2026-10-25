@@ -14,7 +14,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoAwesome
-import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -62,7 +62,9 @@ fun SummaryScreen(
     canDelete: Boolean,
     onSaveToVault: () -> Unit,
     onDeleteSession: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    /** True while the session waits for MindVault to finish getting ready. */
+    waitingForSetup: Boolean = false
 ) {
     var confirmDelete by remember { mutableStateOf(false) }
 
@@ -89,7 +91,7 @@ fun SummaryScreen(
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        PillBadge(text = processing, icon = Icons.Default.AutoAwesome)
+        PillBadge(text = plainProcessing(processing, waitingForSetup), icon = Icons.Default.AutoAwesome)
 
         Spacer(modifier = Modifier.height(14.dp))
 
@@ -108,7 +110,7 @@ fun SummaryScreen(
                         Text(text = "FACTS FROM THIS SESSION", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = MutedText)
                         Spacer(modifier = Modifier.height(8.dp))
                         if (facts.isEmpty()) {
-                            Text(text = "None yet. They appear here as the transcript is processed on this device.", fontSize = 13.sp, color = MutedText)
+                            Text(text = "None yet. They appear here as the session is processed.", fontSize = 13.sp, color = MutedText)
                         }
                         facts.groupBy { it.category }.forEach { (category, items) ->
                             Spacer(modifier = Modifier.height(6.dp))
@@ -144,7 +146,7 @@ fun SummaryScreen(
                             value = observations,
                             onValueChange = onObservationsChange,
                             modifier = Modifier.fillMaxWidth(),
-                            placeholder = { Text("Your own notes on this session (stored on this device only)", fontSize = 12.sp) },
+                            placeholder = { Text("Your own notes on this session", fontSize = 12.sp) },
                             minLines = 3,
                             shape = RoundedCornerShape(10.dp)
                         )
@@ -168,13 +170,13 @@ fun SummaryScreen(
             )
         ) {
             Icon(
-                imageVector = Icons.Default.Lock,
+                imageVector = Icons.Default.Check,
                 contentDescription = null,
                 modifier = Modifier.size(18.dp)
             )
             Spacer(modifier = Modifier.size(8.dp))
             Text(
-                text = if (canLeave) "Save to Encrypted Vault" else "Finishing recording...",
+                text = if (canLeave) "Save Session" else "Finishing recording...",
                 fontSize = 14.sp,
                 fontWeight = FontWeight.SemiBold
             )
@@ -196,9 +198,19 @@ fun SummaryScreen(
         AlertDialog(
             onDismissRequest = { confirmDelete = false },
             title = { Text("Delete this session?") },
-            text = { Text("Removes its transcript, extracted facts and your observations from this device. This cannot be undone.") },
+            text = { Text("Removes its transcript, extracted facts and your observations permanently. This cannot be undone.") },
             confirmButton = { TextButton(onClick = { confirmDelete = false; onDeleteSession() }) { Text("Delete", color = DangerRed) } },
             dismissButton = { TextButton(onClick = { confirmDelete = false }) { Text("Cancel") } },
         )
     }
+}
+
+/** Maps the job status text from the caller to plain wording. */
+private fun plainProcessing(text: String, waitingForSetup: Boolean): String = when {
+    waitingForSetup -> "Will be processed once MindVault is ready"
+    text.startsWith("Processing failed") -> "Processing didn't finish"
+    text.startsWith("Processing") -> "Processing session…"
+    text.startsWith("Done") -> "Added to the client's memory"
+    text == "Queued" -> "Waiting to be processed"
+    else -> text
 }

@@ -101,11 +101,11 @@ fun MindVaultApp(
             }
         }
 
-        // The recording starts as soon as the models are ready (they may still be loading when the therapist opens the session).
-        LaunchedEffect(isSessionActive, sessionEnded, recordingStarted, vmState.phase) {
-            if (isSessionActive && !sessionEnded && !recordingStarted && vmState.phase == Phase.Ready) {
+        // The recording starts immediately; without loaded engines it is stored and transcribed later (no live cues).
+        LaunchedEffect(isSessionActive, sessionEnded, recordingStarted) {
+            if (isSessionActive && !sessionEnded && !recordingStarted) {
                 recordingStarted = true
-                viewModel.liveCues.start(sessionClient)
+                if (vmState.phase == Phase.Ready) viewModel.liveCues.start(sessionClient)
                 viewModel.startRecording()
             }
         }
@@ -125,6 +125,12 @@ fun MindVaultApp(
                 return@LaunchedEffect
             }
             if (vmState.recording || vmState.activeRecordingId != null || vmState.status != "Done") return@LaunchedEffect
+            if (viewModel.isDeferred(rid)) {
+                // The queue transcribes the stored audio once setup is done, then removes the recording itself.
+                withContext(Dispatchers.IO) { repo.processRecording(sessionClient, sessionId, sessionDate, rid) }
+                enqueued = true
+                return@LaunchedEffect
+            }
             val text = viewModel.recordingTranscript(rid)
             val ok = withContext(Dispatchers.IO) { repo.processSession(sessionClient, sessionId, sessionDate, text) }
             if (ok) {
@@ -245,12 +251,11 @@ fun MindVaultApp(
                                 surfacedQuotes = surfacedQuotes,
                                 transcript = transcript,
                                 statusLine = when {
-                                    vmState.error != null -> vmState.error
-                                    vmState.phase == Phase.Failed -> "Models failed to load"
-                                    vmState.phase != Phase.Ready -> "Preparing models: ${vmState.prepareMsg}"
+                                    vmState.error != null -> "Recording problem: ${vmState.error}"
                                     vmState.recording -> null
                                     else -> vmState.status.ifEmpty { "Starting" }
                                 },
+                                deferredNote = vmState.deferred && vmState.recording,
                                 cues = cues,
                                 cuesError = cuesError,
                                 loadSource = { cue -> withContext(Dispatchers.IO) { repo.sourceChunk(sessionClient, cue.session, cue.chunk) } },
@@ -297,6 +302,7 @@ fun MindVaultApp(
                                     patient = p,
                                     durationFormatted = dur,
                                     processing = processing,
+                                    waitingForSetup = job?.status == JobStatus.Queued && repo.waitingForSetup(),
                                     facts = facts,
                                     observations = observations,
                                     onObservationsChange = { observations = it },

@@ -1,7 +1,12 @@
 package com.therapylocal.app.memory
 
 import android.content.Context
+import com.therapylocal.app.asr.SherpaWhisperAsr
+import com.therapylocal.app.data.ChunkProcessor
+import com.therapylocal.app.data.PendingAudio
+import com.therapylocal.app.data.Store
 import com.therapylocal.app.embed.Embedder
+import com.therapylocal.app.models.ModelSetup
 import com.therapylocal.app.log.AppLog
 import com.therapylocal.app.log.LogCtx
 import com.therapylocal.app.vault.SecureFile
@@ -60,7 +65,8 @@ class MemoryLab(private val context: Context, private val useJobFile: Boolean = 
             ?: if (useJobFile) File(root, "in/$file").readText().also { SecureFile.writeText(MemoryFiles.transcript(context, file), it, Vault.key()) }
             else throw FileNotFoundException(file)
 
-    private fun prompt(name: String) = File(prompts, name).readText().trim()
+    /** A developer copy in the dev root's prompts/ wins (edit without a rebuild); otherwise the prompt shipped in the app (demo/prompts). */
+    private fun prompt(name: String) = File(prompts, name).takeIf { it.exists() }?.readText()?.trim() ?: context.assets.open("prompts/$name").bufferedReader().use { it.readText() }.trim()
 
     private fun fill(t: String, vars: Map<String, String>) = vars.entries.fold(t) { acc, (k, v) -> acc.replace("{{$k}}", v) }
 
@@ -89,6 +95,12 @@ class MemoryLab(private val context: Context, private val useJobFile: Boolean = 
         val job = Job(if (useJobFile && settings.exists()) JSONObject(settings.readText()) else JSONObject())
         val bench = diag?.let { File(it, "bench.jsonl") }
         MemoryQueue.bind(MemoryFiles.queue(context))
+        if (!ModelSetup.isReady(context)) {
+            // The service ends; the download worker calls MemoryProcessor.resumePending when the files are complete.
+            MemoryQueue.restore()
+            MemoryQueue.update { it.copy(running = false, message = "Waiting for setup") }
+            return
+        }
         val fresh = job.sessions.map { (file, date) -> SessionJob(file.removeSuffix(".md"), file.substringBefore('_'), file, date) }
             .sortedWith(compareBy({ it.client }, { it.date }))
         MemoryQueue.cancelRequested = false
@@ -133,17 +145,23 @@ class MemoryLab(private val context: Context, private val useJobFile: Boolean = 
 
     /** A session that throws is retried (chunks already extracted are cached, so only missing work is redone) before it is marked Failed. */
     private fun runWithRetries(llm: MemoryLlm, job: Job, item: SessionJob, bench: File?) {
-        MemoryQueue.updateJob(item.id) { it.copy(status = JobStatus.Running, stage = "starting", startedAt = System.currentTimeMillis(), error = null) }
+        MemoryQueue.updateJob(item.id) { it.copy(status = JobStatus.Running, stage = "Waiting", startedAt = System.currentTimeMillis(), error = null) }
         var last: Throwable? = null
         for (attempt in 1..job.jobAttempts) {
             try {
+                if (item.recordingId != 0L && !MemoryFiles.transcript(context, item.file).exists()) {
+                    if (!transcribeRecording(item)) {
+                        MemoryQueue.updateJob(item.id) { it.copy(status = JobStatus.Failed, error = "No speech was recorded", stage = "", finishedAt = System.currentTimeMillis()) }
+                        return
+                    }
+                }
                 processSession(llm, job, item, transcript(item.file), bench)
                 MemoryQueue.updateJob(item.id) { it.copy(status = if (it.stage == "stopped") JobStatus.Cancelled else JobStatus.Done, finishedAt = System.currentTimeMillis()) }
                 return
             } catch (t: Throwable) {
                 last = t
                 AppLog.e(MemoryLlm.TAG, "session_attempt_failed", LogCtx.NONE, t, "session" to item.id, "attempt" to attempt)
-                MemoryQueue.updateJob(item.id) { it.copy(stage = "retrying after error (attempt ${attempt + 1}/${job.jobAttempts})") }
+                MemoryQueue.updateJob(item.id) { it.copy(stage = "Retrying (${attempt + 1}/${job.jobAttempts})") }
             }
         }
         MemoryQueue.updateJob(item.id) { it.copy(status = JobStatus.Failed, error = last?.message ?: last?.javaClass?.simpleName, finishedAt = System.currentTimeMillis()) }
@@ -166,7 +184,7 @@ class MemoryLab(private val context: Context, private val useJobFile: Boolean = 
         val text = if (job.stripLabels) TranscriptWindows.stripSpeakerLabels(raw) else raw
         val chunks = TranscriptWindows.splitByTokens(text, job.chunkTokens, job.overlapTokens)
         val cacheDir = MemoryFiles.extractCache(context, sid).apply { mkdirs() }
-        MemoryQueue.updateJob(sid) { it.copy(windows = chunks.size, windowsDone = 0, extracted = 0, added = 0, stage = "extracting 1/${chunks.size}") }
+        MemoryQueue.updateJob(sid) { it.copy(windows = chunks.size, windowsDone = 0, extracted = 0, added = 0, stage = "Reading 1/${chunks.size}") }
 
         // 1 + 2: embed and store every chunk, extract candidate facts from it.
         if (item.date.isNotEmpty()) store.putSession(client, sid, item.date)
@@ -177,7 +195,7 @@ class MemoryLab(private val context: Context, private val useJobFile: Boolean = 
             val cache = File(cacheDir, "${i + 1}.json")
             val facts = if (cache.exists()) readFacts(cache) else extractChunk(llm, job, item, chunk, i + 1, chunks.size, bench).also { SecureFile.writeText(cache, JSONArray(it.map { f -> f.toJson() }).toString(1), Vault.key()) }
             candidates += facts
-            MemoryQueue.updateJob(sid) { it.copy(windowsDone = i + 1, extracted = candidates.size, stage = if (i + 1 < chunks.size) "extracting ${i + 2}/${chunks.size}" else "reviewing 0/${candidates.size}") }
+            MemoryQueue.updateJob(sid) { it.copy(windowsDone = i + 1, extracted = candidates.size, stage = if (i + 1 < chunks.size) "Reading ${i + 2}/${chunks.size}" else "Checking 0/${candidates.size}") }
         }
 
         // 3 + 4: review each candidate against its 10 nearest known facts, sequentially.
@@ -196,10 +214,42 @@ class MemoryLab(private val context: Context, private val useJobFile: Boolean = 
                 store.putFact(client, cand.copy(id = "F${++next}"), vec)
                 added++
             }
-            if ((i + 1) % 3 == 0 || i + 1 == candidates.size) MemoryQueue.updateJob(sid) { it.copy(stage = "reviewing ${i + 1}/${candidates.size}", added = added) }
+            if ((i + 1) % 3 == 0 || i + 1 == candidates.size) MemoryQueue.updateJob(sid) { it.copy(stage = "Checking ${i + 1}/${candidates.size}", added = added) }
         }
-        MemoryQueue.updateJob(sid) { it.copy(stage = "done", added = added) }
+        MemoryQueue.updateJob(sid) { it.copy(stage = "Done", added = added) }
         AppLog.i(MemoryLlm.TAG, "session_done", LogCtx.NONE, "session" to sid, "chunks" to chunks.size, "candidates" to candidates.size, "added" to added, "repeats" to repeats)
+    }
+
+    /**
+     * Turns the pending audio of a recording made before setup finished into the session transcript (always with Whisper: Gemma is busy as the memory LLM).
+     * Chunks already stored by an earlier attempt are skipped, so a crash or retry only redoes the missing ones. Returns false if no speech was found.
+     * The pending audio and the recording rows are deleted once the transcript is written (or found empty); on an error they are kept for the retry.
+     */
+    private fun transcribeRecording(item: SessionJob): Boolean {
+        val rid = item.recordingId
+        val prefs = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
+        val asr = SherpaWhisperAsr(context, prefs.getString("whisper_size", "base") ?: "base", prefs.getString("language", "auto") ?: "auto")
+        val store = Store(context)
+        try {
+            val audio = PendingAudio.load(context, rid)
+            MemoryQueue.updateJob(item.id) { it.copy(stage = "Transcribing 0/${audio.size}") }
+            runBlocking { asr.load() }
+            val processor = ChunkProcessor(store, embedder, asr)
+            val stored = store.chunks(rid).map { it.idx }.toSet()
+            audio.forEachIndexed { i, chunk ->
+                if (chunk.idx !in stored) runBlocking { processor.process(rid, chunk) }
+                MemoryQueue.updateJob(item.id) { it.copy(stage = "Transcribing ${i + 1}/${audio.size}") }
+            }
+            val text = ChunkProcessor.transcript(store.chunks(rid))
+            if (text.isNotBlank()) SecureFile.writeText(MemoryFiles.transcript(context, item.file), text, Vault.key())
+            // Only now (transcript written, or nothing to write) is the source audio dropped; an exception above keeps it for the retry.
+            PendingAudio.delete(context, rid)
+            store.deleteRecording(rid)
+            return text.isNotBlank()
+        } finally {
+            asr.close()
+            store.close()
+        }
     }
 
     private fun stopped(sid: String) {

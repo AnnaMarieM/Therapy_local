@@ -60,8 +60,8 @@ import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.therapylocal.app.config.ChunkConfig
 import com.therapylocal.app.log.AppLog
-import com.therapylocal.app.models.ModelState
-
+import com.therapylocal.app.models.ModelSetup
+import com.therapylocal.app.models.SetupState
 import com.therapylocal.app.memory.MemoryLab
 import com.therapylocal.app.memory.MemoryProcessor
 import com.therapylocal.app.ui.MindVaultApp
@@ -76,6 +76,8 @@ class MainActivity : FragmentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         memoryLabRequested = isMemoryLabRequested(intent)
+        // The AI files are not patient data: the download starts right away, even before the vault is unlocked.
+        ModelSetup.start(applicationContext)
         setContent {
             val context = LocalContext.current
             val unlocked by Vault.unlocked.collectAsStateWithLifecycle()
@@ -382,33 +384,32 @@ private fun LogsTab() {
 
 @Composable
 private fun PrepareDialog(s: UiState, onRetry: () -> Unit) {
-    val mb = { b: Long -> b / (1024 * 1024) }
+    val progress by ModelSetup.progress.collectAsStateWithLifecycle()
+    val context = LocalContext.current
     AlertDialog(
         onDismissRequest = {},
-        title = { Text(if (s.phase == Phase.Failed) "Something went wrong" else "Preparing models") },
+        title = { Text(if (progress.state == SetupState.Failed || s.phase == Phase.Failed) "Something went wrong" else "Preparing models") },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.heightIn(max = 420.dp).verticalScroll(rememberScrollState())) {
-                s.models.forEach { m ->
-                    Column {
-                        Text(m.spec.title, fontSize = 13.sp)
-                        when (m.state) {
-                            ModelState.Downloading, ModelState.Verifying -> {
-                                LinearProgressIndicator(progress = { if (m.total > 0) m.done.toFloat() / m.total else 0f }, modifier = Modifier.fillMaxWidth())
-                                Text("${if (m.state == ModelState.Verifying) "Verifying " else ""}${mb(m.done)} / ${mb(m.total)} MB", fontSize = 11.sp)
-                            }
-                            ModelState.Ready -> Text("Ready", fontSize = 11.sp)
-                            ModelState.Failed -> Text(m.error ?: "Failed", fontSize = 11.sp, color = MaterialTheme.colorScheme.error)
-                            ModelState.Missing -> Text("Waiting", fontSize = 11.sp)
-                        }
+                when (progress.state) {
+                    SetupState.Downloading -> {
+                        val eta = progress.etaSeconds?.let { " · ${ModelSetup.formatEta(it)}" } ?: ""
+                        Text("Downloading ${ModelSetup.formatBytes(progress.doneBytes)} of ${ModelSetup.formatBytes(progress.totalBytes)}$eta", fontSize = 13.sp)
+                        LinearProgressIndicator(progress = { progress.fraction }, modifier = Modifier.fillMaxWidth())
                     }
-                }
-                if (s.phase == Phase.Preparing && s.models.all { it.state == ModelState.Ready }) {
-                    LinearProgressIndicator(Modifier.fillMaxWidth())
-                    Text(s.prepareMsg, fontSize = 12.sp)
+                    SetupState.Failed -> Text(progress.message ?: "Download failed", color = MaterialTheme.colorScheme.error, fontSize = 12.sp)
+                    SetupState.Checking -> { Text("Checking files", fontSize = 13.sp); LinearProgressIndicator(Modifier.fillMaxWidth()) }
+                    SetupState.Ready -> if (s.phase == Phase.Preparing) {
+                        LinearProgressIndicator(Modifier.fillMaxWidth())
+                        Text(s.prepareMsg, fontSize = 12.sp)
+                    }
                 }
                 if (s.phase == Phase.Failed) Text(s.error ?: "Unknown error", color = MaterialTheme.colorScheme.error, fontSize = 12.sp)
             }
         },
-        confirmButton = { if (s.phase == Phase.Failed) TextButton(onClick = onRetry) { Text("Retry") } },
+        confirmButton = {
+            if (progress.state == SetupState.Failed) TextButton(onClick = { ModelSetup.retry(context) }) { Text("Retry") }
+            else if (s.phase == Phase.Failed) TextButton(onClick = onRetry) { Text("Retry") }
+        },
     )
 }

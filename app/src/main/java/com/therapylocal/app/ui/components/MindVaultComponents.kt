@@ -31,11 +31,13 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -47,6 +49,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.therapylocal.app.models.ModelSetup
+import com.therapylocal.app.models.SetupProgress
+import com.therapylocal.app.models.SetupState
 import com.therapylocal.app.ui.models.Patient
 import com.therapylocal.app.ui.theme.BorderSubtle
 import com.therapylocal.app.ui.theme.CharcoalText
@@ -184,7 +189,7 @@ fun MinimizedSessionBar(
                         )
                     }
                     Text(
-                        text = "$timeFormatted · Recording locally",
+                        text = "$timeFormatted · Recording",
                         color = Color.White.copy(alpha = 0.65f),
                         fontSize = 11.sp
                     )
@@ -327,5 +332,64 @@ fun MindVaultBottomNav(
                 unselectedTextColor = MutedText
             )
         )
+    }
+}
+
+/** Calm first-run banner while MindVault gets ready; renders nothing once Ready. */
+@Composable
+fun SetupBanner(progress: SetupProgress, onRetry: () -> Unit, modifier: Modifier = Modifier) {
+    if (progress.state == SetupState.Ready) return
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .border(1.dp, BorderSubtle, RoundedCornerShape(16.dp))
+            .background(SurfaceCard)
+            .padding(14.dp)
+    ) {
+        when (progress.state) {
+            SetupState.Downloading -> {
+                Text(text = "Getting MindVault ready", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = CharcoalText)
+                Spacer(modifier = Modifier.height(8.dp))
+                LinearProgressIndicator(
+                    progress = { progress.fraction },
+                    modifier = Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(100.dp)),
+                    color = SageGreen,
+                    trackColor = SageLight
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+                val eta = progress.etaSeconds?.let { " · ${ModelSetup.formatEta(it)} left" } ?: ""
+                Text(
+                    text = "${ModelSetup.formatBytes(progress.doneBytes)} of ${ModelSetup.formatBytes(progress.totalBytes)}$eta",
+                    fontSize = 12.sp,
+                    color = MutedText
+                )
+                progress.message?.let { Text(text = it, fontSize = 12.sp, color = MutedText, modifier = Modifier.padding(top = 2.dp)) }
+                Text(
+                    text = "You can use the app as usual. Sessions you record are processed automatically when this finishes.",
+                    fontSize = 11.sp,
+                    lineHeight = 15.sp,
+                    color = MutedText,
+                    modifier = Modifier.padding(top = 4.dp)
+                )
+            }
+            SetupState.Failed -> {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(text = "Setup paused", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = CharcoalText)
+                        progress.message?.let { Text(text = it, fontSize = 12.sp, color = MutedText, modifier = Modifier.padding(top = 2.dp)) }
+                    }
+                    TextButton(onClick = onRetry) { Text("Try again", color = SageDark, fontSize = 13.sp, fontWeight = FontWeight.Medium) }
+                }
+            }
+            else -> {
+                Text(text = "Getting MindVault ready…", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = CharcoalText)
+                LinearProgressIndicator(
+                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp).height(6.dp).clip(RoundedCornerShape(100.dp)),
+                    color = SageGreen,
+                    trackColor = SageLight
+                )
+            }
+        }
     }
 }

@@ -32,7 +32,6 @@ import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -87,7 +86,9 @@ fun LiveSessionScreen(
     onEndSession: () -> Unit,
     onSwitchPatient: () -> Unit,
     onTriggerTopic: (String, String, String, String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    /** True when the recording is kept for later transcription (nothing to show live yet). */
+    deferredNote: Boolean = false
 ) {
     val fmt = { n: Long -> "%02d".format(n) }
     val timeFormatted = "${fmt(sessionSecs / 3600)}:${fmt((sessionSecs / 60) % 60)}:${fmt(sessionSecs % 60)}"
@@ -146,15 +147,11 @@ fun LiveSessionScreen(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // Privacy Badges
+        // Status badges
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            PillBadge(
-                text = "100% On-device · Offline",
-                icon = Icons.Default.Shield
-            )
             PillBadge(
                 text = "Consent confirmed",
                 icon = Icons.Default.Check
@@ -191,7 +188,7 @@ fun LiveSessionScreen(
                 )
 
                 Text(
-                    text = statusLine ?: "Listening on device",
+                    text = statusLine ?: "Listening",
                     fontSize = 12.sp,
                     color = MutedText,
                     modifier = Modifier.padding(top = 4.dp)
@@ -231,8 +228,23 @@ fun LiveSessionScreen(
             }
         }
 
+        if (deferredNote) {
+            Spacer(modifier = Modifier.height(10.dp))
+            Text(
+                text = "Recording. This session will be transcribed and added to the client's memory automatically once MindVault finishes getting ready.",
+                fontSize = 12.sp,
+                lineHeight = 17.sp,
+                color = MutedText,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(SurfaceCard.copy(alpha = 0.6f))
+                    .padding(12.dp)
+            )
+        }
+
         // Transcript of the chunks processed so far (newest first)
-        if (transcript.isNotEmpty()) {
+        if (transcript.isNotEmpty() && !deferredNote) {
             Spacer(modifier = Modifier.height(10.dp))
             Text(
                 text = "LIVE TRANSCRIPT",

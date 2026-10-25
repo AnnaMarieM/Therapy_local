@@ -3,12 +3,14 @@ package com.therapylocal.app.ui.data
 import android.content.Context
 import com.therapylocal.app.log.AppLog
 import com.therapylocal.app.log.LogCtx
+import com.therapylocal.app.data.PendingAudio
 import com.therapylocal.app.memory.DemoMemory
 import com.therapylocal.app.memory.Fact
 import com.therapylocal.app.memory.MemoryFiles
 import com.therapylocal.app.memory.MemoryProcessor
 import com.therapylocal.app.memory.MemoryQueue
 import com.therapylocal.app.memory.MemoryStore
+import com.therapylocal.app.models.ModelSetup
 import com.therapylocal.app.ui.models.Patient
 import com.therapylocal.app.ui.models.SeedData
 import com.therapylocal.app.ui.models.SessionRecord
@@ -87,8 +89,16 @@ class ClientRepository(context: Context, private val store: MemoryStore = Memory
     fun processSession(client: String, session: String, date: String, transcript: String): Boolean =
         MemoryProcessor.enqueueSession(appContext, client, session, date, transcript)
 
+    /** Queues a recording whose audio is still to be transcribed (made before setup finished); the background service does that, then processes the session. */
+    fun processRecording(client: String, session: String, date: String, recordingId: Long) =
+        MemoryProcessor.enqueueRecording(appContext, client, session, date, recordingId)
+
+    /** True while the AI files are still downloading: new sessions are kept and processed afterwards. */
+    fun waitingForSetup(): Boolean = !ModelSetup.isReady(appContext)
+
     /** Deletes one session: its facts, chunks, repeats and observations, the queued job, its transcript and its extraction cache. */
     fun deleteSession(client: String, session: String) {
+        MemoryQueue.state.value.jobs.firstOrNull { it.id == session }?.takeIf { it.recordingId != 0L }?.let { PendingAudio.delete(appContext, it.recordingId) }
         MemoryQueue.dropSession(session)
         MemoryFiles.transcript(appContext, "$session.md").delete()
         MemoryFiles.extractCache(appContext, session).deleteRecursively()

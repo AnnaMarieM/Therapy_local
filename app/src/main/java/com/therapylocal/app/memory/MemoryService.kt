@@ -12,11 +12,12 @@ import android.os.IBinder
 import android.os.PowerManager
 import com.therapylocal.app.log.AppLog
 import com.therapylocal.app.log.LogCtx
+import com.therapylocal.app.models.ModelSetup
 
 /**
  * Runs the memory queue as a foreground service, so processing continues when the app is in the background or the screen is off.
- * The notification shows overall progress and the current stage (client and session names included), and carries a Stop action; on the lock screen only a
- * generic "Building client memory" is shown, so patient ids never appear there. The service ends itself when the queue finishes.
+ * The notification shows overall progress and the current stage (stage only, no names), and carries a Stop action; on the lock screen only a
+ * generic "Processing sessions" is shown, so no names appear there. The service ends itself when the queue finishes.
  */
 class MemoryService : Service() {
     private var worker: Thread? = null
@@ -32,7 +33,7 @@ class MemoryService : Service() {
         }
         val debugJob = intent?.getBooleanExtra(EXTRA_DEBUG_JOB, false) == true
         val nm = getSystemService(NotificationManager::class.java)
-        nm.createNotificationChannel(NotificationChannel(CHANNEL, "Memory processing", NotificationManager.IMPORTANCE_LOW))
+        nm.createNotificationChannel(NotificationChannel(CHANNEL, "Session processing", NotificationManager.IMPORTANCE_LOW))
         startForeground(NOTIF_ID, build("Starting"), ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
         if (worker?.isAlive == true) return START_NOT_STICKY
 
@@ -51,7 +52,7 @@ class MemoryService : Service() {
             try {
                 do {
                     MemoryLab(app, debugJob).run()
-                } while (MemoryQueue.hasQueued() && !MemoryQueue.cancelRequested) // a session enqueued just as the run ended
+                } while (MemoryQueue.hasQueued() && !MemoryQueue.cancelRequested && ModelSetup.isReady(app)) // a session enqueued just as the run ended
             } catch (t: Throwable) {
                 AppLog.e(MemoryLlm.TAG, "memory_lab_failed", LogCtx.NONE, t)
                 // Stack traces can quote patient text (e.g. JSON parse errors), so they are only written for the developer harness, never in app mode.
@@ -75,20 +76,20 @@ class MemoryService : Service() {
         val s = MemoryQueue.state.value
         val done = s.jobs.count { it.status == JobStatus.Done }
         val cur = s.jobs.firstOrNull { it.status == JobStatus.Running }
-        val head = if (s.running || cur != null) "$done/${s.jobs.size} sessions" else "${s.message}: $done/${s.jobs.size} sessions"
-        return if (cur != null) "$head · ${cur.client} ${cur.id.substringAfter('_')}: ${cur.stage}" else head
+        val head = if (s.running || cur != null) "$done of ${s.jobs.size} sessions" else "${s.message} · $done of ${s.jobs.size} sessions"
+        return if (cur != null && cur.stage.isNotBlank()) "$head · ${cur.stage}" else head
     }
 
     private fun build(text: String, ongoing: Boolean = true): Notification {
         val s = MemoryQueue.state.value
         val b = Notification.Builder(this, CHANNEL)
             .setSmallIcon(android.R.drawable.stat_notify_sync)
-            .setContentTitle("Building client memory")
+            .setContentTitle("Processing sessions")
             .setContentText(text)
             .setOngoing(ongoing)
             .setVisibility(Notification.VISIBILITY_PRIVATE)
             .setPublicVersion(
-                Notification.Builder(this, CHANNEL).setSmallIcon(android.R.drawable.stat_notify_sync).setContentTitle("Building client memory").build(),
+                Notification.Builder(this, CHANNEL).setSmallIcon(android.R.drawable.stat_notify_sync).setContentTitle("Processing sessions").setContentText("Working in the background").build(),
             )
             .setOnlyAlertOnce(true)
         if (s.jobs.isNotEmpty()) b.setProgress(s.jobs.size, s.jobs.count { it.status == JobStatus.Done }, false)

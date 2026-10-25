@@ -40,6 +40,8 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
     // jvmTarget is set via the kotlin { compilerOptions } block below
+    // The memory prompts ship in the app (assets/prompts/), so processing works on a fresh install without pushing files.
+    sourceSets.getByName("main").assets.srcDir(layout.buildDirectory.dir("generated/promptAssets"))
     buildFeatures {
         compose = true
         buildConfig = true
@@ -79,7 +81,11 @@ val fetchSherpa by tasks.registering {
         }
     }
 }
-tasks.named("preBuild") { dependsOn(fetchSherpa) }
+val promptAssets by tasks.registering(Copy::class) {
+    from(rootProject.file("demo/prompts"))
+    into(layout.buildDirectory.dir("generated/promptAssets/prompts"))
+}
+tasks.named("preBuild") { dependsOn(fetchSherpa, promptAssets) }
 
 dependencies {
     implementation(platform("androidx.compose:compose-bom:2024.06.00"))

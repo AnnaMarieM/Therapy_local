@@ -29,11 +29,13 @@ data class SessionJob(
     val finishedAt: Long = 0,
     val prefillTokPerSec: Double = 0.0,
     val decodeTokPerSec: Double = 0.0,
+    /** Recording whose audio still has to be transcribed first (made before setup finished); 0 = the transcript is already written. */
+    val recordingId: Long = 0,
 ) {
     fun toJson(): JSONObject = JSONObject().put("id", id).put("client", client).put("file", file).put("date", date).put("status", status.name)
         .put("stage", stage).put("windows", windows).put("windowsDone", windowsDone).put("extracted", extracted).put("added", added)
         .put("error", error ?: JSONObject.NULL).put("startedAt", startedAt).put("finishedAt", finishedAt)
-        .put("prefill", prefillTokPerSec).put("decode", decodeTokPerSec)
+        .put("prefill", prefillTokPerSec).put("decode", decodeTokPerSec).put("recordingId", recordingId)
 
     companion object {
         fun fromJson(o: JSONObject) = SessionJob(
@@ -42,7 +44,7 @@ data class SessionJob(
             JobStatus.valueOf(o.optString("status", "Queued")).let { if (it == JobStatus.Running) JobStatus.Queued else it },
             o.optString("stage"), o.optInt("windows"), o.optInt("windowsDone"), o.optInt("extracted"), o.optInt("added"),
             if (o.isNull("error")) null else o.optString("error"), o.optLong("startedAt"), o.optLong("finishedAt"),
-            o.optDouble("prefill", 0.0), o.optDouble("decode", 0.0),
+            o.optDouble("prefill", 0.0), o.optDouble("decode", 0.0), o.optLong("recordingId", 0),
         )
     }
 }
@@ -94,6 +96,9 @@ object MemoryQueue {
         val saved = savedList.associateBy { it.id }
         update { it.copy(jobs = fresh.map { j -> saved[j.id]?.takeIf { s -> s.status == JobStatus.Done } ?: saved[j.id]?.takeIf { s -> s.status == JobStatus.Failed }?.copy(status = JobStatus.Queued, error = null) ?: j }) }
     }
+
+    /** Shows the saved jobs (Running ones as Queued) to the UI before the runner has started, e.g. sessions waiting for setup. */
+    fun restore() = load(emptyList(), resume = true)
 
     /** Adds a job at the end of the queue unless one with that id exists. Safe to call while the runner is working: it picks up new Queued jobs. */
     @Synchronized
