@@ -649,36 +649,36 @@ function PatientsScreen({
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="text-[11px] font-medium text-muted-foreground block mb-1">First Name *</label>
+                  <label className="text-[11px] font-semibold text-foreground block mb-1">First Name *</label>
                   <input
                     type="text"
                     placeholder="e.g. Elena"
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
-                    className="w-full rounded-xl border bg-card px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-sage"
+                    className="w-full rounded-xl border bg-card px-3 py-2 text-sm text-foreground placeholder:text-foreground/70 focus:outline-none focus:ring-1 focus:ring-sage"
                     required
                     autoFocus
                   />
                 </div>
                 <div>
-                  <label className="text-[11px] font-medium text-muted-foreground block mb-1">Last Name</label>
+                  <label className="text-[11px] font-semibold text-foreground block mb-1">Last Name</label>
                   <input
                     type="text"
                     placeholder="e.g. Rostova"
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
-                    className="w-full rounded-xl border bg-card px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-sage"
+                    className="w-full rounded-xl border bg-card px-3 py-2 text-sm text-foreground placeholder:text-foreground/70 focus:outline-none focus:ring-1 focus:ring-sage"
                   />
                 </div>
               </div>
               <div>
-                <label className="text-[11px] font-medium text-muted-foreground block mb-1">Initial Topics or Referral Note (optional)</label>
+                <label className="text-[11px] font-semibold text-foreground block mb-1">Initial Topics or Referral Note (optional)</label>
                 <input
                   type="text"
                   placeholder="Leave empty or enter known notes (e.g. Dr. referral)"
                   value={themes}
                   onChange={(e) => setThemes(e.target.value)}
-                  className="w-full rounded-xl border bg-card px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-sage"
+                  className="w-full rounded-xl border bg-card px-3 py-2 text-sm text-foreground placeholder:text-foreground/70 focus:outline-none focus:ring-1 focus:ring-sage"
                 />
               </div>
               <div className="flex gap-2 pt-1">
@@ -1678,45 +1678,45 @@ function OnboardingScreen({ onComplete }: { onComplete: (u: string, p: string) =
             </div>
           )}
           <div>
-            <label className="text-[11px] font-medium text-muted-foreground block mb-1">Therapist Username *</label>
+            <label className="text-[11px] font-semibold text-foreground block mb-1">Therapist Username *</label>
             <div className="relative">
-              <User className="absolute left-3 top-2.5 size-4 text-muted-foreground" />
+              <User className="absolute left-3 top-2.5 size-4 text-foreground/70" />
               <input
                 type="text"
                 placeholder="e.g. Dr. Anna"
                 value={u}
                 onChange={(e) => { setU(e.target.value); setErr(""); }}
-                className="w-full rounded-xl border bg-card pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-sage"
+                className="w-full rounded-xl border bg-card pl-9 pr-3 py-2 text-sm text-foreground placeholder:text-foreground/70 focus:outline-none focus:ring-1 focus:ring-sage"
                 required
                 autoFocus
               />
             </div>
-            <p className="mt-1 text-[10px] text-muted-foreground">Will be prefilled whenever you reconnect</p>
+            <p className="mt-1 text-[10px] text-foreground/80 font-medium">Will be prefilled whenever you reconnect</p>
           </div>
           <div>
-            <label className="text-[11px] font-medium text-muted-foreground block mb-1">Master Password *</label>
+            <label className="text-[11px] font-semibold text-foreground block mb-1">Master Password *</label>
             <div className="relative">
-              <Lock className="absolute left-3 top-2.5 size-4 text-muted-foreground" />
+              <Lock className="absolute left-3 top-2.5 size-4 text-foreground/70" />
               <input
                 type="password"
                 placeholder="Create vault password (min 4 chars)"
                 value={p}
                 onChange={(e) => { setP(e.target.value); setErr(""); }}
-                className="w-full rounded-xl border bg-card pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-sage"
+                className="w-full rounded-xl border bg-card pl-9 pr-3 py-2 text-sm text-foreground placeholder:text-foreground/70 focus:outline-none focus:ring-1 focus:ring-sage"
                 required
               />
             </div>
           </div>
           <div>
-            <label className="text-[11px] font-medium text-muted-foreground block mb-1">Confirm Password *</label>
+            <label className="text-[11px] font-semibold text-foreground block mb-1">Confirm Password *</label>
             <div className="relative">
-              <Lock className="absolute left-3 top-2.5 size-4 text-muted-foreground" />
+              <Lock className="absolute left-3 top-2.5 size-4 text-foreground/70" />
               <input
                 type="password"
                 placeholder="Repeat vault password"
                 value={cp}
                 onChange={(e) => { setCp(e.target.value); setErr(""); }}
-                className="w-full rounded-xl border bg-card pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-sage"
+                className="w-full rounded-xl border bg-card pl-9 pr-3 py-2 text-sm text-foreground placeholder:text-foreground/70 focus:outline-none focus:ring-1 focus:ring-sage"
                 required
               />
             </div>
@@ -1735,7 +1735,7 @@ function OnboardingScreen({ onComplete }: { onComplete: (u: string, p: string) =
       </Card>
 
       <div className="mt-5 text-center px-4">
-        <p className="text-[11px] text-muted-foreground leading-relaxed">
+        <p className="text-[11px] text-foreground font-medium leading-relaxed">
           🔒 Your password generates the local cryptographic key. All session audio, transcripts, and clinical summaries stay 100% on this device.
         </p>
       </div>
@@ -1803,7 +1803,7 @@ function UnlockScreen({
           )}
 
           <div>
-            <label className="text-[11px] font-medium text-muted-foreground block mb-1">Therapist Username</label>
+            <label className="text-[11px] font-semibold text-foreground block mb-1">Therapist Username</label>
             <div className="relative">
               <User className="absolute left-3 top-2.5 size-4 text-sage" />
               <input
@@ -1814,19 +1814,19 @@ function UnlockScreen({
                 className="w-full rounded-xl border bg-secondary/40 pl-9 pr-3 py-2 text-sm text-foreground font-medium focus:outline-none focus:ring-1 focus:ring-sage"
               />
             </div>
-            <p className="mt-1 text-[10px] text-muted-foreground">Prefilled from your setup</p>
+            <p className="mt-1 text-[10px] text-foreground/80 font-medium">Prefilled from your setup</p>
           </div>
 
           <div>
-            <label className="text-[11px] font-medium text-muted-foreground block mb-1">Master Password</label>
+            <label className="text-[11px] font-semibold text-foreground block mb-1">Master Password</label>
             <div className="relative">
-              <KeyRound className="absolute left-3 top-2.5 size-4 text-muted-foreground" />
+              <KeyRound className="absolute left-3 top-2.5 size-4 text-foreground/70" />
               <input
                 type="password"
                 placeholder="Enter password to connect"
                 value={pw}
                 onChange={(e) => { setPw(e.target.value); setErr(""); }}
-                className="w-full rounded-xl border bg-card pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-sage"
+                className="w-full rounded-xl border bg-card pl-9 pr-3 py-2 text-sm text-foreground placeholder:text-foreground/70 focus:outline-none focus:ring-1 focus:ring-sage"
                 required
                 autoFocus
               />

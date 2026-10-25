@@ -126,7 +126,7 @@ fun VaultGate(onDone: () -> Unit, modifier: Modifier = Modifier) {
             Text(
                 text = "Your private clinical memory",
                 fontSize = 13.sp,
-                color = MutedText,
+                color = CharcoalText,
                 modifier = Modifier.padding(top = 4.dp, bottom = 16.dp)
             )
 
@@ -173,7 +173,7 @@ private fun SetupStep(ctx: android.content.Context, scope: kotlinx.coroutines.Co
     Text(
         text = "At least $MIN_PASSWORD characters",
         fontSize = 11.sp,
-        color = if (password.isEmpty() || longEnough) MutedText else DangerRed,
+        color = if (password.isEmpty() || longEnough) CharcoalText else DangerRed,
         modifier = Modifier
             .fillMaxWidth()
             .padding(top = 4.dp, start = 4.dp)
@@ -240,7 +240,7 @@ private fun BiometricStep(ctx: android.content.Context, activity: androidx.fragm
                 error = e.message ?: "Biometric unlock could not be turned on."
             }
         }
-        TextButton(onClick = onDone) { Text("Not now", fontSize = 13.sp, color = MutedText) }
+        TextButton(onClick = onDone) { Text("Not now", fontSize = 13.sp, color = CharcoalText, fontWeight = FontWeight.Medium) }
     } else {
         StepTitle("Biometric unlock")
         StepText("No fingerprint or face is enrolled on this device. Add one in Android Settings, then turn on Biometric Quick Unlock in MindVault Settings.")
@@ -343,7 +343,7 @@ private fun UnlockStep(
 
     if (!showReset) {
         TextButton(onClick = { showReset = true }) {
-            Text("Forgot password?", fontSize = 12.sp, color = MutedText)
+            Text("Forgot password?", fontSize = 12.sp, color = CharcoalText, fontWeight = FontWeight.Medium)
         }
     } else {
         Column(
@@ -355,7 +355,7 @@ private fun UnlockStep(
             Text(
                 text = "Your password can't be recovered. You can erase MindVault and start over — all patient data on this device will be permanently deleted.",
                 fontSize = 11.sp,
-                color = MutedText,
+                color = CharcoalText,
                 textAlign = TextAlign.Center
             )
             TextButton(onClick = { confirmErase = true }) { Text("Erase and Start Over…", fontSize = 12.sp, color = DangerRed) }
@@ -405,7 +405,7 @@ private fun StepText(text: String) {
     Text(
         text = text,
         fontSize = 12.sp,
-        color = MutedText,
+        color = CharcoalText,
         textAlign = TextAlign.Center,
         modifier = Modifier
             .fillMaxWidth()
@@ -443,7 +443,13 @@ private fun PasswordField(
         modifier = Modifier.fillMaxWidth(),
         enabled = enabled,
         singleLine = true,
-        label = label?.let { { Text(it) } },
+        textStyle = androidx.compose.ui.text.TextStyle(
+            color = CharcoalText,
+            fontSize = 15.sp,
+            fontWeight = FontWeight.Medium
+        ),
+        label = label?.let { { Text(it, color = CharcoalText, fontWeight = FontWeight.SemiBold) } },
+        placeholder = { Text(label ?: "Password", color = CharcoalText, fontSize = 14.sp) },
         visualTransformation = if (visible) VisualTransformation.None else PasswordVisualTransformation(),
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = imeAction),
         keyboardActions = KeyboardActions(onDone = { onDone() }),
@@ -452,13 +458,28 @@ private fun PasswordField(
                 Icon(
                     imageVector = if (visible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
                     contentDescription = "Toggle password",
-                    tint = MutedText
+                    tint = CharcoalText
                 )
             }
         },
         colors = OutlinedTextFieldDefaults.colors(
+            focusedTextColor = CharcoalText,
+            unfocusedTextColor = CharcoalText,
+            disabledTextColor = CharcoalText,
+            focusedLabelColor = CharcoalText,
+            unfocusedLabelColor = CharcoalText,
+            disabledLabelColor = CharcoalText,
             focusedBorderColor = SageGreen,
-            unfocusedBorderColor = BorderSubtle
+            unfocusedBorderColor = BorderSubtle,
+            disabledBorderColor = BorderSubtle,
+            cursorColor = SageGreen,
+            focusedTrailingIconColor = CharcoalText,
+            unfocusedTrailingIconColor = CharcoalText,
+            disabledTrailingIconColor = CharcoalText,
+            focusedPlaceholderColor = CharcoalText,
+            unfocusedPlaceholderColor = CharcoalText,
+            focusedContainerColor = SurfaceCard,
+            unfocusedContainerColor = SurfaceCard
         ),
         shape = RoundedCornerShape(12.dp)
     )
@@ -484,7 +505,7 @@ private fun PrimaryButton(
             containerColor = SageGreen,
             contentColor = Color.White,
             disabledContainerColor = if (busy) SageGreen else BorderSubtle,
-            disabledContentColor = if (busy) Color.White else MutedText,
+            disabledContentColor = if (busy) Color.White else CharcoalText,
         )
     ) {
         if (busy) {
