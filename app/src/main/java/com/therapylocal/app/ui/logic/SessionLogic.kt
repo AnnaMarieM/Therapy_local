@@ -49,7 +49,7 @@ object SessionLogic {
                 job.stage.isNotBlank() -> job.stage
                 job.status == JobStatus.Queued -> "Queued"
                 job.recordingId != 0L -> "Transcribing audio"
-                else -> "Extracting facts"
+                else -> "Extracting notes"
             }
             map[job.client] = ProcessingSessionInfo(
                 sessionId = job.id,

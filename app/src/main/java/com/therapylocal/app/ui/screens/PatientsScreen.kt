@@ -148,15 +148,21 @@ fun PatientsScreen(
             value = searchQuery,
             onValueChange = { searchQuery = it },
             modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text("Search patients or notes (e.g. 'father')...", fontSize = 13.sp, color = MutedText) },
-            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = MutedText, modifier = Modifier.size(20.dp)) },
+            textStyle = androidx.compose.ui.text.TextStyle(color = CharcoalText, fontSize = 14.sp, fontWeight = FontWeight.Medium),
+            placeholder = { Text("Search patients or notes (e.g. 'father')...", fontSize = 13.sp, color = CharcoalText) },
+            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = SageDark, modifier = Modifier.size(20.dp)) },
             singleLine = true,
             shape = RoundedCornerShape(16.dp),
             colors = OutlinedTextFieldDefaults.colors(
+                focusedTextColor = CharcoalText,
+                unfocusedTextColor = CharcoalText,
                 focusedContainerColor = SurfaceCard,
                 unfocusedContainerColor = SurfaceCard,
                 focusedBorderColor = SageGreen,
-                unfocusedBorderColor = BorderSubtle
+                unfocusedBorderColor = BorderSubtle,
+                cursorColor = SageGreen,
+                focusedPlaceholderColor = CharcoalText,
+                unfocusedPlaceholderColor = CharcoalText
             )
         )
 
@@ -276,11 +282,11 @@ fun ConfirmDeletePatientDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Delete ${patient.name}?", fontWeight = FontWeight.Bold, fontFamily = FontFamily.Serif, color = CharcoalText) },
-        text = { Text("Removes the profile, all sessions, transcripts and facts stored for them. This cannot be undone.", fontSize = 13.sp, color = MutedText) },
+        text = { Text("Removes the profile, all sessions, transcripts and notes stored for them. This cannot be undone.", fontSize = 13.sp, color = CharcoalText) },
         confirmButton = {
             Button(onClick = onConfirm, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFB3261E))) { Text("Delete") }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel", color = MutedText) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel", color = CharcoalText, fontWeight = FontWeight.Medium) } },
         containerColor = SurfaceCard,
         shape = RoundedCornerShape(20.dp)
     )
@@ -391,6 +397,23 @@ fun AddPatientDialog(
             )
         },
         text = {
+            val patientFieldColors = OutlinedTextFieldDefaults.colors(
+                focusedTextColor = CharcoalText,
+                unfocusedTextColor = CharcoalText,
+                focusedLabelColor = SageDark,
+                unfocusedLabelColor = CharcoalText,
+                focusedBorderColor = SageGreen,
+                unfocusedBorderColor = BorderSubtle,
+                cursorColor = SageGreen,
+                focusedContainerColor = SurfaceCard,
+                unfocusedContainerColor = SurfaceCard,
+            )
+            val fieldTextStyle = androidx.compose.ui.text.TextStyle(
+                color = CharcoalText,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium
+            )
+
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -399,18 +422,22 @@ fun AddPatientDialog(
                     OutlinedTextField(
                         value = firstName,
                         onValueChange = { firstName = it },
-                        label = { Text("First Name", fontSize = 12.sp) },
+                        label = { Text("First Name", fontSize = 12.sp, color = CharcoalText, fontWeight = FontWeight.SemiBold) },
                         modifier = Modifier.weight(1f),
                         singleLine = true,
+                        textStyle = fieldTextStyle,
+                        colors = patientFieldColors,
                         keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
                         shape = RoundedCornerShape(10.dp)
                     )
                     OutlinedTextField(
                         value = lastName,
                         onValueChange = { lastName = it },
-                        label = { Text("Last Name", fontSize = 12.sp) },
+                        label = { Text("Last Name", fontSize = 12.sp, color = CharcoalText, fontWeight = FontWeight.SemiBold) },
                         modifier = Modifier.weight(1f),
                         singleLine = true,
+                        textStyle = fieldTextStyle,
+                        colors = patientFieldColors,
                         keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
                         shape = RoundedCornerShape(10.dp)
                     )
@@ -428,9 +455,11 @@ fun AddPatientDialog(
                 OutlinedTextField(
                     value = preSessionNote,
                     onValueChange = { preSessionNote = it },
-                    label = { Text("Initial pre-session note", fontSize = 12.sp) },
+                    label = { Text("Initial pre-session note", fontSize = 12.sp, color = CharcoalText, fontWeight = FontWeight.SemiBold) },
                     modifier = Modifier.fillMaxWidth(),
                     maxLines = 3,
+                    textStyle = fieldTextStyle,
+                    colors = patientFieldColors,
                     shape = RoundedCornerShape(10.dp)
                 )
             }
@@ -458,7 +487,7 @@ fun AddPatientDialog(
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel", color = MutedText)
+                Text("Cancel", color = CharcoalText, fontWeight = FontWeight.Medium)
             }
         },
         containerColor = SurfaceCard,
