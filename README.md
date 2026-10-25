@@ -137,6 +137,5 @@ Therapists conduct 5–8 intense emotional sessions daily, struggling to track c
 - [x] **Repository is public:** [github.com/AnnaMarieM/Therapy_local](https://github.com/AnnaMarieM/Therapy_local)
 - [x] **Open-source license:** MIT license included in root [`LICENSE`](LICENSE)
 - [x] **API Keys & Secrets:** Zero secrets in code. No cloud API required. `.env` is gitignored; clean `.env.example` provided.
-- [x] **Anonymized Data:** All demonstration data uses purely synthetic patient records (e.g. *George M.*, *Marta K.*).
 - [x] **Medical Disclaimer:** Visible at the top of README and embedded in application UI.
 - [x] **Model Attribution:** Complete model names and license links provided in Section 4.
