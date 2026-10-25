@@ -110,23 +110,23 @@ fun MindVaultApp(
             recordingId?.let { rid -> transcript = viewModel.recordingChunks(rid).map { it.text }.filter { it.isNotBlank() } }
         }
 
-        // After End Session: once the recording and every chunk are finished, hand the merged transcript to the memory pipeline.
-        LaunchedEffect(sessionEnded, enqueued, recordingId, vmState.recording, vmState.activeRecordingId, vmState.status, vmState.error) {
-            if (!sessionEnded || enqueued || processNote != null) return@LaunchedEffect
-            val rid = recordingId
+        var pendingEnqueue by remember { mutableStateOf<Triple<String, String, String>?>(null) }
+        var pendingRecordingId by remember { mutableStateOf<Long?>(null) }
+
+        // Background session enqueue: once audio recording and every chunk finish transcribing, hand the merged transcript to MemoryProcessor.
+        LaunchedEffect(pendingEnqueue, pendingRecordingId, vmState.recording, vmState.activeRecordingId, vmState.status, vmState.error) {
+            val pending = pendingEnqueue ?: return@LaunchedEffect
+            val rid = pendingRecordingId ?: vmState.activeRecordingId
             if (rid == null) {
-                if (!recordingStarted || (!vmState.recording && vmState.error != null)) processNote = "No audio was recorded."
+                if (!vmState.recording && vmState.error != null) pendingEnqueue = null
                 return@LaunchedEffect
             }
             if (vmState.recording || vmState.activeRecordingId != null || vmState.status != "Done") return@LaunchedEffect
             val text = viewModel.recordingTranscript(rid)
-            val ok = withContext(Dispatchers.IO) { repo.processSession(sessionClient, sessionId, sessionDate, text) }
-            if (ok) {
-                enqueued = true
-                viewModel.deleteRecording(rid)
-            } else {
-                processNote = "The transcript was empty, nothing to process."
-            }
+            withContext(Dispatchers.IO) { repo.processSession(pending.first, pending.second, pending.third, text) }
+            viewModel.deleteRecording(rid)
+            pendingEnqueue = null
+            pendingRecordingId = null
         }
         LaunchedEffect(queue.jobs.firstOrNull { it.id == sessionId }?.status) { clientsVm.refresh() }
 
@@ -179,7 +179,10 @@ fun MindVaultApp(
         val endSession = {
             viewModel.liveCues.stop()
             viewModel.stopRecording()
+            pendingEnqueue = Triple(sessionClient, sessionId, sessionDate)
+            pendingRecordingId = recordingId ?: vmState.activeRecordingId
             sessionEnded = true
+            isSessionActive = false
             currentScreen = "summary"
         }
 
@@ -272,34 +275,19 @@ fun MindVaultApp(
                             if (p != null) {
                                 val fmt = { n: Long -> "%02d".format(n) }
                                 val dur = "${fmt(sessionSecs / 60)}:${fmt(sessionSecs % 60)}"
-                                val job = queue.jobs.firstOrNull { it.id == sessionId }
-                                var facts by remember(sessionId) { mutableStateOf(emptyList<Fact>()) }
-                                var observations by remember(sessionId) { mutableStateOf("") }
-                                LaunchedEffect(sessionId, job?.status, job?.added, job?.stage) {
-                                    facts = withContext(Dispatchers.IO) { repo.sessionFacts(sessionClient, sessionId) }
-                                }
-                                val processing = processNote ?: when {
-                                    !enqueued -> "Finishing the recording..."
-                                    job == null -> "Queued"
-                                    job.status == JobStatus.Failed -> "Processing failed: ${job.error ?: "unknown error"}"
-                                    job.status == JobStatus.Done -> "Done: ${job.added} new facts"
-                                    job.status == JobStatus.Running -> "Processing: ${job.stage}"
-                                    else -> "Queued"
-                                }
                                 SummaryScreen(
                                     patient = p,
                                     durationFormatted = dur,
-                                    processing = processing,
-                                    facts = facts,
-                                    observations = observations,
-                                    onObservationsChange = { observations = it },
-                                    canLeave = enqueued || processNote != null,
-                                    canDelete = (enqueued || processNote != null) && job?.status != JobStatus.Running,
+                                    canLeave = true,
+                                    canDelete = true,
                                     onSaveToVault = {
-                                        if (observations.isNotBlank()) repo.saveObservations(sessionClient, sessionId, observations)
                                         resetSession()
                                     },
                                     onDeleteSession = {
+                                        pendingEnqueue = null
+                                        val rid = pendingRecordingId ?: recordingId
+                                        if (rid != null) viewModel.deleteRecording(rid)
+                                        pendingRecordingId = null
                                         repo.deleteSession(sessionClient, sessionId)
                                         resetSession()
                                     }
