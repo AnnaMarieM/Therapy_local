@@ -1095,7 +1095,7 @@ function PrepareScreen({ go, patient }: { go: Go; patient: Patient }) {
         </div>
       </Section>
       <Section title="Recent sessions"><HistoryList go={go} /></Section>
-      <p className="mt-5 text-xs leading-relaxed text-muted-foreground">Factual recall only. No suggestions, interpretations or diagnoses — you decide what is meaningful.</p>
+      <p className="mt-5 text-xs leading-relaxed text-muted-foreground">Notes recall only. No suggestions, interpretations or diagnoses — you decide what is meaningful.</p>
       <div className="mt-5"><Btn onClick={() => go("live")}><Mic className="size-4" /> Start New Session</Btn></div>
     </>
   );
@@ -1127,7 +1127,7 @@ function SessionDetailScreen({ go, patient }: { go: Go; patient: Patient }) {
     <>
       <Header title="Oct 12, 2026" sub={`${patient.name} · Expectations and achievement pressure`} back="details" go={go} />
       <Card>
-        <h2 className="mb-2.5 text-xs font-medium uppercase tracking-wider text-muted-foreground">Factual summary</h2>
+        <h2 className="mb-2.5 text-xs font-medium uppercase tracking-wider text-muted-foreground">Session notes summary</h2>
         <Bullets items={[`${patient.name} talked about school and his father's reaction to grades`, "Said good performance was “never enough” at home", "Mentioned he stopped showing his father his reports"]} />
       </Card>
       <Section title="Source excerpts">
@@ -1297,7 +1297,7 @@ function LiveScreen({
               </div>
               <p className="text-xs font-medium text-foreground">Listening from 00:00:00</p>
               <p className="text-[11px] text-muted-foreground mt-1 max-w-[270px] mx-auto">
-                As {patient.name} speaks, related facts and verbatim quotes from earlier sessions will surface automatically here in real time.
+                As {patient.name} speaks, related notes and verbatim quotes from earlier sessions will surface automatically here in real time.
               </p>
             </Card>
 
@@ -1376,7 +1376,7 @@ function SummaryScreen({ go, patient }: { go: Go; patient?: Patient | null }) {
     <>
       <Header title="Session Complete" sub={`Today · ${patientName}`} go={go} />
       <Card>
-        <h2 className="mb-2.5 text-xs font-medium uppercase tracking-wider text-muted-foreground">Patient-reported facts</h2>
+        <h2 className="mb-2.5 text-xs font-medium uppercase tracking-wider text-muted-foreground">Patient-reported notes</h2>
         <Bullets items={[`Initial clinical notes for ${patientName} captured and encrypted locally on device`, "Patient described current state and primary challenges", "Observations confirmed without hallucinations"]} />
       </Card>
       <Section title="Topics mentioned"><div className="flex flex-wrap gap-1.5">{["Session Intake", "On-device memory", "Clinical care"].map((t) => <Tag key={t}>{t}</Tag>)}</div></Section>

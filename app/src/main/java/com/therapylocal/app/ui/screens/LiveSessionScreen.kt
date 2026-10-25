@@ -421,7 +421,7 @@ fun LiveSessionScreen(
                                 color = CharcoalText
                             )
                             Text(
-                                text = "As ${patient.name} speaks, related facts and verbatim quotes from earlier sessions will surface automatically here in real time.",
+                                text = "As ${patient.name} speaks, related notes and verbatim quotes from earlier sessions will surface automatically here in real time.",
                                 fontSize = 11.sp,
                                 color = MutedText,
                                 textAlign = androidx.compose.ui.text.style.TextAlign.Center,

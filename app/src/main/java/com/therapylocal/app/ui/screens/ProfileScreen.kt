@@ -77,7 +77,7 @@ fun ProfileScreen(
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }
     var confirmDelete by remember { mutableStateOf(false) }
-    val tabs = listOf("Overview", "Sessions", "Facts")
+    val tabs = listOf("Overview", "Sessions", "Notes")
 
     Column(
         modifier = modifier
@@ -183,7 +183,7 @@ fun ProfileScreen(
                 onReturnToActiveSession = onReturnToActiveSession
             )
             1 -> SessionsTab(patient = patient, processingSession = processingSession)
-            2 -> FactsTab(patient = patient)
+            2 -> NotesTab(patient = patient)
         }
     }
 }
@@ -367,7 +367,7 @@ fun OverviewTab(
                         )
                         Spacer(modifier = Modifier.height(6.dp))
                         Text(
-                            text = "Tap 'Start Session' above to begin recording. Key clinical facts, verbatim quotes, and session summaries will appear here automatically.",
+                            text = "Tap 'Start Session' above to begin recording. Key notes, verbatim quotes, and session summaries will appear here automatically.",
                             fontSize = 12.sp,
                             color = MutedText,
                             textAlign = androidx.compose.ui.text.style.TextAlign.Center,
@@ -536,14 +536,14 @@ fun SessionsTab(patient: Patient, processingSession: ProcessingSessionInfo? = nu
 }
 
 @Composable
-fun FactsTab(patient: Patient) {
+fun NotesTab(patient: Patient) {
     LazyColumn(
         verticalArrangement = Arrangement.spacedBy(10.dp),
         modifier = Modifier.fillMaxSize()
     ) {
         item {
             Text(
-                text = "Key Facts & Verifiable Profile",
+                text = "Key Notes & Profile",
                 fontSize = 13.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = CharcoalText
@@ -571,14 +571,14 @@ fun FactsTab(patient: Patient) {
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
-                            text = "No clinical facts recorded yet",
+                            text = "No notes recorded yet",
                             fontSize = 14.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = CharcoalText
                         )
                         Spacer(modifier = Modifier.height(6.dp))
                         Text(
-                            text = "Key facts and verifiable profile points are extracted from session transcripts as you talk.",
+                            text = "Key notes and profile points are extracted from session transcripts as you talk.",
                             fontSize = 12.sp,
                             color = MutedText,
                             textAlign = androidx.compose.ui.text.style.TextAlign.Center,
@@ -658,7 +658,7 @@ fun ProcessingSessionCard(
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = "Extracting clinical facts and key topics from transcript...",
+                text = "Extracting notes and key topics from transcript...",
                 fontSize = 12.sp,
                 color = CharcoalText,
                 lineHeight = 17.sp

@@ -282,11 +282,11 @@ fun ConfirmDeletePatientDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Delete ${patient.name}?", fontWeight = FontWeight.Bold, fontFamily = FontFamily.Serif, color = CharcoalText) },
-        text = { Text("Removes the profile, all sessions, transcripts and facts stored for them. This cannot be undone.", fontSize = 13.sp, color = MutedText) },
+        text = { Text("Removes the profile, all sessions, transcripts and notes stored for them. This cannot be undone.", fontSize = 13.sp, color = CharcoalText) },
         confirmButton = {
             Button(onClick = onConfirm, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFB3261E))) { Text("Delete") }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel", color = MutedText) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel", color = CharcoalText, fontWeight = FontWeight.Medium) } },
         containerColor = SurfaceCard,
         shape = RoundedCornerShape(20.dp)
     )

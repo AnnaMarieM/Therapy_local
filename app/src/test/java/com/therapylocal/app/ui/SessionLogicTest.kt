@@ -118,7 +118,7 @@ class SessionLogicTest {
         assertEquals("Waiting", stage(job("x_1", "x", JobStatus.Queued, stage = "Waiting")))
         // Whitespace-only stage counts as blank.
         assertEquals("Queued", stage(job("x_1", "x", JobStatus.Queued, stage = "  ")))
-        assertEquals("Extracting facts", stage(job("x_1", "x", JobStatus.Running)))
+        assertEquals("Extracting notes", stage(job("x_1", "x", JobStatus.Running)))
         assertEquals("Transcribing audio", stage(job("x_1", "x", JobStatus.Running, recordingId = 5)))
         assertEquals("Reading 1/2", stage(job("x_1", "x", JobStatus.Running, stage = "Reading 1/2", recordingId = 5)))
     }

@@ -100,7 +100,7 @@ class ClientRepository(context: Context, private val store: MemoryStore = Memory
                 id = s.id,
                 date = s.date.ifEmpty { label(s.id) },
                 duration = "${s.chunks} chunks",
-                summary = sf.take(4).joinToString(" ") { it.fact }.ifEmpty { "No facts extracted yet." },
+                summary = sf.take(4).joinToString(" ") { it.fact }.ifEmpty { "No notes extracted yet." },
                 topics = sf.map { it.category }.distinct().take(3),
                 verbatimQuotes = sf.map { it.evidence }.filter { it.isNotBlank() }.take(3),
             )
