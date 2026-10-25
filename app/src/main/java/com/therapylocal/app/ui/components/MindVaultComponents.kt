@@ -419,7 +419,7 @@ fun ChoosePatientSessionDialog(
         if (searchQuery.isBlank()) patients
         else {
             val q = searchQuery.trim().lowercase()
-            patients.filter { it.name.lowercase().contains(q) || it.presenting.lowercase().contains(q) }
+            patients.filter { it.name.lowercase().contains(q) }
         }
     }
 
@@ -511,23 +511,12 @@ fun ChoosePatientSessionDialog(
                                     modifier = Modifier.weight(1f)
                                 ) {
                                     InitialsAvatar(name = p.name, size = 36)
-                                    Column {
-                                        Text(
-                                            text = p.name,
-                                            fontWeight = FontWeight.SemiBold,
-                                            fontSize = 14.sp,
-                                            color = CharcoalText
-                                        )
-                                        if (p.presenting.isNotBlank()) {
-                                            Text(
-                                                text = p.presenting,
-                                                fontSize = 11.sp,
-                                                color = MutedText,
-                                                maxLines = 1,
-                                                overflow = TextOverflow.Ellipsis
-                                            )
-                                        }
-                                    }
+                                    Text(
+                                        text = p.name,
+                                        fontWeight = FontWeight.SemiBold,
+                                        fontSize = 14.sp,
+                                        color = CharcoalText
+                                    )
                                 }
                                 Icon(
                                     imageVector = Icons.Default.ChevronRight,
