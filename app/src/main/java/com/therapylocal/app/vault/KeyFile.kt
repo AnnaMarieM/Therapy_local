@@ -35,15 +35,23 @@ data class KeyFile(
     companion object {
         fun fromJson(s: String): KeyFile {
             val o = JSONObject(s)
+            val version = o.optInt("version", 1)
+            require(version == SUPPORTED_VERSION) { "unsupported key file version $version" }
+            val iterations = o.getInt("iterations")
+            require(iterations in MIN_ITERATIONS..MAX_ITERATIONS) { "implausible iteration count $iterations" }
             return KeyFile(
                 salt = unb64(o.getString("salt")),
-                iterations = o.getInt("iterations"),
+                iterations = iterations,
                 passwordSealed = unb64(o.getString("passwordSealed")),
                 biometricIv = o.optString("biometricIv").takeIf { it.isNotEmpty() }?.let(::unb64),
                 biometricSealed = o.optString("biometricSealed").takeIf { it.isNotEmpty() }?.let(::unb64),
-                version = o.optInt("version", 1),
+                version = version,
             )
         }
+
+        private const val SUPPORTED_VERSION = 1
+        private const val MIN_ITERATIONS = 1
+        private const val MAX_ITERATIONS = 10_000_000
 
         private fun b64(b: ByteArray) = Base64.getEncoder().encodeToString(b)
         private fun unb64(s: String) = Base64.getDecoder().decode(s)

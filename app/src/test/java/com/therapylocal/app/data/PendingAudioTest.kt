@@ -1,9 +1,9 @@
 package com.therapylocal.app.data
 
 import com.therapylocal.app.audio.AudioChunk
+import com.therapylocal.app.testsupport.assertIoException
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
-import org.junit.Assert.fail
 import org.junit.Test
 import java.io.IOException
 import kotlin.random.Random
@@ -25,13 +25,7 @@ class PendingAudioTest {
         assertArrayEquals(a.pcm, b.pcm)
     }
 
-    private fun assertIoException(msg: String, bytes: ByteArray) {
-        try {
-            PendingAudio.decode(bytes)
-            fail("expected IOException: $msg")
-        } catch (_: IOException) {
-        }
-    }
+    private fun assertIoException(msg: String, bytes: ByteArray) = assertIoException(msg) { PendingAudio.decode(bytes) }
 
     private fun ByteArray.withInt(offset: Int, v: Int): ByteArray = copyOf().also {
         for (k in 0 until 4) it[offset + k] = (v ushr (8 * k)).toByte()
@@ -162,13 +156,15 @@ class PendingAudioTest {
             val bad = good.copyOf()
             repeat(rnd.nextInt(1, 6)) { bad[rnd.nextInt(bad.size)] = rnd.nextInt().toByte() }
             try {
-                PendingAudio.decode(bad) // may legitimately succeed when only idx/ms/pcm bytes changed; must not throw anything but IOException
+                // may legitimately succeed when only idx/ms/pcm bytes changed; then it must be a faithful reading of those bytes
+                assertArrayEquals(bad, PendingAudio.encode(PendingAudio.decode(bad)))
             } catch (_: IOException) {
             }
         }
         repeat(200) {
             try {
-                PendingAudio.decode(rnd.nextBytes(rnd.nextInt(0, 80)))
+                val bytes = rnd.nextBytes(rnd.nextInt(0, 80))
+                assertArrayEquals(bytes, PendingAudio.encode(PendingAudio.decode(bytes)))
             } catch (_: IOException) {
             }
         }

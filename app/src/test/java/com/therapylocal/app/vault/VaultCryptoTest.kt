@@ -1,5 +1,6 @@
 package com.therapylocal.app.vault
 
+import com.therapylocal.app.testsupport.assertRejected
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -18,14 +19,6 @@ class VaultCryptoTest {
     private val aad = "file.md".toByteArray()
 
     private fun hex(s: String) = ByteArray(s.length / 2) { s.substring(it * 2, it * 2 + 2).toInt(16).toByte() }
-
-    private fun assertRejected(msg: String, block: () -> ByteArray) {
-        try {
-            block()
-            fail("expected GeneralSecurityException: $msg")
-        } catch (_: GeneralSecurityException) {
-        }
-    }
 
     // ---- seal / open ----
 

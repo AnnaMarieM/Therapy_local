@@ -1,5 +1,6 @@
 package com.therapylocal.app.vault
 
+import com.therapylocal.app.testsupport.assertFailsCleanly
 import org.json.JSONObject
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
@@ -8,7 +9,6 @@ import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
-import org.junit.Ignore
 import org.junit.Test
 import kotlin.random.Random
 
@@ -16,14 +16,7 @@ import kotlin.random.Random
 class KeyFileTest {
     private val full = KeyFile(byteArrayOf(1, 2, 3), 600_000, byteArrayOf(9, 8, 7), byteArrayOf(4, 4), byteArrayOf(5, 6), version = 1)
 
-    private fun assertFailsCleanly(msg: String, json: String) {
-        try {
-            KeyFile.fromJson(json)
-            fail("expected an exception: $msg")
-        } catch (_: org.json.JSONException) {
-        } catch (_: IllegalArgumentException) { // bad base64
-        }
-    }
+    private fun assertFailsCleanly(msg: String, json: String) = assertFailsCleanly(msg) { KeyFile.fromJson(json) }
 
     @Test
     fun roundTripWithoutBiometric() {
@@ -49,13 +42,23 @@ class KeyFileTest {
     }
 
     @Test
-    fun randomizedRoundTripIncludingAllByteValuesAndEmptyArrays() {
+    fun roundTripOfDeterministicEdgeCasesAndRandomBytes() {
+        val allBytes = ByteArray(256) { it.toByte() }
+        val edge = KeyFile(allBytes, 1, allBytes, allBytes, allBytes)
+        assertEquals(edge, KeyFile.fromJson(edge.toJson()))
+        assertArrayEquals(allBytes, KeyFile.fromJson(edge.toJson()).passwordSealed)
+        // (empty biometric arrays are not covered: fromJson reads an empty string as "absent"; real IV/sealed blobs are never empty)
+        val empties = KeyFile(ByteArray(0), 10_000_000, ByteArray(0))
+        val back = KeyFile.fromJson(empties.toJson())
+        assertEquals(empties, back)
+        assertEquals(0, back.salt.size)
+        assertEquals(0, back.passwordSealed.size)
         val rnd = Random(42)
         repeat(200) {
             val bio = rnd.nextBoolean()
             val kf = KeyFile(
                 salt = rnd.nextBytes(rnd.nextInt(0, 40)),
-                iterations = rnd.nextInt(1, Int.MAX_VALUE),
+                iterations = rnd.nextInt(1, 10_000_001),
                 passwordSealed = rnd.nextBytes(rnd.nextInt(1, 100)),
                 biometricIv = if (bio) rnd.nextBytes(12) else null,
                 biometricSealed = if (bio) rnd.nextBytes(rnd.nextInt(1, 60)) else null,
@@ -75,10 +78,30 @@ class KeyFileTest {
     }
 
     @Test
-    fun noPlaintextSecretsAreInTheFile() {
-        // The key file only ever holds sealed material; make sure no field name suggests a raw key.
-        val names = JSONObject(full.toJson()).keys().asSequence().map { it.lowercase() }.toList()
-        assertTrue(names.none { it == "key" || it == "dek" || it == "password" })
+    fun theFileHoldsExactlyTheStoredBytesAsBase64AndNeverTheRawPasswordOrDek() {
+        // The caller seals the DEK under the password KEK before building the key file; the file must hold only what it was given.
+        val password = "correct horse battery staple"
+        val dek = ByteArray(32) { (0xA0 + it).toByte() }
+        val kf = KeyFile(byteArrayOf(1, 2, 3, 4), 600_000, byteArrayOf(9, 8, 7, 6), byteArrayOf(4, 4, 4), byteArrayOf(5, 6, 5, 6))
+        val o = JSONObject(kf.toJson())
+        val expected = mapOf(
+            "salt" to kf.salt, "passwordSealed" to kf.passwordSealed,
+            "biometricIv" to kf.biometricIv!!, "biometricSealed" to kf.biometricSealed!!,
+        )
+        val dekB64 = java.util.Base64.getEncoder().encodeToString(dek)
+        val dekHex = dek.joinToString("") { "%02x".format(it) }
+        for (k in o.keys()) {
+            val v = o.get(k).toString()
+            assertFalse("$k contains the raw password", v.contains(password))
+            assertFalse("$k contains the raw DEK (base64)", v.contains(dekB64))
+            assertFalse("$k contains the raw DEK (hex)", v.contains(dekHex, ignoreCase = true))
+            expected[k]?.let { bytes -> assertArrayEquals("$k decodes to the stored bytes", bytes, java.util.Base64.getDecoder().decode(v)) }
+        }
+        assertEquals(expected.keys + setOf("version", "iterations"), o.keys().asSequence().toSet())
+        // and with the raw DEK itself wrongly stored as a sealed blob, the check above would catch it
+        val leaky = JSONObject(kf.copy(passwordSealed = dek).toJson())
+        assertTrue(leaky.getString("passwordSealed").contains(dekB64))
+        assertFalse(kf.toJson().contains(password))
     }
 
     @Test
@@ -125,12 +148,7 @@ class KeyFileTest {
         val rnd = Random(7)
         repeat(50) {
             val junk = String(CharArray(rnd.nextInt(1, 200)) { (rnd.nextInt(32, 127)).toChar() })
-            try {
-                KeyFile.fromJson(junk)
-                fail("random junk parsed as a key file: $junk")
-            } catch (_: org.json.JSONException) {
-            } catch (_: IllegalArgumentException) {
-            }
+            assertFailsCleanly("random junk parsed as a key file: $junk", junk)
         }
     }
 
@@ -153,21 +171,35 @@ class KeyFileTest {
         assertEquals(1, KeyFile.fromJson(o.toString()).version)
     }
 
-    @Ignore("BUG: KeyFile.fromJson accepts any version number, so a vault.json of an unknown future format is parsed as if it were v1")
     @Test
-    fun unknownVersionIsRejected() {
-        for (v in listOf(0, 2, 99, -1)) {
+    fun unsupportedVersionsAreRejectedAndVersionOneIsAccepted() {
+        for (v in listOf(0, 2, 99, -1, Int.MIN_VALUE, Int.MAX_VALUE)) {
             val o = JSONObject(full.toJson()).put("version", v)
             assertFailsCleanly("version $v", o.toString())
         }
+        assertEquals(1, KeyFile.fromJson(JSONObject(full.toJson()).put("version", 1).toString()).version)
     }
 
-    @Ignore("BUG: KeyFile.fromJson accepts iterations <= 0, which would later make PBKDF2 throw (or a tampered file weaken the KEK) instead of failing at parse time")
     @Test
-    fun nonPositiveIterationsAreRejected() {
-        for (n in listOf(0, -1, Int.MIN_VALUE)) {
+    fun iterationsOutsideTheSaneRangeAreRejected() {
+        for (n in listOf(0, -1, Int.MIN_VALUE, 10_000_001, Int.MAX_VALUE)) {
             val o = JSONObject(full.toJson()).put("iterations", n)
             assertFailsCleanly("iterations $n", o.toString())
         }
+    }
+
+    @Test
+    fun iterationsAtTheBoundsAreAccepted() {
+        for (n in listOf(1, 2, 600_000, 9_999_999, 10_000_000)) {
+            val o = JSONObject(full.toJson()).put("iterations", n)
+            assertEquals(n, KeyFile.fromJson(o.toString()).iterations)
+        }
+    }
+
+    @Test
+    fun aRejectedFileDoesNotLeakPartialState() {
+        // both checks happen on the whole document: a good version with bad iterations (and the reverse) is still rejected
+        assertFailsCleanly("good version, bad iterations", JSONObject(full.toJson()).put("iterations", 0).toString())
+        assertFailsCleanly("bad version, good iterations", JSONObject(full.toJson()).put("version", 2).toString())
     }
 }
