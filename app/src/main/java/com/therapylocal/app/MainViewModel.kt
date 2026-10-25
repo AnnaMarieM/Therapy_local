@@ -230,6 +230,16 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    fun pauseRecording() {
+        recorder?.isPaused = true
+        _state.update { it.copy(status = "Paused") }
+    }
+
+    fun resumeRecording() {
+        recorder?.isPaused = false
+        _state.update { it.copy(status = "Listening") }
+    }
+
     /** Per chunk: embed the AUDIO directly, transcribe it for reading, embed the transcript too (for the quality comparison), store. */
     private suspend fun runPipeline(rid: Long, rec: ChunkRecorder, processor: ChunkProcessor, engine: AsrEngine) {
         val ctx0 = LogCtx(rid)

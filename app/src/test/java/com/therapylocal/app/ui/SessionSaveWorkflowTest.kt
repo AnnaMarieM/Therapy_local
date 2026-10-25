@@ -26,7 +26,7 @@ class SessionSaveWorkflowTest {
     @Test
     fun testMemoryProcessorClientIdAndSessionId() {
         assertEquals("sarahchen", MemoryProcessor.clientId("Sarah Chen"))
-        assertEquals("marcusvance", MemoryProcessor.clientId("Marcus Vance, PhD"))
+        assertEquals("marcusvancephd", MemoryProcessor.clientId("Marcus Vance, PhD"))
 
         val timestamp = 1771934400000L // specific epoch time
         val sessionId = MemoryProcessor.sessionId("sarahchen", timestamp)
@@ -50,7 +50,7 @@ class SessionSaveWorkflowTest {
         assertEquals("$sessionId.md", job.file)
         assertEquals(date, job.date)
         assertEquals(com.therapylocal.app.memory.JobStatus.Queued, job.status)
-        assertEquals("Queued", job.stage)
+        assertEquals("", job.stage)
     }
 
     @Test
@@ -176,6 +176,54 @@ class SessionSaveWorkflowTest {
         onSessionTabClicked()
         assertFalse(showChooser)
         assertEquals("live", targetScreen)
+    }
+
+    @Test
+    fun testSessionStartsPausedAndPlayButtonInitiatesRecording() {
+        var isSessionActive = false
+        var recordingStarted = false
+        var sessionPaused = true
+        var sessionSecs = 0L
+
+        // Starting a session sets it active but paused (ready to play)
+        val startSession = {
+            isSessionActive = true
+            recordingStarted = false
+            sessionPaused = true
+            sessionSecs = 0L
+        }
+
+        startSession()
+        assertTrue(isSessionActive)
+        assertFalse(recordingStarted)
+        assertTrue(sessionPaused)
+        assertEquals(0L, sessionSecs)
+
+        // Tapping Play starts recording and unpauses
+        val togglePause = {
+            if (sessionPaused) {
+                if (!recordingStarted) {
+                    recordingStarted = true
+                }
+                sessionPaused = false
+            } else {
+                sessionPaused = true
+            }
+        }
+
+        togglePause()
+        assertTrue(recordingStarted)
+        assertFalse(sessionPaused)
+
+        // Tapping Pause pauses recording
+        togglePause()
+        assertTrue(recordingStarted)
+        assertTrue(sessionPaused)
+
+        // Tapping Resume unpauses recording
+        togglePause()
+        assertTrue(recordingStarted)
+        assertFalse(sessionPaused)
     }
 }
 

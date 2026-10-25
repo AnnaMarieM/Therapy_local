@@ -40,7 +40,7 @@ import kotlin.math.sqrt
  *
  * Backend order for the text encoder: NPU (only when the Qualcomm dispatch library is present, see [NpuRuntime]), GPU, CPU.
  */
-class Embedder(private val context: Context) {
+class Embedder(private val context: Context, private val forcedBackend: String? = null) {
     var backend: String = "none"
         private set
     val dim = EmbeddingConfig.DIM
@@ -55,15 +55,24 @@ class Embedder(private val context: Context) {
             AppLog.span(TAG, "embed_load", LogCtx.NONE, "model" to EmbeddingConfig.MODEL_ID, "model_mb" to (file.length() shr 20), "dim" to dim) { span ->
                 logModelInfo(file)
                 val attempts = ArrayList<Pair<String, () -> Backend>>()
-                if (BackendPolicy.allows("NPU")) {
-                    if (NpuRuntime.available(context) || BackendPolicy.override == "npu") {
-                        attempts += "NPU" to { Backend.NPU(nativeLibraryDir = context.applicationInfo.nativeLibraryDir) }
-                    } else {
-                        AppLog.w(TAG, "npu_skipped", LogCtx.NONE, "reason" to "dispatch_library_missing", "expected" to NpuRuntime.DISPATCH_LIB, "dir" to context.applicationInfo.nativeLibraryDir)
+                if (forcedBackend != null) {
+                    when (forcedBackend.uppercase()) {
+                        "CPU" -> attempts += "CPU" to { Backend.CPU() }
+                        "GPU" -> attempts += "GPU" to { Backend.GPU() }
+                        "NPU" -> attempts += "NPU" to { Backend.NPU(nativeLibraryDir = context.applicationInfo.nativeLibraryDir) }
+                        else -> attempts += "CPU" to { Backend.CPU() }
                     }
+                } else {
+                    if (BackendPolicy.allows("NPU")) {
+                        if (NpuRuntime.available(context) || BackendPolicy.override == "npu") {
+                            attempts += "NPU" to { Backend.NPU(nativeLibraryDir = context.applicationInfo.nativeLibraryDir) }
+                        } else {
+                            AppLog.w(TAG, "npu_skipped", LogCtx.NONE, "reason" to "dispatch_library_missing", "expected" to NpuRuntime.DISPATCH_LIB, "dir" to context.applicationInfo.nativeLibraryDir)
+                        }
+                    }
+                    if (BackendPolicy.allows("GPU")) attempts += "GPU" to { Backend.GPU() }
+                    if (BackendPolicy.allows("CPU")) attempts += "CPU" to { Backend.CPU() }
                 }
-                if (BackendPolicy.allows("GPU")) attempts += "GPU" to { Backend.GPU() }
-                if (BackendPolicy.allows("CPU")) attempts += "CPU" to { Backend.CPU() }
 
                 val failures = ArrayList<String>()
                 for ((name, make) in attempts) {
