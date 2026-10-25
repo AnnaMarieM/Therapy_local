@@ -24,7 +24,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.therapylocal.app.BuildConfig
 import com.therapylocal.app.MainViewModel
 import com.therapylocal.app.Phase
 import com.therapylocal.app.memory.Fact
@@ -63,10 +62,9 @@ fun MindVaultApp(
         var currentTab by rememberSaveable { mutableStateOf("patients") }
         var currentScreen by rememberSaveable { mutableStateOf("patients") }
 
-        // Clients come from the on-device memory store (mock data only when it is empty and demo mode is off).
+        // Clients come from the on-device memory store.
         val clientsVm: ClientsViewModel = viewModel()
         val patients by clientsVm.patients.collectAsStateWithLifecycle()
-        val demoMode by clientsVm.demoMode.collectAsStateWithLifecycle()
         var selectedPatient by remember { mutableStateOf<Patient?>(null) }
 
         // Persistent Session State
@@ -204,7 +202,7 @@ fun MindVaultApp(
         val startSession = { p: Patient ->
             if (!hasMicPermission()) requestMicPermission()
             selectedPatient = p
-            val client = repo.ensureClient(p)
+            val client = p.id
             val now = System.currentTimeMillis()
             sessionPatient = p
             sessionClient = client
@@ -274,7 +272,7 @@ fun MindVaultApp(
                                     selectedPatient = p
                                     currentScreen = "profile"
                                 },
-                                onAddPatient = { newP -> clientsVm.create(newP.name, newP.age.takeIf { it > 0 }, newP.presenting) },
+                                onAddPatient = { newP -> clientsVm.create(newP.name, null, "") },
                                 onDeletePatient = { p -> clientsVm.delete(p.id) },
                                 onOpenSettings = {
                                     currentTab = "settings"
@@ -373,9 +371,7 @@ fun MindVaultApp(
                         "settings" -> {
                             SettingsScreen(
                                 onLockVault = { if (queue.running) confirmLock = true else activity?.let(Vault::lock) },
-                                onOpenDebugMlView = onShowLegacyDebugView,
-                                demoMode = if (BuildConfig.DEBUG) demoMode else null,
-                                onDemoModeChange = clientsVm::setDemoMode
+                                onOpenDebugMlView = onShowLegacyDebugView
                             )
                         }
                     }

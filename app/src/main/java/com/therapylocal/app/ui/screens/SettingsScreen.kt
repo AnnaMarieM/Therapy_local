@@ -74,8 +74,6 @@ import com.therapylocal.app.ui.theme.WarmBg
 fun SettingsScreen(
     onLockVault: () -> Unit,
     onOpenDebugMlView: (() -> Unit)? = null,
-    demoMode: Boolean? = null, // null hides the switch (release builds do not ship demo data)
-    onDemoModeChange: (Boolean) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -212,28 +210,6 @@ fun SettingsScreen(
                             checked = autoSurfacePastNotes,
                             onCheckedChange = { autoSurfacePastNotes = it }
                         )
-                    }
-                }
-            }
-
-            if (demoMode != null) {
-                item {
-                    SettingsGroupHeader(title = "DEMO")
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(18.dp),
-                        colors = CardDefaults.cardColors(containerColor = SurfaceCard),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
-                    ) {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            SettingsToggleRow(
-                                icon = Icons.Default.Memory,
-                                title = "Demo mode",
-                                subtitle = "Load the preloaded demo clients (George, Marta). Replaces stored data of clients with those names.",
-                                checked = demoMode,
-                                onCheckedChange = onDemoModeChange
-                            )
-                        }
                     }
                 }
             }

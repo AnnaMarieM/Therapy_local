@@ -39,7 +39,7 @@ Opening a database or a patient file while locked fails closed (`VaultLockedExce
 | Item | Why |
 |---|---|
 | Model files and LiteRT caches | Public model weights, no patient data |
-| SharedPreferences `settings` | Engine preferences and demo flags only, no patient data |
+| SharedPreferences `settings` | Engine preferences only, no patient data |
 | Developer inputs: `prompts/`, `job.json` (external `files/memory/`) | Not patient data; read only by the debug harness |
 | Debug-harness diagnostics (`out/bench.jsonl`, `decisions.jsonl`, `raw/`, `DONE`, `ERROR`) | Written only when a run is started from `job.json` (debug harness), never in app mode. Use synthetic transcripts there |
 | Debug `LiveCuesBench` output | Debug-build benchmark tool, synthetic input only |
