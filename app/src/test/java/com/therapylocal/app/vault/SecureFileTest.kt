@@ -6,6 +6,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
+import com.therapylocal.app.testsupport.assertRejectedOrIo
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
@@ -15,7 +16,8 @@ import java.security.GeneralSecurityException
 import kotlin.random.Random
 
 /**
- * SecureFile contract (docs/SECURITY.md): "TLV1" + AES-256-GCM, AAD = file name, atomic write. Whatever is wrong with the bytes on disk,
+ * SecureFile contract (docs/SECURITY.md): "TLV1" + AES-256-GCM, AAD = file name, written via a sibling .tmp then rename. NOTE: the write is NOT proven atomic here (SecureFile.write
+ * deletes the committed target before retrying a failed rename, so a second failure loses the old data; see the report). Whatever is wrong with the bytes on disk,
  * read() must throw (GeneralSecurityException / IOException), never return different content.
  */
 class SecureFileTest {
@@ -24,14 +26,8 @@ class SecureFileTest {
     private val key = ByteArray(32) { (it + 1).toByte() }
     private val otherKey = ByteArray(32) { (it + 2).toByte() }
 
-    private fun assertRejected(msg: String, block: () -> Any?) {
-        try {
-            block()
-            fail("expected exception: $msg")
-        } catch (_: GeneralSecurityException) {
-        } catch (_: IOException) {
-        }
-    }
+    private fun indexOf(hay: ByteArray, needle: ByteArray): Int =
+        (0..hay.size - needle.size).firstOrNull { i -> needle.indices.all { hay[i + it] == needle[it] } } ?: -1
 
     @Test
     fun bytesRoundTripAndParentDirsAreCreated() {
@@ -65,6 +61,14 @@ class SecureFileTest {
         assertNull(SecureFile.read(File(tmp.root, "nope"), key))
         assertNull(SecureFile.readText(File(tmp.root, "nope"), key))
         assertNull(SecureFile.read(File(tmp.root, "no/such/dir/nope"), key))
+        // existing files that are not valid secure files must throw, never return null or content
+        val garbage = File(tmp.root, "garbage.bin").apply { writeBytes(Random(3).nextBytes(100).also { it[0] = 0 }) }
+        assertRejectedOrIo("random garbage") { SecureFile.read(garbage, key) }
+        assertRejectedOrIo("random garbage as text") { SecureFile.readText(garbage, key) }
+        val plain = File(tmp.root, "plain.md").apply { writeText("plaintext session notes, never encrypted") }
+        assertRejectedOrIo("plaintext file") { SecureFile.readText(plain, key) }
+        val empty = File(tmp.root, "empty.md").apply { writeBytes(ByteArray(0)) }
+        assertRejectedOrIo("existing but empty file") { SecureFile.read(empty, key) }
     }
 
     @Test
@@ -76,6 +80,8 @@ class SecureFileTest {
         assertEquals("TLV1", String(raw, 0, 4, Charsets.US_ASCII))
         assertEquals(-1, String(raw, Charsets.ISO_8859_1).indexOf("PATIENT-SECRET"))
         assertEquals(-1, String(raw, Charsets.ISO_8859_1).indexOf("SECRET-MARKER"))
+        assertEquals(-1, indexOf(raw, "Grüße".toByteArray(Charsets.UTF_8))) // the non-ASCII part, as its UTF-8 bytes
+        assertEquals(-1, indexOf(raw, "Gr".toByteArray() + byteArrayOf(0xC3.toByte(), 0xBC.toByte())))
         assertEquals(4 + 12 + marker.toByteArray().size * 20 + 16, raw.size) // magic + IV + ciphertext + tag
     }
 
@@ -95,8 +101,8 @@ class SecureFileTest {
         SecureFile.writeText(f1, "same", key)
         SecureFile.writeText(f2, "same", otherKey)
         assertFalse(f1.readBytes().contentEquals(f2.readBytes()))
-        assertRejected("f1 with otherKey") { SecureFile.read(f1, otherKey) }
-        assertRejected("f2 with key") { SecureFile.read(f2, key) }
+        assertRejectedOrIo("f1 with otherKey") { SecureFile.read(f1, otherKey) }
+        assertRejectedOrIo("f2 with key") { SecureFile.read(f2, key) }
         assertEquals("same", SecureFile.readText(f1, key))
         assertEquals("same", SecureFile.readText(f2, otherKey))
     }
@@ -105,7 +111,7 @@ class SecureFileTest {
     fun wrongKeyThrowsEvenForEmptyContent() {
         val f = File(tmp.root, "s.md")
         SecureFile.write(f, ByteArray(0), key)
-        assertRejected("wrong key") { SecureFile.read(f, otherKey) }
+        assertRejectedOrIo("wrong key") { SecureFile.read(f, otherKey) }
     }
 
     @Test
@@ -114,7 +120,7 @@ class SecureFileTest {
         SecureFile.writeText(f, "x", key)
         val copy = File(tmp.root, "s2.md")
         f.copyTo(copy)
-        assertRejected("copy under other name") { SecureFile.read(copy, key) }
+        assertRejectedOrIo("copy under other name") { SecureFile.read(copy, key) }
         // same name in another directory is the same AAD (the AAD is the file name only)
         val sameName = File(tmp.newFolder("other"), "s1.md")
         f.copyTo(sameName)
@@ -130,7 +136,7 @@ class SecureFileTest {
             val bad = good.copyOf()
             bad[i] = (bad[i].toInt() xor 0x04).toByte()
             f.writeBytes(bad)
-            assertRejected("byte $i") { SecureFile.read(f, key) }
+            assertRejectedOrIo("byte $i") { SecureFile.read(f, key) }
         }
         f.writeBytes(good)
         assertEquals("some session text, 40+ bytes long...", SecureFile.readText(f, key))
@@ -143,7 +149,7 @@ class SecureFileTest {
         val good = f.readBytes()
         for (len in 0 until good.size) {
             f.writeBytes(good.copyOf(len))
-            assertRejected("truncated to $len") { SecureFile.read(f, key) }
+            assertRejectedOrIo("truncated to $len") { SecureFile.read(f, key) }
         }
     }
 
@@ -154,7 +160,7 @@ class SecureFileTest {
         val good = f.readBytes()
         for (extra in listOf(byteArrayOf(0), "TLV1".toByteArray(), ByteArray(16))) {
             f.writeBytes(good + extra)
-            assertRejected("appended ${extra.size}") { SecureFile.read(f, key) }
+            assertRejectedOrIo("appended ${extra.size}") { SecureFile.read(f, key) }
         }
     }
 
@@ -162,15 +168,15 @@ class SecureFileTest {
     fun filesWithoutTheMagicAreRejected() {
         val f = File(tmp.root, "plain.md")
         f.writeText("plain text, not encrypted")
-        assertRejected("plaintext file") { SecureFile.read(f, key) }
+        assertRejectedOrIo("plaintext file") { SecureFile.read(f, key) }
         f.writeBytes(ByteArray(0))
-        assertRejected("empty file") { SecureFile.read(f, key) }
+        assertRejectedOrIo("empty file") { SecureFile.read(f, key) }
         f.writeBytes("TLV".toByteArray())
-        assertRejected("short magic") { SecureFile.read(f, key) }
+        assertRejectedOrIo("short magic") { SecureFile.read(f, key) }
         f.writeBytes("TLV1".toByteArray())
-        assertRejected("magic only") { SecureFile.read(f, key) }
+        assertRejectedOrIo("magic only") { SecureFile.read(f, key) }
         f.writeBytes("TLV2".toByteArray() + ByteArray(60))
-        assertRejected("wrong version") { SecureFile.read(f, key) }
+        assertRejectedOrIo("wrong version") { SecureFile.read(f, key) }
     }
 
     @Test
@@ -210,7 +216,7 @@ class SecureFileTest {
     fun failureToReplaceThrowsInsteadOfClaimingSuccess() {
         val target = File(tmp.root, "dir.md")
         File(target, "child").apply { parentFile!!.mkdirs(); writeText("x") } // a non-empty directory cannot be replaced by a file
-        assertRejected("cannot replace") { SecureFile.write(target, byteArrayOf(1), key) }
+        assertRejectedOrIo("cannot replace") { SecureFile.write(target, byteArrayOf(1), key) }
         assertTrue(File(target, "child").exists())
     }
 }

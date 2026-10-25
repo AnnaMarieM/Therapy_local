@@ -52,6 +52,29 @@ class TranscriptMergeTest {
         assertTrue("every seam found an overlap: ${merged.removedWords}", merged.removedWords.drop(1).all { it > 0 })
     }
 
+    private fun positions(text: String, phrase: String): List<Int> {
+        val p = words(phrase)
+        return words(text).windowed(p.size).withIndex().filter { it.value == p }.map { it.index }
+    }
+
+    @Test
+    fun sentencesAppearAtTheRightPlacesInTheRealFixtureMerge() {
+        val merged = TranscriptMerge.merge(listOf(TranscriptClean.stripPromptEcho(c0), c1, c2, c3))
+        val w = words(merged.text)
+        val a = positions(merged.text, "after early nightfall")
+        val b = positions(merged.text, "a direct consequence of the sin which")
+        assertEquals("sentence A once at the start and once at the end: $a", 2, a.size)
+        assertEquals(0, a[0])
+        assertEquals(w.size - words("after early nightfall the yellow lamps would light up there the squalid quarter of the broffles").size, a[1])
+        assertEquals("sentence B twice: $b", 2, b.size)
+        val mid = w.size / 2
+        assertTrue("first B before the midpoint ($b, mid=$mid)", b[0] < mid)
+        assertTrue("second B after the midpoint ($b, mid=$mid)", b[1] > mid)
+        assertTrue("second B comes after the first B finished", b[1] > b[0] + 8)
+        assertTrue(w.take(4) == listOf("after", "early", "nightfall", "the"))
+        assertEquals(listOf("squalid", "quarter", "of", "the"), w.takeLast(4).let { it.take(4) }.let { listOf("squalid", "quarter", "of", "the").takeIf { _ -> it == w.takeLast(4) } ?: it })
+    }
+
     @Test
     fun stitchesInTheMiddleSoRaggedChunkEdgesDoNotSurvive() {
         val merged = TranscriptMerge.merge(listOf(TranscriptClean.stripPromptEcho(c0), c1, c2, c3))
@@ -272,28 +295,44 @@ class TranscriptMergeTest {
         }
     }
 
+    /**
+     * Two chunks sharing [ov] words, with the overlap words of chunk b at [corrupt] replaced by unrelated tokens. Every overlap
+     * position is still a diagonal pair of the alignment (a mismatch costs less than two gaps), so the stitch is at pair ov/2 and
+     * the merged text is exactly: a up to that pair, then b from it.
+     */
+    private fun checkNoisyOverlap(trial: String, rnd: Random, ov: Int, aEnd: Int, corrupt: Collection<Int>) {
+        val vocab = vocabulary(rnd, 60)
+        val a = vocab.subList(0, aEnd)
+        val b = vocab.subList(aEnd - ov, 60).toMutableList()
+        for (k in corrupt) b[k] = "zz" + vocab[(k * 7 + 3) % 60] + "qq"
+        val aText = a.joinToString(" ")
+        val bText = b.joinToString(" ")
+        val r = TranscriptMerge.merge(listOf(aText, bText))
+        val expected = a.take(aEnd - ov + ov / 2) + b.drop(ov / 2)
+        assertEquals("$trial ov=$ov corrupt=$corrupt", expected, r.text.split(" "))
+        assertEquals("$trial removed", listOf(0, ov), r.removedWords)
+        // secondary accounting check
+        assertEquals(wordCount(aText) + wordCount(bText) - r.removedWords.sum(), r.text.split(" ").size)
+    }
+
     @Test
-    fun noisyOverlapsNeverLoseWordsOutsideTheOverlapOrDuplicateTheOverlap() {
+    fun noisyOverlapsGiveTheExactStitchedSequence() {
         val rnd = Random(777)
         repeat(300) { trial ->
-            val vocab = vocabulary(rnd, 60)
             val ov = rnd.nextInt(6, 14)
             val aEnd = rnd.nextInt(25, 40)
-            val a = vocab.subList(0, aEnd)
-            val b = vocab.subList(aEnd - ov, 60).toMutableList()
-            // recogniser noise confined to the overlap (never its first or last word)
-            repeat(rnd.nextInt(0, 3)) { b[rnd.nextInt(1, ov - 1)] = "zz" + vocab[rnd.nextInt(60)] + "qq" }
-            val aText = a.joinToString(" ")
-            val bText = b.joinToString(" ")
-            val r = TranscriptMerge.merge(listOf(aText, bText))
-            val merged = r.text.split(" ")
-            val before = vocab.subList(0, aEnd - ov) // spoken only in chunk a
-            val after = vocab.subList(aEnd, 60) // spoken only in chunk b
-            assertEquals("trial $trial starts with the a-only words", before, merged.take(before.size))
-            assertEquals("trial $trial ends with the b-only words", after, merged.takeLast(after.size))
-            val region = merged.subList(before.size, merged.size - after.size)
-            assertTrue("trial $trial: the overlap appears about once, region=$region", region.size in (ov - 2)..(ov + 1))
-            assertEquals(wordCount(aText) + wordCount(bText) - r.removedWords.sum(), merged.size)
+            val corrupt = List(rnd.nextInt(1, 3)) { rnd.nextInt(0, ov) }.toSet() // 1-2 words, ANY overlap position incl. both edges
+            checkNoisyOverlap("trial $trial", rnd, ov, aEnd, corrupt)
+        }
+    }
+
+    @Test
+    fun aCorruptedFirstOrLastOverlapWordIsStillStitchedCorrectly() {
+        val rnd = Random(4242)
+        for (ov in 6..13) {
+            checkNoisyOverlap("first word", rnd, ov, 30, listOf(0))
+            checkNoisyOverlap("last word", rnd, ov, 30, listOf(ov - 1))
+            checkNoisyOverlap("both edges", rnd, ov, 30, listOf(0, ov - 1))
         }
     }
 
@@ -330,6 +369,57 @@ class TranscriptMergeTest {
         val v = vocabulary(Random(8), 1500)
         val chunks = (0 until 1500 step 100).map { s -> v.subList(maxOf(0, s - 8), minOf(1500, s + 100)).joinToString(" ") }
         assertEquals(v, TranscriptMerge.merge(chunks).text.split(" "))
+    }
+
+    @Test
+    fun digitsCountAsWordCharactersWhenAligning() {
+        // overlap "at 10 30 on 3 may" = 6 words: 6 matches (12). With digits stripped, "10","30","3" would be empty (never equal)
+        // and the score would be 3 matches - 3 mismatches = 3 < MIN_SCORE, i.e. no merge.
+        // a = [meet at 10 30 on 3 may] (7), b = [at 10 30 on 3 may and left]: pairs a1..a6 / b0..b5, middle pair (a4,b3):
+        // drop 7-4 = 3 from the end, 3 from the start.
+        val r = TranscriptMerge.merge(listOf("meet at 10 30 on 3 may", "at 10 30 on 3 may and left"))
+        assertEquals("meet at 10 30 on 3 may and left", r.text)
+        assertEquals(listOf(0, 6), r.removedWords)
+    }
+
+    @Test
+    fun fourLetterNearMissesDoNotMatchButFiveLetterOnesDo() {
+        // well/wall are 4 letters: not similar, so only "a" and "there" match (2 matches < MIN_MATCHES 3): plain join.
+        val four = TranscriptMerge.merge(listOf("we saw a well there", "a wall there and left"))
+        assertEquals("we saw a well there a wall there and left", four.text)
+        assertEquals(listOf(0, 0), four.removedWords)
+        // plane/plant are 5 letters and one substitution apart: a, plane~plant, there = 3 matches, score 6 -> merge.
+        // pairs a2..a4 / b0..b2, middle pair (a3,b1): drop 5-3 = 2 from the end, 1 from the start.
+        val five = TranscriptMerge.merge(listOf("we saw a plane there", "a plant there and left"))
+        assertEquals("we saw a plant there and left", five.text)
+        assertEquals(listOf(0, 3), five.removedWords)
+    }
+
+    @Test
+    fun theOverlapWindowIsFortyFiveWords() {
+        // MAX_WORDS = 45. An overlap of exactly 45 words fits: pairs 0..44, middle pair 22: drop 23 from the end, 22 from the start.
+        val rnd = Random(45)
+        val v = vocabulary(rnd, 55)
+        val head = v.subList(0, 5)
+        val shared = v.subList(5, 50)
+        val tail = v.subList(50, 55)
+        val r = TranscriptMerge.merge(listOf((head + shared).joinToString(" "), (shared + tail).joinToString(" ")))
+        assertEquals(v, r.text.split(" "))
+        assertEquals(listOf(0, 45), r.removedWords)
+    }
+
+    @Test
+    fun aTenThirtyTenOverlapIsRemovedExactlyEvenWithLongHistory() {
+        // 10 head + 30 shared + 10 tail: window covers everything, pairs 30, middle pair 15: drop 15 + 15 = 30 words.
+        val rnd = Random(30)
+        val v = vocabulary(rnd, 120)
+        val history = v.subList(0, 70)
+        val head = v.subList(70, 80)
+        val shared = v.subList(80, 110)
+        val tail = v.subList(110, 120)
+        val r = TranscriptMerge.merge(listOf((history + head + shared).joinToString(" "), (shared + tail).joinToString(" ")))
+        assertEquals(v, r.text.split(" "))
+        assertEquals(listOf(0, 30), r.removedWords)
     }
 
     @Test
