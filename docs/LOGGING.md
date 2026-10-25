@@ -6,8 +6,8 @@ Every stage of the app writes structured `key=value` lines, so a recording can b
 
 | Sink | How to read it |
 |---|---|
-| logcat, tag `TL` | `scripts/traces.sh live` or `adb logcat -s TL` |
-| Rotating file on the phone (1.5 MB x 5) | `/sdcard/Android/data/com.therapylocal.app/files/logs/tl.log`, pulled by `scripts/traces.sh pull` |
+| logcat, tag `TL` | `adb logcat -s TL` |
+| Rotating file on the phone (1.5 MB x 5) | `/sdcard/Android/data/com.therapylocal.app/files/logs/tl.log`, pulled via `adb pull /sdcard/Android/data/com.therapylocal.app/files/logs/ .` |
 | In-app viewer | Logs tab: Refresh, Copy, Share, Clear |
 
 ## Line format
@@ -26,7 +26,7 @@ ts=2026-10-24T13:20:04.509 lvl=I tag=ASR sid=ab12cd rid=3 cid=3.2 evt=span_end s
 | `evt` | event: `span_start`, `span_end`, `span_error`, or a named event such as `backend_selected` |
 | `span`, `dur_ms` | stage name and wall time in milliseconds, on span events |
 
-Values with spaces or `=` are double-quoted. Grep any id: `scripts/traces.sh grep 'cid=3.2'`.
+Values with spaces or `=` are double-quoted.
 
 ## Stages that are timed (spans)
 
@@ -57,11 +57,11 @@ Start-up events log device facts once: `startup` (SoC, Android, RAM, storage, ap
 
 ## Read a run
 
-```bash
-scripts/traces.sh summary
-```
+Pull the rotating log files from the device:
 
-prints the start-up facts, selected backends, per-span statistics, a per-chunk duration table, transcription speed, searches, deletes, and errors.
+```bash
+adb pull /sdcard/Android/data/com.therapylocal.app/files/logs/ .
+```
 
 ## Privacy: what is never logged
 
