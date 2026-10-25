@@ -63,6 +63,7 @@ import androidx.compose.ui.unit.sp
 import com.therapylocal.app.models.ModelSetup
 import com.therapylocal.app.models.SetupProgress
 import com.therapylocal.app.models.SetupState
+import com.therapylocal.app.ui.logic.SessionLogic
 import com.therapylocal.app.ui.models.Patient
 import com.therapylocal.app.ui.theme.BorderSubtle
 import com.therapylocal.app.ui.theme.CharcoalText
@@ -139,8 +140,7 @@ fun MinimizedSessionBar(
     onExpand: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val fmt = { n: Long -> "%02d".format(n) }
-    val timeFormatted = "${fmt(sessionSecs / 3600)}:${fmt((sessionSecs / 60) % 60)}:${fmt(sessionSecs % 60)}"
+    val timeFormatted = SessionLogic.formatHourMinSec(sessionSecs)
 
     Surface(
         modifier = modifier

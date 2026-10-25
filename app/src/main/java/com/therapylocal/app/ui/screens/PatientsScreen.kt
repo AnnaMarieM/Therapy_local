@@ -60,6 +60,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.therapylocal.app.ui.components.InitialsAvatar
+import com.therapylocal.app.ui.logic.SessionLogic
 import com.therapylocal.app.ui.models.Patient
 import com.therapylocal.app.ui.models.ProcessingSessionInfo
 import com.therapylocal.app.ui.theme.BorderSubtle
@@ -90,20 +91,7 @@ fun PatientsScreen(
     // Search across patient names, facts, and past notes/quotes
     val filteredPatients by remember(searchQuery, patients) {
         derivedStateOf {
-            if (searchQuery.isBlank()) patients
-            else {
-                val q = searchQuery.trim().lowercase()
-                patients.filter { p ->
-                    p.name.lowercase().contains(q) ||
-                    p.presenting.lowercase().contains(q) ||
-                    p.facts.any { it.lowercase().contains(q) } ||
-                    p.sessions.any { s ->
-                        s.summary.lowercase().contains(q) ||
-                        s.topics.any { t -> t.lowercase().contains(q) } ||
-                        s.verbatimQuotes.any { v -> v.lowercase().contains(q) }
-                    }
-                }
-            }
+            SessionLogic.filterPatients(patients, searchQuery)
         }
     }
 

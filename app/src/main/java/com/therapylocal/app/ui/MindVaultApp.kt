@@ -35,6 +35,7 @@ import com.therapylocal.app.ui.data.ClientsViewModel
 import com.therapylocal.app.ui.components.ChoosePatientSessionDialog
 import com.therapylocal.app.ui.components.MindVaultBottomNav
 import com.therapylocal.app.ui.components.MinimizedSessionBar
+import com.therapylocal.app.ui.logic.SessionLogic
 import com.therapylocal.app.ui.models.Patient
 import com.therapylocal.app.ui.models.ProcessingSessionInfo
 import com.therapylocal.app.ui.security.findFragmentActivity
@@ -146,32 +147,7 @@ fun MindVaultApp(
         }
 
         val processingByClient = remember(queue.jobs, pendingEnqueue) {
-            val map = mutableMapOf<String, ProcessingSessionInfo>()
-            queue.jobs.filter { it.status == JobStatus.Queued || it.status == JobStatus.Running }.forEach { job ->
-                val stageText = when {
-                    job.stage.isNotBlank() -> job.stage
-                    job.status == JobStatus.Queued -> "Queued"
-                    job.recordingId != 0L -> "Transcribing audio"
-                    else -> "Extracting facts"
-                }
-                map[job.client] = ProcessingSessionInfo(
-                    sessionId = job.id,
-                    date = job.date.ifEmpty { "Today" },
-                    stage = stageText,
-                    isPendingEnqueue = false
-                )
-            }
-            pendingEnqueue?.let { (client, sid, date) ->
-                if (!map.containsKey(client)) {
-                    map[client] = ProcessingSessionInfo(
-                        sessionId = sid,
-                        date = date.ifEmpty { "Today" },
-                        stage = "Finalizing recording...",
-                        isPendingEnqueue = true
-                    )
-                }
-            }
-            map
+            SessionLogic.processingByClient(queue.jobs, pendingEnqueue)
         }
 
         val resetSession = {
@@ -230,19 +206,17 @@ fun MindVaultApp(
         }
 
         val togglePause = {
-            if (sessionPaused) {
-                if (!recordingStarted) {
-                    recordingStarted = true
+            val t = SessionLogic.togglePause(sessionPaused, recordingStarted)
+            when (t.action) {
+                SessionLogic.PauseAction.StartRecording -> {
                     if (vmState.phase == Phase.Ready) viewModel.liveCues.start(sessionClient)
                     viewModel.startRecording()
-                } else {
-                    viewModel.resumeRecording()
                 }
-                sessionPaused = false
-            } else {
-                viewModel.pauseRecording()
-                sessionPaused = true
+                SessionLogic.PauseAction.ResumeRecording -> viewModel.resumeRecording()
+                SessionLogic.PauseAction.PauseRecording -> viewModel.pauseRecording()
             }
+            recordingStarted = t.recordingStarted
+            sessionPaused = t.paused
         }
 
         BackHandler(enabled = showChoosePatientDialog || currentScreen != "patients" || currentTab != "patients") {
@@ -382,8 +356,7 @@ fun MindVaultApp(
                         "summary" -> {
                             val p = sessionPatient ?: patients.firstOrNull()
                             if (p != null) {
-                                val fmt = { n: Long -> "%02d".format(n) }
-                                val dur = "${fmt(sessionSecs / 60)}:${fmt(sessionSecs % 60)}"
+                                val dur = SessionLogic.formatMinSec(sessionSecs)
                                 SummaryScreen(
                                     patient = p,
                                     durationFormatted = dur,
@@ -437,7 +410,7 @@ fun MindVaultApp(
                                 currentScreen = "patients"
                             }
                             "session" -> {
-                                if (isSessionActive && sessionPatient != null) {
+                                if (SessionLogic.sessionTabTarget(isSessionActive, sessionPatient != null) == SessionLogic.SessionTabTarget.Live) {
                                     currentTab = tab
                                     currentScreen = "live"
                                 } else {
