@@ -33,6 +33,13 @@ data class SurfacedQuote(
     val quote: String
 )
 
+data class ProcessingSessionInfo(
+    val sessionId: String,
+    val date: String,
+    val stage: String,
+    val isPendingEnqueue: Boolean = false
+)
+
 object SeedData {
     fun getInitialPatients(): List<Patient> = listOf(
         Patient(

@@ -1,6 +1,7 @@
 package com.therapylocal.app.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
@@ -29,6 +30,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedButton
@@ -59,6 +61,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.therapylocal.app.ui.components.InitialsAvatar
 import com.therapylocal.app.ui.models.Patient
+import com.therapylocal.app.ui.models.ProcessingSessionInfo
 import com.therapylocal.app.ui.theme.BorderSubtle
 import com.therapylocal.app.ui.theme.CharcoalText
 import com.therapylocal.app.ui.theme.MutedText
@@ -71,6 +74,7 @@ import com.therapylocal.app.ui.theme.WarmBg
 @Composable
 fun PatientsScreen(
     patients: List<Patient>,
+    processingByClient: Map<String, ProcessingSessionInfo> = emptyMap(),
     onSelectPatient: (Patient) -> Unit,
     onAddPatient: (Patient) -> Patient,
     onDeletePatient: (Patient) -> Unit,
@@ -178,9 +182,39 @@ fun PatientsScreen(
             if (setup.state != SetupState.Ready) {
                 item(key = "setup-banner") { SetupBanner(progress = setup, onRetry = { ModelSetup.retry(context) }) }
             }
+            if (processingByClient.isNotEmpty()) {
+                item(key = "sessions-processing-banner") {
+                    Card(
+                        shape = RoundedCornerShape(14.dp),
+                        colors = CardDefaults.cardColors(containerColor = SageLight.copy(alpha = 0.5f)),
+                        border = BorderStroke(1.dp, SageGreen.copy(alpha = 0.4f)),
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(16.dp),
+                                strokeWidth = 2.dp,
+                                color = SageDark
+                            )
+                            val count = processingByClient.size
+                            Text(
+                                text = if (count == 1) "1 session is processing in background" else "$count sessions are processing in background",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = SageDark
+                            )
+                        }
+                    }
+                }
+            }
             items(filteredPatients, key = { it.id }) { patient ->
                 PatientCard(
                     patient = patient,
+                    processing = processingByClient[patient.id],
                     onClick = { onSelectPatient(patient) },
                     onLongClick = { patientToDelete = patient }
                 )
@@ -268,6 +302,7 @@ fun ConfirmDeletePatientDialog(
 @Composable
 fun PatientCard(
     patient: Patient,
+    processing: ProcessingSessionInfo? = null,
     onClick: () -> Unit,
     onLongClick: () -> Unit = {},
     modifier: Modifier = Modifier
@@ -289,7 +324,8 @@ fun PatientCard(
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.weight(1f)
             ) {
                 InitialsAvatar(name = patient.name, size = 42)
                 Column {
@@ -299,12 +335,32 @@ fun PatientCard(
                         fontSize = 15.sp,
                         color = CharcoalText
                     )
-                    Text(
-                        text = (if (patient.age > 0) "Age ${patient.age} · " else "") + "Last session: ${patient.lastSession}",
-                        fontSize = 12.sp,
-                        color = MutedText,
-                        modifier = Modifier.padding(top = 2.dp)
-                    )
+                    if (processing != null) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(5.dp),
+                            modifier = Modifier.padding(top = 2.dp)
+                        ) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(10.dp),
+                                strokeWidth = 1.5.dp,
+                                color = SageGreen
+                            )
+                            Text(
+                                text = if (processing.stage.isNotBlank()) "Processing · ${processing.stage}" else "Processing session...",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = SageDark
+                            )
+                        }
+                    } else {
+                        Text(
+                            text = (if (patient.age > 0) "Age ${patient.age} · " else "") + "Last session: ${patient.lastSession}",
+                            fontSize = 12.sp,
+                            color = MutedText,
+                            modifier = Modifier.padding(top = 2.dp)
+                        )
+                    }
                 }
             }
 
