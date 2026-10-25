@@ -4,7 +4,6 @@ import android.content.Context
 import com.therapylocal.app.log.AppLog
 import com.therapylocal.app.log.LogCtx
 import com.therapylocal.app.data.PendingAudio
-import com.therapylocal.app.memory.DemoMemory
 import com.therapylocal.app.memory.Fact
 import com.therapylocal.app.memory.MemoryFiles
 import com.therapylocal.app.memory.MemoryProcessor
@@ -12,7 +11,6 @@ import com.therapylocal.app.memory.MemoryQueue
 import com.therapylocal.app.memory.MemoryStore
 import com.therapylocal.app.models.ModelSetup
 import com.therapylocal.app.ui.models.Patient
-import com.therapylocal.app.ui.models.SeedData
 import com.therapylocal.app.ui.models.SessionRecord
 
 /** A fact that came up in more than one session: [count] is the number of sessions it was said in (first one included). */
@@ -25,39 +23,13 @@ data class Theme(val fact: Fact, val count: Int)
  */
 class ClientRepository(context: Context, private val store: MemoryStore = MemoryStore(context)) {
     private val appContext = context.applicationContext
-    private val prefs = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
-
-    val demoMode: Boolean get() = prefs.getBoolean(DEMO_MODE_KEY, false)
 
     fun clients(): List<String> = store.clients()
-
-    /** Switches demo mode. Turning it on imports the bundled demo memory (debug builds ship `assets/demo_memory.json`); turning it off keeps the imported data. */
-    fun setDemoMode(on: Boolean) {
-        prefs.edit().putBoolean(DEMO_MODE_KEY, on).apply()
-        if (on) importDemo(force = true)
-    }
-
-    /** Imports the demo asset if demo mode is on and this version of it is not imported yet (or [force]). Returns whether it imported. Blocking. */
-    fun importDemo(force: Boolean = false): Boolean {
-        if (!force && !demoMode) return false
-        return try {
-            val data = DemoMemory.parse(appContext.assets.open("demo_memory.json").bufferedReader().use { it.readText() })
-            if (!force && prefs.getInt(DEMO_IMPORTED_KEY, 0) == data.version) return false
-            DemoMemory.import(store, data)
-            prefs.edit().putInt(DEMO_IMPORTED_KEY, data.version).putBoolean(MOCK_DISMISSED_KEY, true).apply()
-            AppLog.i(TAG, "demo_imported", LogCtx.NONE, "clients" to data.clients.size, "facts" to data.clients.sumOf { it.facts.size })
-            true
-        } catch (e: java.io.IOException) {
-            AppLog.w(TAG, "demo_asset_missing", LogCtx.NONE, "reason" to e.message)
-            false
-        }
-    }
 
     /** Creates a client from the add-patient form and returns its UI patient. The id is a free slug of the name. */
     fun createClient(name: String, age: Int?, occupation: String): Patient {
         val id = ClientInput.uniqueId(ClientInput.slug(name), clients().toSet())
         store.createClient(id, name.trim(), age, occupation.trim())
-        prefs.edit().putBoolean(MOCK_DISMISSED_KEY, true).apply()
         return patient(id)
     }
 
@@ -69,13 +41,8 @@ class ClientRepository(context: Context, private val store: MemoryStore = Memory
         listOf("in", "cache").forEach { dir ->
             java.io.File(MemoryFiles.secureRoot(appContext), dir).listFiles { f -> f.name.startsWith("${id}_") }?.forEach { it.deleteRecursively() }
         }
-        prefs.edit().putBoolean(MOCK_DISMISSED_KEY, true).apply()
         AppLog.i(TAG, "delete_client_verified", LogCtx.NONE, "client" to id, "removed_clients" to r.clients, "removed_chunks" to r.chunks, "removed_facts" to r.facts, "removed_supports" to r.supports, "removed_sessions" to r.sessions)
     }
-
-    /** The client id to record a session under: [p]'s id if it is stored, else [p] (a mock patient) is created as a client first. */
-    fun ensureClient(p: Patient): String =
-        if (p.id in clients()) p.id else createClient(p.name, p.age.takeIf { it > 0 }, p.presenting).id
 
     fun facts(client: String): List<Fact> = store.facts(client)
 
@@ -119,11 +86,8 @@ class ClientRepository(context: Context, private val store: MemoryStore = Memory
         return facts(client).mapNotNull { f -> counts[f.id]?.let { Theme(f, it + 1) } }.sortedByDescending { it.count }
     }
 
-    /** All clients as UI patients. Mock data only when the store is empty and demo mode is off. */
-    fun patients(): List<Patient> {
-        val real = store.listClients().map { patient(it.id) }
-        return if (real.isEmpty() && !demoMode && !prefs.getBoolean(MOCK_DISMISSED_KEY, false)) SeedData.getInitialPatients() else real
-    }
+    /** All clients as UI patients. */
+    fun patients(): List<Patient> = store.listClients().map { patient(it.id) }
 
     fun patient(client: String): Patient {
         val facts = facts(client)
@@ -162,10 +126,5 @@ class ClientRepository(context: Context, private val store: MemoryStore = Memory
 
     companion object {
         const val TAG = "ClientRepository"
-        const val DEMO_MODE_KEY = "demoMode"
-        private const val DEMO_IMPORTED_KEY = "demoImportedVersion"
-
-        /** Set once the therapist creates or deletes a client, so the mock patients never come back after the real list was emptied. */
-        const val MOCK_DISMISSED_KEY = "mockDismissed"
     }
 }
