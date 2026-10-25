@@ -7,6 +7,7 @@ import com.therapylocal.app.ui.models.ProcessingSessionInfo
 
 /** Pure session/UI rules pulled out of composables so they can be unit tested. No Android imports. */
 object SessionLogic {
+    /** Digits are always ASCII (padStart, never locale-formatted). */
     private fun two(n: Long) = n.toString().padStart(2, '0')
 
     /** "mm:ss", minutes not capped (4500 s -> "75:00"). Negative input counts as 0. */
