@@ -206,7 +206,7 @@ fun SummaryScreen(
                             text = "The session will be processed on the background. You will get a notification when it is done.",
                             fontSize = 13.sp,
                             lineHeight = 18.sp,
-                            color = CharcoalText.copy(alpha = 0.85f)
+                            color = CharcoalText
                         )
                     }
                 }

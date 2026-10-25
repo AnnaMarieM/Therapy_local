@@ -19,9 +19,9 @@ val SurfaceCard = Color(0xFFFFFFFF)
 val SurfaceCardMuted = Color(0xFFF4F2ED)
 val BorderSubtle = Color(0xFFEBE8E1)
 
-val CharcoalText = Color(0xFF1E2421)
-val MutedText = Color(0xFF6B726D)
-val SubtleText = Color(0xFF9BA29D)
+val CharcoalText = Color(0xFF111713)
+val MutedText = Color(0xFF26322B)
+val SubtleText = Color(0xFF38463D)
 
 val DangerRed = Color(0xFFC04B4B)
 val DangerBg = Color(0xFFFDF0F0)
