@@ -30,7 +30,7 @@ MindVault operates **100% locally on the therapist's phone**:
 
 ## 2. How to Run It
 
-### Option A: Android App (On-Device Inference)
+### Android App (On-Device Inference)
 
 #### Prerequisites
 - Android device (Android 14+, e.g. Google Pixel 8) with USB/Wireless debugging enabled.
@@ -60,16 +60,6 @@ MindVault operates **100% locally on the therapist's phone**:
    ```
 5. **Initial Model Download:**
    On first launch, the app downloads model weights (~645 MB default) over Wi-Fi directly to the app's isolated storage (`/sdcard/Android/data/com.therapylocal.app/files/models/`). After this initial download, the app functions **completely offline**.
-
-### Option B: Interactive Web Prototype
-
-For rapid review of the full clinical workflow, patient management, and session UI:
-```bash
-cd pixel-perfect-replay-6272-main
-npm install
-npm run dev
-```
-Open [http://localhost:8080](http://localhost:8080) in your browser.
 
 ---
 
