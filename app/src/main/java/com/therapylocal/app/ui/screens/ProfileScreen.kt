@@ -263,20 +263,22 @@ fun OverviewTab(
             }
         }
 
-        item {
-            // Pre-session Briefing
-            Card(
-                shape = RoundedCornerShape(18.dp),
-                colors = CardDefaults.cardColors(containerColor = SurfaceCard),
-                elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(
-                        text = patient.preSessionNote,
-                        fontSize = 13.sp,
-                        lineHeight = 18.sp,
-                        color = CharcoalText
-                    )
+        if (patient.preSessionNote.isNotBlank()) {
+            item {
+                // Pre-session Briefing
+                Card(
+                    shape = RoundedCornerShape(18.dp),
+                    colors = CardDefaults.cardColors(containerColor = SurfaceCard),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(
+                            text = patient.preSessionNote,
+                            fontSize = 13.sp,
+                            lineHeight = 18.sp,
+                            color = CharcoalText
+                        )
+                    }
                 }
             }
         }
@@ -287,57 +289,90 @@ fun OverviewTab(
             }
         }
 
-        item {
-            // Recent sessions header
-            Text(
-                text = "Recent Sessions",
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 14.sp,
-                color = CharcoalText,
-                modifier = Modifier.padding(top = 4.dp)
-            )
-        }
+        if (patient.sessions.isNotEmpty()) {
+            item {
+                // Recent sessions header
+                Text(
+                    text = "Recent Sessions",
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 14.sp,
+                    color = CharcoalText,
+                    modifier = Modifier.padding(top = 4.dp)
+                )
+            }
 
-        items(patient.sessions) { session ->
-            Card(
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = SurfaceCard),
-                elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
-            ) {
-                Column(modifier = Modifier.padding(14.dp)) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
+            items(patient.sessions) { session ->
+                Card(
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = SurfaceCard),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+                ) {
+                    Column(modifier = Modifier.padding(14.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = session.date,
+                                fontWeight = FontWeight.SemiBold,
+                                fontSize = 13.sp,
+                                color = CharcoalText
+                            )
+                            Text(
+                                text = session.duration,
+                                fontSize = 12.sp,
+                                color = MutedText
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(6.dp))
+
                         Text(
-                            text = session.date,
-                            fontWeight = FontWeight.SemiBold,
-                            fontSize = 13.sp,
-                            color = CharcoalText
-                        )
-                        Text(
-                            text = session.duration,
+                            text = session.summary,
                             fontSize = 12.sp,
-                            color = MutedText
+                            color = CharcoalText,
+                            lineHeight = 17.sp
                         )
-                    }
 
-                    Spacer(modifier = Modifier.height(6.dp))
-
-                    Text(
-                        text = session.summary,
-                        fontSize = 12.sp,
-                        color = CharcoalText,
-                        lineHeight = 17.sp
-                    )
-
-                    if (session.topics.isNotEmpty()) {
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                            session.topics.take(3).forEach { topic ->
-                                PillBadge(text = topic)
+                        if (session.topics.isNotEmpty()) {
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                session.topics.take(3).forEach { topic ->
+                                    PillBadge(text = topic)
+                                }
                             }
                         }
+                    }
+                }
+            }
+        } else {
+            item {
+                Card(
+                    shape = RoundedCornerShape(18.dp),
+                    colors = CardDefaults.cardColors(containerColor = SurfaceCard),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(20.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "No sessions recorded yet",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = CharcoalText
+                        )
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Text(
+                            text = "Tap 'Start Session' above to begin recording. Key clinical facts, verbatim quotes, and session summaries will appear here automatically.",
+                            fontSize = 12.sp,
+                            color = MutedText,
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                            lineHeight = 17.sp
+                        )
                     }
                 }
             }
@@ -399,6 +434,39 @@ fun SessionsTab(patient: Patient, processingSession: ProcessingSessionInfo? = nu
                             text = "Summary, extracted topics, and verbatim quotes will appear here once processing completes.",
                             fontSize = 11.sp,
                             color = MutedText
+                        )
+                    }
+                }
+            }
+        }
+
+        if (patient.sessions.isEmpty() && processingSession == null) {
+            item {
+                Card(
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = SurfaceCard),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(20.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "No sessions yet",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = CharcoalText
+                        )
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Text(
+                            text = "Session notes, extracted topics, and quotes will be listed here after each consultation.",
+                            fontSize = 12.sp,
+                            color = MutedText,
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                            lineHeight = 17.sp
                         )
                     }
                 }
@@ -488,30 +556,63 @@ fun FactsTab(patient: Patient) {
             )
         }
 
-        items(patient.facts) { fact ->
-            Card(
-                shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(containerColor = SurfaceCard),
-                elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+        if (patient.facts.isEmpty()) {
+            item {
+                Card(
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = SurfaceCard),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    Box(
+                    Column(
                         modifier = Modifier
-                            .size(8.dp)
-                            .clip(CircleShape)
-                            .background(SageGreen)
-                    )
-                    Text(
-                        text = fact,
-                        fontSize = 13.sp,
-                        color = CharcoalText
-                    )
+                            .fillMaxWidth()
+                            .padding(20.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "No clinical facts recorded yet",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = CharcoalText
+                        )
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Text(
+                            text = "Key facts and verifiable profile points are extracted from session transcripts as you talk.",
+                            fontSize = 12.sp,
+                            color = MutedText,
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                            lineHeight = 17.sp
+                        )
+                    }
+                }
+            }
+        } else {
+            items(patient.facts) { fact ->
+                Card(
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(containerColor = SurfaceCard),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(8.dp)
+                                .clip(CircleShape)
+                                .background(SageGreen)
+                        )
+                        Text(
+                            text = fact,
+                            fontSize = 13.sp,
+                            color = CharcoalText
+                        )
+                    }
                 }
             }
         }
