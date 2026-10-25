@@ -100,18 +100,15 @@ No proprietary or paid cloud APIs are used.
 
 ---
 
-## 5. Proof: How MindVault Improves Over the Baseline Model
+## 5. What Our Layer Adds Over the Raw Models
 
-### Comparison: Raw On-Device Model vs. MindVault Pipeline
+The raw foundation models (Whisper, Gemma) provide only raw transcription and embeddings. Our software layer turns these models into a persistent, verifiable memory pipeline:
+- **Overlapping Segmentation:** Audio is partitioned into 20-second chunks with 5-second overlap to avoid splitting thoughts or hesitant therapy disclosures in half.
+- **Deterministic Cleanup & Merging:** Stitches overlapping transcript boundaries and removes phonetic repetitions (`TranscriptClean.kt`, `TranscriptMerge.kt`).
+- **Verifiable Source Metadata:** Every indexed passage stores its recording ID and start/end time range, allowing therapists to inspect the original context instead of trusting a generated summary.
+- **Unit & Self Tests:** The codebase includes an embedding self-test and six transcript-cleaning and merging tests.
 
-We evaluated retrieval of past session insights across 10 synthetic therapy scenarios representing multi-session continuity:
-
-| Capability | Raw Baseline Model (Plain Whisper / Gemma) | MindVault Software Layer |
-|---|---|---|
-| **Sentence-boundary recall** | **3 / 10** (phrases broken across fixed chunks lose meaning) | **9 / 10** (5s overlap + deduplication stitching retains full sentence semantics) |
-| **Verbatim source verification** | **0 / 10** (generates summarized text with no verifiable timestamp) | **10 / 10** (exact recording ID + start/end millisecond range linked to every result) |
-| **Hallucination risk** | High (prompting model to recall past facts introduces confabulation) | **Zero** (deterministic cosine retrieval over embedded transcript chunks) |
-| **Offline privacy guarantee** | Dependent on implementation | **100% air-gapped on-device execution** |
+*(Note: We distinguish engineering implementation from benchmark claims. We have not completed a formal comparative accuracy benchmark against the raw model on clinical data yet, and prioritize honest evaluation over synthetic accuracy claims.)*
 
 ---
 
