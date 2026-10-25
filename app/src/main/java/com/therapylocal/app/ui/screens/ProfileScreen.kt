@@ -22,11 +22,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Tab
@@ -51,6 +53,7 @@ import androidx.compose.ui.unit.sp
 import com.therapylocal.app.ui.components.InitialsAvatar
 import com.therapylocal.app.ui.components.PillBadge
 import com.therapylocal.app.ui.models.Patient
+import com.therapylocal.app.ui.models.ProcessingSessionInfo
 import com.therapylocal.app.ui.theme.BorderSubtle
 import com.therapylocal.app.ui.theme.CharcoalText
 import com.therapylocal.app.ui.theme.MutedText
@@ -65,6 +68,7 @@ import com.therapylocal.app.ui.theme.WarmBg
 fun ProfileScreen(
     patient: Patient,
     isSessionActive: Boolean,
+    processingSession: ProcessingSessionInfo? = null,
     onBack: () -> Unit,
     onDeletePatient: (Patient) -> Unit,
     onStartSession: (Patient) -> Unit,
@@ -179,10 +183,11 @@ fun ProfileScreen(
             0 -> OverviewTab(
                 patient = patient,
                 isSessionActive = isSessionActive,
+                processingSession = processingSession,
                 onStartSession = onStartSession,
                 onReturnToActiveSession = onReturnToActiveSession
             )
-            1 -> SessionsTab(patient = patient)
+            1 -> SessionsTab(patient = patient, processingSession = processingSession)
             2 -> FactsTab(patient = patient)
         }
     }
@@ -192,6 +197,7 @@ fun ProfileScreen(
 fun OverviewTab(
     patient: Patient,
     isSessionActive: Boolean,
+    processingSession: ProcessingSessionInfo? = null,
     onStartSession: (Patient) -> Unit,
     onReturnToActiveSession: () -> Unit
 ) {
@@ -280,6 +286,12 @@ fun OverviewTab(
             }
         }
 
+        if (processingSession != null) {
+            item(key = "overview_processing_card") {
+                ProcessingSessionCard(processingSession = processingSession)
+            }
+        }
+
         item {
             // Recent sessions header
             Text(
@@ -339,11 +351,65 @@ fun OverviewTab(
 }
 
 @Composable
-fun SessionsTab(patient: Patient) {
+fun SessionsTab(patient: Patient, processingSession: ProcessingSessionInfo? = null) {
     LazyColumn(
         verticalArrangement = Arrangement.spacedBy(12.dp),
         modifier = Modifier.fillMaxSize()
     ) {
+        if (processingSession != null) {
+            item(key = "sessions_processing_card") {
+                Card(
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = SageLight.copy(alpha = 0.45f)),
+                    border = BorderStroke(1.dp, SageGreen.copy(alpha = 0.5f)),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = processingSession.date.ifEmpty { "Today" },
+                                fontWeight = FontWeight.Bold,
+                                fontFamily = FontFamily.Serif,
+                                fontSize = 14.sp,
+                                color = CharcoalText
+                            )
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(12.dp),
+                                    strokeWidth = 2.dp,
+                                    color = SageDark
+                                )
+                                PillBadge(text = "Processing")
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Text(
+                            text = if (processingSession.stage.isNotBlank()) "Processing session · ${processingSession.stage}" else "Session is being processed in the background.",
+                            fontSize = 13.sp,
+                            lineHeight = 18.sp,
+                            color = CharcoalText
+                        )
+
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "Summary, extracted topics, and verbatim quotes will appear here once processing completes.",
+                            fontSize = 11.sp,
+                            color = MutedText
+                        )
+                    }
+                }
+            }
+        }
+
         items(patient.sessions) { session ->
             Card(
                 shape = RoundedCornerShape(16.dp),
@@ -456,3 +522,88 @@ fun FactsTab(patient: Patient) {
         }
     }
 }
+
+@Composable
+fun ProcessingSessionCard(
+    processingSession: ProcessingSessionInfo,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(containerColor = SageLight.copy(alpha = 0.45f)),
+        border = BorderStroke(1.dp, SageGreen.copy(alpha = 0.5f)),
+        modifier = modifier.fillMaxWidth()
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(16.dp),
+                        strokeWidth = 2.dp,
+                        color = SageDark
+                    )
+                    Text(
+                        text = "Session Processing",
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 13.sp,
+                        color = SageDark
+                    )
+                }
+                PillBadge(text = processingSession.date.ifEmpty { "Today" })
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = "Extracting clinical facts and key topics from transcript...",
+                fontSize = 12.sp,
+                color = CharcoalText,
+                lineHeight = 17.sp
+            )
+
+            if (processingSession.stage.isNotBlank()) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Text(
+                        text = "Stage:",
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = MutedText
+                    )
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(6.dp))
+                            .background(SurfaceCard)
+                            .border(1.dp, BorderSubtle, RoundedCornerShape(6.dp))
+                            .padding(horizontal = 8.dp, vertical = 3.dp)
+                    ) {
+                        Text(
+                            text = processingSession.stage,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = SageDark
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(
+                text = "Notes and insights will appear here automatically when done.",
+                fontSize = 11.sp,
+                color = MutedText
+            )
+        }
+    }
+}
+

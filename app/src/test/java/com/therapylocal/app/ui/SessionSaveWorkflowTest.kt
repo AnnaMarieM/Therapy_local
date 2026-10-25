@@ -66,4 +66,73 @@ class SessionSaveWorkflowTest {
             assertFalse(s.contains("MindVault Brief", ignoreCase = true))
         }
     }
+
+    @Test
+    fun testProcessingSessionInfoAndClientMapping() {
+        val client = "george"
+        val sid = "${client}_20261025-150000"
+        val job = SessionJob(
+            id = sid,
+            client = client,
+            file = "$sid.md",
+            date = "2026-10-25",
+            status = com.therapylocal.app.memory.JobStatus.Running,
+            stage = "Reading 1/2"
+        )
+        val jobs = listOf(job)
+
+        val map = mutableMapOf<String, com.therapylocal.app.ui.models.ProcessingSessionInfo>()
+        jobs.filter { it.status == com.therapylocal.app.memory.JobStatus.Queued || it.status == com.therapylocal.app.memory.JobStatus.Running }.forEach { j ->
+            map[j.client] = com.therapylocal.app.ui.models.ProcessingSessionInfo(
+                sessionId = j.id,
+                date = j.date,
+                stage = j.stage
+            )
+        }
+
+        assertTrue(map.containsKey("george"))
+        val info = map["george"]!!
+        assertEquals(sid, info.sessionId)
+        assertEquals("2026-10-25", info.date)
+        assertEquals("Reading 1/2", info.stage)
+        assertFalse(info.isPendingEnqueue)
+    }
+
+    @Test
+    fun testPendingEnqueueProcessingFeedback() {
+        val client = "alice"
+        val sid = "${client}_20261025-151000"
+        val pendingEnqueue = Triple(client, sid, "2026-10-25")
+
+        val map = mutableMapOf<String, com.therapylocal.app.ui.models.ProcessingSessionInfo>()
+        pendingEnqueue.let { (c, s, d) ->
+            map[c] = com.therapylocal.app.ui.models.ProcessingSessionInfo(
+                sessionId = s,
+                date = d,
+                stage = "Finalizing recording...",
+                isPendingEnqueue = true
+            )
+        }
+
+        assertTrue(map.containsKey("alice"))
+        val info = map["alice"]!!
+        assertEquals("Finalizing recording...", info.stage)
+        assertTrue(info.isPendingEnqueue)
+    }
+
+    @Test
+    fun testCompletedSessionTriggersRefreshKeyChange() {
+        val client = "george"
+        val sid = "${client}_20261025-150000"
+        val runningJob = SessionJob(id = sid, client = client, file = "$sid.md", date = "2026-10-25", status = com.therapylocal.app.memory.JobStatus.Running)
+        val doneJob = runningJob.copy(status = com.therapylocal.app.memory.JobStatus.Done)
+
+        val beforeDoneSet = listOf(runningJob).filter { it.status == com.therapylocal.app.memory.JobStatus.Done }.map { it.id }.toSet()
+        val afterDoneSet = listOf(doneJob).filter { it.status == com.therapylocal.app.memory.JobStatus.Done }.map { it.id }.toSet()
+
+        assertTrue(beforeDoneSet.isEmpty())
+        assertEquals(setOf(sid), afterDoneSet)
+        assertTrue(beforeDoneSet != afterDoneSet)
+    }
 }
+

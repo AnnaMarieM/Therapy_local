@@ -35,6 +35,7 @@ import com.therapylocal.app.ui.data.ClientsViewModel
 import com.therapylocal.app.ui.components.MindVaultBottomNav
 import com.therapylocal.app.ui.components.MinimizedSessionBar
 import com.therapylocal.app.ui.models.Patient
+import com.therapylocal.app.ui.models.ProcessingSessionInfo
 import com.therapylocal.app.ui.security.findFragmentActivity
 import com.therapylocal.app.vault.Vault
 import com.therapylocal.app.ui.models.SurfacedQuote
@@ -143,8 +144,46 @@ fun MindVaultApp(
             pendingRecordingId = null
         }
         LaunchedEffect(queue.jobs.firstOrNull { it.id == sessionId }?.status) { clientsVm.refresh() }
+        LaunchedEffect(queue.jobs.count { it.status == JobStatus.Done }) { clientsVm.refresh() }
+
+        // Keep selectedPatient up-to-date with the latest data in patients
+        LaunchedEffect(patients) {
+            selectedPatient?.let { sel ->
+                patients.firstOrNull { it.id == sel.id }?.let { selectedPatient = it }
+            }
+        }
+
+        val processingByClient = remember(queue.jobs, pendingEnqueue) {
+            val map = mutableMapOf<String, ProcessingSessionInfo>()
+            queue.jobs.filter { it.status == JobStatus.Queued || it.status == JobStatus.Running }.forEach { job ->
+                val stageText = when {
+                    job.stage.isNotBlank() -> job.stage
+                    job.status == JobStatus.Queued -> "Queued"
+                    job.recordingId != 0L -> "Transcribing audio"
+                    else -> "Extracting facts"
+                }
+                map[job.client] = ProcessingSessionInfo(
+                    sessionId = job.id,
+                    date = job.date.ifEmpty { "Today" },
+                    stage = stageText,
+                    isPendingEnqueue = false
+                )
+            }
+            pendingEnqueue?.let { (client, sid, date) ->
+                if (!map.containsKey(client)) {
+                    map[client] = ProcessingSessionInfo(
+                        sessionId = sid,
+                        date = date.ifEmpty { "Today" },
+                        stage = "Finalizing recording...",
+                        isPendingEnqueue = true
+                    )
+                }
+            }
+            map
+        }
 
         val resetSession = {
+            if (sessionPatient != null) selectedPatient = sessionPatient
             isSessionActive = false
             sessionPatient = null
             sessionId = ""
@@ -214,6 +253,7 @@ fun MindVaultApp(
                         "patients" -> {
                             PatientsScreen(
                                 patients = patients,
+                                processingByClient = processingByClient,
                                 onSelectPatient = { p ->
                                     selectedPatient = p
                                     currentScreen = "profile"
@@ -228,24 +268,29 @@ fun MindVaultApp(
                         }
 
                         "profile" -> {
-                            val activeP = selectedPatient ?: patients.first()
-                            ProfileScreen(
-                                patient = activeP,
-                                isSessionActive = isSessionActive && sessionPatient?.id == activeP.id,
-                                onBack = {
-                                    currentScreen = "patients"
-                                },
-                                onDeletePatient = { p ->
-                                    clientsVm.delete(p.id)
-                                    selectedPatient = null
-                                    currentScreen = "patients"
-                                },
-                                onStartSession = { p -> startSession(p) },
-                                onReturnToActiveSession = {
-                                    currentTab = "session"
-                                    currentScreen = "live"
-                                }
-                            )
+                            val activeP = (selectedPatient?.id?.let { id -> patients.firstOrNull { it.id == id } }
+                                ?: selectedPatient
+                                ?: patients.firstOrNull())
+                            if (activeP != null) {
+                                ProfileScreen(
+                                    patient = activeP,
+                                    isSessionActive = isSessionActive && sessionPatient?.id == activeP.id,
+                                    processingSession = processingByClient[activeP.id],
+                                    onBack = {
+                                        currentScreen = "patients"
+                                    },
+                                    onDeletePatient = { p ->
+                                        clientsVm.delete(p.id)
+                                        selectedPatient = null
+                                        currentScreen = "patients"
+                                    },
+                                    onStartSession = { p -> startSession(p) },
+                                    onReturnToActiveSession = {
+                                        currentTab = "session"
+                                        currentScreen = "live"
+                                    }
+                                )
+                            }
                         }
 
                         "live" -> {
