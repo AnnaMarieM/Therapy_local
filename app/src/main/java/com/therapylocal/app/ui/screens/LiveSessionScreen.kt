@@ -202,56 +202,114 @@ fun LiveSessionScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    OutlinedButton(
-                        onClick = onTogglePause,
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(44.dp),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            contentColor = SageDark
-                        ),
-                        border = androidx.compose.foundation.BorderStroke(1.dp, BorderSubtle)
-                    ) {
-                        Icon(
-                            imageVector = if (isPaused) Icons.Default.PlayArrow else Icons.Default.Pause,
-                            contentDescription = if (isPaused) "Play" else "Pause",
-                            modifier = Modifier.size(16.dp),
-                            tint = SageDark
-                        )
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text(
-                            text = if (isPaused) {
-                                if (sessionSecs == 0L) "Play" else "Resume"
-                            } else "Pause",
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = CharcoalText
-                        )
-                    }
+                    if (isPaused) {
+                        // When paused/ready, Play is the prominent primary green button
+                        Button(
+                            onClick = onTogglePause,
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(46.dp),
+                            shape = RoundedCornerShape(14.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = SageGreen,
+                                contentColor = Color.White
+                            ),
+                            elevation = ButtonDefaults.buttonElevation(defaultElevation = 2.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.PlayArrow,
+                                contentDescription = if (sessionSecs == 0L) "Play" else "Resume",
+                                modifier = Modifier.size(18.dp),
+                                tint = Color.White
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = if (sessionSecs == 0L) "Play" else "Resume",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = Color.White
+                            )
+                        }
 
-                    Button(
-                        onClick = onEndSession,
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(44.dp),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = DangerRed,
-                            contentColor = Color.White
-                        )
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Stop,
-                            contentDescription = "End Session",
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text(
-                            text = "End Session",
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.Medium
-                        )
+                        OutlinedButton(
+                            onClick = onEndSession,
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(46.dp),
+                            shape = RoundedCornerShape(14.dp),
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                contentColor = DangerRed
+                            ),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, DangerRed.copy(alpha = 0.35f))
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Stop,
+                                contentDescription = "End Session",
+                                modifier = Modifier.size(16.dp),
+                                tint = DangerRed
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = "End Session",
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = DangerRed
+                            )
+                        }
+                    } else {
+                        // When actively recording, Pause is secondary and End Session is prominent
+                        OutlinedButton(
+                            onClick = onTogglePause,
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(46.dp),
+                            shape = RoundedCornerShape(14.dp),
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                contentColor = SageDark
+                            ),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, BorderSubtle)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Pause,
+                                contentDescription = "Pause",
+                                modifier = Modifier.size(18.dp),
+                                tint = SageDark
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = "Pause",
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = CharcoalText
+                            )
+                        }
+
+                        Button(
+                            onClick = onEndSession,
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(46.dp),
+                            shape = RoundedCornerShape(14.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = DangerRed,
+                                contentColor = Color.White
+                            ),
+                            elevation = ButtonDefaults.buttonElevation(defaultElevation = 1.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Stop,
+                                contentDescription = "End Session",
+                                modifier = Modifier.size(16.dp),
+                                tint = Color.White
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = "End Session",
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = Color.White
+                            )
+                        }
                     }
                 }
             }

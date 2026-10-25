@@ -1266,12 +1266,25 @@ function LiveScreen({
         <p className="text-xs text-muted-foreground mt-1">{sessionPaused ? "Paused" : "Listening on device"}</p>
 
         <div className="mt-5 grid grid-cols-2 gap-2.5">
-          <Btn variant="outline" onClick={onTogglePause}>
-            {sessionPaused ? <><Play className="size-4" /> Resume</> : <><Pause className="size-4" /> Pause</>}
-          </Btn>
-          <Btn variant="danger" onClick={onEndSession}>
-            <Square className="size-4" /> End Session
-          </Btn>
+          {sessionPaused ? (
+            <>
+              <Btn variant="primary" onClick={onTogglePause}>
+                <Play className="size-4" /> {sessionSecs === 0 ? "Play" : "Resume"}
+              </Btn>
+              <Btn variant="outline" onClick={onEndSession}>
+                <Square className="size-4 text-destructive" /> <span className="text-destructive">End Session</span>
+              </Btn>
+            </>
+          ) : (
+            <>
+              <Btn variant="outline" onClick={onTogglePause}>
+                <Pause className="size-4" /> Pause
+              </Btn>
+              <Btn variant="danger" onClick={onEndSession}>
+                <Square className="size-4" /> End Session
+              </Btn>
+            </>
+          )}
         </div>
       </Card>
 
