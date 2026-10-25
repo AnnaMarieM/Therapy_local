@@ -75,7 +75,7 @@ class ClientRepository(context: Context, private val store: MemoryStore = Memory
 
     /** The client id to record a session under: [p]'s id if it is stored, else [p] (a mock patient) is created as a client first. */
     fun ensureClient(p: Patient): String =
-        if (p.id in clients()) p.id else createClient(p.name, p.age.takeIf { it > 0 }, p.presenting).id
+        if (p.id in clients()) p.id else createClient(p.name, null, "").id
 
     fun facts(client: String): List<Fact> = store.facts(client)
 
@@ -146,8 +146,8 @@ class ClientRepository(context: Context, private val store: MemoryStore = Memory
         return Patient(
             id = client,
             name = row?.name ?: client.replaceFirstChar { it.uppercase() },
-            age = row?.age ?: 0,
-            presenting = facts.firstOrNull { it.category == "goal" || it.category == "emotion" }?.fact ?: row?.occupation.orEmpty(),
+            age = 0, // age is no longer shown; the column is kept only to avoid a schema change
+            presenting = facts.firstOrNull { it.category == "goal" || it.category == "emotion" }?.fact.orEmpty(),
             lastSession = last?.let { it.date.ifEmpty { label(it.id) } } ?: "-",
             sessionCount = sessions.size,
             preSessionNote = last?.let { l -> bySession[l.id].orEmpty().take(3).joinToString(" ") { it.fact } }.orEmpty(),

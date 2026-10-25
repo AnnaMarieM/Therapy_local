@@ -118,11 +118,6 @@ fun ProfileScreen(
                     fontFamily = FontFamily.Serif,
                     color = CharcoalText
                 )
-                Text(
-                    text = (if (patient.age > 0) "Age ${patient.age} · " else "") + patient.presenting,
-                    fontSize = 12.sp,
-                    color = MutedText
-                )
             }
 
             IconButton(onClick = { confirmDelete = true }, modifier = Modifier.size(36.dp)) {

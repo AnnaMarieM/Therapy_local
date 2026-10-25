@@ -21,12 +21,8 @@ class ClientInputTest {
     }
 
     @Test
-    fun validateChecksNameAndOptionalAge() {
-        assertNull(ClientInput.validate("Marta", ""))
-        assertNull(ClientInput.validate("Marta", "29"))
-        assertNotNull(ClientInput.validate("  ", "29"))
-        assertNotNull(ClientInput.validate("Marta", "abc"))
-        assertNotNull(ClientInput.validate("Marta", "0"))
-        assertNotNull(ClientInput.validate("Marta", "121"))
+    fun validateChecksName() {
+        assertNull(ClientInput.validate("Marta"))
+        assertNotNull(ClientInput.validate("  "))
     }
 }
