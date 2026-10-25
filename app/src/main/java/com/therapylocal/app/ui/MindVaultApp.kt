@@ -6,6 +6,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -17,6 +20,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -31,13 +35,14 @@ import com.therapylocal.app.ui.data.ClientsViewModel
 import com.therapylocal.app.ui.components.MindVaultBottomNav
 import com.therapylocal.app.ui.components.MinimizedSessionBar
 import com.therapylocal.app.ui.models.Patient
+import com.therapylocal.app.ui.security.findFragmentActivity
+import com.therapylocal.app.vault.Vault
 import com.therapylocal.app.ui.models.SurfacedQuote
 import com.therapylocal.app.ui.screens.LiveSessionScreen
 import com.therapylocal.app.ui.screens.PatientsScreen
 import com.therapylocal.app.ui.screens.ProfileScreen
 import com.therapylocal.app.ui.screens.SettingsScreen
 import com.therapylocal.app.ui.screens.SummaryScreen
-import com.therapylocal.app.ui.screens.UnlockScreen
 import com.therapylocal.app.ui.theme.MindVaultTheme
 import com.therapylocal.app.ui.theme.WarmBg
 import kotlinx.coroutines.Dispatchers
@@ -53,7 +58,6 @@ fun MindVaultApp(
     modifier: Modifier = Modifier
 ) {
     MindVaultTheme {
-        var isUnlocked by rememberSaveable { mutableStateOf(false) }
         var currentTab by rememberSaveable { mutableStateOf("patients") }
         var currentScreen by rememberSaveable { mutableStateOf("patients") }
 
@@ -86,6 +90,8 @@ fun MindVaultApp(
         val cuesError by viewModel.liveCues.error.collectAsStateWithLifecycle()
         val queue by MemoryQueue.state.collectAsStateWithLifecycle()
         val repo = clientsVm.repo
+        val activity = LocalContext.current.findFragmentActivity()
+        var confirmLock by remember { mutableStateOf(false) }
 
         // Elapsed time counts only while audio is really being recorded.
         LaunchedEffect(isSessionActive, vmState.recording) {
@@ -129,15 +135,6 @@ fun MindVaultApp(
             }
         }
         LaunchedEffect(queue.jobs.firstOrNull { it.id == sessionId }?.status) { clientsVm.refresh() }
-
-        if (!isUnlocked) {
-            UnlockScreen(onUnlock = {
-                isUnlocked = true
-                currentTab = "patients"
-                currentScreen = "patients"
-            })
-            return@MindVaultTheme
-        }
 
         val resetSession = {
             isSessionActive = false
@@ -184,6 +181,16 @@ fun MindVaultApp(
         }
 
         val togglePause = { }
+
+        if (confirmLock) {
+            AlertDialog(
+                onDismissRequest = { confirmLock = false },
+                title = { Text("Lock MindVault?") },
+                text = { Text("Session processing will pause and continue after you unlock.") },
+                confirmButton = { TextButton(onClick = { confirmLock = false; activity?.let(Vault::lock) }) { Text("Lock") } },
+                dismissButton = { TextButton(onClick = { confirmLock = false }) { Text("Cancel") } },
+            )
+        }
 
         Box(
             modifier = modifier
@@ -309,9 +316,7 @@ fun MindVaultApp(
 
                         "settings" -> {
                             SettingsScreen(
-                                onLockVault = {
-                                    isUnlocked = false
-                                },
+                                onLockVault = { if (queue.running) confirmLock = true else activity?.let(Vault::lock) },
                                 onOpenDebugMlView = onShowLegacyDebugView,
                                 demoMode = if (BuildConfig.DEBUG) demoMode else null,
                                 onDemoModeChange = clientsVm::setDemoMode

@@ -15,7 +15,8 @@ import com.therapylocal.app.log.LogCtx
 
 /**
  * Runs the memory queue as a foreground service, so processing continues when the app is in the background or the screen is off.
- * The notification shows overall progress and the current stage, and carries a Stop action. The service ends itself when the queue finishes.
+ * The notification shows overall progress and the current stage (client and session names included), and carries a Stop action; on the lock screen only a
+ * generic "Building client memory" is shown, so patient ids never appear there. The service ends itself when the queue finishes.
  */
 class MemoryService : Service() {
     private var worker: Thread? = null
@@ -53,7 +54,8 @@ class MemoryService : Service() {
                 } while (MemoryQueue.hasQueued() && !MemoryQueue.cancelRequested) // a session enqueued just as the run ended
             } catch (t: Throwable) {
                 AppLog.e(MemoryLlm.TAG, "memory_lab_failed", LogCtx.NONE, t)
-                java.io.File(app.getExternalFilesDir(null), "memory/out/ERROR").apply { parentFile?.mkdirs() }.writeText(t.stackTraceToString())
+                // Stack traces can quote patient text (e.g. JSON parse errors), so they are only written for the developer harness, never in app mode.
+                if (debugJob) java.io.File(MemoryFiles.devRoot(app), "out/ERROR").apply { parentFile?.mkdirs() }.writeText(t.stackTraceToString())
             } finally {
                 watcher.interrupt()
                 notify(build(summary(), ongoing = false))
@@ -84,6 +86,10 @@ class MemoryService : Service() {
             .setContentTitle("Building client memory")
             .setContentText(text)
             .setOngoing(ongoing)
+            .setVisibility(Notification.VISIBILITY_PRIVATE)
+            .setPublicVersion(
+                Notification.Builder(this, CHANNEL).setSmallIcon(android.R.drawable.stat_notify_sync).setContentTitle("Building client memory").build(),
+            )
             .setOnlyAlertOnce(true)
         if (s.jobs.isNotEmpty()) b.setProgress(s.jobs.size, s.jobs.count { it.status == JobStatus.Done }, false)
         if (ongoing) {

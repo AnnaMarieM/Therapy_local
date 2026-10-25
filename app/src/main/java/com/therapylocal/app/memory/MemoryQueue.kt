@@ -7,6 +7,8 @@ import kotlinx.coroutines.flow.update
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
+import com.therapylocal.app.vault.SecureFile
+import com.therapylocal.app.vault.Vault
 
 enum class JobStatus { Queued, Running, Done, Failed, Cancelled }
 
@@ -57,7 +59,8 @@ data class QueueState(
 
 /**
  * Process-wide state of the memory pipeline, observed by the UI. The runner ([MemoryLab]) is the only writer.
- * The job list is saved to `out/queue.json` after every change, so a crash or an app restart resumes where it stopped.
+ * The job list is saved encrypted to the vault's queue file ([MemoryFiles.queue]) after every change, so a crash or an app restart resumes where it stopped.
+ * While the vault is locked nothing can be read or written: saving is skipped and the saved list reads as empty.
  */
 object MemoryQueue {
     private val _state = MutableStateFlow(QueueState())
@@ -102,6 +105,9 @@ object MemoryQueue {
     /** Drops one queued or finished job; a running one is left alone. */
     fun dropSession(id: String) = update { s -> s.copy(jobs = s.jobs.filterNot { it.id == id && it.status != JobStatus.Running }) }
 
+    /** True if the saved queue (not the in-memory one) holds a job that still has to run. Used after unlock, before the runner has loaded anything. */
+    fun hasSavedWork(): Boolean = readSaved().any { it.status == JobStatus.Queued }
+
     fun hasQueued(): Boolean = _state.value.jobs.any { it.status == JobStatus.Queued }
 
     /** Drops every job of [client] that is not running, for when the client is deleted. */
@@ -110,14 +116,14 @@ object MemoryQueue {
     fun retryFailed() = update { s -> s.copy(jobs = s.jobs.map { if (it.status == JobStatus.Failed || it.status == JobStatus.Cancelled) it.copy(status = JobStatus.Queued, error = null, stage = "") else it }) }
 
     private fun readSaved(): List<SessionJob> = try {
-        JSONArray(file?.takeIf { it.exists() }?.readText() ?: "[]").let { a -> (0 until a.length()).map { SessionJob.fromJson(a.getJSONObject(it)) } }
+        JSONArray(file?.let { SecureFile.readText(it, Vault.key()) } ?: "[]").let { a -> (0 until a.length()).map { SessionJob.fromJson(a.getJSONObject(it)) } }
     } catch (_: Exception) {
         emptyList()
     }
 
     private fun persist() {
         try {
-            file?.writeText(JSONArray(_state.value.jobs.map { it.toJson() }).toString())
+            file?.let { SecureFile.writeText(it, JSONArray(_state.value.jobs.map { j -> j.toJson() }).toString(), Vault.key()) }
         } catch (_: Exception) {
         }
     }

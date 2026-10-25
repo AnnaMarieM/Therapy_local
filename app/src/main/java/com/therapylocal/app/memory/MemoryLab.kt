@@ -4,19 +4,24 @@ import android.content.Context
 import com.therapylocal.app.embed.Embedder
 import com.therapylocal.app.log.AppLog
 import com.therapylocal.app.log.LogCtx
+import com.therapylocal.app.vault.SecureFile
+import com.therapylocal.app.vault.Vault
 import kotlinx.coroutines.runBlocking
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
+import java.io.FileNotFoundException
 
 /**
  * Long-term-memory pipeline, run as a queue of session transcripts (see [MemoryQueue], [MemoryService]).
  *
- * Everything is read from `files/memory/` so prompts and settings change without a rebuild:
- *   job.json                        settings and the ordered list of transcripts (see [Job])
+ * Patient data lives only in the vault (internal storage, see [MemoryFiles]): transcripts `in/<name>`, the per-chunk extraction cache `cache/<sid>/<n>.json`
+ * and `queue.json` are SecureFiles under the vault key; the memory itself is in [MemoryStore] (SQLCipher). None of it is readable while the vault is locked.
+ * The external developer root ([MemoryFiles.devRoot], `files/memory/` on external storage) holds only developer inputs, so prompts and settings change without a rebuild:
+ *   job.json                        settings and the ordered list of transcripts (see [Job]); read only in debug-harness mode
  *   prompts/(extract|review).(system|user).txt
- *   in/<name>                       transcripts
- * and written to `out/`: per session `<id>.chunks/` (extracted candidates per chunk), `decisions.jsonl`, `bench.jsonl`, `queue.json`; the memory itself is in [MemoryStore].
+ *   in/<name>                       test transcripts pushed by the harness; imported into the vault on first use
+ * and, only in debug-harness mode ([useJobFile]), diagnostics in `out/`: `raw/` (raw model replies), `decisions.jsonl`, `bench.jsonl`, `DONE`. App mode writes none of these.
  *
  * Per session:
  *   1. cut the transcript into token-sized chunks with overlap, embed every chunk and store it
@@ -26,8 +31,8 @@ import java.io.File
  * Steps 3 and 4 run one fact at a time, so a fact committed from chunk 2 is already visible when chunk 3's repeat of it is checked.
  */
 class MemoryLab(private val context: Context, private val useJobFile: Boolean = false) {
-    private val root = File(context.getExternalFilesDir(null), "memory")
-    private val out = File(root, "out").apply { mkdirs() }
+    private val root = MemoryFiles.devRoot(context)
+    private val diag: File? = if (useJobFile) File(root, "out").apply { mkdirs() } else null
     private val prompts = File(root, "prompts")
     private lateinit var embedder: Embedder
     private lateinit var store: MemoryStore
@@ -48,6 +53,12 @@ class MemoryLab(private val context: Context, private val useJobFile: Boolean = 
             (0 until a.length()).map { val s = a.getJSONObject(it); s.getString("file") to s.optString("date", "") }
         }
     }
+
+    /** The session transcript from the vault; in debug-harness mode a transcript pushed to the developer root is imported into the vault first. */
+    private fun transcript(file: String): String =
+        SecureFile.readText(MemoryFiles.transcript(context, file), Vault.key())
+            ?: if (useJobFile) File(root, "in/$file").readText().also { SecureFile.writeText(MemoryFiles.transcript(context, file), it, Vault.key()) }
+            else throw FileNotFoundException(file)
 
     private fun prompt(name: String) = File(prompts, name).readText().trim()
 
@@ -76,8 +87,8 @@ class MemoryLab(private val context: Context, private val useJobFile: Boolean = 
         val settings = File(root, "job.json")
         // Only a debug launch reads it: a leftover file from a test run must never reset clients or re-run old sessions in the real app.
         val job = Job(if (useJobFile && settings.exists()) JSONObject(settings.readText()) else JSONObject())
-        val bench = File(out, "bench.jsonl")
-        MemoryQueue.bind(File(out, "queue.json"))
+        val bench = diag?.let { File(it, "bench.jsonl") }
+        MemoryQueue.bind(MemoryFiles.queue(context))
         val fresh = job.sessions.map { (file, date) -> SessionJob(file.removeSuffix(".md"), file.substringBefore('_'), file, date) }
             .sortedWith(compareBy({ it.client }, { it.date }))
         MemoryQueue.cancelRequested = false
@@ -112,7 +123,7 @@ class MemoryLab(private val context: Context, private val useJobFile: Boolean = 
             store.close()
             MemoryQueue.update { it.copy(running = false, message = if (MemoryQueue.cancelRequested) "Stopped" else if (it.message.startsWith("Failed")) it.message else "Finished") }
         }
-        File(out, "DONE").writeText("ok")
+        diag?.let { File(it, "DONE").writeText("ok") }
     }
 
     private fun publishProfile(client: String) {
@@ -121,12 +132,12 @@ class MemoryLab(private val context: Context, private val useJobFile: Boolean = 
     }
 
     /** A session that throws is retried (chunks already extracted are cached, so only missing work is redone) before it is marked Failed. */
-    private fun runWithRetries(llm: MemoryLlm, job: Job, item: SessionJob, bench: File) {
+    private fun runWithRetries(llm: MemoryLlm, job: Job, item: SessionJob, bench: File?) {
         MemoryQueue.updateJob(item.id) { it.copy(status = JobStatus.Running, stage = "starting", startedAt = System.currentTimeMillis(), error = null) }
         var last: Throwable? = null
         for (attempt in 1..job.jobAttempts) {
             try {
-                processSession(llm, job, item, File(root, "in/${item.file}").readText(), bench)
+                processSession(llm, job, item, transcript(item.file), bench)
                 MemoryQueue.updateJob(item.id) { it.copy(status = if (it.stage == "stopped") JobStatus.Cancelled else JobStatus.Done, finishedAt = System.currentTimeMillis()) }
                 return
             } catch (t: Throwable) {
@@ -138,7 +149,7 @@ class MemoryLab(private val context: Context, private val useJobFile: Boolean = 
         MemoryQueue.updateJob(item.id) { it.copy(status = JobStatus.Failed, error = last?.message ?: last?.javaClass?.simpleName, finishedAt = System.currentTimeMillis()) }
     }
 
-    private fun log(bench: File, stage: String, sid: String, part: Int, r: LlmReply?, extra: Map<String, Any?> = emptyMap()) {
+    private fun log(bench: File?, stage: String, sid: String, part: Int, r: LlmReply?, extra: Map<String, Any?> = emptyMap()) {
         val o = JSONObject().put("stage", stage).put("session", sid).put("part", part)
         if (r != null) {
             val s = r.stats
@@ -146,15 +157,15 @@ class MemoryLab(private val context: Context, private val useJobFile: Boolean = 
                 .put("decode_tokens", s.decodeTokens).put("decode_tok_s", s.decodeTokPerSec).put("wall_ms", s.wallMs)
         }
         extra.forEach { (k, v) -> o.put(k, v) }
-        bench.appendText(o.toString() + "\n")
+        bench?.appendText(o.toString() + "\n")
     }
 
-    private fun processSession(llm: MemoryLlm, job: Job, item: SessionJob, raw: String, bench: File) {
+    private fun processSession(llm: MemoryLlm, job: Job, item: SessionJob, raw: String, bench: File?) {
         val client = item.client
         val sid = item.id
         val text = if (job.stripLabels) TranscriptWindows.stripSpeakerLabels(raw) else raw
         val chunks = TranscriptWindows.splitByTokens(text, job.chunkTokens, job.overlapTokens)
-        val cacheDir = File(out, "$sid.chunks").apply { mkdirs() }
+        val cacheDir = MemoryFiles.extractCache(context, sid).apply { mkdirs() }
         MemoryQueue.updateJob(sid) { it.copy(windows = chunks.size, windowsDone = 0, extracted = 0, added = 0, stage = "extracting 1/${chunks.size}") }
 
         // 1 + 2: embed and store every chunk, extract candidate facts from it.
@@ -164,7 +175,7 @@ class MemoryLab(private val context: Context, private val useJobFile: Boolean = 
             if (MemoryQueue.cancelRequested) return stopped(sid)
             store.putChunk(client, sid, i + 1, chunk, embed(chunk))
             val cache = File(cacheDir, "${i + 1}.json")
-            val facts = if (cache.exists()) readFacts(cache) else extractChunk(llm, job, item, chunk, i + 1, chunks.size, bench).also { cache.writeText(JSONArray(it.map { f -> f.toJson() }).toString(1)) }
+            val facts = if (cache.exists()) readFacts(cache) else extractChunk(llm, job, item, chunk, i + 1, chunks.size, bench).also { SecureFile.writeText(cache, JSONArray(it.map { f -> f.toJson() }).toString(1), Vault.key()) }
             candidates += facts
             MemoryQueue.updateJob(sid) { it.copy(windowsDone = i + 1, extracted = candidates.size, stage = if (i + 1 < chunks.size) "extracting ${i + 2}/${chunks.size}" else "reviewing 0/${candidates.size}") }
         }
@@ -195,13 +206,13 @@ class MemoryLab(private val context: Context, private val useJobFile: Boolean = 
         MemoryQueue.updateJob(sid) { it.copy(stage = "stopped") }
     }
 
-    private fun readFacts(f: File): List<Fact> = JSONArray(f.readText()).let { a -> (0 until a.length()).map { Fact.fromJson(a.getJSONObject(it)) } }
+    private fun readFacts(f: File): List<Fact> = JSONArray(SecureFile.readText(f, Vault.key()) ?: "[]").let { a -> (0 until a.length()).map { Fact.fromJson(a.getJSONObject(it)) } }
 
     /**
      * Facts of one chunk as validated objects. Up to three attempts: the model is asked for one JSON object per line twice; the last attempt uses
      * a constrained schema as a last resort. Facts whose quote does not occur in the chunk are dropped.
      */
-    private fun extractChunk(llm: MemoryLlm, job: Job, item: SessionJob, chunk: String, idx: Int, total: Int, bench: File): List<Fact> {
+    private fun extractChunk(llm: MemoryLlm, job: Job, item: SessionJob, chunk: String, idx: Int, total: Int, bench: File?): List<Fact> {
         val sys = prompt("extract.system.txt")
         val user = fill(
             prompt("extract.user.txt"),
@@ -212,7 +223,7 @@ class MemoryLab(private val context: Context, private val useJobFile: Boolean = 
             val constrained = attempt == 3
             try {
                 val reply = llm.ask(sys, user, if (constrained) FactSchemas.EXTRACT_STRICT else null, job.maxOutputTokens, job.extractTemperature, 20)
-                File(out, "raw").apply { mkdirs() }.resolve("${item.id}_extract_${idx}_$attempt.txt").writeText(reply.text)
+                diag?.let { File(it, "raw").apply { mkdirs() }.resolve("${item.id}_extract_${idx}_$attempt.txt").writeText(reply.text) }
                 val facts = FactParser.anyFacts(reply.text, "${item.id}c${idx}_", item.id, idx)
                 val grounded = facts.filter { FactParser.evidenceHolds(it, chunk) }
                 log(bench, "extract", item.id, idx, reply, mapOf("attempt" to attempt, "constrained" to constrained, "valid" to facts.size, "grounded" to grounded.size))
@@ -233,7 +244,7 @@ class MemoryLab(private val context: Context, private val useJobFile: Boolean = 
      * Asks for a JSON answer and validates it, up to 3 attempts; an unreadable answer counts as "not a duplicate",
      * so a model failure can never lose a fact. Every decision is logged with the neighbours it saw.
      */
-    private fun review(llm: MemoryLlm, cand: Fact, near: List<Pair<Fact, Float>>, sid: String, n: Int, bench: File): Verdict {
+    private fun review(llm: MemoryLlm, cand: Fact, near: List<Pair<Fact, Float>>, sid: String, n: Int, bench: File?): Verdict {
         val known = near.mapIndexed { i, (f, _) -> "K${i + 1}: ${f.fact}" }.joinToString("\n")
         val user = fill(prompt("review.user.txt"), mapOf("KNOWN" to known, "FACT" to cand.fact))
         var verdict: Verdict? = null
@@ -263,7 +274,7 @@ class MemoryLab(private val context: Context, private val useJobFile: Boolean = 
             }
         }
         val v = verdict ?: Verdict(false, null, "unreadable after 3 attempts")
-        File(out, "decisions.jsonl").appendText(
+        diag?.let { File(it, "decisions.jsonl") }?.appendText(
             JSONObject().put("session", sid).put("n", n).put("fact", cand.fact).put("duplicate", v.duplicate).put("of", v.of?.fact ?: JSONObject.NULL)
                 .put("note", v.note).put("attempts", attempts).put("raw", raw)
                 .put("neighbours", JSONArray(near.map { (f, d) -> JSONObject().put("fact", f.fact).put("cos", "%.3f".format(d)) })).toString() + "\n",
@@ -272,8 +283,8 @@ class MemoryLab(private val context: Context, private val useJobFile: Boolean = 
     }
 
     /** Prefill speed at growing prompt sizes: the slope is the real prefill rate, the intercept the fixed cost. */
-    private fun benchPrefill(llm: MemoryLlm, job: Job, bench: File) {
-        val sample = File(root, "in/" + job.sessions.first().first).readText()
+    private fun benchPrefill(llm: MemoryLlm, job: Job, bench: File?) {
+        val sample = transcript(job.sessions.first().first)
         val words = sample.split(Regex("\\s+")).filter { it.isNotEmpty() }
         llm.ask("Reply with OK.", words.take(100).joinToString(" "), null, 8) // warm-up, discarded
         for (n in listOf(200, 400, 800, 1200, 1600)) {

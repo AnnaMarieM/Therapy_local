@@ -5,7 +5,6 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
@@ -57,21 +56,30 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.therapylocal.app.config.ChunkConfig
 import com.therapylocal.app.log.AppLog
 import com.therapylocal.app.models.ModelState
 
+import com.therapylocal.app.memory.MemoryLab
+import com.therapylocal.app.memory.MemoryProcessor
 import com.therapylocal.app.ui.MindVaultApp
+import com.therapylocal.app.ui.screens.VaultGate
+import com.therapylocal.app.ui.theme.MindVaultTheme
+import com.therapylocal.app.vault.Vault
 
-class MainActivity : ComponentActivity() {
+class MainActivity : FragmentActivity() {
     private val viewModel: MainViewModel by viewModels()
+    private var memoryLabRequested = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        maybeRunMemoryLab(intent)
+        memoryLabRequested = isMemoryLabRequested(intent)
         setContent {
             val context = LocalContext.current
+            val unlocked by Vault.unlocked.collectAsStateWithLifecycle()
+            var gatePassed by rememberSaveable { mutableStateOf(false) }
             var showDebugScreen by rememberSaveable { mutableStateOf(MainViewModel.skipPrepare) }
 
             val permissions = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {}
@@ -85,7 +93,19 @@ class MainActivity : ComponentActivity() {
             val hasMic = { ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED }
             val requestMic = { permissions.launch(arrayOf(Manifest.permission.RECORD_AUDIO)) }
 
-            if (showDebugScreen) {
+            LaunchedEffect(unlocked, gatePassed) {
+                if (unlocked && gatePassed) {
+                    MemoryProcessor.resumePending(applicationContext)
+                    if (memoryLabRequested) {
+                        memoryLabRequested = false
+                        MemoryLab.start(applicationContext)
+                    }
+                }
+            }
+
+            if (!unlocked || !gatePassed) {
+                MindVaultTheme { VaultGate(onDone = { gatePassed = true }) }
+            } else if (showDebugScreen) {
                 MaterialTheme {
                     Surface(Modifier.fillMaxSize()) {
                         Column(Modifier.fillMaxSize()) {
@@ -120,11 +140,11 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-/** Debug only: `adb shell am start -n .../.MainActivity --ez memory_lab true` starts the queue described by files/memory/job.json. */
-private fun ComponentActivity.maybeRunMemoryLab(intent: Intent?) {
-    if (!BuildConfig.DEBUG || intent?.getBooleanExtra("memory_lab", false) != true) return
+/** Debug only: `adb shell am start -n .../.MainActivity --ez memory_lab true` starts the queue described by files/memory/job.json once the vault is unlocked. */
+private fun isMemoryLabRequested(intent: Intent?): Boolean {
+    if (!BuildConfig.DEBUG || intent?.getBooleanExtra("memory_lab", false) != true) return false
     MainViewModel.skipPrepare = true
-    com.therapylocal.app.memory.MemoryLab.start(applicationContext)
+    return true
 }
 
 private const val MEMORY_TAB = 3
