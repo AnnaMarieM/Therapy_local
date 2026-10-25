@@ -37,6 +37,9 @@ class ChunkRecorder private constructor(
     var tap: ((ShortArray, Int) -> Unit)? = null
 
     @Volatile
+    var isPaused = false
+
+    @Volatile
     private var running = false
     private var record: AudioRecord? = null
     private var thread: Thread? = null
@@ -99,6 +102,9 @@ class ChunkRecorder private constructor(
                 readErrors++
                 AppLog.w(TAG, "record_read_error", ctx, "code" to n, "errors" to readErrors)
                 if (readErrors > 5) break
+                continue
+            }
+            if (isPaused) {
                 continue
             }
             tap?.invoke(tmp, n)

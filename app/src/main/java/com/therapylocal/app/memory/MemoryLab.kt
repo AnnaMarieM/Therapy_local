@@ -109,7 +109,8 @@ class MemoryLab(private val context: Context, private val useJobFile: Boolean = 
         store = MemoryStore(context)
         if (job.resetProfiles) MemoryQueue.state.value.clients.forEach { store.clearClient(it) }
         val llm = MemoryLlm(context, job.maxTokens)
-        embedder = Embedder(context)
+        // MemoryLab runs Gemma 2B on GPU; forcing Embedder to CPU avoids concurrent GPU allocation OOMs on mobile GPUs.
+        embedder = Embedder(context, forcedBackend = "CPU")
         try {
             llm.load(job.backends)
             runBlocking { embedder.load() }

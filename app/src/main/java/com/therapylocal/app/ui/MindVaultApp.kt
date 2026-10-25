@@ -72,7 +72,7 @@ fun MindVaultApp(
         var showChoosePatientDialog by rememberSaveable { mutableStateOf(false) }
         var sessionPatient by remember { mutableStateOf<Patient?>(null) }
         var sessionSecs by rememberSaveable { mutableLongStateOf(0L) }
-        val sessionPaused = false // TODO: pausing needs ChunkRecorder support
+        var sessionPaused by rememberSaveable { mutableStateOf(true) }
         val surfacedQuotes = remember { mutableStateListOf<SurfacedQuote>() }
 
         // The real session: the memory client it belongs to, its id, the recording behind it, and where end-of-session processing stands.
@@ -94,20 +94,11 @@ fun MindVaultApp(
         val activity = LocalContext.current.findFragmentActivity()
         var confirmLock by remember { mutableStateOf(false) }
 
-        // Elapsed time counts only while audio is really being recorded.
-        LaunchedEffect(isSessionActive, vmState.recording) {
-            while (isSessionActive && vmState.recording) {
+        // Elapsed time counts only while audio is really being recorded and not paused.
+        LaunchedEffect(isSessionActive, vmState.recording, sessionPaused) {
+            while (isSessionActive && vmState.recording && !sessionPaused) {
                 delay(1000L)
                 sessionSecs += 1
-            }
-        }
-
-        // The recording starts immediately; without loaded engines it is stored and transcribed later (no live cues).
-        LaunchedEffect(isSessionActive, sessionEnded, recordingStarted) {
-            if (isSessionActive && !sessionEnded && !recordingStarted) {
-                recordingStarted = true
-                if (vmState.phase == Phase.Ready) viewModel.liveCues.start(sessionClient)
-                viewModel.startRecording()
             }
         }
         LaunchedEffect(vmState.activeRecordingId) { vmState.activeRecordingId?.let { recordingId = it } }
@@ -191,6 +182,7 @@ fun MindVaultApp(
             recordingId = null
             sessionEnded = false
             recordingStarted = false
+            sessionPaused = true
             enqueued = false
             processNote = null
             transcript = emptyList()
@@ -214,6 +206,7 @@ fun MindVaultApp(
             recordingId = null
             sessionEnded = false
             recordingStarted = false
+            sessionPaused = true
             enqueued = false
             processNote = null
             isSessionActive = true
@@ -222,16 +215,34 @@ fun MindVaultApp(
         }
 
         val endSession = {
-            viewModel.liveCues.stop()
-            viewModel.stopRecording()
-            pendingEnqueue = Triple(sessionClient, sessionId, sessionDate)
-            pendingRecordingId = recordingId ?: vmState.activeRecordingId
-            sessionEnded = true
-            isSessionActive = false
-            currentScreen = "summary"
+            if (recordingStarted) {
+                viewModel.liveCues.stop()
+                viewModel.stopRecording()
+                pendingEnqueue = Triple(sessionClient, sessionId, sessionDate)
+                pendingRecordingId = recordingId ?: vmState.activeRecordingId
+                sessionEnded = true
+                isSessionActive = false
+                currentScreen = "summary"
+            } else {
+                resetSession()
+            }
         }
 
-        val togglePause = { }
+        val togglePause = {
+            if (sessionPaused) {
+                if (!recordingStarted) {
+                    recordingStarted = true
+                    if (vmState.phase == Phase.Ready) viewModel.liveCues.start(sessionClient)
+                    viewModel.startRecording()
+                } else {
+                    viewModel.resumeRecording()
+                }
+                sessionPaused = false
+            } else {
+                viewModel.pauseRecording()
+                sessionPaused = true
+            }
+        }
 
         if (confirmLock) {
             AlertDialog(
@@ -316,8 +327,10 @@ fun MindVaultApp(
                                 transcript = transcript,
                                 statusLine = when {
                                     vmState.error != null -> "Recording problem: ${vmState.error}"
-                                    vmState.recording -> null
-                                    else -> vmState.status.ifEmpty { "Starting" }
+                                    sessionPaused && sessionSecs == 0L -> "Ready · Tap Play to begin"
+                                    sessionPaused -> "Paused"
+                                    vmState.recording -> "Listening on device"
+                                    else -> vmState.status.ifEmpty { "Ready" }
                                 },
                                 deferredNote = vmState.deferred && vmState.recording,
                                 cues = cues,
@@ -339,7 +352,9 @@ fun MindVaultApp(
                                             quote = quote
                                         )
                                     )
-                                }
+                                },
+                                isPaused = sessionPaused,
+                                onTogglePause = togglePause
                             )
                         }
 

@@ -88,12 +88,13 @@ fun LiveSessionScreen(
     onTriggerTopic: (String, String, String, String) -> Unit,
     modifier: Modifier = Modifier,
     /** True when the recording is kept for later transcription (nothing to show live yet). */
-    deferredNote: Boolean = false
+    deferredNote: Boolean = false,
+    isPaused: Boolean = false,
+    onTogglePause: () -> Unit = {}
 ) {
     val fmt = { n: Long -> "%02d".format(n) }
     val timeFormatted = "${fmt(sessionSecs / 3600)}:${fmt((sessionSecs / 60) % 60)}:${fmt(sessionSecs % 60)}"
 
-    val isPaused = false // TODO: pausing needs ChunkRecorder support; until then there is no pause button.
     val simulatedTriggers = listOf(
         "Father" to "Strained relationship; client stated 'he never acknowledges the loss.'",
         "Grief" to "Mother passed Nov 2025; grief wave triggers around holidays.",
@@ -201,6 +202,34 @@ fun LiveSessionScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
+                    OutlinedButton(
+                        onClick = onTogglePause,
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(44.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = SageDark
+                        ),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, BorderSubtle)
+                    ) {
+                        Icon(
+                            imageVector = if (isPaused) Icons.Default.PlayArrow else Icons.Default.Pause,
+                            contentDescription = if (isPaused) "Play" else "Pause",
+                            modifier = Modifier.size(16.dp),
+                            tint = SageDark
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = if (isPaused) {
+                                if (sessionSecs == 0L) "Play" else "Resume"
+                            } else "Pause",
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = CharcoalText
+                        )
+                    }
+
                     Button(
                         onClick = onEndSession,
                         modifier = Modifier
@@ -214,7 +243,7 @@ fun LiveSessionScreen(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Stop,
-                            contentDescription = null,
+                            contentDescription = "End Session",
                             modifier = Modifier.size(16.dp)
                         )
                         Spacer(modifier = Modifier.width(6.dp))

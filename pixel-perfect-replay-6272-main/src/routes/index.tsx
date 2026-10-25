@@ -27,16 +27,14 @@ interface Patient {
   id: string;
   i: string;
   name: string;
-  age: number;
+  age?: number;
   last: string;
   themes: string[];
   role?: string;
 }
 
 const defaultPatients: Patient[] = [
-  { id: "george", i: "G", name: "George M.", age: 41, last: "Oct 24, 2026", themes: ["Work burnout", "Perfectionism", "Family expectations"], role: "Senior Auditor" },
-  { id: "marta", i: "M", name: "Marta K.", age: 29, last: "Oct 22, 2026", themes: ["Grief", "Sleep"], role: "Graphic Designer" },
-  { id: "daniel", i: "D", name: "Daniel S.", age: 35, last: "Oct 19, 2026", themes: ["Transitions", "Social anxiety"], role: "Software Engineer" },
+  { id: "george", i: "G", name: "George M.", last: "Oct 24, 2026", themes: ["Work burnout", "Perfectionism", "Family expectations"] },
 ];
 
 const getStorageItem = (key: string): string | null => {
@@ -509,7 +507,6 @@ function PatientsScreen({
   const [isAdding, setIsAdding] = useState(false);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [age, setAge] = useState("");
   const [themes, setThemes] = useState("");
   const [filterQuery, setFilterQuery] = useState("");
 
@@ -531,12 +528,10 @@ function PatientsScreen({
 
     onAddPatient({
       name: formattedName,
-      age: age ? Number(age) : 0,
       themes: themes ? themes.split(",").map((t) => t.trim()).filter(Boolean) : [],
     });
     setFirstName("");
     setLastName("");
-    setAge("");
     setThemes("");
     setIsAdding(false);
   };
@@ -608,7 +603,6 @@ function PatientsScreen({
               <PatientCard
                 i={p.i}
                 name={p.name}
-                age={p.age}
                 last={p.last}
                 matchNote={matchCount > 0 ? `${matchCount} session note${matchCount > 1 ? "s" : ""} mention "${filterQuery}"` : undefined}
               />
@@ -656,16 +650,6 @@ function PatientsScreen({
                 </div>
               </div>
               <div>
-                <label className="text-[11px] font-medium text-muted-foreground block mb-1">Age (optional)</label>
-                <input
-                  type="number"
-                  placeholder="e.g. 34"
-                  value={age}
-                  onChange={(e) => setAge(e.target.value)}
-                  className="w-full rounded-xl border bg-card px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-sage"
-                />
-              </div>
-              <div>
                 <label className="text-[11px] font-medium text-muted-foreground block mb-1">Initial Topics or Referral Note (optional)</label>
                 <input
                   type="text"
@@ -710,14 +694,14 @@ function PatientsScreen({
   );
 }
 
-function PatientCard({ i, name, age, last, matchNote }: { i: string; name: string; age?: number; last: string; matchNote?: string }) {
+function PatientCard({ i, name, last, matchNote }: { i: string; name: string; age?: number; last: string; matchNote?: string }) {
   return (
     <Card className="hover:border-sage/40 transition-colors">
       <div className="flex items-center gap-3">
         <div className="flex size-11 items-center justify-center rounded-full bg-accent font-serif text-lg text-accent-foreground font-medium">{i}</div>
         <div className="flex-1 min-w-0">
           <p className="font-medium text-sm text-foreground truncate">{name}</p>
-          <p className="text-xs text-muted-foreground">{age ? `Age ${age} · ` : ""}Last session: {last}</p>
+          <p className="text-xs text-muted-foreground">Last session: {last}</p>
           {matchNote && (
             <p className="mt-1 text-[11px] font-medium text-sage flex items-center gap-1">
               <Search className="size-3" /> {matchNote}
@@ -792,42 +776,6 @@ const patientSessions: Record<string, SessionItem[]> = {
         "Work feels like an endless marathon where you cannot allow yourself to slow down.",
       ],
       topics: ["Father", "Children", "Burnout", "Marriage", "Guilt"],
-    },
-  ],
-  marta: [
-    {
-      id: "m-s1",
-      patientId: "marta",
-      date: "Oct 22, 2026",
-      title: "Grief, father's memory, and sleep disruption",
-      facts: [
-        "Waking up at 3 AM with recurring memories of her father's passing",
-        "Difficulty concentrating on design projects during the afternoon",
-        "Discussed how her father was her main emotional anchor in difficult times",
-      ],
-      quotes: [
-        "Since my father passed away, the quiet at night is when the grief feels heaviest.",
-        "I keep wanting to call my father to ask for advice, then I remember.",
-      ],
-      topics: ["Father", "Grief", "Sleep", "Loss"],
-    },
-  ],
-  daniel: [
-    {
-      id: "d-s1",
-      patientId: "daniel",
-      date: "Oct 19, 2026",
-      title: "Transitions, father's comparison, and social anxiety",
-      facts: [
-        "Anxiety during company presentations and team retrospectives",
-        "Recalled his father constantly comparing him unfavorably to his older brother",
-        "Difficulty asserting boundaries with his tech team lead",
-      ],
-      quotes: [
-        "My father always praised my brother's confidence, so I grew up feeling like the quiet disappointment.",
-        "Speaking up in front of senior leaders triggers that same old feeling of inadequacy.",
-      ],
-      topics: ["Father", "Comparison", "Social anxiety", "Career"],
     },
   ],
 };
@@ -1035,7 +983,6 @@ function ProfileScreen({
           <div className="flex size-14 items-center justify-center rounded-full bg-accent font-serif text-2xl text-accent-foreground font-medium">{patient.i}</div>
           <div>
             <h1 className="font-serif text-[30px] leading-tight">{patient.name}</h1>
-            <p className="text-sm text-muted-foreground">{patient.age ? `Age ${patient.age}` : ""}</p>
           </div>
         </div>
         <p className="mt-2 text-xs text-muted-foreground">Last session: {patient.last}</p>
@@ -1093,7 +1040,7 @@ function ProfileScreen({
           </span>
           <div className="flex-1">
             <p className="text-sm font-medium text-foreground">Patient profile & Session Notes</p>
-            <p className="text-xs text-muted-foreground mt-0.5">Background, occupation & session summaries</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Clinical background & session summaries</p>
           </div>
           <ChevronRight className="size-4 text-muted-foreground" />
         </button>
@@ -1143,11 +1090,9 @@ function DetailsScreen({ go, patient }: { go: Go; patient: Patient }) {
         <h2 className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">Clinical Overview</h2>
         <Bullets
           items={[
-            patient.age ? `Age: ${patient.age} years old` : "Age: Intake phase",
-            patient.role ? `Occupation: ${patient.role}` : null,
             patient.themes.length > 0 ? `Themes: ${patient.themes.join(", ")}` : "Awaiting first session transcript",
             "Stored in encrypted patient vault on this device",
-          ].filter(Boolean) as string[]}
+          ]}
         />
       </Card>
       <Section title="Session History"><HistoryList go={go} /></Section>
