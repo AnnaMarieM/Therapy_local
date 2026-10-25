@@ -87,7 +87,6 @@ The model (about 2.6 GB) lives in the app's own folder on the phone:
 Debug builds can replay a WAV through the real chunker instead of the microphone, and use one as a voice query.
 
 ```bash
-python3 -I scripts/make_test_audio.py <dir with 0.wav 1.wav 8k.wav> /tmp/testaudio   # known-speech sources: see the script
 adb shell mkdir -p /sdcard/Android/data/com.therapylocal.app/files/test
 adb push /tmp/testaudio/. /sdcard/Android/data/com.therapylocal.app/files/test/
 ```

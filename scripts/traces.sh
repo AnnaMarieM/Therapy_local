@@ -20,10 +20,7 @@ pull() {
 case "$cmd" in
   pull) pull ;;
   summary)
-    pull
-    # oldest first so the table reads in time order
-    files=$(ls -1 "$dir"/tl*.log | sort -r)
-    python3 -I "$HERE/trace_summary.py" $files ;;
+    pull ;;
   live) adb logcat -v time -s TL ;;
   grep) pull; shift; grep -h "$@" "$dir"/tl*.log ;;
   *) echo "usage: $0 pull|summary|live|grep <expr> [dir]"; exit 1 ;;
