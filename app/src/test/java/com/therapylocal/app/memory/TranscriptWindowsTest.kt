@@ -81,26 +81,24 @@ class TranscriptWindowsTest {
         }
     }
 
+    /** Documents current behaviour, not a requirement; see follow-up. Blank input is ONE empty window, not an empty list, so callers must check for blank text themselves. */
     @Test
-    fun emptyAndBlankInput() {
-        // Behaviour to be aware of: blank input is ONE empty window, not an empty list, so callers must check for blank text themselves.
+    fun currentBehaviour_blankInputIsOneEmptyWindow() {
         assertEquals(listOf(""), TranscriptWindows.split("", 10, 2))
         assertEquals(listOf(""), TranscriptWindows.split(" \n\t ", 10, 2))
     }
 
     @Test
-    fun splitByTokensKeepsEstimatedTokensWithinTheChunk() {
-        val chunk = 140
-        val win = TranscriptWindows.splitByTokens(text(1000), chunk, 28)
-        assertTrue(win.size > 1)
-        val maxWords = win.maxOf { toks(it).size }
-        assertTrue("$maxWords words", maxWords * TranscriptWindows.TOKENS_PER_WORD <= chunk + 1e-6)
-        assertTrue("window should use most of the chunk, got $maxWords", maxWords >= 99)
-        // Float truncation may make the window 99 words and the overlap 19; either way the shared part is exact and close to the request.
-        val overlap = toks(win[0]).size - (toks(win[1]).first().substring(1).toInt() - 1)
-        assertTrue("overlap $overlap", overlap in 19..20)
-        assertEquals(toks(win[0]).takeLast(overlap), toks(win[1]).take(overlap))
-        assertEquals((1..1000).map { "w$it" }.toSet(), win.flatMap { toks(it) }.toSet())
+    fun splitByTokensUsesOnePointFourTokensPerWordExactly() {
+        // 140 / 1.4 = 100 words per window, 28 / 1.4 = 20 words overlap, so the window start advances by 80 words.
+        assertEquals(1.4, TranscriptWindows.TOKENS_PER_WORD, 0.0)
+        val win = TranscriptWindows.splitByTokens(text(1000), 140, 28)
+        assertEquals(13, win.size) // 1 + ceil((1000 - 100) / 80)
+        assertEquals((1..100).joinToString(" ") { "w$it" }, win[0])
+        assertEquals((81..180).joinToString(" ") { "w$it" }, win[1]) // starts 20 words before the end of window 0
+        assertEquals((161..260).joinToString(" ") { "w$it" }, win[2])
+        assertEquals((961..1000).joinToString(" ") { "w$it" }, win.last()) // 12 * 80 = 960 words skipped
+        assertTrue(win.dropLast(1).all { toks(it).size == 100 })
     }
 
     @Test
@@ -124,6 +122,9 @@ class TranscriptWindowsTest {
         assertEquals("the time was 10:30", s("the time was 10:30"))
         assertEquals("lowercase: stays", s("lowercase: stays"))
         assertEquals("Note to self: stays", s("Note to self: stays")) // a label with spaces is not a speaker label
+        // The label pattern is letters and dots only, so a digit in the name means it is not recognised and the line is kept as is.
+        assertEquals("Client2: hi", s("Client2: hi"))
+        assertEquals("Speaker 1: hi", s("Speaker 1: hi"))
         assertEquals("", s(""))
         assertEquals("a\n\nb", s("Client: a\n\nTherapist: b"))
         // Windows newlines are accepted and normalised to LF.

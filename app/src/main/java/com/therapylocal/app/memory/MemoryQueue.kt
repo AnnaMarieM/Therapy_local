@@ -77,7 +77,8 @@ object MemoryQueue {
     /** Test seam: the data key for the queue file. Production always uses the vault's key; JVM tests cannot unlock the Android-backed [Vault]. */
     internal var keyProvider: () -> ByteArray = { Vault.key() }
 
-    fun bind(queueFile: File) {
+    /** Binds the queue file; null unbinds it (nothing is saved, the saved list reads as empty). */
+    fun bind(queueFile: File?) {
         file = queueFile
     }
 

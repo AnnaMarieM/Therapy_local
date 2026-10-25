@@ -1,8 +1,8 @@
 package com.therapylocal.app.memory
 
 import com.therapylocal.app.vault.SecureFile
-import com.therapylocal.app.vault.VaultCrypto
 import org.json.JSONArray
+import org.json.JSONObject
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -18,7 +18,9 @@ class MemoryQueueTest {
     @get:Rule
     val tmp = TemporaryFolder()
     private lateinit var file: File
-    private val key = VaultCrypto.randomBytes(VaultCrypto.KEY_BYTES)
+    private val key = ByteArray(32) { (it + 1).toByte() }
+    private val otherKey = ByteArray(32) { (it + 2).toByte() }
+    private val originalKeyProvider = MemoryQueue.keyProvider
 
     private fun job(id: String, client: String = id.substringBefore('_'), status: JobStatus = JobStatus.Queued) = SessionJob(id, client, "$id.md", "2024-01-01", status)
     private fun jobs() = MemoryQueue.state.value.jobs
@@ -42,6 +44,9 @@ class MemoryQueueTest {
     fun tearDown() {
         MemoryQueue.update { QueueState() }
         MemoryQueue.cancelRequested = false
+        // The queue is process-global: do not leak this class's key or temp file into other test classes.
+        MemoryQueue.keyProvider = originalKeyProvider
+        MemoryQueue.bind(null)
     }
 
     @Test
@@ -190,19 +195,54 @@ class MemoryQueueTest {
 
     @Test
     fun everyChangeIsPersistedAndRoundTripsAllFields() {
-        val full = SessionJob("a_1", "a", "a_1.md", "2024-02-03", JobStatus.Done, "done", 5, 5, 11, 8, "e", 100, 200, 12.5, 3.25, 42)
+        val full = SessionJob("a_1", "a", "a_1.md", "2024-02-03", JobStatus.Done, "done", 5, 4, 11, 8, "e", 100, 200, 12.5, 3.25, 42)
         MemoryQueue.enqueue(full)
         MemoryQueue.enqueue(job("a_2", status = JobStatus.Running))
         MemoryQueue.enqueue(job("a_3", status = JobStatus.Failed).copy(error = "bad"))
         val onDisk = JSONArray(SecureFile.readText(file, key)!!)
         assertEquals(3, onDisk.length())
-        MemoryQueue.update { QueueState() } // memory gone, file now empty list
-        assertFalse(MemoryQueue.hasSavedWork())
-        saveOnDisk(listOf(full, job("a_2", status = JobStatus.Running), job("a_3", status = JobStatus.Failed).copy(error = "bad")))
+        val o = onDisk.getJSONObject(0)
+        assertEquals("a_1", o.getString("id"))
+        assertEquals("a", o.getString("client"))
+        assertEquals("a_1.md", o.getString("file"))
+        assertEquals("2024-02-03", o.getString("date"))
+        assertEquals("Done", o.getString("status"))
+        assertEquals("done", o.getString("stage"))
+        assertEquals(5, o.getInt("windows"))
+        assertEquals(4, o.getInt("windowsDone"))
+        assertEquals(11, o.getInt("extracted"))
+        assertEquals(8, o.getInt("added"))
+        assertEquals("e", o.getString("error"))
+        assertEquals(100L, o.getLong("startedAt"))
+        assertEquals(200L, o.getLong("finishedAt"))
+        assertEquals(12.5, o.getDouble("prefill"), 0.0)
+        assertEquals(3.25, o.getDouble("decode"), 0.0)
+        assertEquals(42L, o.getLong("recordingId"))
+        assertEquals(16, o.length()) // no unexpected extra or missing fields
+        assertEquals("Running", onDisk.getJSONObject(1).getString("status")) // stored as it was; only reading maps it to Queued
+        assertEquals(JSONObject.NULL, onDisk.getJSONObject(1).get("error"))
+        assertEquals("bad", onDisk.getJSONObject(2).getString("error"))
+        // Drop the in-memory state WITHOUT saving (unbound), so the file is exactly what the production writes left, then load it back.
+        MemoryQueue.bind(null)
+        MemoryQueue.update { QueueState() }
+        MemoryQueue.bind(file)
+        assertTrue(jobs().isEmpty())
         MemoryQueue.restore()
         assertEquals(full, jobs()[0])
-        assertEquals(JobStatus.Queued, jobs()[1].status)
-        assertEquals("bad", jobs()[2].error)
+        assertEquals(job("a_2", status = JobStatus.Queued), jobs()[1])
+        assertEquals(job("a_3", status = JobStatus.Failed).copy(error = "bad"), jobs()[2])
+    }
+
+    @Test
+    fun withNoFileBoundPersistenceIsANoOpAndNothingIsSaved() {
+        MemoryQueue.bind(null)
+        MemoryQueue.enqueue(job("a_1"))
+        assertEquals(listOf("a_1"), ids()) // in-memory still works
+        assertFalse(MemoryQueue.hasSavedWork())
+        assertFalse(file.exists())
+        MemoryQueue.update { QueueState() }
+        MemoryQueue.restore() // saved list reads as empty
+        assertTrue(jobs().isEmpty())
     }
 
     @Test
@@ -210,7 +250,7 @@ class MemoryQueueTest {
         MemoryQueue.enqueue(job("secret_1"))
         val raw = file.readBytes()
         assertFalse(String(raw, Charsets.ISO_8859_1).contains("secret_1"))
-        MemoryQueue.keyProvider = { VaultCrypto.randomBytes(VaultCrypto.KEY_BYTES) } // wrong key: unreadable, treated as empty
+        MemoryQueue.keyProvider = { otherKey } // wrong key: unreadable, treated as empty
         assertFalse(MemoryQueue.hasSavedWork())
         MemoryQueue.restore()
         assertTrue(jobs().isEmpty())
@@ -233,7 +273,7 @@ class MemoryQueueTest {
     }
 
     @Test
-    fun cancelRequestedIsOnlyChangedByItsOwner() {
+    fun queueOperationsDoNotClearTheStopFlag() {
         MemoryQueue.cancelRequested = true
         MemoryQueue.enqueue(job("a_1"))
         MemoryQueue.updateJob("a_1") { it.copy(status = JobStatus.Cancelled) }
@@ -241,10 +281,8 @@ class MemoryQueueTest {
         MemoryQueue.load(listOf(job("a_1")), resume = false)
         MemoryQueue.dropSession("a_1")
         MemoryQueue.dropClient("a")
-        // No queue operation resets it: the runner clears it when a new run starts, so a Stop survives until then.
+        // The runner clears it when a new run starts, so a Stop survives every queue operation until then.
         assertTrue(MemoryQueue.cancelRequested)
-        MemoryQueue.cancelRequested = false
-        assertFalse(MemoryQueue.cancelRequested)
     }
 
     @Test
