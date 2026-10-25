@@ -37,7 +37,6 @@ import com.therapylocal.app.ui.components.MindVaultBottomNav
 import com.therapylocal.app.ui.components.MinimizedSessionBar
 import com.therapylocal.app.ui.logic.SessionLogic
 import com.therapylocal.app.ui.models.Patient
-import com.therapylocal.app.ui.models.ProcessingSessionInfo
 import com.therapylocal.app.ui.security.findFragmentActivity
 import com.therapylocal.app.vault.Vault
 import com.therapylocal.app.ui.models.SurfacedQuote

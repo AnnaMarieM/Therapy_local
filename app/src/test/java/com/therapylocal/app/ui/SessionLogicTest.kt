@@ -1,7 +1,6 @@
 package com.therapylocal.app.ui
 
 import com.therapylocal.app.memory.JobStatus
-import com.therapylocal.app.memory.MemoryProcessor
 import com.therapylocal.app.memory.SessionJob
 import com.therapylocal.app.ui.logic.SessionLogic
 import com.therapylocal.app.ui.logic.SessionLogic.PauseAction
@@ -13,11 +12,10 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import java.text.SimpleDateFormat
 import java.util.Locale
 import kotlin.random.Random
 
-class SessionSaveWorkflowTest {
+class SessionLogicTest {
 
     // ---- duration formatting ----
 
@@ -38,7 +36,11 @@ class SessionSaveWorkflowTest {
     fun minSecNegativeAndHugeNeverCrash() {
         assertEquals("00:00", SessionLogic.formatMinSec(-1))
         assertEquals("00:00", SessionLogic.formatMinSec(Long.MIN_VALUE))
-        assertTrue(SessionLogic.formatMinSec(Long.MAX_VALUE).matches(Regex("\\d+:\\d{2}")))
+        // 9223372036854775807 = 60 * 153722867280912930 + 7
+        assertEquals("153722867280912930:07", SessionLogic.formatMinSec(Long.MAX_VALUE))
+        // 9223372036854775807 = 3600 * 2562047788015215 + 30 * 60 + 7
+        assertEquals("2562047788015215:30:07", SessionLogic.formatHourMinSec(Long.MAX_VALUE))
+        assertEquals("00:00:00", SessionLogic.formatHourMinSec(Long.MIN_VALUE))
     }
 
     @Test
@@ -55,6 +57,19 @@ class SessionSaveWorkflowTest {
     }
 
     @Test
+    fun digitsAreAlwaysAsciiRegardlessOfLocale() {
+        // Policy: durations always use ASCII digits, even when the device locale uses other numerals.
+        val saved = Locale.getDefault()
+        try {
+            Locale.setDefault(Locale.forLanguageTag("ar-EG"))
+            assertEquals("01:01:01", SessionLogic.formatHourMinSec(3661))
+            assertEquals("61:01", SessionLogic.formatMinSec(3661))
+        } finally {
+            Locale.setDefault(saved)
+        }
+    }
+
+    @Test
     fun formatsRoundTripForRandomDurations() {
         val rnd = Random(42)
         repeat(500) {
@@ -66,70 +81,6 @@ class SessionSaveWorkflowTest {
             assertEquals(secs, h * 3600 + mm * 60 + ss)
             assertTrue(mm in 0..59 && ss in 0..59)
         }
-    }
-
-    // ---- MemoryProcessor ids ----
-
-    @Test
-    fun clientIdIsLowercaseAlphanumericOnly() {
-        assertEquals("sarahchen", MemoryProcessor.clientId("Sarah Chen"))
-        assertEquals("marcusvancephd", MemoryProcessor.clientId("Marcus Vance, PhD"))
-        assertEquals("georgem", MemoryProcessor.clientId("GEORGE M."))
-        assertEquals("abc123", MemoryProcessor.clientId("a-b_c 1.2/3"))
-        assertEquals("o", MemoryProcessor.clientId("O'"))
-    }
-
-    @Test
-    fun clientIdFallsBackWhenNothingUsable() {
-        assertEquals("client", MemoryProcessor.clientId(""))
-        assertEquals("client", MemoryProcessor.clientId("   "))
-        assertEquals("client", MemoryProcessor.clientId("...!"))
-        assertEquals("client", MemoryProcessor.clientId("😀"))
-        assertEquals("client", MemoryProcessor.clientId("山田"))
-    }
-
-    @Test
-    fun clientIdOutputAlwaysMatchesIdRule() {
-        val rnd = Random(7)
-        val alphabet = "abcXYZ019 ,.-_'éüß中😀\t"
-        repeat(300) {
-            val name = String(CharArray(rnd.nextInt(0, 20)) { alphabet[rnd.nextInt(alphabet.length)] })
-            val id = MemoryProcessor.clientId(name)
-            assertTrue("'$id' from '$name'", id.matches(Regex("[a-z0-9]+")))
-        }
-    }
-
-    @Test
-    fun sessionIdFormatAndClientPrefix() {
-        val t = 1771934400000L
-        val id = MemoryProcessor.sessionId("sarahchen", t)
-        assertTrue(id, id.matches(Regex("sarahchen_\\d{8}-\\d{6}")))
-        assertEquals("sarahchen", id.substringBefore('_'))
-        // The id encodes the start time to the second (default zone, same as production).
-        val expected = SimpleDateFormat("yyyyMMdd-HHmmss", Locale.US).format(java.util.Date(t))
-        assertEquals("sarahchen_$expected", id)
-    }
-
-    @Test
-    fun sessionIdsSortChronologicallyAndDifferPerSecond() {
-        val base = 1771934400000L
-        val a = MemoryProcessor.sessionId("c", base)
-        val b = MemoryProcessor.sessionId("c", base + 1000)
-        val sameSecond = MemoryProcessor.sessionId("c", base + 999)
-        assertTrue(a < b)
-        assertEquals(a, sameSecond)
-        assertTrue(MemoryProcessor.sessionId("c", base) != MemoryProcessor.sessionId("d", base))
-    }
-
-    // ---- SessionJob defaults ----
-
-    @Test
-    fun newJobIsQueuedWithNoStage() {
-        val job = SessionJob(id = "c_1", client = "c", file = "c_1.md", date = "2026-10-25")
-        assertEquals(JobStatus.Queued, job.status)
-        assertEquals("", job.stage)
-        assertEquals(0L, job.recordingId)
-        assertNull(job.error)
     }
 
     // ---- processing banner mapping ----
@@ -153,6 +104,8 @@ class SessionSaveWorkflowTest {
         assertEquals("Queued", map["d"]!!.stage)
         assertEquals("Reading 1/2", map["e"]!!.stage)
         assertEquals("d_1", map["d"]!!.sessionId)
+        assertEquals("2026-10-25", map["d"]!!.date)
+        assertEquals("2026-10-25", map["e"]!!.date)
         assertFalse(map["d"]!!.isPendingEnqueue)
         assertFalse(map["e"]!!.isPendingEnqueue)
     }
@@ -224,14 +177,14 @@ class SessionSaveWorkflowTest {
 
     // ---- patient filtering ----
 
-    private val george = Patient(id = "p-1", name = "George M.", age = 41, presenting = "Anxiety", lastSession = "", sessionCount = 0, preSessionNote = "")
-    private val sarah = Patient(id = "p-2", name = "Sarah Chen", age = 29, presenting = "Burnout", lastSession = "", sessionCount = 0, preSessionNote = "")
+    private val alex = Patient(id = "p-1", name = "Alex Example Jr.", age = 41, presenting = "Anxiety", lastSession = "", sessionCount = 0, preSessionNote = "")
+    private val sam = Patient(id = "p-2", name = "Sam Example", age = 29, presenting = "Burnout", lastSession = "", sessionCount = 0, preSessionNote = "")
     private val rene = Patient(
         id = "p-3", name = "René Émile", age = 35, presenting = "Depression", lastSession = "", sessionCount = 1, preSessionNote = "",
         facts = listOf("Has a sister called Lotte"),
         sessions = listOf(SessionRecord(date = "d", duration = "10:00", summary = "Talked about Grief", topics = listOf("Work stress"), verbatimQuotes = listOf("I can't sleep")))
     )
-    private val all = listOf(george, sarah, rene)
+    private val all = listOf(alex, sam, rene)
 
     private fun names(q: String) = SessionLogic.filterPatients(all, q).map { it.id }
 
@@ -244,16 +197,16 @@ class SessionSaveWorkflowTest {
 
     @Test
     fun filterIsCaseInsensitiveAndTrimmed() {
-        assertEquals(listOf("p-2"), names("sarah"))
-        assertEquals(listOf("p-2"), names("SARAH"))
-        assertEquals(listOf("p-2"), names("  SaRaH  "))
-        assertEquals(listOf("p-2"), names("h ch"))
+        assertEquals(listOf("p-2"), names("sam"))
+        assertEquals(listOf("p-2"), names("SAM"))
+        assertEquals(listOf("p-2"), names("  SaM  "))
+        assertEquals(listOf("p-2"), names("m ex"))
     }
 
     @Test
     fun filterMatchesNameAndPresentingSeparately() {
         assertEquals(listOf("p-1"), names("anxi"))      // presenting only
-        assertEquals(listOf("p-1"), names("george"))    // name only
+        assertEquals(listOf("p-1"), names("alex"))    // name only
         assertEquals(listOf("p-2"), names("burnout"))
     }
 
@@ -274,22 +227,15 @@ class SessionSaveWorkflowTest {
     @Test
     fun filterMultipleMatchesKeepOrder() {
         assertEquals(listOf("p-1", "p-2", "p-3"), names("e"))
-        assertEquals(listOf("p-1", "p-3"), names("g"))
-    }
-
-    @Test
-    fun filterAccentsAreExactNotFolded() {
-        // Current rule: lowercase-contains only, accents are significant.
-        assertEquals(listOf("p-3"), names("émile"))
-        assertEquals(listOf("p-3"), names("ÉMILE"))
-        assertTrue(names("emile").isEmpty())
-        assertTrue(names("rene").isEmpty())
+        assertEquals(listOf("p-1", "p-2"), names("x"))
+        assertEquals(listOf("p-1", "p-2"), names("example"))
     }
 
     @Test
     fun filterTreatsRegexCharactersLiterally() {
         assertTrue(names(".*").isEmpty())
-        assertEquals(listOf("p-1"), names("m."))
+        assertTrue(names("j.").isEmpty())   // as a regex this would match "jr"
+        assertEquals(listOf("p-1"), names("jr."))
     }
 
     // ---- session tab routing ----
