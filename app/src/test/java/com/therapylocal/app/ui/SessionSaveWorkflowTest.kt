@@ -134,5 +134,49 @@ class SessionSaveWorkflowTest {
         assertEquals(setOf(sid), afterDoneSet)
         assertTrue(beforeDoneSet != afterDoneSet)
     }
+
+    @Test
+    fun testPatientChooserSelectionFiltersCorrectly() {
+        val patients = listOf(
+            com.therapylocal.app.ui.models.Patient(id = "p-1", name = "George M.", age = 41, presenting = "Anxiety", lastSession = "Oct 24", sessionCount = 8, preSessionNote = ""),
+            com.therapylocal.app.ui.models.Patient(id = "p-2", name = "Sarah Chen", age = 29, presenting = "Burnout", lastSession = "Oct 22", sessionCount = 4, preSessionNote = ""),
+            com.therapylocal.app.ui.models.Patient(id = "p-3", name = "David Ross", age = 35, presenting = "Depression", lastSession = "Oct 19", sessionCount = 2, preSessionNote = "")
+        )
+
+        val query = "sarah"
+        val filtered = patients.filter { it.name.lowercase().contains(query) || it.presenting.lowercase().contains(query) }
+        assertEquals(1, filtered.size)
+        assertEquals("Sarah Chen", filtered.first().name)
+    }
+
+    @Test
+    fun testSessionTabClickTriggersChooserWhenInactive() {
+        var isSessionActive = false
+        var activeSessionPatient: com.therapylocal.app.ui.models.Patient? = null
+        var showChooser = false
+        var targetScreen = "patients"
+
+        val onSessionTabClicked = {
+            if (isSessionActive && activeSessionPatient != null) {
+                targetScreen = "live"
+            } else {
+                showChooser = true
+            }
+        }
+
+        onSessionTabClicked()
+        assertTrue(showChooser)
+        assertEquals("patients", targetScreen)
+
+        // When active, should navigate to live session directly without chooser
+        isSessionActive = true
+        activeSessionPatient = com.therapylocal.app.ui.models.Patient(id = "p-1", name = "George M.", age = 41, presenting = "Anxiety", lastSession = "Oct 24", sessionCount = 8, preSessionNote = "")
+        showChooser = false
+
+        onSessionTabClicked()
+        assertFalse(showChooser)
+        assertEquals("live", targetScreen)
+    }
 }
+
 
