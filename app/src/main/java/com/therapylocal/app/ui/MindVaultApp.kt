@@ -32,6 +32,7 @@ import com.therapylocal.app.memory.JobStatus
 import com.therapylocal.app.memory.MemoryProcessor
 import com.therapylocal.app.memory.MemoryQueue
 import com.therapylocal.app.ui.data.ClientsViewModel
+import com.therapylocal.app.ui.components.ChoosePatientSessionDialog
 import com.therapylocal.app.ui.components.MindVaultBottomNav
 import com.therapylocal.app.ui.components.MinimizedSessionBar
 import com.therapylocal.app.ui.models.Patient
@@ -70,6 +71,7 @@ fun MindVaultApp(
 
         // Persistent Session State
         var isSessionActive by rememberSaveable { mutableStateOf(false) }
+        var showChoosePatientDialog by rememberSaveable { mutableStateOf(false) }
         var sessionPatient by remember { mutableStateOf<Patient?>(null) }
         var sessionSecs by rememberSaveable { mutableLongStateOf(0L) }
         val sessionPaused = false // TODO: pausing needs ChunkRecorder support
@@ -201,6 +203,7 @@ fun MindVaultApp(
 
         val startSession = { p: Patient ->
             if (!hasMicPermission()) requestMicPermission()
+            selectedPatient = p
             val client = repo.ensureClient(p)
             val now = System.currentTimeMillis()
             sessionPatient = p
@@ -239,6 +242,19 @@ fun MindVaultApp(
                 text = { Text("Session processing will pause and continue after you unlock.") },
                 confirmButton = { TextButton(onClick = { confirmLock = false; activity?.let(Vault::lock) }) { Text("Lock") } },
                 dismissButton = { TextButton(onClick = { confirmLock = false }) { Text("Cancel") } },
+            )
+        }
+
+        if (showChoosePatientDialog) {
+            ChoosePatientSessionDialog(
+                patients = patients,
+                onSelectPatient = { chosen ->
+                    showChoosePatientDialog = false
+                    startSession(chosen)
+                },
+                onDismiss = {
+                    showChoosePatientDialog = false
+                }
             )
         }
 
@@ -383,19 +399,23 @@ fun MindVaultApp(
                 MindVaultBottomNav(
                     selectedTab = currentTab,
                     onTabSelected = { tab ->
-                        currentTab = tab
                         when (tab) {
-                            "patients" -> currentScreen = "patients"
+                            "patients" -> {
+                                currentTab = tab
+                                currentScreen = "patients"
+                            }
                             "session" -> {
                                 if (isSessionActive && sessionPatient != null) {
+                                    currentTab = tab
                                     currentScreen = "live"
-                                } else if (selectedPatient != null) {
-                                    startSession(selectedPatient!!)
                                 } else {
-                                    patients.firstOrNull()?.let(startSession)
+                                    showChoosePatientDialog = true
                                 }
                             }
-                            "settings" -> currentScreen = "settings"
+                            "settings" -> {
+                                currentTab = tab
+                                currentScreen = "settings"
+                            }
                         }
                     },
                     isSessionActive = isSessionActive
