@@ -1,5 +1,6 @@
 package com.therapylocal.app.memory
 
+import com.therapylocal.app.data.FactRow
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -26,6 +27,9 @@ data class Fact(
         )
     }
 }
+
+/** A stored fact in the extraction shape: heading as subject, content as fact, no category. [Fact.chunk] is the fact's segment. */
+fun FactRow.toFact() = Fact(id.toString(), "", heading, content, evidence, null, sessionId, segIdx)
 
 object FactSchemas {
     val CATEGORIES = listOf(

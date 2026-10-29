@@ -39,8 +39,8 @@ class ClientsViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     /** Creates the client in the memory store and returns it (with its real id). */
-    fun create(name: String, age: Int?, occupation: String): Patient {
-        val p = repo.createClient(name, age, occupation)
+    fun create(name: String): Patient {
+        val p = repo.createClient(name)
         _patients.value = listOf(p) + _patients.value.filter { it.id != p.id }
         return p
     }

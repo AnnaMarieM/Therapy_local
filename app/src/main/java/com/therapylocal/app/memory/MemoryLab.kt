@@ -2,10 +2,15 @@ package com.therapylocal.app.memory
 
 import android.content.Context
 import com.therapylocal.app.asr.SherpaWhisperAsr
+import com.therapylocal.app.config.EmbeddingConfig
 import com.therapylocal.app.data.ChunkProcessor
+import com.therapylocal.app.data.MindStore
+import com.therapylocal.app.data.NewFact
 import com.therapylocal.app.data.PendingAudio
-import com.therapylocal.app.data.Store
+import com.therapylocal.app.data.SegmentRow
+import com.therapylocal.app.data.WindowRow
 import com.therapylocal.app.embed.Embedder
+import com.therapylocal.app.models.ModelRegistry
 import com.therapylocal.app.models.ModelSetup
 import com.therapylocal.app.log.AppLog
 import com.therapylocal.app.log.LogCtx
@@ -21,7 +26,7 @@ import java.io.FileNotFoundException
  * Long-term-memory pipeline, run as a queue of session transcripts (see [MemoryQueue], [MemoryService]).
  *
  * Patient data lives only in the vault (internal storage, see [MemoryFiles]): transcripts `in/<name>`, the per-chunk extraction cache `cache/<sid>/<n>.json`
- * and `queue.json` are SecureFiles under the vault key; the memory itself is in [MemoryStore] (SQLCipher). None of it is readable while the vault is locked.
+ * and `queue.json` are SecureFiles under the vault key; the memory itself is in [MindStore] (SQLCipher). None of it is readable while the vault is locked.
  * The external developer root ([MemoryFiles.devRoot], `files/memory/` on external storage) holds only developer inputs, so prompts and settings change without a rebuild:
  *   job.json                        settings and the ordered list of transcripts (see [Job]); read only in debug-harness mode
  *   prompts/(extract|review).(system|user).txt
@@ -29,7 +34,7 @@ import java.io.FileNotFoundException
  * and, only in debug-harness mode ([useJobFile]), diagnostics in `out/`: `raw/` (raw model replies), `decisions.jsonl`, `bench.jsonl`, `DONE`. App mode writes none of these.
  *
  * Per session:
- *   1. cut the transcript into token-sized chunks with overlap, embed every chunk and store it
+ *   1. cut the transcript into token-sized chunks with overlap, embed every chunk and store it as a window (and, for now, as one segment)
  *   2. Gemma extracts facts from each chunk, as one JSON object per line (validated, retried, quote must occur in the chunk)
  *   3. every candidate fact is embedded, its 10 nearest known facts are fetched (no cut-off), and Gemma answers duplicate true/false as JSON
  *   4. false: the fact is committed (append-only, never overwrites). true: the repeat is recorded against the matching fact.
@@ -40,7 +45,7 @@ class MemoryLab(private val context: Context, private val useJobFile: Boolean = 
     private val diag: File? = if (useJobFile) File(root, "out").apply { mkdirs() } else null
     private val prompts = File(root, "prompts")
     private lateinit var embedder: Embedder
-    private lateinit var store: MemoryStore
+    private lateinit var store: MindStore
 
     private class Job(o: JSONObject) {
         val backends = o.optJSONArray("backends")?.let { a -> (0 until a.length()).map { a.getString(it) } } ?: listOf("NPU", "GPU", "CPU")
@@ -106,8 +111,8 @@ class MemoryLab(private val context: Context, private val useJobFile: Boolean = 
         MemoryQueue.cancelRequested = false
         MemoryQueue.load(fresh, resume = !job.resetProfiles)
         MemoryQueue.update { it.copy(running = true, message = "Loading models") }
-        store = MemoryStore(context)
-        if (job.resetProfiles) MemoryQueue.state.value.clients.forEach { store.clearClient(it) }
+        store = MindStore.get(context)
+        if (job.resetProfiles) MemoryQueue.state.value.clients.forEach { store.deleteClient(it) }
         val llm = MemoryLlm(context, job.maxTokens)
         // MemoryLab runs Gemma 2B on GPU; forcing Embedder to CPU avoids concurrent GPU allocation OOMs on mobile GPUs.
         embedder = Embedder(context, forcedBackend = "CPU")
@@ -133,14 +138,13 @@ class MemoryLab(private val context: Context, private val useJobFile: Boolean = 
         } finally {
             llm.close()
             embedder.close()
-            store.close()
             MemoryQueue.update { it.copy(running = false, message = if (MemoryQueue.cancelRequested) "Stopped" else if (it.message.startsWith("Failed")) it.message else "Finished") }
         }
         diag?.let { File(it, "DONE").writeText("ok") }
     }
 
     private fun publishProfile(client: String) {
-        val facts = store.facts(client)
+        val facts = store.facts(client).map { it.toFact() }
         MemoryQueue.update { it.copy(profiles = it.profiles + (client to facts)) }
     }
 
@@ -187,12 +191,22 @@ class MemoryLab(private val context: Context, private val useJobFile: Boolean = 
         val cacheDir = MemoryFiles.extractCache(context, sid).apply { mkdirs() }
         MemoryQueue.updateJob(sid) { it.copy(windows = chunks.size, windowsDone = 0, extracted = 0, added = 0, stage = "Reading 1/${chunks.size}", phase = JobPhase.Reading, step = 1, steps = chunks.size) }
 
-        // 1 + 2: embed and store every chunk, extract candidate facts from it.
-        if (item.date.isNotEmpty()) store.putSession(client, sid, item.date)
+        // A debug-harness transcript can belong to a client that was never created in the app.
+        if (store.clients().none { it.id == client }) store.createClient(client, client.replaceFirstChar { it.uppercase() })
+        store.createSession(sid, client, startedAt(item.date))
+
+        // 1: embed and store every chunk. Until transcripts are stored as timed segments, each window is its own segment (same index).
+        val windows = chunks.mapIndexed { i, chunk ->
+            if (MemoryQueue.cancelRequested) return stopped(sid)
+            WindowRow(i + 1, i + 1, i + 1, chunk, embed(chunk), EmbeddingConfig.MODEL_ID)
+        }
+        store.replaceSegments(sid, chunks.mapIndexed { i, chunk -> SegmentRow(i + 1, 0, 0, chunk) })
+        store.replaceWindows(sid, windows)
+
+        // 2: extract candidate facts from every chunk.
         val candidates = ArrayList<Fact>()
         chunks.forEachIndexed { i, chunk ->
             if (MemoryQueue.cancelRequested) return stopped(sid)
-            store.putChunk(client, sid, i + 1, chunk, embed(chunk))
             val cache = File(cacheDir, "${i + 1}.json")
             val facts = if (cache.exists()) readFacts(cache) else extractChunk(llm, job, item, chunk, i + 1, chunks.size, bench).also { SecureFile.writeText(cache, JSONArray(it.map { f -> f.toJson() }).toString(1), Vault.key()) }
             candidates += facts
@@ -203,17 +217,16 @@ class MemoryLab(private val context: Context, private val useJobFile: Boolean = 
         // 3 + 4: review each candidate against its 10 nearest known facts, sequentially.
         var added = 0
         var repeats = 0
-        var next = store.facts(client).size
         candidates.forEachIndexed { i, cand ->
             if (MemoryQueue.cancelRequested) return stopped(sid)
-            val vec = embed(cand.fact)
-            val near = store.nearest(client, vec, job.neighbours)
+            val vec = embed("${cand.subject}. ${cand.fact}")
+            val near = store.nearestFacts(client, vec, job.neighbours).map { (f, d) -> f.toFact() to d }
             val verdict = if (near.isEmpty()) Verdict(false, null, "empty store") else review(llm, cand, near, sid, i + 1, bench)
             if (verdict.duplicate && verdict.of != null) {
-                store.addSupport(client, verdict.of.id, sid, cand.evidence, cand.chunk)
+                store.addMention(verdict.of.id.toLong(), sid, cand.evidence, cand.chunk)
                 repeats++
             } else {
-                store.putFact(client, cand.copy(id = "F${++next}"), vec)
+                store.insertFact(NewFact(client, sid, cand.subject, cand.fact, cand.evidence, cand.chunk, vec, ModelRegistry.GEMMA.id, promptVersion = ""))
                 added++
             }
             if ((i + 1) % 3 == 0 || i + 1 == candidates.size) MemoryQueue.updateJob(sid) { it.copy(stage = "Checking ${i + 1}/${candidates.size}", phase = JobPhase.Checking, step = i + 1, steps = candidates.size, added = added) }
@@ -221,6 +234,10 @@ class MemoryLab(private val context: Context, private val useJobFile: Boolean = 
         MemoryQueue.updateJob(sid) { it.copy(stage = "Done", phase = JobPhase.None, step = 0, steps = 0, added = added) }
         AppLog.i(MemoryLlm.TAG, "session_done", LogCtx.NONE, "session" to sid, "chunks" to chunks.size, "candidates" to candidates.size, "added" to added, "repeats" to repeats)
     }
+
+    /** The session's start, for ordering a client's sessions: its date at midnight, or now when the date is unknown. */
+    private fun startedAt(date: String): Long =
+        runCatching { java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).parse(date)!!.time }.getOrDefault(System.currentTimeMillis())
 
     /**
      * Turns the pending audio of a recording made before setup finished into the session transcript (always with Whisper: Gemma is busy as the memory LLM).
@@ -231,13 +248,12 @@ class MemoryLab(private val context: Context, private val useJobFile: Boolean = 
         val rid = item.recordingId
         val prefs = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
         val asr = SherpaWhisperAsr(context, prefs.getString("whisper_size", "base") ?: "base", prefs.getString("language", "auto") ?: "auto")
-        val store = Store(context)
         try {
             val audio = PendingAudio.load(context, rid)
             MemoryQueue.updateJob(item.id) { it.copy(stage = "Transcribing 0/${audio.size}", phase = JobPhase.Transcribing, step = 0, steps = audio.size) }
             runBlocking { asr.load() }
-            val processor = ChunkProcessor(store, embedder, asr)
-            val stored = store.chunks(rid).map { it.idx }.toSet()
+            val processor = ChunkProcessor(store, asr)
+            val stored = store.chunks(rid).filter { it.text != null }.map { it.idx }.toSet()
             audio.forEachIndexed { i, chunk ->
                 if (chunk.idx !in stored) runBlocking { processor.process(rid, chunk) }
                 MemoryQueue.updateJob(item.id) { it.copy(stage = "Transcribing ${i + 1}/${audio.size}", phase = JobPhase.Transcribing, step = i + 1, steps = audio.size) }
@@ -250,7 +266,6 @@ class MemoryLab(private val context: Context, private val useJobFile: Boolean = 
             return text.isNotBlank()
         } finally {
             asr.close()
-            store.close()
         }
     }
 

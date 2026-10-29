@@ -55,7 +55,7 @@ object ChunkConfig {
 
 /** Embedding model identity and vector size, one place. EmbeddingGemma 2 maps text and audio into one 768-d space. */
 object EmbeddingConfig {
-    /** Stored on every chunk row; search only compares vectors with the same model id. */
+    /** Stored on every window row; vectors are only compared within one model id. */
     const val MODEL_ID = "embeddinggemma-2-740m"
 
     /** Native size of the model. Matryoshka truncation to 512, 256 or 128 is possible by changing this one value. */
@@ -66,18 +66,6 @@ object EmbeddingConfig {
 
     const val QUERY_PREFIX = "task: search query | text: "
     const val DOC_PREFIX = "task: search result | text: "
-}
-
-/** How many chunks a search looks at and shows. */
-object SearchConfig {
-    /** Chunks fetched before merging neighbours. */
-    const val RAW_TOP_K = 10
-
-    /** A chunk is relevant only if its score is within this margin of the best one. Stops merging weak neighbours into a strong hit. */
-    const val SCORE_MARGIN = 0.08f
-
-    /** Results shown after neighbours are merged. */
-    const val SHOWN = 5
 }
 
 /** Debug override of which backend the engines try: "auto" (NPU if possible, then GPU, then CPU), "npu", "gpu" or "cpu". */

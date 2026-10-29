@@ -9,7 +9,6 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,12 +17,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -31,7 +27,6 @@ import androidx.compose.material3.Divider
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -45,12 +40,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
@@ -134,7 +125,7 @@ class MainActivity : FragmentActivity() {
                     viewModel = viewModel,
                     hasMicPermission = hasMic,
                     requestMicPermission = requestMic,
-                    // The developer harness (Record/Recordings/Search/Memory/Logs) is a Settings menu item in debug builds only.
+                    // The developer harness (Record/Recordings/Memory/Logs) is a Settings menu item in debug builds only.
                     onShowLegacyDebugView = if (BuildConfig.DEBUG) ({ showDebugScreen = true }) else null
                 )
             }
@@ -149,8 +140,8 @@ private fun isMemoryLabRequested(intent: Intent?): Boolean {
     return true
 }
 
-private const val MEMORY_TAB = 3
-private val TABS = listOf("Record", "Recordings", "Search", "Memory", "Logs")
+private const val MEMORY_TAB = 2
+private val TABS = listOf("Record", "Recordings", "Memory", "Logs")
 
 private fun fmt(ms: Long) = "%d:%02d".format(ms / 60000, ms / 1000 % 60)
 
@@ -175,14 +166,13 @@ private fun Screen(vm: MainViewModel) {
             when (tab) {
                 0 -> RecordTab(state, vm, hasMic, requestMic)
                 1 -> RecordingsTab(state, vm)
-                2 -> SearchTab(state, vm, hasMic, requestMic)
                 MEMORY_TAB -> com.therapylocal.app.memory.MemoryTab()
                 else -> LogsTab()
             }
         }
     }
 
-    // The Memory tab (and a lab launch, which skips model preloading) never needs the Record/Search models, so no blocking dialog there.
+    // The Memory tab (and a lab launch, which skips model preloading) never needs the Record models, so no blocking dialog there.
     if (state.phase != Phase.Ready && tab != MEMORY_TAB && !MainViewModel.skipPrepare) PrepareDialog(state, onRetry = vm::retry)
 }
 
@@ -252,10 +242,10 @@ private fun RecordingsTab(s: UiState, vm: MainViewModel) {
             s.selectedChunks.forEach { c ->
                 Divider()
                 Text(
-                    "chunk ${c.idx}  ${fmt(c.startMs)}-${fmt(c.endMs)}  overlap ${c.overlapMs / 1000}s  ${c.asrModel}  asr ${c.asrMs} ms",
+                    "chunk ${c.idx}  ${fmt(c.startMs)}-${fmt(c.endMs)}  overlap ${c.overlapMs / 1000}s",
                     fontSize = 11.sp, fontFamily = FontFamily.Monospace,
                 )
-                Text(c.text)
+                Text(c.text ?: "(not transcribed yet)")
             }
         }
     } else {
@@ -285,7 +275,7 @@ private fun RecordingsTab(s: UiState, vm: MainViewModel) {
         AlertDialog(
             onDismissRequest = { confirmDelete = null },
             title = { Text("Delete recording #$id?") },
-            text = { Text("Removes its chunks, transcripts and embeddings. This cannot be undone.") },
+            text = { Text("Removes its chunks and transcripts. This cannot be undone.") },
             confirmButton = { TextButton(onClick = { vm.deleteRecording(id); confirmDelete = null }) { Text("Delete") } },
             dismissButton = { TextButton(onClick = { confirmDelete = null }) { Text("Cancel") } },
         )
@@ -294,69 +284,10 @@ private fun RecordingsTab(s: UiState, vm: MainViewModel) {
         AlertDialog(
             onDismissRequest = { confirmAll = false },
             title = { Text("Delete ALL recordings?") },
-            text = { Text("Removes every recording, transcript and embedding. This cannot be undone.") },
+            text = { Text("Removes every recording and transcript. This cannot be undone.") },
             confirmButton = { TextButton(onClick = { vm.deleteAll(); confirmAll = false }) { Text("Delete all") } },
             dismissButton = { TextButton(onClick = { confirmAll = false }) { Text("Cancel") } },
         )
-    }
-}
-
-@Composable
-private fun SearchTab(s: UiState, vm: MainViewModel, hasMic: () -> Boolean, requestMic: () -> Unit) {
-    Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-            OutlinedTextField(s.query, vm::setQuery, Modifier.weight(1f), label = { Text("Search text") }, singleLine = true)
-            val keyboard = LocalSoftwareKeyboardController.current
-            Button(onClick = { keyboard?.hide(); vm.searchText() }, enabled = s.phase == Phase.Ready && !s.searching) { Text("Search") }
-        }
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
-            HoldButton(
-                enabled = s.phase == Phase.Ready && !s.recording && !s.searching,
-                active = s.voiceRecording,
-                label = if (s.voiceRecording) "Listening" else "Hold to speak",
-                onPress = { if (hasMic()) vm.startVoiceSearch() else requestMic() },
-                onRelease = vm::stopVoiceSearch,
-            )
-            Text(s.searchInfo, fontSize = 12.sp)
-        }
-        if (BuildConfig.DEBUG && s.testFiles.isNotEmpty()) {
-            Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                s.testFiles.filter { it.startsWith("q") }.forEach { f ->
-                    OutlinedButton(onClick = { vm.debugQueryFile(f) }, enabled = s.phase == Phase.Ready && !s.searching) {
-                        Text("Query $f", fontSize = 11.sp, maxLines = 1, softWrap = false)
-                    }
-                }
-            }
-        }
-        if (s.searching) LinearProgressIndicator(Modifier.fillMaxWidth())
-        s.error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
-        LazyColumn(Modifier.fillMaxSize()) {
-            items(s.hits, key = { "${it.recordingId}-${it.startMs}" }) { g ->
-                Divider()
-                Column(Modifier.padding(vertical = 6.dp)) {
-                    val chunks = if (g.hits.size > 1) "chunks ${g.hits.minOf { it.row.idx }}-${g.hits.maxOf { it.row.idx }} merged" else "chunk ${g.hits.first().row.idx}"
-                    Text("score %.3f   #%d  %s-%s  %s".format(g.score, g.recordingId, fmt(g.startMs), fmt(g.endMs), chunks), fontSize = 11.sp, fontFamily = FontFamily.Monospace)
-                    Text(g.text.ifEmpty { "(no transcript)" })
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun HoldButton(enabled: Boolean, active: Boolean, label: String, onPress: () -> Unit, onRelease: () -> Unit) {
-    Box(
-        Modifier
-            .size(96.dp)
-            .clip(CircleShape)
-            .pointerInput(enabled) {
-                if (enabled) detectTapGestures(onPress = { onPress(); tryAwaitRelease(); onRelease() })
-            },
-        contentAlignment = Alignment.Center,
-    ) {
-        Surface(Modifier.fillMaxSize(), color = if (active) Color.Red else if (enabled) MaterialTheme.colorScheme.primary else Color.Gray) {
-            Box(contentAlignment = Alignment.Center) { Text(label, color = Color.White, fontSize = 12.sp) }
-        }
     }
 }
 

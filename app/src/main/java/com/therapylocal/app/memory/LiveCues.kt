@@ -3,6 +3,7 @@ package com.therapylocal.app.memory
 import android.os.SystemClock
 import com.therapylocal.app.asr.Pcm
 import com.therapylocal.app.config.LiveCueConfig
+import com.therapylocal.app.data.MindStore
 import com.therapylocal.app.embed.Embedder
 import com.therapylocal.app.log.AppLog
 import com.therapylocal.app.log.LogCtx
@@ -18,8 +19,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-/** One "possibly relevant" fact. [score] is the smoothed cosine between the live audio window and the fact. [chunk] is the source chunk in memory.db, 0 if unknown. */
-data class Cue(val factId: String, val text: String, val category: String, val session: String, val chunk: Int, val score: Float)
+/** One "possibly relevant" fact. [score] is the smoothed cosine between the live audio window and the fact. [chunk] is the fact's transcript segment. */
+data class Cue(val factId: String, val text: String, val heading: String, val session: String, val chunk: Int, val score: Float)
 
 /**
  * Realtime fact cues during a session. The recorder feeds raw samples into [feed]; every [LiveCueConfig.TICK_MS] the last
@@ -30,7 +31,7 @@ data class Cue(val factId: String, val text: String, val category: String, val s
  * Never throws to the caller: failures land on [error] and the next tick retries. An unknown client or one without facts gives an empty list.
  * Audio stays in memory (a 20 s ring), nothing is written to disk and no text is logged, only fact ids and scores.
  */
-class LiveCues(private val embedder: Embedder, private val store: MemoryStore) {
+class LiveCues(private val embedder: Embedder, private val store: MindStore) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private val _cues = MutableStateFlow<List<Cue>>(emptyList())
     private val _running = MutableStateFlow(false)
@@ -141,7 +142,7 @@ class LiveCues(private val embedder: Embedder, private val store: MemoryStore) {
             val t0 = SystemClock.elapsedRealtime()
             val vec = embedder.embedAudio(pcm, LogCtx.NONE, role = "live_cue")
             val t1 = SystemClock.elapsedRealtime()
-            val scored = withContext(Dispatchers.IO) { store.nearest(client, vec, Int.MAX_VALUE) }
+            val scored = withContext(Dispatchers.IO) { store.nearestFacts(client, vec, Int.MAX_VALUE) }.map { (f, d) -> f.toFact() to d }
             val t2 = SystemClock.elapsedRealtime()
 
             val a = LiveCueConfig.SMOOTH_ALPHA
@@ -154,7 +155,7 @@ class LiveCues(private val embedder: Embedder, private val store: MemoryStore) {
             val top = now.sortedByDescending { it.second }.filter { it.second >= LiveCueConfig.SCORE_FLOOR }.take(LiveCueConfig.TOP_K)
             // A stopped or restarted session must not publish a stale tick.
             if (gen == generation) {
-                _cues.value = top.map { (f, s, _) -> Cue(f.id, f.fact, f.category, f.session, f.chunk, s) }
+                _cues.value = top.map { (f, s, _) -> Cue(f.id, f.fact, f.subject, f.session, f.chunk, s) }
                 _error.value = null
             }
             span.put("embed_ms", t1 - t0)

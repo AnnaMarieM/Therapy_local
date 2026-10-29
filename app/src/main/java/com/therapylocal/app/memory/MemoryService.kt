@@ -152,5 +152,11 @@ class MemoryService : Service() {
         fun start(context: Context, debugJob: Boolean = false) {
             context.startForegroundService(Intent(context, MemoryService::class.java).putExtra(EXTRA_DEBUG_JOB, debugJob))
         }
+
+        /** Asks a running queue to stop after its current step and stops the service. */
+        fun stop(context: Context) {
+            MemoryQueue.cancelRequested = true
+            context.stopService(Intent(context, MemoryService::class.java))
+        }
     }
 }

@@ -26,10 +26,10 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.therapylocal.app.MainViewModel
+import com.therapylocal.app.data.Ids
 import com.therapylocal.app.Phase
 import com.therapylocal.app.memory.Fact
 import com.therapylocal.app.memory.JobStatus
-import com.therapylocal.app.memory.MemoryProcessor
 import com.therapylocal.app.memory.MemoryQueue
 import com.therapylocal.app.ui.data.ClientsViewModel
 import com.therapylocal.app.ui.components.ChoosePatientSessionDialog
@@ -106,7 +106,7 @@ fun MindVaultApp(
 
         // Transcript chunks arrive as the pipeline stores them (the recordings list changes after each chunk).
         LaunchedEffect(recordingId, vmState.recordings) {
-            recordingId?.let { rid -> transcript = viewModel.recordingChunks(rid).map { it.text }.filter { it.isNotBlank() } }
+            recordingId?.let { rid -> transcript = viewModel.recordingChunks(rid).mapNotNull { it.text?.takeIf(String::isNotBlank) } }
         }
 
         var pendingEnqueue by remember { mutableStateOf<Triple<String, String, String>?>(null) }
@@ -174,7 +174,7 @@ fun MindVaultApp(
             val now = System.currentTimeMillis()
             sessionPatient = p
             sessionClient = client
-            sessionId = MemoryProcessor.sessionId(client, now)
+            sessionId = Ids.sessionId(client, now)
             sessionDate = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(java.util.Date(now))
             sessionSecs = 0L
             surfacedQuotes.clear()
@@ -277,7 +277,7 @@ fun MindVaultApp(
                                     selectedPatient = p
                                     currentScreen = "profile"
                                 },
-                                onAddPatient = { newP -> clientsVm.create(newP.name, null, "") },
+                                onAddPatient = { newP -> clientsVm.create(newP.name) },
                                 onDeletePatient = { p -> clientsVm.delete(p.id) },
                                 onOpenSettings = {
                                     currentTab = "settings"
@@ -329,7 +329,7 @@ fun MindVaultApp(
                                 deferredNote = vmState.deferred && vmState.recording,
                                 cues = cues,
                                 cuesError = cuesError,
-                                loadSource = { cue -> withContext(Dispatchers.IO) { repo.sourceChunk(sessionClient, cue.session, cue.chunk) } },
+                                loadSource = { cue -> withContext(Dispatchers.IO) { repo.sourceChunk(cue.session, cue.chunk) } },
                                 onEndSession = endSession,
                                 onSwitchPatient = {
                                     currentTab = "patients"

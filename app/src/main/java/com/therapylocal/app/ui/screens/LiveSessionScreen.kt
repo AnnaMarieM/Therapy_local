@@ -575,7 +575,7 @@ private fun CueRow(cue: Cue, loadSource: suspend (Cue) -> String?) {
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                PillBadge(text = cue.category, color = SageDark, background = SageLight)
+                PillBadge(text = cue.heading, color = SageDark, background = SageLight)
                 Box(
                     modifier = Modifier
                         .weight(1f)

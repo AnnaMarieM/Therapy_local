@@ -11,21 +11,16 @@ import com.therapylocal.app.audio.AudioChunk
 import com.therapylocal.app.audio.ChunkRecorder
 import com.therapylocal.app.audio.TestAudio
 import com.therapylocal.app.config.BackendPolicy
-import com.therapylocal.app.config.EmbeddingConfig
-import com.therapylocal.app.config.SearchConfig
 import com.therapylocal.app.data.ChunkProcessor
 import com.therapylocal.app.data.ChunkRow
-import com.therapylocal.app.data.HitGroup
+import com.therapylocal.app.data.MindStore
 import com.therapylocal.app.data.PendingAudio
 import com.therapylocal.app.data.RecordingRow
-import com.therapylocal.app.data.Search
-import com.therapylocal.app.data.Store
 import com.therapylocal.app.embed.Embedder
 import com.therapylocal.app.log.AppLog
 import com.therapylocal.app.log.LogCtx
 import com.therapylocal.app.memory.LiveCues
 import com.therapylocal.app.memory.MemoryFiles
-import com.therapylocal.app.memory.MemoryStore
 import com.therapylocal.app.models.ModelSetup
 import com.therapylocal.app.models.SetupState
 import kotlinx.coroutines.Dispatchers
@@ -39,7 +34,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
-import java.util.concurrent.atomic.AtomicInteger
 
 enum class Phase { Preparing, Ready, Failed }
 
@@ -61,11 +55,6 @@ data class UiState(
     val selected: Long? = null,
     val selectedChunks: List<ChunkRow> = emptyList(),
     val selectedMerged: String = "",
-    val query: String = "",
-    val voiceRecording: Boolean = false,
-    val searching: Boolean = false,
-    val hits: List<HitGroup> = emptyList(),
-    val searchInfo: String = "",
     val testFiles: List<String> = emptyList(),
     val error: String? = null,
 )
@@ -84,18 +73,16 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     )
     val state: StateFlow<UiState> = _state.asStateFlow()
 
-    private val store = Store(app)
+    private val store get() = MindStore.get(ctx)
     private val embedder = Embedder(app)
 
     /** Realtime fact cues while recording: call `liveCues.start(client)` before startRecording(); it stops itself when the recording ends. */
-    val liveCues = LiveCues(embedder, MemoryStore(app))
+    val liveCues = LiveCues(embedder, MindStore.get(app))
     private var asr: AsrEngine? = null
     private var prepareJob: Job? = null
 
     private var recorder: ChunkRecorder? = null
-    private var voiceRecorder: ChunkRecorder? = null
     private var pipelineJob: Job? = null
-    private val queryCounter = AtomicInteger(0)
 
     init {
         BackendPolicy.override = _state.value.backendOverride
@@ -118,7 +105,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     private fun change(reload: Boolean, f: (UiState) -> UiState) {
-        if (_state.value.recording || _state.value.voiceRecording) return
+        if (_state.value.recording) return
         _state.update(f)
         val s = _state.value
         AppLog.i(TAG, "settings_changed", LogCtx.NONE, "engine" to s.engine, "whisper_size" to s.whisperSize, "language" to s.language, "backend_override" to s.backendOverride)
@@ -181,7 +168,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         if (s.recording) return
         val engine = asr.takeIf { s.phase == Phase.Ready } // null: engines not loaded yet, so the audio is only stored and transcribed later
         viewModelScope.launch {
-            val rid = withContext(Dispatchers.IO) { if (engine != null) store.createRecording(engine.engineName, engine.modelName) else store.createRecording("pending", "pending") }
+            val rid = withContext(Dispatchers.IO) { if (engine != null) store.createRecording(null, engine.engineName, engine.modelName) else store.createRecording(null, "pending", "pending") }
             val c = LogCtx(rid)
             val rec = ChunkRecorder.recording(c)
             if (engine != null) rec.tap = liveCues::feed
@@ -195,7 +182,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             recorder = rec
             _state.update { it.copy(recording = true, deferred = engine == null, activeRecordingId = rid, status = "Recording", error = null, pendingChunks = 0) }
             pipelineJob = launch(Dispatchers.Default) {
-                if (engine != null) runPipeline(rid, rec, ChunkProcessor(store, embedder, engine), engine) else runDeferred(rid, rec)
+                if (engine != null) runPipeline(rid, rec, ChunkProcessor(store, engine), engine) else runDeferred(rid, rec)
                 recorder = null
                 _state.update { it.copy(recording = false, activeRecordingId = null, status = "Done") }
                 refreshRecordings()
@@ -240,11 +227,11 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         _state.update { it.copy(status = "Listening") }
     }
 
-    /** Per chunk: embed the AUDIO directly, transcribe it for reading, embed the transcript too (for the quality comparison), store. */
+    /** Per chunk: transcribe it and store the text. */
     private suspend fun runPipeline(rid: Long, rec: ChunkRecorder, processor: ChunkProcessor, engine: AsrEngine) {
         val ctx0 = LogCtx(rid)
         var processed = 0
-        // While live cues run they own the embedder, so chunks are only collected (in memory) until the recording ends; embedding, ASR and storing happen after.
+        // While live cues run they own the embedder, so chunks are only collected (in memory) until the recording ends; ASR and storing happen after.
         val held = ArrayList<AudioChunk>()
         if (liveCues.running.value) {
             for (chunk in rec.chunks) held += chunk
@@ -253,12 +240,9 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         val queued = if (held.isEmpty()) rec.chunks else Channel<AudioChunk>(Channel.UNLIMITED).also { ch -> held.forEach { ch.trySend(it) }; ch.close() }
         for (chunk in queued) {
             val c = ctx0.chunk(chunk.idx)
-            _state.update { it.copy(pendingChunks = it.pendingChunks + 1, status = "Chunk ${chunk.idx}: embedding audio") }
+            _state.update { it.copy(pendingChunks = it.pendingChunks + 1, status = "Chunk ${chunk.idx}: transcribing (${engine.modelName})") }
             try {
-                processor.process(rid, chunk) { stage ->
-                    val label = if (stage == "transcribing") "transcribing (${engine.modelName})" else "embedding audio"
-                    _state.update { it.copy(status = "Chunk ${chunk.idx}: $label") }
-                }
+                processor.process(rid, chunk)
                 processed++
             } catch (t: Throwable) {
                 AppLog.e(TAG, "chunk_failed", c, t)
@@ -275,7 +259,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     fun refreshRecordings() {
         viewModelScope.launch(Dispatchers.IO) {
-            val list = store.listRecordings()
+            val list = store.recordings()
             val sel = _state.value.selected
             val chunks = if (sel != null) store.chunks(sel) else emptyList()
             val merged = if (chunks.isNotEmpty()) mergedText(sel!!, chunks) else ""
@@ -303,12 +287,10 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     fun deleteRecording(id: Long) {
         viewModelScope.launch(Dispatchers.IO) {
-            val r = store.deleteRecording(id)
+            val removed = store.deleteRecording(id)
             PendingAudio.delete(ctx, id)
-            val (recs, chunks) = store.counts()
-            AppLog.i(TAG, "delete_verified", LogCtx(rid = id), "removed_recordings" to r.recordings, "removed_chunks" to r.chunks, "remaining_recordings" to recs, "remaining_chunks" to chunks, "audio_files_on_disk" to pendingAudioFiles(id))
+            AppLog.i(TAG, "delete_verified", LogCtx(rid = id), "removed" to removed, "chunks_left" to store.chunks(id).size, "audio_files_on_disk" to pendingAudioFiles(id))
             if (_state.value.selected == id) _state.update { it.copy(selected = null) }
-            _state.update { it.copy(hits = it.hits.filter { h -> h.recordingId != id }) }
             refreshRecordings()
         }
     }
@@ -317,95 +299,18 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     fun deleteAll() {
         viewModelScope.launch(Dispatchers.IO) {
-            val r = store.deleteAll()
+            val removed = store.recordings().count { store.deleteRecording(it.id) }
             File(MemoryFiles.secureRoot(ctx), "audio").deleteRecursively()
-            val (recs, chunks) = store.counts()
-            AppLog.i(TAG, "delete_all_verified", LogCtx.NONE, "removed_recordings" to r.recordings, "removed_chunks" to r.chunks, "remaining_recordings" to recs, "remaining_chunks" to chunks, "audio_files_on_disk" to (File(MemoryFiles.secureRoot(ctx), "audio").walkTopDown().count { it.isFile }))
-            _state.update { it.copy(selected = null, hits = emptyList()) }
+            AppLog.i(TAG, "delete_all_verified", LogCtx.NONE, "removed_recordings" to removed, "remaining_recordings" to store.recordings().size, "audio_files_on_disk" to (File(MemoryFiles.secureRoot(ctx), "audio").walkTopDown().count { it.isFile }))
+            _state.update { it.copy(selected = null) }
             refreshRecordings()
-        }
-    }
-
-    // ---- search ---------------------------------------------------------------------------------------------
-
-    fun setQuery(q: String) = _state.update { it.copy(query = q) }
-
-    /** Text query: embedded as text into the same space as the stored chunk AUDIO vectors. */
-    fun searchText() {
-        val q = _state.value.query.trim()
-        if (q.isEmpty() || _state.value.phase != Phase.Ready) return
-        val c = LogCtx(cid = "q${queryCounter.incrementAndGet()}")
-        viewModelScope.launch(Dispatchers.Default) {
-            runSearch("text", c) { embedder.embedText(q, true, c) }
-        }
-    }
-
-    /** Voice query: the clip's AUDIO is embedded directly. It is never transcribed. */
-    fun startVoiceSearch() = beginVoiceSearch { rec -> rec.start() }
-
-    /** Debug: use `files/test/<name>` as the spoken query. */
-    fun debugQueryFile(name: String) {
-        val pcm = TestAudio.load(ctx, name)
-        AppLog.i(TAG, "debug_query_file", LogCtx.NONE, "file" to name, "audio_sec" to "%.1f".format(pcm.size / 16000.0))
-        beginVoiceSearch { rec -> rec.startFromPcm(pcm) }
-    }
-
-    private fun beginVoiceSearch(startSource: (ChunkRecorder) -> Unit) {
-        if (_state.value.phase != Phase.Ready || _state.value.voiceRecording || _state.value.recording) return
-        val c = LogCtx(cid = "q${queryCounter.incrementAndGet()}")
-        val rec = ChunkRecorder.query(c)
-        try {
-            startSource(rec)
-        } catch (t: Throwable) {
-            _state.update { it.copy(error = "Recording failed: ${t.message}") }
-            return
-        }
-        voiceRecorder = rec
-        _state.update { it.copy(voiceRecording = true, error = null) }
-        viewModelScope.launch(Dispatchers.Default) {
-            var clip: com.therapylocal.app.audio.AudioChunk? = null
-            for (chunk in rec.chunks) if (clip == null) clip = chunk
-            voiceRecorder = null
-            _state.update { it.copy(voiceRecording = false) }
-            val heard = clip
-            if (heard == null) {
-                _state.update { it.copy(searching = false, searchInfo = "Too short, hold the button while speaking") }
-                return@launch
-            }
-            runSearch("voice", c) { embedder.embedAudio(heard.pcm, c, role = "query") }
-        }
-    }
-
-    fun stopVoiceSearch() {
-        val rec = voiceRecorder ?: return
-        viewModelScope.launch(Dispatchers.Default) { rec.stop() }
-    }
-
-    private suspend fun runSearch(kind: String, c: LogCtx, embedQuery: suspend () -> FloatArray) {
-        _state.update { it.copy(searching = true, searchInfo = "Searching") }
-        try {
-            AppLog.span(TAG, "search", c, "kind" to kind) { span ->
-                val t0 = System.nanoTime()
-                val qv = embedQuery()
-                val embedMs = (System.nanoTime() - t0) / 1_000_000
-                val raw = withContext(Dispatchers.IO) { Search.topK(store, qv, SearchConfig.RAW_TOP_K, kind, c) }
-                val groups = Search.collapse(raw, c).take(SearchConfig.SHOWN)
-                span.put("embed_ms", embedMs)
-                span.put("groups", groups.size)
-                _state.update { it.copy(hits = groups, searching = false, searchInfo = "${groups.size} results, query embedded in $embedMs ms") }
-            }
-        } catch (t: Throwable) {
-            AppLog.e(TAG, "search_failed", c, t)
-            _state.update { it.copy(searching = false, error = "Search failed: ${t.message}") }
         }
     }
 
     override fun onCleared() {
         recorder?.stop()
-        voiceRecorder?.stop()
         asr?.close()
         embedder.close()
-        store.close()
     }
 
     companion object {

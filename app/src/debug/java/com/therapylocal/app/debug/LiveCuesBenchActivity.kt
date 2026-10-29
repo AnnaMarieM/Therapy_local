@@ -5,11 +5,11 @@ import android.os.Bundle
 import android.widget.TextView
 import com.therapylocal.app.audio.ChunkRecorder
 import com.therapylocal.app.audio.TestAudio
+import com.therapylocal.app.data.MindStore
 import com.therapylocal.app.embed.Embedder
 import com.therapylocal.app.log.AppLog
 import com.therapylocal.app.log.LogCtx
 import com.therapylocal.app.memory.LiveCues
-import com.therapylocal.app.memory.MemoryStore
 import com.therapylocal.app.vault.Vault
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -49,8 +49,8 @@ class LiveCuesBenchActivity : Activity() {
             try {
                 say("loading embedder")
                 val embedder = Embedder(applicationContext).also { it.load() }
-                val store = MemoryStore(applicationContext)
-                val (chunks, facts) = store.counts(client)
+                val store = MindStore.get(applicationContext)
+                val facts = store.facts(client).size
                 AppLog.i("LiveCuesBench", "bench_start", LogCtx.NONE, "client" to client, "file" to file, "speed" to speed, "facts" to facts, "backend" to embedder.backend)
                 val pcm = TestAudio.load(applicationContext, file)
                 val cues = LiveCues(embedder, store)
@@ -68,9 +68,9 @@ class LiveCuesBenchActivity : Activity() {
                     if (key != last) {
                         last = key
                         out.appendText(JSONObject().put("t", "%.1f".format(sec)).put("error", cues.error.value ?: JSONObject.NULL)
-                            .put("cues", JSONArray(now.map { JSONObject().put("id", it.factId).put("cat", it.category).put("score", "%.3f".format(it.score)) })).toString() + "\n")
+                            .put("cues", JSONArray(now.map { JSONObject().put("id", it.factId).put("heading", it.heading).put("score", "%.3f".format(it.score)) })).toString() + "\n")
                     }
-                    say("t=%.0fs of %.0fs · %d cues · facts=%d chunks=%d%s".format(sec, pcm.size / 16000.0 / speed, now.size, facts, chunks, cues.error.value?.let { " · ERR $it" } ?: ""))
+                    say("t=%.0fs of %.0fs · %d cues · facts=%d%s".format(sec, pcm.size / 16000.0 / speed, now.size, facts, cues.error.value?.let { " · ERR $it" } ?: ""))
                 }
                 cues.stop()
                 rec.stop()
