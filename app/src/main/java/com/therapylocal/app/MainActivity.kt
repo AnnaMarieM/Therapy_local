@@ -53,8 +53,8 @@ import com.therapylocal.app.config.ChunkConfig
 import com.therapylocal.app.log.AppLog
 import com.therapylocal.app.models.ModelSetup
 import com.therapylocal.app.models.SetupState
-import com.therapylocal.app.memory.MemoryLab
-import com.therapylocal.app.memory.MemoryProcessor
+import com.therapylocal.app.memory.DevHarness
+import com.therapylocal.app.memory.MemoryService
 import com.therapylocal.app.ui.MindVaultApp
 import com.therapylocal.app.ui.screens.VaultGate
 import com.therapylocal.app.ui.theme.MindVaultTheme
@@ -88,10 +88,10 @@ class MainActivity : FragmentActivity() {
 
             LaunchedEffect(unlocked, gatePassed) {
                 if (unlocked && gatePassed) {
-                    MemoryProcessor.resumePending(applicationContext)
+                    MemoryService.resumePending(applicationContext)
                     if (memoryLabRequested) {
                         memoryLabRequested = false
-                        MemoryLab.start(applicationContext)
+                        DevHarness.start(applicationContext)
                     }
                 }
             }
@@ -189,7 +189,7 @@ private fun Chips(label: String, options: List<String>, selected: String, enable
 
 @Composable
 private fun RecordTab(s: UiState, vm: MainViewModel, hasMic: () -> Boolean, requestMic: () -> Unit) {
-    val locked = s.recording || s.pendingChunks > 0
+    val locked = s.recording
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Chips("Transcript", listOf("whisper", "gemma"), s.engine, !locked, vm::setEngine)
         if (s.engine == "whisper") {
@@ -197,7 +197,6 @@ private fun RecordTab(s: UiState, vm: MainViewModel, hasMic: () -> Boolean, requ
             Chips("Language", listOf("auto", "en", "sk", "cs"), s.language, !locked, vm::setLanguage)
         }
         if (BuildConfig.DEBUG) Chips("Backend", listOf("auto", "npu", "gpu", "cpu"), s.backendOverride, !locked, vm::setBackendOverride)
-        Text("Transcript: ${s.asrBackend}", fontSize = 12.sp, fontFamily = FontFamily.Monospace)
         Text("Embeddings: embeddinggemma-2 ${s.embedBackend}", fontSize = 12.sp, fontFamily = FontFamily.Monospace)
         Text("Chunking: ${ChunkConfig.describe()}", fontSize = 12.sp, fontFamily = FontFamily.Monospace)
         Divider()
@@ -207,10 +206,6 @@ private fun RecordTab(s: UiState, vm: MainViewModel, hasMic: () -> Boolean, requ
             modifier = Modifier.fillMaxWidth(),
         ) { Text(if (s.recording) "Stop recording" else "Start recording") }
         Text(s.status.ifEmpty { "Idle" })
-        if (s.pendingChunks > 0) {
-            Text("Chunks in queue: ${s.pendingChunks}")
-            LinearProgressIndicator(Modifier.fillMaxWidth())
-        }
         s.error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
         s.activeRecordingId?.let { Text("Recording #$it (see Recordings)", fontSize = 12.sp) }
         if (BuildConfig.DEBUG && s.testFiles.isNotEmpty()) {

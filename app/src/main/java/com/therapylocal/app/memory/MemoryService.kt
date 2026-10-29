@@ -11,13 +11,15 @@ import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.os.IBinder
 import android.os.PowerManager
-import com.therapylocal.app.jobs.JobHandler
+import com.therapylocal.app.data.MindStore
+import com.therapylocal.app.data.PendingAudio
 import com.therapylocal.app.jobs.JobRunner
 import com.therapylocal.app.jobs.Jobs
-import com.therapylocal.app.jobs.ModelPool
+import com.therapylocal.app.jobs.Pipeline
 import com.therapylocal.app.log.AppLog
 import com.therapylocal.app.log.LogCtx
 import com.therapylocal.app.models.ModelSetup
+import com.therapylocal.app.vault.Vault
 
 /**
  * Drains the job queue ([JobRunner]) as a foreground service, so processing continues when the app is in the background or the screen is off.
@@ -66,15 +68,15 @@ class MemoryService : Service() {
             try {
                 val queue = Jobs.queue(app)
                 queue.clearStop()
-                if (debugJob) MemoryLab.seed(app)
+                if (debugJob) DevHarness.seed(app)
                 trackRun()
-                val lab = MemoryLab(app, debugJob)
-                val runner = JobRunner(queue, mapOf(MemoryLab.KIND to JobHandler(lab::process)), ModelPool(app)) { !JobRunner.recordingActive && ModelSetup.isReady(app) }
+                val pipeline = Pipeline(MindStore.get(app), queue, { MemoryFiles.prompt(app, it) }, { PendingAudio.load(app, it) }, { PendingAudio.delete(app, it) })
+                val runner = JobRunner(queue, pipeline.handlers, DeviceModels.pool(app)) { !JobRunner.recordingActive && ModelSetup.isReady(app) }
                 do {
                     runner.drain()
                     trackRun()
                 } while (runner.hasWork()) // a session enqueued just as the run ended
-                if (debugJob) MemoryLab.markDone(app)
+                if (debugJob) DevHarness.markDone(app)
             } catch (t: Throwable) {
                 AppLog.e(MemoryLlm.TAG, "memory_lab_failed", LogCtx.NONE, t)
                 // Stack traces can quote patient text (e.g. JSON parse errors), so they are only written for the developer harness, never in app mode.
@@ -163,6 +165,14 @@ class MemoryService : Service() {
         /** [debugJob] makes the run honour files/memory/job.json (fixed session list, settings, optional reset). The app itself never does. */
         fun start(context: Context, debugJob: Boolean = false) {
             context.startForegroundService(Intent(context, MemoryService::class.java).putExtra(EXTRA_DEBUG_JOB, debugJob))
+        }
+
+        /**
+         * After an unlock, a finished download or a recording: continues a queue that still has pending jobs (the process was killed, the app
+         * locked, or the runner paused). The runner needs the vault key and the AI files; until both are there the jobs just wait in the queue.
+         */
+        fun resumePending(context: Context) {
+            if (Vault.isUnlocked && ModelSetup.isReady(context) && Jobs.queue(context).hasPending()) start(context.applicationContext)
         }
 
         /** Asks a running queue to stop after its current step and stops the service. */

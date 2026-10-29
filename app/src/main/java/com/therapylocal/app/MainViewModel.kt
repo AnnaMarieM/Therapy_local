@@ -2,32 +2,31 @@ package com.therapylocal.app
 
 import android.app.Application
 import android.content.Context
+import android.os.storage.StorageManager
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.therapylocal.app.asr.AsrEngine
-import com.therapylocal.app.asr.GemmaAsr
-import com.therapylocal.app.asr.SherpaWhisperAsr
-import com.therapylocal.app.audio.AudioChunk
 import com.therapylocal.app.audio.ChunkRecorder
 import com.therapylocal.app.audio.TestAudio
 import com.therapylocal.app.config.BackendPolicy
-import com.therapylocal.app.data.ChunkProcessor
+import com.therapylocal.app.config.ChunkConfig
 import com.therapylocal.app.data.ChunkRow
 import com.therapylocal.app.data.MindStore
 import com.therapylocal.app.data.PendingAudio
 import com.therapylocal.app.data.RecordingRow
+import com.therapylocal.app.data.SegmentBuilder
 import com.therapylocal.app.embed.Embedder
+import com.therapylocal.app.jobs.JobGraph
 import com.therapylocal.app.jobs.JobRunner
+import com.therapylocal.app.jobs.Jobs
 import com.therapylocal.app.log.AppLog
 import com.therapylocal.app.log.LogCtx
 import com.therapylocal.app.memory.LiveCues
 import com.therapylocal.app.memory.MemoryFiles
-import com.therapylocal.app.memory.MemoryProcessor
+import com.therapylocal.app.memory.MemoryService
 import com.therapylocal.app.models.ModelSetup
 import com.therapylocal.app.models.SetupState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -42,16 +41,13 @@ enum class Phase { Preparing, Ready, Failed }
 data class UiState(
     val phase: Phase = Phase.Preparing,
     val prepareMsg: String = "Starting",
-    val engine: String = "whisper", // "gemma" or "whisper": which engine writes the transcript shown for each chunk
+    val engine: String = "whisper", // "gemma" or "whisper": which engine transcribes recordings (in the background, after they stop)
     val whisperSize: String = "base",
     val language: String = "auto", // Whisper language: "auto" or a code such as "en"
     val backendOverride: String = "auto", // debug: auto, npu, gpu, cpu
-    val asrBackend: String = "-",
     val embedBackend: String = "-",
     val recording: Boolean = false,
-    val deferred: Boolean = false, // the active/last recording is stored as audio and transcribed after setup finishes
-    val activeRecordingId: Long? = null,
-    val pendingChunks: Int = 0,
+    val activeRecordingId: Long? = null, // set until every chunk of the recording is saved
     val status: String = "",
     val recordings: List<RecordingRow> = emptyList(),
     val selected: Long? = null,
@@ -80,7 +76,6 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     /** Realtime fact cues while recording: call `liveCues.start(client)` before startRecording(); it stops itself when the recording ends. */
     val liveCues = LiveCues(embedder, MindStore.get(app))
-    private var asr: AsrEngine? = null
     private var prepareJob: Job? = null
 
     private var recorder: ChunkRecorder? = null
@@ -89,7 +84,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     init {
         BackendPolicy.override = _state.value.backendOverride
         refreshRecordings()
-        // Memory-lab launches only need the LLM; loading the embedder and Whisper too would take memory the lab model needs.
+        // Memory-lab launches only need the pipeline's models; loading the embedder here too would take memory they need.
         if (!skipPrepare) prepare()
     }
 
@@ -106,14 +101,13 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         it.copy(backendOverride = o)
     }
 
+    /** The speech settings are read by the transcribe job; [prepare] again because they change which AI files are needed. */
     private fun change(reload: Boolean, f: (UiState) -> UiState) {
         if (_state.value.recording) return
         _state.update(f)
         val s = _state.value
         AppLog.i(TAG, "settings_changed", LogCtx.NONE, "engine" to s.engine, "whisper_size" to s.whisperSize, "language" to s.language, "backend_override" to s.backendOverride)
         if (reload) embedder.close()
-        asr?.close()
-        asr = null
         prepare()
     }
 
@@ -133,16 +127,12 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    /** Only the embedder, for live cues: speech is transcribed after the session by the queue, never while recording. */
     private suspend fun loadEngines() {
-        val s = _state.value
         try {
             _state.update { it.copy(prepareMsg = "Getting ready") }
             embedder.load()
-            _state.update { it.copy(embedBackend = "text ${embedder.backend} / audio CPU", prepareMsg = "Getting ready") }
-            val engine: AsrEngine = if (s.engine == "gemma") GemmaAsr(ctx) else SherpaWhisperAsr(ctx, s.whisperSize, s.language)
-            engine.load()
-            asr = engine
-            _state.update { it.copy(phase = Phase.Ready, asrBackend = "${engine.modelName} ${engine.backend}", prepareMsg = "Ready") }
+            _state.update { it.copy(phase = Phase.Ready, embedBackend = "text ${embedder.backend} / audio CPU", prepareMsg = "Ready") }
         } catch (t: Throwable) {
             AppLog.e(TAG, "prepare_failed", LogCtx.NONE, t)
             _state.update { it.copy(phase = Phase.Failed, error = t.message) }
@@ -156,24 +146,36 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     // ---- recording ------------------------------------------------------------------------------------------
 
-    fun startRecording() = beginRecording { rec -> rec.start() }
+    /** Records [session] of [client]: its row is created now (the first time), and its audio is processed once every chunk is saved. */
+    fun startRecording(client: String, session: String) = beginRecording(client to session) { rec -> rec.start() }
+
+    /** Debug: a recording outside any session. Its audio is kept but never processed. */
+    fun startRecording() = beginRecording(null) { rec -> rec.start() }
 
     /** Debug: replay `files/test/<name>` through the real chunker instead of the microphone. */
     fun debugRecordFile(name: String) {
         val pcm = TestAudio.load(ctx, name)
         AppLog.i(TAG, "debug_record_file", LogCtx.NONE, "file" to name, "samples" to pcm.size, "audio_sec" to "%.1f".format(pcm.size / 16000.0))
-        beginRecording { rec -> rec.startFromPcm(pcm) }
+        beginRecording(null) { rec -> rec.startFromPcm(pcm) }
     }
 
-    private fun beginRecording(startSource: (ChunkRecorder) -> Unit) {
+    /** [owner] is (client, session), null for a debug recording. */
+    private fun beginRecording(owner: Pair<String, String>?, startSource: (ChunkRecorder) -> Unit) {
         val s = _state.value
         if (s.recording) return
-        val engine = asr.takeIf { s.phase == Phase.Ready } // null: engines not loaded yet, so the audio is only stored and transcribed later
         viewModelScope.launch {
-            val rid = withContext(Dispatchers.IO) { if (engine != null) store.createRecording(null, engine.engineName, engine.modelName) else store.createRecording(null, "pending", "pending") }
+            // The audio stays on the phone until it is processed; a recording that cannot be saved is better not started.
+            if (withContext(Dispatchers.IO) { freeBytes() } < ChunkConfig.MIN_FREE_BYTES) {
+                _state.update { it.copy(error = "Not enough free storage to record. Free some space and try again.") }
+                return@launch
+            }
+            val rid = withContext(Dispatchers.IO) {
+                owner?.let { (client, session) -> store.createSession(session, client, System.currentTimeMillis()) }
+                store.createRecording(owner?.second, s.engine, "")
+            }
             val c = LogCtx(rid)
             val rec = ChunkRecorder.recording(c)
-            if (engine != null) rec.tap = liveCues::feed
+            rec.tap = liveCues::feed
             try {
                 startSource(rec)
             } catch (t: Throwable) {
@@ -183,14 +185,17 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             }
             recorder = rec
             JobRunner.recordingActive = true
-            _state.update { it.copy(recording = true, deferred = engine == null, activeRecordingId = rid, status = "Recording", error = null, pendingChunks = 0) }
+            _state.update { it.copy(recording = true, activeRecordingId = rid, status = "Recording", error = null) }
             pipelineJob = launch(Dispatchers.Default) {
                 try {
-                    if (engine != null) runPipeline(rid, rec, ChunkProcessor(store, engine), engine) else runDeferred(rid, rec)
+                    saveChunks(rid, rec)
+                    liveCues.stop()
+                    // Only now, with the last chunk saved, is the recording handed to the queue (a deleted session has nothing to process).
+                    owner?.let { (_, session) -> withContext(Dispatchers.IO) { if (store.sessionExists(session)) JobGraph.enqueueRecording(Jobs.queue(ctx), session, rid) } }
                 } finally {
                     // The queue does not start new jobs while recording; anything that waited runs now.
                     JobRunner.recordingActive = false
-                    MemoryProcessor.resumePending(ctx)
+                    MemoryService.resumePending(ctx)
                 }
                 recorder = null
                 _state.update { it.copy(recording = false, activeRecordingId = null, status = "Done") }
@@ -199,23 +204,29 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    /** True when the recording's audio is still waiting to be transcribed. */
-    fun isDeferred(rid: Long): Boolean = PendingAudio.has(ctx, rid)
+    /** Internal storage the app can still use, counting cache the system would clear for it. */
+    private fun freeBytes(): Long {
+        val storage = ctx.getSystemService(StorageManager::class.java)
+        return storage.getAllocatableBytes(storage.getUuidForPath(ctx.filesDir))
+    }
 
-    /** Engines not ready: keep every chunk's audio (encrypted) for the processing queue; nothing is transcribed now. */
-    private suspend fun runDeferred(rid: Long, rec: ChunkRecorder) {
+    /** Every chunk is kept encrypted for the transcribe job, with a row that has no text yet. Nothing is transcribed while recording. */
+    private suspend fun saveChunks(rid: Long, rec: ChunkRecorder) {
         val c = LogCtx(rid)
         var saved = 0
         for (chunk in rec.chunks) {
             try {
-                withContext(Dispatchers.IO) { PendingAudio.save(ctx, rid, chunk) }
+                withContext(Dispatchers.IO) {
+                    store.putChunk(ChunkRow(rid, chunk.idx, chunk.startMs, chunk.endMs, chunk.overlapMs, null))
+                    PendingAudio.save(ctx, rid, chunk)
+                }
                 saved++
             } catch (t: Throwable) {
-                AppLog.e(TAG, "chunk_save_failed", c.chunk(chunk.idx), t)
-                _state.update { it.copy(error = "Chunk ${chunk.idx} could not be saved: ${t.message}") }
+                AppLog.e(TAG, "chunk_save_failed", c.chunk(chunk.idx), t, "code" to "IO")
+                _state.update { it.copy(error = "Part of the recording could not be saved (IO).") }
             }
         }
-        AppLog.i(TAG, "recording_deferred", c, "chunks" to saved)
+        AppLog.i(TAG, "recording_saved", c, "chunks" to saved)
     }
 
     fun stopRecording() {
@@ -236,34 +247,6 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         _state.update { it.copy(status = "Listening") }
     }
 
-    /** Per chunk: transcribe it and store the text. */
-    private suspend fun runPipeline(rid: Long, rec: ChunkRecorder, processor: ChunkProcessor, engine: AsrEngine) {
-        val ctx0 = LogCtx(rid)
-        var processed = 0
-        // While live cues run they own the embedder, so chunks are only collected (in memory) until the recording ends; ASR and storing happen after.
-        val held = ArrayList<AudioChunk>()
-        if (liveCues.running.value) {
-            for (chunk in rec.chunks) held += chunk
-            liveCues.stop()
-        }
-        val queued = if (held.isEmpty()) rec.chunks else Channel<AudioChunk>(Channel.UNLIMITED).also { ch -> held.forEach { ch.trySend(it) }; ch.close() }
-        for (chunk in queued) {
-            val c = ctx0.chunk(chunk.idx)
-            _state.update { it.copy(pendingChunks = it.pendingChunks + 1, status = "Chunk ${chunk.idx}: transcribing (${engine.modelName})") }
-            try {
-                processor.process(rid, chunk)
-                processed++
-            } catch (t: Throwable) {
-                AppLog.e(TAG, "chunk_failed", c, t)
-                _state.update { it.copy(error = "Chunk ${chunk.idx} failed: ${t.message}") }
-            } finally {
-                _state.update { it.copy(pendingChunks = (it.pendingChunks - 1).coerceAtLeast(0)) }
-                refreshRecordings()
-            }
-        }
-        AppLog.i(TAG, "recording_done", ctx0, "chunks_stored" to processed)
-    }
-
     // ---- recordings list, delete ----------------------------------------------------------------------------
 
     fun refreshRecordings() {
@@ -278,16 +261,10 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     /** The whole recording as one text, with the words repeated in each 5 s overlap removed. */
     private fun mergedText(rid: Long, chunks: List<ChunkRow>): String {
-        val text = ChunkProcessor.transcript(chunks)
+        val text = SegmentBuilder.build(chunks).joinToString(" ") { it.text }
         AppLog.i(TAG, "transcript_merge", LogCtx(rid = rid), "chunks" to chunks.size, "merged_chars" to text.length)
         return text
     }
-
-    /** Chunk transcripts of one recording, in order. For the MindVault UI, which shows the live transcript. */
-    suspend fun recordingChunks(rid: Long): List<ChunkRow> = withContext(Dispatchers.IO) { store.chunks(rid) }
-
-    /** The whole recording as one text (overlap words removed): what the memory pipeline gets when a session ends. */
-    suspend fun recordingTranscript(rid: Long): String = withContext(Dispatchers.IO) { mergedText(rid, store.chunks(rid)) }
 
     fun select(id: Long?) {
         _state.update { it.copy(selected = id, selectedChunks = emptyList(), selectedMerged = "") }
@@ -318,7 +295,6 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     override fun onCleared() {
         recorder?.stop()
-        asr?.close()
         embedder.close()
     }
 

@@ -29,30 +29,53 @@ object TranscriptMerge {
     private const val UP = 1 // consumes a word of the text so far only
     private const val LEFT = 2 // consumes a word of the next chunk only
 
-    /** [removedWords] per chunk: words dropped from the previous text plus words dropped from this chunk, 0 if no overlap was found. */
-    data class Result(val text: String, val removedWords: List<Int>)
+    /**
+     * [removedWords] per chunk: words dropped from the previous text plus words dropped from this chunk, 0 if no overlap was found.
+     * [kept] per chunk: the range of its own [words] that is in [text] (empty if none is), so each chunk's part of the text is known.
+     */
+    data class Result(val text: String, val removedWords: List<Int>, val kept: List<IntRange>)
+
+    /** How a chunk's text is split into words, here and by callers that index into [Result.kept]. */
+    fun words(text: String): List<String> = text.trim().split(Regex("\\s+")).filter { it.isNotEmpty() }
 
     fun merge(texts: List<String>): Result {
         val words = ArrayList<String>()
+        // For every word in [words]: the chunk it came from and its index in that chunk.
+        val origin = ArrayList<Int>()
+        val position = ArrayList<Int>()
         val removed = ArrayList<Int>()
-        for ((i, t) in texts.withIndex()) {
-            val next = t.trim().split(Regex("\\s+")).filter { it.isNotEmpty() }
-            if (i == 0 || words.isEmpty()) {
-                words += next
-                removed += 0
-                continue
+        fun append(chunk: Int, next: List<String>, from: Int) {
+            for (k in from until next.size) {
+                words += next[k]
+                origin += chunk
+                position += k
             }
-            val stitch = stitch(words, next)
+        }
+        for ((i, t) in texts.withIndex()) {
+            val next = words(t)
+            val stitch = if (words.isEmpty()) null else stitch(words, next)
             if (stitch == null) {
-                words += next
+                append(i, next, 0)
                 removed += 0
             } else {
-                repeat(stitch.dropFromEnd) { words.removeAt(words.size - 1) }
-                words += next.drop(stitch.dropFromStart)
+                repeat(stitch.dropFromEnd) {
+                    words.removeAt(words.size - 1)
+                    origin.removeAt(origin.size - 1)
+                    position.removeAt(position.size - 1)
+                }
+                append(i, next, stitch.dropFromStart)
                 removed += stitch.dropFromEnd + stitch.dropFromStart
             }
         }
-        return Result(words.joinToString(" "), removed)
+        // Words are only dropped from the end of the text so far and the start of the next chunk, so each chunk keeps one contiguous range.
+        val first = IntArray(texts.size) { -1 }
+        val last = IntArray(texts.size) { -1 }
+        for (w in origin.indices) {
+            val c = origin[w]
+            if (first[c] < 0) first[c] = position[w]
+            last[c] = position[w]
+        }
+        return Result(words.joinToString(" "), removed, texts.indices.map { if (first[it] < 0) IntRange.EMPTY else first[it]..last[it] })
     }
 
     /** Drop [dropFromEnd] words from the end of the text so far and [dropFromStart] words from the start of the next chunk. */

@@ -97,9 +97,15 @@ class JobQueue(
     fun enqueue(kind: String, session: String, recording: Long? = null, ref: String = "", dependsOn: List<Long> = emptyList(), maxAttempts: Int = MAX_ATTEMPTS): Long =
         change {
             val all = repo.jobs()
-            all.firstOrNull { it.kind == kind && it.sessionId == session && it.ref == ref && !it.status.settled }?.id
+            unfinished(all, kind, session, ref)?.id
                 ?: repo.insertJob(kind, session, recording, ref, maxAttempts, dependsOn.filter { d -> all.any { it.id == d } }, clock())
         }
+
+    /** The job of this kind, session and [ref] that is not done yet (pending, running or failed), if there is one. */
+    fun unfinished(kind: String, session: String, ref: String = ""): Job? = unfinished(repo.jobs(), kind, session, ref)
+
+    private fun unfinished(all: List<Job>, kind: String, session: String, ref: String) =
+        all.firstOrNull { it.kind == kind && it.sessionId == session && it.ref == ref && !it.status.settled }
 
     /**
      * In one transaction: the oldest pending job whose dependencies are all done and whose kind [canRun] allows, marked running.

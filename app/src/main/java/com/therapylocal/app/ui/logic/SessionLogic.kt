@@ -1,6 +1,7 @@
 package com.therapylocal.app.ui.logic
 
 import com.therapylocal.app.data.Job
+import com.therapylocal.app.jobs.JobGraph
 import com.therapylocal.app.jobs.JobPhase
 import com.therapylocal.app.jobs.QueueSnapshot
 import com.therapylocal.app.jobs.StepProgress
@@ -76,7 +77,7 @@ object SessionLogic {
         JobPhase.Transcribing -> "Transcribing audio"
         JobPhase.Reading -> "Reading ${p.step}/${p.steps}"
         JobPhase.Checking -> "Checking ${p.step}/${p.steps}"
-        else -> if (job?.recordingId != null) "Transcribing audio" else "Extracting notes"
+        else -> if (job?.kind == JobGraph.TRANSCRIBE) "Transcribing audio" else "Extracting notes"
     }
 
     enum class SessionTabTarget { Live, Chooser }

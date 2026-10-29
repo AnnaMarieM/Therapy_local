@@ -28,7 +28,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.therapylocal.app.MainViewModel
 import com.therapylocal.app.data.Ids
 import com.therapylocal.app.Phase
-import com.therapylocal.app.memory.Fact
 import com.therapylocal.app.data.JobStatus
 import com.therapylocal.app.jobs.Jobs
 import com.therapylocal.app.ui.data.ClientsViewModel
@@ -76,16 +75,12 @@ fun MindVaultApp(
         var sessionPaused by rememberSaveable { mutableStateOf(true) }
         val surfacedQuotes = remember { mutableStateListOf<SurfacedQuote>() }
 
-        // The real session: the memory client it belongs to, its id, the recording behind it, and where end-of-session processing stands.
+        // The real session: the memory client it belongs to, its id, and whether it has ended. Its recording is processed in the background.
         var sessionClient by rememberSaveable { mutableStateOf("") }
         var sessionId by rememberSaveable { mutableStateOf("") }
         var sessionDate by rememberSaveable { mutableStateOf("") }
-        var recordingId by remember { mutableStateOf<Long?>(null) }
         var sessionEnded by rememberSaveable { mutableStateOf(false) }
         var recordingStarted by rememberSaveable { mutableStateOf(false) }
-        var enqueued by rememberSaveable { mutableStateOf(false) }
-        var processNote by rememberSaveable { mutableStateOf<String?>(null) }
-        var transcript by remember { mutableStateOf(emptyList<String>()) }
 
         val vmState by viewModel.state.collectAsStateWithLifecycle()
         val cues by viewModel.liveCues.cues.collectAsStateWithLifecycle()
@@ -102,39 +97,6 @@ fun MindVaultApp(
                 sessionSecs += 1
             }
         }
-        LaunchedEffect(vmState.activeRecordingId) { vmState.activeRecordingId?.let { recordingId = it } }
-
-        // Transcript chunks arrive as the pipeline stores them (the recordings list changes after each chunk).
-        LaunchedEffect(recordingId, vmState.recordings) {
-            recordingId?.let { rid -> transcript = viewModel.recordingChunks(rid).mapNotNull { it.text?.takeIf(String::isNotBlank) } }
-        }
-
-        var pendingEnqueue by remember { mutableStateOf<Triple<String, String, String>?>(null) }
-        var pendingRecordingId by remember { mutableStateOf<Long?>(null) }
-
-        // Background session enqueue: once audio recording and every chunk finish transcribing, hand the merged transcript to MemoryProcessor.
-        LaunchedEffect(pendingEnqueue, pendingRecordingId, vmState.recording, vmState.activeRecordingId, vmState.status, vmState.error) {
-            val pending = pendingEnqueue ?: return@LaunchedEffect
-            val rid = pendingRecordingId ?: vmState.activeRecordingId
-            if (rid == null) {
-                if (!vmState.recording && vmState.error != null) pendingEnqueue = null
-                return@LaunchedEffect
-            }
-            if (vmState.recording || vmState.activeRecordingId != null || vmState.status != "Done") return@LaunchedEffect
-            if (viewModel.isDeferred(rid)) {
-                // The queue transcribes the stored audio once setup is done, then removes the recording itself.
-                withContext(Dispatchers.IO) { repo.processRecording(pending.first, pending.second, pending.third, rid) }
-                enqueued = true
-                pendingEnqueue = null
-                pendingRecordingId = null
-                return@LaunchedEffect
-            }
-            val text = viewModel.recordingTranscript(rid)
-            withContext(Dispatchers.IO) { repo.processSession(pending.first, pending.second, pending.third, text) }
-            viewModel.deleteRecording(rid)
-            pendingEnqueue = null
-            pendingRecordingId = null
-        }
         LaunchedEffect(queue.sessions.firstOrNull { it.sessionId == sessionId }?.done) { clientsVm.refresh() }
         LaunchedEffect(queue.jobs.count { it.status == JobStatus.Done }) { clientsVm.refresh() }
 
@@ -145,8 +107,10 @@ fun MindVaultApp(
             }
         }
 
-        val processingByClient = remember(queue, pendingEnqueue) {
-            SessionLogic.processingByClient(queue, pendingEnqueue)
+        // Between the end of a session and its last chunk being saved, nothing is queued yet: shown as finalizing.
+        val finalizing = if (sessionEnded && vmState.activeRecordingId != null) Triple(sessionClient, sessionId, sessionDate) else null
+        val processingByClient = remember(queue, finalizing) {
+            SessionLogic.processingByClient(queue, finalizing)
         }
 
         val resetSession = {
@@ -155,13 +119,9 @@ fun MindVaultApp(
             sessionPatient = null
             sessionId = ""
             sessionClient = ""
-            recordingId = null
             sessionEnded = false
             recordingStarted = false
             sessionPaused = true
-            enqueued = false
-            processNote = null
-            transcript = emptyList()
             currentTab = "patients"
             currentScreen = "patients"
             clientsVm.refresh()
@@ -178,13 +138,9 @@ fun MindVaultApp(
             sessionDate = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(java.util.Date(now))
             sessionSecs = 0L
             surfacedQuotes.clear()
-            transcript = emptyList()
-            recordingId = null
             sessionEnded = false
             recordingStarted = false
             sessionPaused = true
-            enqueued = false
-            processNote = null
             isSessionActive = true
             currentTab = "session"
             currentScreen = "live"
@@ -193,9 +149,8 @@ fun MindVaultApp(
         val endSession = {
             if (recordingStarted) {
                 viewModel.liveCues.stop()
+                // The view model queues the recording once its last chunk is saved.
                 viewModel.stopRecording()
-                pendingEnqueue = Triple(sessionClient, sessionId, sessionDate)
-                pendingRecordingId = recordingId ?: vmState.activeRecordingId
                 sessionEnded = true
                 isSessionActive = false
                 currentScreen = "summary"
@@ -209,7 +164,7 @@ fun MindVaultApp(
             when (t.action) {
                 SessionLogic.PauseAction.StartRecording -> {
                     if (vmState.phase == Phase.Ready) viewModel.liveCues.start(sessionClient)
-                    viewModel.startRecording()
+                    viewModel.startRecording(sessionClient, sessionId)
                 }
                 SessionLogic.PauseAction.ResumeRecording -> viewModel.resumeRecording()
                 SessionLogic.PauseAction.PauseRecording -> viewModel.pauseRecording()
@@ -318,7 +273,6 @@ fun MindVaultApp(
                                 patient = p,
                                 sessionSecs = sessionSecs,
                                 surfacedQuotes = surfacedQuotes,
-                                transcript = transcript,
                                 statusLine = when {
                                     vmState.error != null -> "Recording problem: ${vmState.error}"
                                     sessionPaused && sessionSecs == 0L -> "Ready · Tap Play to begin"
@@ -326,7 +280,6 @@ fun MindVaultApp(
                                     vmState.recording -> "Listening on device"
                                     else -> vmState.status.ifEmpty { "Ready" }
                                 },
-                                deferredNote = vmState.deferred && vmState.recording,
                                 cues = cues,
                                 cuesError = cuesError,
                                 loadSource = { cue -> withContext(Dispatchers.IO) { repo.sourceChunk(cue.session, cue.chunk) } },
@@ -365,10 +318,6 @@ fun MindVaultApp(
                                         resetSession()
                                     },
                                     onDeleteSession = {
-                                        pendingEnqueue = null
-                                        val rid = pendingRecordingId ?: recordingId
-                                        if (rid != null) viewModel.deleteRecording(rid)
-                                        pendingRecordingId = null
                                         repo.deleteSession(sessionClient, sessionId)
                                         resetSession()
                                     }

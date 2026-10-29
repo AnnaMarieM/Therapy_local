@@ -104,7 +104,7 @@ class LiveCues(private val embedder: Embedder, private val store: MindStore) {
         ringFilled = 0
     }
 
-    private suspend fun loop(client: String, gen: Int, smoothed: HashMap<String, Float>) {
+    private suspend fun loop(client: String, gen: Int, smoothed: HashMap<Long, Float>) {
         while (gen == generation) {
             val t0 = SystemClock.elapsedRealtime()
             try {
@@ -130,7 +130,7 @@ class LiveCues(private val embedder: Embedder, private val store: MindStore) {
         out
     }
 
-    private suspend fun tick(client: String, gen: Int, smoothed: HashMap<String, Float>) {
+    private suspend fun tick(client: String, gen: Int, smoothed: HashMap<Long, Float>) {
         val pcm = snapshot() ?: return
         val rms = Pcm.rms(pcm)
         val n = ++tick
@@ -142,7 +142,7 @@ class LiveCues(private val embedder: Embedder, private val store: MindStore) {
             val t0 = SystemClock.elapsedRealtime()
             val vec = embedder.embedAudio(pcm, LogCtx.NONE, role = "live_cue")
             val t1 = SystemClock.elapsedRealtime()
-            val scored = withContext(Dispatchers.IO) { store.nearestFacts(client, vec, Int.MAX_VALUE) }.map { (f, d) -> f.toFact() to d }
+            val scored = withContext(Dispatchers.IO) { store.nearestFacts(client, vec, Int.MAX_VALUE) }
             val t2 = SystemClock.elapsedRealtime()
 
             val a = LiveCueConfig.SMOOTH_ALPHA
@@ -155,7 +155,7 @@ class LiveCues(private val embedder: Embedder, private val store: MindStore) {
             val top = now.sortedByDescending { it.second }.filter { it.second >= LiveCueConfig.SCORE_FLOOR }.take(LiveCueConfig.TOP_K)
             // A stopped or restarted session must not publish a stale tick.
             if (gen == generation) {
-                _cues.value = top.map { (f, s, _) -> Cue(f.id, f.fact, f.subject, f.session, f.chunk, s) }
+                _cues.value = top.map { (f, s, _) -> Cue(f.id.toString(), f.content, f.heading, f.sessionId, f.segIdx, s) }
                 _error.value = null
             }
             span.put("embed_ms", t1 - t0)

@@ -1,49 +1,34 @@
 package com.therapylocal.app.jobs
 
-import android.content.Context
-import com.therapylocal.app.asr.AsrEngine
-import com.therapylocal.app.asr.SherpaWhisperAsr
-import com.therapylocal.app.embed.Embedder
-import com.therapylocal.app.memory.MemoryLlm
-import kotlinx.coroutines.runBlocking
-
 /**
  * The models the handlers use, each loaded on first use and kept across jobs until [close] (the end of a drain), so a multi-GB model is not
- * reloaded per job. There is one Gemma engine per pool: Gemma speech recognition is to share it rather than load the same file a second time.
+ * reloaded per job. The loaders are given by the app (see [com.therapylocal.app.memory.DeviceModels]) or by a test. [loadAsr] gets the LLM,
+ * so Gemma speech recognition can use the LLM's engine instead of loading the same Gemma file a second time.
  */
-class ModelPool(private val context: Context) : AutoCloseable {
-    private var llm: MemoryLlm? = null
-    private var embedder: Embedder? = null
-    private var asr: AsrEngine? = null
+class ModelPool(
+    private val loadLlm: () -> Llm,
+    private val loadEmbed: () -> Embed,
+    private val loadAsr: (llm: () -> Llm) -> Asr,
+    /** The id of the LLM [llm] would load, known without loading it (cache keys). */
+    val llmModel: () -> String,
+) : AutoCloseable {
+    private var llm: Llm? = null
+    private var embed: Embed? = null
+    private var asr: Asr? = null
 
-    /** The first call decides [maxTokens] and the backend order; later calls get the loaded engine. */
-    fun llm(maxTokens: Int, backends: List<String>): MemoryLlm =
-        llm ?: MemoryLlm(context, maxTokens).loaded({ it.load(backends) }, MemoryLlm::close).also { llm = it }
+    fun llm(): Llm = llm ?: loadLlm().also { llm = it }
 
-    /** On CPU: the LLM holds the GPU, and both on the GPU at once can run out of memory on phones. */
-    fun embedder(): Embedder = embedder ?: Embedder(context, forcedBackend = "CPU").loaded({ runBlocking { it.load() } }, Embedder::close).also { embedder = it }
+    fun embed(): Embed = embed ?: loadEmbed().also { embed = it }
 
-    fun whisper(): AsrEngine = asr ?: run {
-        val prefs = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
-        SherpaWhisperAsr(context, prefs.getString("whisper_size", "base") ?: "base", prefs.getString("language", "auto") ?: "auto")
-            .loaded({ runBlocking { it.load() } }, AsrEngine::close).also { asr = it }
-    }
+    fun asr(): Asr = asr ?: loadAsr(::llm).also { asr = it }
 
+    /** The speech recogniser first: it may run on the LLM's engine. */
     override fun close() {
         asr?.close()
-        embedder?.close()
+        embed?.close()
         llm?.close()
         asr = null
-        embedder = null
+        embed = null
         llm = null
-    }
-
-    /** A model that fails to load is closed and not kept, so the next job tries again. */
-    private inline fun <T> T.loaded(load: (T) -> Unit, close: (T) -> Unit): T = try {
-        load(this)
-        this
-    } catch (t: Throwable) {
-        close(this)
-        throw t
     }
 }

@@ -11,11 +11,10 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
 /**
- * Audio of recordings made before setup finished, kept as SecureFiles until transcribed, then deleted.
+ * The audio of a recording, kept as SecureFiles until the session is fully processed, then deleted.
  *
- * Audio is normally never written to disk. It is stored only for a deferred recording (the speech files are not on the phone yet),
- * because the session cannot be written down until they are. Every chunk is encrypted with the vault key (`<idx>.pcm`) and the whole
- * folder is deleted right after the transcript has been produced.
+ * Every chunk is saved while recording (nothing is transcribed live), so a crash mid-session loses no audio. Each is encrypted with the
+ * vault key (`<idx>.pcm`), and the whole folder is deleted only by the session's last job (cleanup), once its facts are stored.
  */
 object PendingAudio {
     private val MAGIC = "TLA1".toByteArray(Charsets.US_ASCII)

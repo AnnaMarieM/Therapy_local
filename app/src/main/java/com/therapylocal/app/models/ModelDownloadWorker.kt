@@ -103,7 +103,7 @@ class ModelDownloadWorker(private val context: Context, params: WorkerParameters
                 .setAutoCancel(true)
                 .build(),
         )
-        if (com.therapylocal.app.vault.Vault.isUnlocked) com.therapylocal.app.memory.MemoryProcessor.resumePending(applicationContext)
+        if (com.therapylocal.app.vault.Vault.isUnlocked) com.therapylocal.app.memory.MemoryService.resumePending(applicationContext)
         return Result.success()
     }
 

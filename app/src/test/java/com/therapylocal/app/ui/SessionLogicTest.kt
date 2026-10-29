@@ -2,6 +2,7 @@ package com.therapylocal.app.ui
 
 import com.therapylocal.app.data.Job
 import com.therapylocal.app.data.JobStatus
+import com.therapylocal.app.jobs.JobGraph
 import com.therapylocal.app.jobs.JobPhase
 import com.therapylocal.app.jobs.QueueSnapshot
 import com.therapylocal.app.jobs.StepProgress
@@ -91,8 +92,8 @@ class SessionLogicTest {
     private var nextId = 1L
     private val day = java.text.SimpleDateFormat("yyyy-MM-dd", Locale.US).parse("2026-10-25")!!.time
 
-    private fun job(session: String, status: JobStatus, recordingId: Long? = null, dependsOn: List<Long> = emptyList()) =
-        Job(nextId++, "process", session, session.substringBefore('_'), day, recordingId, "$session.md", status, 0, 3, null, nextId, dependsOn)
+    private fun job(session: String, status: JobStatus, recordingId: Long? = null, dependsOn: List<Long> = emptyList(), kind: String = JobGraph.EXTRACT) =
+        Job(nextId++, kind, session, session.substringBefore('_'), day, recordingId, "$session.md", status, 0, 3, null, nextId, dependsOn)
 
     private fun banner(vararg jobs: Job, progress: StepProgress? = null, pending: Triple<String, String, String>? = null) =
         SessionLogic.processingByClient(QueueSnapshot.of(jobs.toList(), progress, false), pending)
@@ -122,7 +123,9 @@ class SessionLogicTest {
         fun stage(j: Job, p: StepProgress? = null) = banner(j, progress = p)[j.clientId]!!.stage
         assertEquals("Queued", stage(job("x_1", JobStatus.Pending)))
         assertEquals("Extracting notes", stage(job("x_1", JobStatus.Running)))
-        assertEquals("Transcribing audio", stage(job("x_1", JobStatus.Running, recordingId = 5)))
+        assertEquals("Transcribing audio", stage(job("x_1", JobStatus.Running, recordingId = 5, kind = JobGraph.TRANSCRIBE)))
+        // The later jobs of a recording carry its id too; only transcribe is transcribing.
+        assertEquals("Extracting notes", stage(job("x_1", JobStatus.Running, recordingId = 5, kind = JobGraph.COMMIT)))
         assertEquals("Transcribing audio", stage(job("x_1", JobStatus.Running), StepProgress(JobPhase.Transcribing, 1, 3)))
         assertEquals("Reading 1/2", stage(job("x_1", JobStatus.Running, recordingId = 5), StepProgress(JobPhase.Reading, 1, 2)))
         assertEquals("Checking 4/9", stage(job("x_1", JobStatus.Running), StepProgress(JobPhase.Checking, 4, 9)))

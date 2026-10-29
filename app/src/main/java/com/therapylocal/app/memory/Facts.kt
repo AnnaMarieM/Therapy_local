@@ -1,60 +1,42 @@
 package com.therapylocal.app.memory
 
-import com.therapylocal.app.data.FactRow
-import org.json.JSONArray
+import com.therapylocal.app.data.SegmentRow
 import org.json.JSONObject
+import java.security.MessageDigest
 
-/** One thing known about the client. [evidence] is a verbatim quote from the transcript, so a therapist can always check it. */
-data class Fact(
-    val id: String,
-    val category: String,
-    val subject: String,
-    val fact: String,
-    val evidence: String,
-    val time: String?,
-    val session: String = "",
-    /** 1-based extraction window the fact came from, 0 if unknown. */
-    val chunk: Int = 0,
-) {
-    fun toJson(): JSONObject = JSONObject()
-        .put("id", id).put("category", category).put("subject", subject).put("fact", fact)
-        .put("evidence", evidence).put("time", time ?: JSONObject.NULL).put("session", session).put("chunk", chunk)
+/**
+ * One thing the client said, as extracted from a transcript window: a short [heading], a few plain sentences of [content], and [evidence],
+ * a verbatim quote from the transcript, so a therapist can always check it. [segIdx] is the transcript segment of the quote, 0 if unknown.
+ */
+data class Fact(val heading: String, val content: String, val evidence: String, val segIdx: Int = 0) {
+    fun toJson(): JSONObject = JSONObject().put("heading", heading).put("content", content).put("evidence", evidence).put("seg", segIdx)
 
     companion object {
-        fun fromJson(o: JSONObject) = Fact(
-            o.optString("id"), o.optString("category", "other"), o.optString("subject", "client"), o.optString("fact"),
-            o.optString("evidence"), if (o.isNull("time")) null else o.optString("time"), o.optString("session"), o.optInt("chunk", 0),
-        )
+        fun fromJson(o: JSONObject) = Fact(o.optString("heading"), o.optString("content"), o.optString("evidence"), o.optInt("seg", 0))
     }
 }
 
-/** A stored fact in the extraction shape: heading as subject, content as fact, no category. [Fact.chunk] is the fact's segment. */
-fun FactRow.toFact() = Fact(id.toString(), "", heading, content, evidence, null, sessionId, segIdx)
+/** The review's answer for one candidate: a duplicate of the known fact at index [of] (0-based), or not a duplicate ([of] null). */
+data class Verdict(val duplicate: Boolean, val of: Int?) {
+    fun encode(): String = if (duplicate) "dup:$of" else "new"
+
+    companion object {
+        fun decode(s: String): Verdict? = when {
+            s == "new" -> Verdict(false, null)
+            s.startsWith("dup:") -> s.removePrefix("dup:").toIntOrNull()?.let { Verdict(true, it) }
+            else -> null
+        }
+    }
+}
 
 object FactSchemas {
-    val CATEGORIES = listOf(
-        "family", "relationship", "work", "health", "sleep_substance", "event", "history", "emotion", "coping", "goal", "risk", "other",
-    )
-
-    /** JSON schema for constrained decoding of the extraction stage. */
-    val EXTRACT = """
-    {"type":"object","properties":{"facts":{"type":"array","items":{"type":"object","properties":{
-      "category":{"type":"string","enum":[${CATEGORIES.joinToString(",") { "\"$it\"" }}]},
-      "subject":{"type":"string"},
-      "fact":{"type":"string"},
-      "evidence":{"type":"string"},
-      "time":{"type":"string"}},
-      "required":["category","subject","fact","evidence"]}}},"required":["facts"]}
-    """.trimIndent()
-
-    /** Last-resort constrained schema: non-empty strings and a capped list, because the plain schema let the GPU decoder loop on whitespace. */
+    /** Last-resort constrained schema: non-empty strings and a capped list, because a looser schema let the GPU decoder loop on whitespace. */
     val EXTRACT_STRICT = """
     {"type":"object","properties":{"facts":{"type":"array","maxItems":20,"items":{"type":"object","properties":{
-      "category":{"type":"string","enum":[${CATEGORIES.joinToString(",") { "\"$it\"" }}]},
-      "subject":{"type":"string","minLength":2,"maxLength":40},
-      "fact":{"type":"string","minLength":10,"maxLength":200},
+      "heading":{"type":"string","minLength":2,"maxLength":60},
+      "content":{"type":"string","minLength":10,"maxLength":300},
       "evidence":{"type":"string","minLength":5,"maxLength":160}},
-      "required":["category","subject","fact","evidence"],"additionalProperties":false}}},"required":["facts"],"additionalProperties":false}
+      "required":["heading","content","evidence"],"additionalProperties":false}}},"required":["facts"],"additionalProperties":false}
     """.trimIndent()
 }
 
@@ -83,7 +65,7 @@ object FactParser {
         }
     }
 
-    private val PAIR = Regex("\"(category|subject|fact|evidence|time)\"\\s*:\\s*\"((?:[^\"\\\\]|\\\\.)*)\"")
+    private val PAIR = Regex("\"(heading|content|evidence)\"\\s*:\\s*\"((?:[^\"\\\\]|\\\\.)*)\"")
 
     private fun unescape(s: String) = s.replace("\\\"", "\"").replace("\\n", " ").replace("\\\\", "\\")
 
@@ -107,57 +89,77 @@ object FactParser {
         return out
     }
 
-    fun factsFromLines(text: String, idPrefix: String, session: String, chunk: Int = 0): List<Fact> {
-        val out = ArrayList<Fact>()
-        for (r in records(text)) {
-            val fact = r["fact"]?.trim().orEmpty()
-            if (fact.isEmpty()) continue
-            out += Fact("$idPrefix${out.size + 1}", category(r["category"].orEmpty()), (r["subject"] ?: "client").ifBlank { "client" }, fact, r["evidence"].orEmpty().trim(), null, session, chunk)
-        }
-        return out
-    }
-
-    /** A fact is usable only with a real sentence and a quote to check it against. */
-    fun valid(f: Fact): Boolean = f.fact.length >= 10 && f.evidence.length >= 5
+    /** A fact is usable only with a heading, a real sentence and a quote to check it against. */
+    fun valid(f: Fact): Boolean = f.heading.isNotBlank() && f.content.length >= 10 && f.evidence.length >= 5
 
     /**
      * Any of the shapes the model produces: one JSON object per line (asked for), a {"facts":[...]} object, or a bare array.
-     * Truncated output is salvaged item by item. Only valid facts are returned.
+     * Truncated output is salvaged item by item. Only valid facts are returned, trimmed.
      */
-    fun anyFacts(text: String, idPrefix: String, session: String, chunk: Int): List<Fact> = factsFromLines(text, idPrefix, session, chunk).filter { valid(it) }
-
-    /** The small model sometimes invents categories ("sleep"); map the near misses and fall back to "other". */
-    fun category(raw: String): String {
-        val c = raw.trim().lowercase().replace(' ', '_')
-        return when {
-            c in FactSchemas.CATEGORIES -> c
-            c.startsWith("sleep") || c.startsWith("alcohol") || c.startsWith("substance") -> "sleep_substance"
-            c.startsWith("famil") -> "family"
-            c.startsWith("relat") -> "relationship"
-            c.startsWith("emotion") || c.startsWith("feel") -> "emotion"
-            else -> "other"
-        }
-    }
-
-    fun cleanTime(raw: String): String? = raw.trim().takeIf { it.isNotEmpty() && it.lowercase() !in setOf("n/a", "na", "none", "null", "unknown", "-") }
-
-    fun facts(o: JSONObject, idPrefix: String, session: String): List<Fact> {
-        val arr = o.optJSONArray("facts") ?: return emptyList()
-        return (0 until arr.length()).mapNotNull { i ->
-            val f = arr.optJSONObject(i) ?: return@mapNotNull null
-            val text = f.optString("fact").trim()
-            if (text.isEmpty()) return@mapNotNull null
-            Fact(
-                "$idPrefix${i + 1}", f.optString("category", "other"), f.optString("subject", "client").ifBlank { "client" }, text,
-                f.optString("evidence").trim(), f.optString("time").takeIf { it.isNotBlank() }, session,
-            )
-        }
-    }
-
-    fun ids(a: JSONArray?): List<String> = if (a == null) emptyList() else (0 until a.length()).map { a.optString(it) }
+    fun anyFacts(text: String): List<Fact> = records(text)
+        .map { r -> Fact(r["heading"].orEmpty().trim(), r["content"].orEmpty().trim(), r["evidence"].orEmpty().trim()) }
+        .filter(::valid)
 
     private fun norm(s: String) = s.lowercase().replace(Regex("[^a-z0-9 ]"), " ").replace(Regex("\\s+"), " ").trim()
 
     /** Hallucination filter: the quoted evidence must really occur in the source window (after dropping punctuation and case). */
     fun evidenceHolds(f: Fact, source: String): Boolean = f.evidence.isNotBlank() && norm(source).contains(norm(f.evidence))
+
+    /**
+     * The segment the quote is in, with the same normalisation as [evidenceHolds]; a quote that runs over a segment boundary belongs to the
+     * segment of its first word. Null if the quote is in none of [segments].
+     */
+    fun segmentOf(evidence: String, segments: List<SegmentRow>): Int? {
+        val quote = norm(evidence)
+        if (quote.isEmpty()) return null
+        val joined = StringBuilder()
+        val ends = IntArray(segments.size)
+        segments.forEachIndexed { i, s ->
+            if (joined.isNotEmpty()) joined.append(' ')
+            joined.append(norm(s.text))
+            ends[i] = joined.length
+        }
+        val at = joined.indexOf(quote)
+        if (at < 0) return null
+        return segments[ends.indexOfFirst { at < it }].idx
+    }
+
+    /**
+     * The duplicate verdict of one review reply against [known] facts listed as K1..Kn, or null if the reply is unreadable. A duplicate
+     * without a usable "of" is taken to be of K1, the nearest known fact.
+     */
+    fun verdict(raw: String, known: Int): Verdict? {
+        val o = json(raw)
+        val flag = when (val dup = o?.opt("duplicate")) {
+            is Boolean -> dup
+            is String -> if (dup.equals("true", true)) true else if (dup.equals("false", true)) false else null
+            else -> Regex("(?i)\\b(true|false)\\b").find(raw)?.value?.equals("true", true)
+        } ?: return null
+        if (!flag) return Verdict(false, null)
+        val of = o?.optString("of").orEmpty().trim().removePrefix("K").toIntOrNull()?.minus(1)?.takeIf { it in 0 until known } ?: 0
+        return Verdict(true, of)
+    }
+}
+
+/** Prompt templates: `{{NAME}}` placeholders, and a short version that changes whenever a prompt's text does (cache keys, fact provenance). */
+object Prompts {
+    const val EXTRACT_SYSTEM = "extract.system.txt"
+    const val EXTRACT_USER = "extract.user.txt"
+    const val REVIEW_SYSTEM = "review.system.txt"
+    const val REVIEW_USER = "review.user.txt"
+
+    fun fill(template: String, vars: Map<String, String>) = vars.entries.fold(template) { acc, (k, v) -> acc.replace("{{$k}}", v) }
+
+    fun version(vararg texts: String): String = hash(*texts).take(12)
+
+    /** SHA-256 in hex over [parts], each length-prefixed so different splits never collide. */
+    fun hash(vararg parts: String): String {
+        val md = MessageDigest.getInstance("SHA-256")
+        for (p in parts) {
+            val b = p.toByteArray(Charsets.UTF_8)
+            md.update("${b.size}:".toByteArray(Charsets.UTF_8))
+            md.update(b)
+        }
+        return md.digest().joinToString("") { "%02x".format(it) }
+    }
 }

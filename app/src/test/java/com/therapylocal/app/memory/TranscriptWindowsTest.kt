@@ -1,5 +1,6 @@
 package com.therapylocal.app.memory
 
+import com.therapylocal.app.data.SegmentRow
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
@@ -9,6 +10,9 @@ import kotlin.random.Random
 class TranscriptWindowsTest {
     private fun text(n: Int, sep: String = " ") = (1..n).joinToString(sep) { "w$it" }
     private fun toks(s: String) = s.split(" ")
+
+    /** One segment holding the whole text: the windows are then the plain word windows. */
+    private fun split(text: String, w: Int, o: Int) = TranscriptWindows.bySegments(listOf(SegmentRow(1, 0, 0, text)), w, o).map { it.text }
 
     /** Window count: one window if n <= W, otherwise 1 + ceil((n - W) / (W - O)). */
     private fun expectedCount(n: Int, w: Int, o: Int) = if (n <= w) 1 else 1 + (n - w + (w - o) - 1) / (w - o)
@@ -20,7 +24,7 @@ class TranscriptWindowsTest {
             val n = 1 + rnd.nextInt(400)
             val w = 1 + rnd.nextInt(60)
             val o = rnd.nextInt(w)
-            val win = TranscriptWindows.split(text(n), w, o)
+            val win = split(text(n), w, o)
             val ctx = "n=$n w=$w o=$o"
             assertEquals(ctx, expectedCount(n, w, o), win.size)
             assertTrue(ctx, win.none { it.isBlank() })
@@ -46,27 +50,27 @@ class TranscriptWindowsTest {
 
     @Test
     fun boundarySizes() {
-        assertEquals(listOf(text(10)), TranscriptWindows.split(text(10), 10, 3)) // n == window
-        assertEquals(listOf(text(10), "w8 w9 w10 w11"), TranscriptWindows.split(text(11), 10, 3)) // n == window + 1
-        assertEquals(listOf("w1 w2 w3", "w2 w3 w4", "w3 w4 w5"), TranscriptWindows.split(text(5), 3, 2)) // overlap == window - 1
-        assertEquals(listOf("w1 w2 w3", "w3 w4 w5"), TranscriptWindows.split(text(5), 3, 1))
-        assertEquals(listOf("w1 w2", "w3 w4", "w5"), TranscriptWindows.split(text(5), 2, 0))
-        assertEquals(listOf("w1"), TranscriptWindows.split("w1", 1, 0))
-        assertEquals(listOf("w1", "w2", "w3"), TranscriptWindows.split(text(3), 1, 0))
+        assertEquals(listOf(text(10)), split(text(10), 10, 3)) // n == window
+        assertEquals(listOf(text(10), "w8 w9 w10 w11"), split(text(11), 10, 3)) // n == window + 1
+        assertEquals(listOf("w1 w2 w3", "w2 w3 w4", "w3 w4 w5"), split(text(5), 3, 2)) // overlap == window - 1
+        assertEquals(listOf("w1 w2 w3", "w3 w4 w5"), split(text(5), 3, 1))
+        assertEquals(listOf("w1 w2", "w3 w4", "w5"), split(text(5), 2, 0))
+        assertEquals(listOf("w1"), split("w1", 1, 0))
+        assertEquals(listOf("w1", "w2", "w3"), split(text(3), 1, 0))
     }
 
     @Test
     fun overlapNotBelowWindowIsRejectedImmediatelyAndNeverLoops() {
         for ((w, o) in listOf(5 to 5, 5 to 6, 1 to 1, 0 to 0, 3 to -1, 5 to 100)) {
             try {
-                TranscriptWindows.split(text(50), w, o)
+                split(text(50), w, o)
                 fail("expected rejection for window=$w overlap=$o")
             } catch (_: IllegalArgumentException) {
             }
         }
         // Rejected even when the text is short enough that it would otherwise be one window.
         try {
-            TranscriptWindows.split("a b", 5, 5)
+            split("a b", 5, 5)
             fail()
         } catch (_: IllegalArgumentException) {
         }
@@ -75,39 +79,37 @@ class TranscriptWindowsTest {
     @Test
     fun whitespaceVariantsAreNormalised() {
         val messy = "  w1\tw2\n\nw3   w4\r\nw5 w6\t\n"
-        assertEquals(listOf("w1 w2 w3", "w3 w4 w5", "w5 w6"), TranscriptWindows.split(messy, 3, 1))
+        assertEquals(listOf("w1 w2 w3", "w3 w4 w5", "w5 w6"), split(messy, 3, 1))
         for (sep in listOf("\t", "\n", "   ", "\r\n", " \n\t ")) {
-            assertEquals(TranscriptWindows.split(text(25), 7, 2), TranscriptWindows.split(text(25, sep), 7, 2))
+            assertEquals(split(text(25), 7, 2), split(text(25, sep), 7, 2))
         }
     }
 
-    /** Documents current behaviour, not a requirement; see follow-up. Blank input is ONE empty window, not an empty list, so callers must check for blank text themselves. */
     @Test
-    fun currentBehaviour_blankInputIsOneEmptyWindow() {
-        assertEquals(listOf(""), TranscriptWindows.split("", 10, 2))
-        assertEquals(listOf(""), TranscriptWindows.split(" \n\t ", 10, 2))
+    fun blankInputHasNoWindow() {
+        assertEquals(emptyList<String>(), split("", 10, 2))
+        assertEquals(emptyList<String>(), split(" \n\t ", 10, 2))
+        assertEquals(emptyList<TranscriptWindows.Span>(), TranscriptWindows.bySegments(emptyList(), 10, 2))
     }
 
     @Test
-    fun splitByTokensUsesOnePointFourTokensPerWordExactly() {
-        // 140 / 1.4 = 100 words per window, 28 / 1.4 = 20 words overlap, so the window start advances by 80 words.
+    fun windowsSpanTheSegmentsOfTheirFirstAndLastWord() {
+        // Segments of 3, 1, 4 and 2 words: w1-w3 | w4 | w5-w8 | w9-w10.
+        val segs = listOf(SegmentRow(1, 0, 0, "w1 w2 w3"), SegmentRow(2, 0, 0, "w4"), SegmentRow(3, 0, 0, "w5 w6 w7 w8"), SegmentRow(4, 0, 0, "  w9\tw10 "))
+        val win = TranscriptWindows.bySegments(segs, 4, 1)
+        assertEquals(listOf("w1 w2 w3 w4", "w4 w5 w6 w7", "w7 w8 w9 w10"), win.map { it.text })
+        assertEquals(listOf(1 to 2, 2 to 3, 3 to 4), win.map { it.segFrom to it.segTo })
+        // A window inside one segment spans just that segment; the windows of the joined text are the same words.
+        assertEquals(listOf(3 to 3), TranscriptWindows.bySegments(listOf(segs[2]), 10, 2).map { it.segFrom to it.segTo })
+        assertEquals(split(text(10), 4, 1), win.map { it.text })
+    }
+
+    @Test
+    fun tokensConvertAtOnePointFourTokensPerWord() {
         assertEquals(1.4, TranscriptWindows.TOKENS_PER_WORD, 0.0)
-        val win = TranscriptWindows.splitByTokens(text(1000), 140, 28)
-        assertEquals(13, win.size) // 1 + ceil((1000 - 100) / 80)
-        assertEquals((1..100).joinToString(" ") { "w$it" }, win[0])
-        assertEquals((81..180).joinToString(" ") { "w$it" }, win[1]) // starts 20 words before the end of window 0
-        assertEquals((161..260).joinToString(" ") { "w$it" }, win[2])
-        assertEquals((961..1000).joinToString(" ") { "w$it" }, win.last()) // 12 * 80 = 960 words skipped
-        assertTrue(win.dropLast(1).all { toks(it).size == 100 })
-    }
-
-    @Test
-    fun splitByTokensWithTooFewTokensIsRejected() {
-        try {
-            TranscriptWindows.splitByTokens(text(10), 1, 0) // 0 words per window
-            fail()
-        } catch (_: IllegalArgumentException) {
-        }
+        assertEquals(714, TranscriptWindows.wordsFor(1000))
+        assertEquals(35, TranscriptWindows.wordsFor(50))
+        assertEquals(0, TranscriptWindows.wordsFor(1))
     }
 
     @Test

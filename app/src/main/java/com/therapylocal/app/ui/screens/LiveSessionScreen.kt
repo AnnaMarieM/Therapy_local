@@ -17,14 +17,12 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -41,7 +39,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -79,7 +76,6 @@ fun LiveSessionScreen(
     patient: Patient,
     sessionSecs: Long,
     surfacedQuotes: List<SurfacedQuote>,
-    transcript: List<String>,
     statusLine: String?,
     cues: List<Cue>,
     cuesError: String?,
@@ -88,8 +84,6 @@ fun LiveSessionScreen(
     onSwitchPatient: () -> Unit,
     onTriggerTopic: (String, String, String, String) -> Unit,
     modifier: Modifier = Modifier,
-    /** True when the recording is kept for later transcription (nothing to show live yet). */
-    deferredNote: Boolean = false,
     isPaused: Boolean = false,
     onTogglePause: () -> Unit = {}
 ) {
@@ -312,45 +306,6 @@ fun LiveSessionScreen(
                         }
                     }
                 }
-            }
-        }
-
-        if (deferredNote) {
-            Spacer(modifier = Modifier.height(10.dp))
-            Text(
-                text = "Recording. This session will be transcribed and added to the client's memory automatically once MindVault finishes getting ready.",
-                fontSize = 12.sp,
-                lineHeight = 17.sp,
-                color = MutedText,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(SurfaceCard.copy(alpha = 0.6f))
-                    .padding(12.dp)
-            )
-        }
-
-        // Transcript of the chunks processed so far (newest first)
-        if (transcript.isNotEmpty() && !deferredNote) {
-            Spacer(modifier = Modifier.height(10.dp))
-            Text(
-                text = "LIVE TRANSCRIPT",
-                fontSize = 11.sp,
-                fontWeight = FontWeight.Bold,
-                color = MutedText
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(max = 110.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(SurfaceCard.copy(alpha = 0.6f))
-                    .verticalScroll(rememberScrollState())
-                    .padding(10.dp),
-                verticalArrangement = Arrangement.spacedBy(6.dp)
-            ) {
-                transcript.asReversed().forEach { Text(text = it, fontSize = 12.sp, color = CharcoalText, lineHeight = 16.sp) }
             }
         }
 

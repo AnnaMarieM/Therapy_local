@@ -26,9 +26,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.therapylocal.app.data.FactRow
 import com.therapylocal.app.data.Job
 import com.therapylocal.app.data.JobStatus
 import com.therapylocal.app.data.MindStore
@@ -50,8 +52,8 @@ fun MemoryTab() {
             if (s.running != null) {
                 Button(onClick = { queue.requestStop() }, enabled = !s.stopping) { Text(if (s.stopping) "Stopping" else "Stop", fontSize = 12.sp) }
             } else {
-                Button(onClick = { MemoryLab.start(context) }) { Text(if (s.jobs.isEmpty()) "Start" else "Resume", fontSize = 12.sp) }
-                OutlinedButton(onClick = { queue.retryFailed(); MemoryProcessor.resumePending(context) }, enabled = s.failed > 0) { Text("Retry failed", fontSize = 12.sp) }
+                Button(onClick = { DevHarness.start(context) }) { Text(if (s.jobs.isEmpty()) "Start" else "Resume", fontSize = 12.sp) }
+                OutlinedButton(onClick = { queue.retryFailed(); MemoryService.resumePending(context) }, enabled = s.failed > 0) { Text("Retry failed", fontSize = 12.sp) }
             }
             s.progress?.let { Text("${it.phase} ${it.step}/${it.steps}", fontSize = 12.sp) }
         }
@@ -64,8 +66,8 @@ fun MemoryTab() {
         LazyColumn(Modifier.fillMaxSize()) {
             items(s.sessions.map { it.clientId }.distinct(), key = { it }) { client ->
                 val jobs = s.jobs.filter { it.clientId == client }
-                val facts by produceState(emptyList<Fact>(), client, done) {
-                    value = withContext(Dispatchers.IO) { MindStore.get(context).facts(client).map { it.toFact() } }
+                val facts by produceState(emptyList<FactRow>(), client, done) {
+                    value = withContext(Dispatchers.IO) { MindStore.get(context).facts(client) }
                 }
                 Divider()
                 Column(Modifier.padding(vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -78,8 +80,9 @@ fun MemoryTab() {
                     if (open == client) {
                         facts.forEach { f ->
                             Column(Modifier.padding(top = 4.dp)) {
-                                Text("${f.id} · ${f.subject} · ${f.session}", fontSize = 10.sp, fontFamily = FontFamily.Monospace)
-                                Text(f.fact, fontSize = 13.sp)
+                                Text("${f.id} · ${f.sessionId} · seg ${f.segIdx} · ×${f.mentionCount}", fontSize = 10.sp, fontFamily = FontFamily.Monospace)
+                                Text(f.heading, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                                Text(f.content, fontSize = 13.sp)
                                 if (f.evidence.isNotBlank()) Text("“${f.evidence}”", fontSize = 11.sp, color = Color.Gray)
                             }
                         }

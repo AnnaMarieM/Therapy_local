@@ -36,6 +36,8 @@ data class NewFact(
     val promptVersion: String,
 )
 
+data class NewMention(val factId: Long, val sessionId: String, val evidence: String, val segIdx: Int)
+
 /** A fact as the app reads it. Provenance (model, prompt version) is never read back: it is for debugging the database only. */
 data class FactRow(
     val id: Long,
@@ -178,6 +180,9 @@ class MindStore(context: Context, name: String, password: ByteArray) :
         }
     }
 
+    fun segments(session: String): List<SegmentRow> =
+        query("SELECT idx, start_ms, end_ms, text FROM segments WHERE session_id = ? ORDER BY idx", session) { SegmentRow(it.getInt(0), it.getLong(1), it.getLong(2), it.getString(3)) }
+
     /** Segments [seg] - [r] .. [seg] + [r] of [session], in order. */
     fun segmentsAround(session: String, seg: Int, r: Int): List<SegmentRow> =
         query("SELECT idx, start_ms, end_ms, text FROM segments WHERE session_id = ? AND idx BETWEEN ? AND ? ORDER BY idx", session, (seg - r).toString(), (seg + r).toString()) {
@@ -197,6 +202,14 @@ class MindStore(context: Context, name: String, password: ByteArray) :
         }
     }
 
+    /** In order, without their embeddings. */
+    fun windows(session: String): List<WindowRef> =
+        query("SELECT session_id, idx, seg_from, seg_to, text FROM windows WHERE session_id = ? ORDER BY idx", session) {
+            WindowRef(it.getString(0), it.getInt(1), it.getInt(2), it.getInt(3), it.getString(4))
+        }
+
+    fun hasWindows(session: String): Boolean = query("SELECT 1 FROM windows WHERE session_id = ? LIMIT 1", session) { true }.isNotEmpty()
+
     /** The [k] windows of [client] closest to [vec], best first. */
     fun nearestWindows(client: String, vec: FloatArray, k: Int): List<Pair<WindowRef, Float>> = VectorMath.topK(
         query(
@@ -208,7 +221,20 @@ class MindStore(context: Context, name: String, password: ByteArray) :
 
     // ---- facts and mentions --------------------------------------------------------------------------------------
 
-    fun insertFact(f: NewFact): Long = writableDatabase.insertOrThrow(
+    fun insertFact(f: NewFact): Long = insertFact(writableDatabase, f)
+
+    /** False if this fact already has a mention at that place. */
+    fun addMention(m: NewMention): Boolean = addMention(writableDatabase, m)
+
+    /** In one transaction: the facts and mentions of [session] are replaced by [facts] and [mentions] (the mentions of its old facts go with them). */
+    fun replaceSessionFacts(session: String, facts: List<NewFact>, mentions: List<NewMention>) = tx { db ->
+        db.delete("mentions", "session_id = ?", arrayOf(session))
+        db.delete("facts", "session_id = ?", arrayOf(session))
+        facts.forEach { insertFact(db, it) }
+        mentions.forEach { addMention(db, it) }
+    }
+
+    private fun insertFact(db: SQLiteDatabase, f: NewFact): Long = db.insertOrThrow(
         "facts", null,
         ContentValues().apply {
             put("client_id", f.clientId); put("session_id", f.sessionId); put("heading", f.heading); put("content", f.content); put("evidence", f.evidence)
@@ -217,20 +243,28 @@ class MindStore(context: Context, name: String, password: ByteArray) :
         },
     )
 
-    /** False if this fact already has a mention at that place. */
-    fun addMention(factId: Long, session: String, evidence: String, segIdx: Int): Boolean = writableDatabase.insertWithOnConflict(
+    private fun addMention(db: SQLiteDatabase, m: NewMention): Boolean = db.insertWithOnConflict(
         "mentions", null,
-        ContentValues().apply { put("fact_id", factId); put("session_id", session); put("evidence", evidence); put("seg_idx", segIdx); put("created_at", System.currentTimeMillis()) },
+        ContentValues().apply { put("fact_id", m.factId); put("session_id", m.sessionId); put("evidence", m.evidence); put("seg_idx", m.segIdx); put("created_at", System.currentTimeMillis()) },
         SQLiteDatabase.CONFLICT_IGNORE,
     ) != -1L
 
     /** Oldest first. */
     fun facts(client: String): List<FactRow> = query("$FACT_COLUMNS FROM facts f WHERE f.client_id = ? ORDER BY f.created_at, f.id", client) { factOf(it) }
 
-    /** The [k] facts of [client] closest to [vec], best first, leaving out the facts first seen in [excludeSession]. */
-    fun nearestFacts(client: String, vec: FloatArray, k: Int, excludeSession: String? = null): List<Pair<FactRow, Float>> = VectorMath.topK(
-        query("$FACT_COLUMNS, f.embedding FROM facts f WHERE f.client_id = ? AND f.embedding IS NOT NULL AND f.session_id <> ?", client, excludeSession.orEmpty()) {
-            factOf(it) to VectorMath.fromBlob(it.getBlob(9))
+    /**
+     * The [k] facts of [client] closest to [vec], best first. With [beforeSession], only facts first seen in sessions that started before it
+     * (in [sessions] order), so a session is only ever compared with what was known when it took place.
+     */
+    fun nearestFacts(client: String, vec: FloatArray, k: Int, beforeSession: String? = null): List<Pair<FactRow, Float>> = VectorMath.topK(
+        if (beforeSession == null) {
+            query("$FACT_COLUMNS, f.embedding FROM facts f WHERE f.client_id = ? AND f.embedding IS NOT NULL", client) { factOf(it) to VectorMath.fromBlob(it.getBlob(9)) }
+        } else {
+            query(
+                """$FACT_COLUMNS, f.embedding FROM facts f JOIN sessions o ON o.id = f.session_id JOIN sessions b ON b.id = ?
+                   WHERE f.client_id = ? AND f.embedding IS NOT NULL AND (o.started_at < b.started_at OR (o.started_at = b.started_at AND o.id < b.id))""",
+                beforeSession, client,
+            ) { factOf(it) to VectorMath.fromBlob(it.getBlob(9)) }
         },
         vec, k,
     )
@@ -243,6 +277,31 @@ class MindStore(context: Context, name: String, password: ByteArray) :
            ORDER BY 5 DESC, 2, 4""",
         factId.toString(), factId.toString(),
     ) { Occurrence(it.getString(0), it.getLong(1), it.getString(2), it.getInt(3), it.getInt(4) == 1) }
+
+    // ---- caches ---------------------------------------------------------------------------------------------------
+
+    /** The cached extraction of window [idx] as (key, json), whatever its key. */
+    fun extractCache(session: String, idx: Int): Pair<String, String>? =
+        query("SELECT key, json FROM extract_cache WHERE session_id = ? AND idx = ?", session, idx.toString()) { it.getString(0) to it.getString(1) }.firstOrNull()
+
+    fun putExtractCache(session: String, idx: Int, key: String, json: String) {
+        writableDatabase.insertWithOnConflict(
+            "extract_cache", null,
+            ContentValues().apply { put("session_id", session); put("idx", idx); put("key", key); put("json", json) },
+            SQLiteDatabase.CONFLICT_REPLACE,
+        )
+    }
+
+    fun reviewVerdict(session: String, key: String): String? =
+        query("SELECT verdict FROM review_cache WHERE session_id = ? AND cand_key = ?", session, key) { it.getString(0) }.firstOrNull()
+
+    fun putReviewVerdict(session: String, key: String, verdict: String) {
+        writableDatabase.insertWithOnConflict(
+            "review_cache", null,
+            ContentValues().apply { put("session_id", session); put("cand_key", key); put("verdict", verdict) },
+            SQLiteDatabase.CONFLICT_REPLACE,
+        )
+    }
 
     // ---- jobs ----------------------------------------------------------------------------------------------------
 

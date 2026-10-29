@@ -30,6 +30,9 @@ object ChunkConfig {
 
     const val GEMMA_AUDIO_CAP_SECONDS = 30
 
+    /** A recording does not start with less free internal storage: its audio is kept until processed, about 150 MB per hour with the overlap. */
+    const val MIN_FREE_BYTES = 300L shl 20
+
     init {
         require(CHUNK_SECONDS < GEMMA_AUDIO_CAP_SECONDS) { "CHUNK_SECONDS must stay under Gemma's audio cap" }
         require(OVERLAP_SECONDS in 0 until CHUNK_SECONDS) { "OVERLAP_SECONDS must be smaller than CHUNK_SECONDS" }
@@ -66,6 +69,25 @@ object EmbeddingConfig {
 
     const val QUERY_PREFIX = "task: search query | text: "
     const val DOC_PREFIX = "task: search result | text: "
+}
+
+/** The background pipeline that turns a session's transcript into facts (see [com.therapylocal.app.jobs.Pipeline]). */
+object MemoryConfig {
+    const val LLM_MAX_TOKENS = 6144
+    val LLM_BACKENDS = listOf("NPU", "GPU", "CPU")
+
+    /** Transcript windows, in estimated tokens: each is embedded for search and read by the LLM once. */
+    const val WINDOW_TOKENS = 1000
+    const val WINDOW_OVERLAP_TOKENS = 50
+
+    const val EXTRACT_MAX_OUTPUT_TOKENS = 1600
+    const val EXTRACT_TEMPERATURE = 0.1
+
+    /** Known facts shown to the duplicate review. */
+    const val NEIGHBOURS = 10
+
+    /** A candidate with no earlier fact at least this close is new without asking the LLM. Our own choice, not calibrated yet. */
+    const val MIN_SIMILARITY = 0.6f
 }
 
 /** Debug override of which backend the engines try: "auto" (NPU if possible, then GPU, then CPU), "npu", "gpu" or "cpu". */
