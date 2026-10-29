@@ -12,6 +12,9 @@ import com.therapylocal.app.vault.Vault
 
 enum class JobStatus { Queued, Running, Done, Failed, Cancelled }
 
+/** What a running job is doing right now, for the notification; [SessionJob.stage] stays the short in-app label. */
+enum class JobPhase { None, Transcribing, Reading, Checking, Retrying }
+
 /** One session transcript waiting to be turned into profile facts. Sessions of one client must run in date order, because each merges into the profile the last one left. */
 data class SessionJob(
     val id: String,
@@ -31,11 +34,16 @@ data class SessionJob(
     val decodeTokPerSec: Double = 0.0,
     /** Recording whose audio still has to be transcribed first (made before setup finished); 0 = the transcript is already written. */
     val recordingId: Long = 0,
+    /** Structured progress of the current step ([step] of [steps]); [steps] = 0 when unknown. */
+    val phase: JobPhase = JobPhase.None,
+    val step: Int = 0,
+    val steps: Int = 0,
 ) {
     fun toJson(): JSONObject = JSONObject().put("id", id).put("client", client).put("file", file).put("date", date).put("status", status.name)
         .put("stage", stage).put("windows", windows).put("windowsDone", windowsDone).put("extracted", extracted).put("added", added)
         .put("error", error ?: JSONObject.NULL).put("startedAt", startedAt).put("finishedAt", finishedAt)
         .put("prefill", prefillTokPerSec).put("decode", decodeTokPerSec).put("recordingId", recordingId)
+        .put("phase", phase.name).put("step", step).put("steps", steps)
 
     companion object {
         fun fromJson(o: JSONObject) = SessionJob(
@@ -45,6 +53,7 @@ data class SessionJob(
             o.optString("stage"), o.optInt("windows"), o.optInt("windowsDone"), o.optInt("extracted"), o.optInt("added"),
             if (o.isNull("error")) null else o.optString("error"), o.optLong("startedAt"), o.optLong("finishedAt"),
             o.optDouble("prefill", 0.0), o.optDouble("decode", 0.0), o.optLong("recordingId", 0),
+            JobPhase.entries.firstOrNull { it.name == o.optString("phase") } ?: JobPhase.None, o.optInt("step"), o.optInt("steps"),
         )
     }
 }
@@ -122,7 +131,7 @@ object MemoryQueue {
     /** Drops every job of [client] that is not running, for when the client is deleted. */
     fun dropClient(client: String) = update { s -> s.copy(jobs = s.jobs.filterNot { it.client == client && it.status != JobStatus.Running }, profiles = s.profiles - client) }
 
-    fun retryFailed() = update { s -> s.copy(jobs = s.jobs.map { if (it.status == JobStatus.Failed || it.status == JobStatus.Cancelled) it.copy(status = JobStatus.Queued, error = null, stage = "") else it }) }
+    fun retryFailed() = update { s -> s.copy(jobs = s.jobs.map { if (it.status == JobStatus.Failed || it.status == JobStatus.Cancelled) it.copy(status = JobStatus.Queued, error = null, stage = "", phase = JobPhase.None, step = 0, steps = 0) else it }) }
 
     private fun readSaved(): List<SessionJob> = try {
         JSONArray(file?.let { SecureFile.readText(it, keyProvider()) } ?: "[]").let { a -> (0 until a.length()).map { SessionJob.fromJson(a.getJSONObject(it)) } }

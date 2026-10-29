@@ -146,7 +146,7 @@ class MemoryLab(private val context: Context, private val useJobFile: Boolean = 
 
     /** A session that throws is retried (chunks already extracted are cached, so only missing work is redone) before it is marked Failed. */
     private fun runWithRetries(llm: MemoryLlm, job: Job, item: SessionJob, bench: File?) {
-        MemoryQueue.updateJob(item.id) { it.copy(status = JobStatus.Running, stage = "Waiting", startedAt = System.currentTimeMillis(), error = null) }
+        MemoryQueue.updateJob(item.id) { it.copy(status = JobStatus.Running, stage = "Waiting", phase = JobPhase.None, step = 0, steps = 0, startedAt = System.currentTimeMillis(), error = null) }
         var last: Throwable? = null
         for (attempt in 1..job.jobAttempts) {
             try {
@@ -162,7 +162,7 @@ class MemoryLab(private val context: Context, private val useJobFile: Boolean = 
             } catch (t: Throwable) {
                 last = t
                 AppLog.e(MemoryLlm.TAG, "session_attempt_failed", LogCtx.NONE, t, "session" to item.id, "attempt" to attempt)
-                MemoryQueue.updateJob(item.id) { it.copy(stage = "Retrying (${attempt + 1}/${job.jobAttempts})") }
+                MemoryQueue.updateJob(item.id) { it.copy(stage = "Retrying (${attempt + 1}/${job.jobAttempts})", phase = JobPhase.Retrying, step = attempt + 1, steps = job.jobAttempts) }
             }
         }
         MemoryQueue.updateJob(item.id) { it.copy(status = JobStatus.Failed, error = last?.message ?: last?.javaClass?.simpleName, finishedAt = System.currentTimeMillis()) }
@@ -185,7 +185,7 @@ class MemoryLab(private val context: Context, private val useJobFile: Boolean = 
         val text = if (job.stripLabels) TranscriptWindows.stripSpeakerLabels(raw) else raw
         val chunks = TranscriptWindows.splitByTokens(text, job.chunkTokens, job.overlapTokens)
         val cacheDir = MemoryFiles.extractCache(context, sid).apply { mkdirs() }
-        MemoryQueue.updateJob(sid) { it.copy(windows = chunks.size, windowsDone = 0, extracted = 0, added = 0, stage = "Reading 1/${chunks.size}") }
+        MemoryQueue.updateJob(sid) { it.copy(windows = chunks.size, windowsDone = 0, extracted = 0, added = 0, stage = "Reading 1/${chunks.size}", phase = JobPhase.Reading, step = 1, steps = chunks.size) }
 
         // 1 + 2: embed and store every chunk, extract candidate facts from it.
         if (item.date.isNotEmpty()) store.putSession(client, sid, item.date)
@@ -196,7 +196,8 @@ class MemoryLab(private val context: Context, private val useJobFile: Boolean = 
             val cache = File(cacheDir, "${i + 1}.json")
             val facts = if (cache.exists()) readFacts(cache) else extractChunk(llm, job, item, chunk, i + 1, chunks.size, bench).also { SecureFile.writeText(cache, JSONArray(it.map { f -> f.toJson() }).toString(1), Vault.key()) }
             candidates += facts
-            MemoryQueue.updateJob(sid) { it.copy(windowsDone = i + 1, extracted = candidates.size, stage = if (i + 1 < chunks.size) "Reading ${i + 2}/${chunks.size}" else "Checking 0/${candidates.size}") }
+            MemoryQueue.updateJob(sid) { it.copy(windowsDone = i + 1, extracted = candidates.size, stage = if (i + 1 < chunks.size) "Reading ${i + 2}/${chunks.size}" else "Checking 0/${candidates.size}",
+                phase = if (i + 1 < chunks.size) JobPhase.Reading else JobPhase.Checking, step = if (i + 1 < chunks.size) i + 2 else 0, steps = if (i + 1 < chunks.size) chunks.size else candidates.size) }
         }
 
         // 3 + 4: review each candidate against its 10 nearest known facts, sequentially.
@@ -215,9 +216,9 @@ class MemoryLab(private val context: Context, private val useJobFile: Boolean = 
                 store.putFact(client, cand.copy(id = "F${++next}"), vec)
                 added++
             }
-            if ((i + 1) % 3 == 0 || i + 1 == candidates.size) MemoryQueue.updateJob(sid) { it.copy(stage = "Checking ${i + 1}/${candidates.size}", added = added) }
+            if ((i + 1) % 3 == 0 || i + 1 == candidates.size) MemoryQueue.updateJob(sid) { it.copy(stage = "Checking ${i + 1}/${candidates.size}", phase = JobPhase.Checking, step = i + 1, steps = candidates.size, added = added) }
         }
-        MemoryQueue.updateJob(sid) { it.copy(stage = "Done", added = added) }
+        MemoryQueue.updateJob(sid) { it.copy(stage = "Done", phase = JobPhase.None, step = 0, steps = 0, added = added) }
         AppLog.i(MemoryLlm.TAG, "session_done", LogCtx.NONE, "session" to sid, "chunks" to chunks.size, "candidates" to candidates.size, "added" to added, "repeats" to repeats)
     }
 
@@ -233,13 +234,13 @@ class MemoryLab(private val context: Context, private val useJobFile: Boolean = 
         val store = Store(context)
         try {
             val audio = PendingAudio.load(context, rid)
-            MemoryQueue.updateJob(item.id) { it.copy(stage = "Transcribing 0/${audio.size}") }
+            MemoryQueue.updateJob(item.id) { it.copy(stage = "Transcribing 0/${audio.size}", phase = JobPhase.Transcribing, step = 0, steps = audio.size) }
             runBlocking { asr.load() }
             val processor = ChunkProcessor(store, embedder, asr)
             val stored = store.chunks(rid).map { it.idx }.toSet()
             audio.forEachIndexed { i, chunk ->
                 if (chunk.idx !in stored) runBlocking { processor.process(rid, chunk) }
-                MemoryQueue.updateJob(item.id) { it.copy(stage = "Transcribing ${i + 1}/${audio.size}") }
+                MemoryQueue.updateJob(item.id) { it.copy(stage = "Transcribing ${i + 1}/${audio.size}", phase = JobPhase.Transcribing, step = i + 1, steps = audio.size) }
             }
             val text = ChunkProcessor.transcript(store.chunks(rid))
             if (text.isNotBlank()) SecureFile.writeText(MemoryFiles.transcript(context, item.file), text, Vault.key())
