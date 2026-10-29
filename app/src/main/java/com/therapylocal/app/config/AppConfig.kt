@@ -64,8 +64,8 @@ object EmbeddingConfig {
     /** Native size of the model. Matryoshka truncation to 512, 256 or 128 is possible by changing this one value. */
     const val DIM = 768
 
-    /** Text signature length. 1024 is what the Gallery's video moment finder uses for audio plus text. */
-    const val MAX_TOKENS = 1024
+    /** Input length the embedder asks for; lowered to the model's reported context if that is smaller. Live cues need room for [LiveCueConfig.MAX_LOOKBACK_S] of audio. */
+    const val MAX_TOKENS = 2048
 
     const val QUERY_PREFIX = "task: search query | text: "
     const val DOC_PREFIX = "task: search result | text: "
@@ -98,14 +98,13 @@ object BackendPolicy {
     fun allows(backend: String) = override == "auto" || override.equals(backend, ignoreCase = true)
 }
 
-/** Realtime "possibly relevant" fact cues: the last WINDOW_SECONDS of live audio is embedded every TICK_MS and ranked against the client's facts. */
+/** Realtime "possibly relevant" fact cues: the last few seconds of live audio are embedded every tick and ranked against the client's facts. The adjustable knobs are in [LiveCueSettings]. */
 object LiveCueConfig {
-    /** Audio window embedded per tick. Same length as a stored chunk, so it stays under Gemma's audio cap. */
-    const val WINDOW_SECONDS = ChunkConfig.CHUNK_SECONDS
-    const val WINDOW_SAMPLES = WINDOW_SECONDS * ChunkConfig.SAMPLE_RATE
+    /** Longest lookback a user can choose; the ring buffer is this long. Not derived from audio tokens per second (unmeasured): raise it after a device measurement. */
+    const val MAX_LOOKBACK_S = 60
+    const val MAX_LOOKBACK_SAMPLES = MAX_LOOKBACK_S * ChunkConfig.SAMPLE_RATE
 
-    /** Pause between ticks. A tick that overruns it is followed by the next one after MIN_GAP_MS, never queued up. */
-    const val TICK_MS = 5_000L
+    /** A tick that overruns the interval is followed by the next one after this gap, never queued up. */
     const val MIN_GAP_MS = 250L
 
     /** No embedding before this much audio exists. */
@@ -116,10 +115,4 @@ object LiveCueConfig {
 
     /** Cues shown. */
     const val TOP_K = 10
-
-    /** Weight of the newest tick in the per-fact score average. 1.0 = no smoothing. */
-    const val SMOOTH_ALPHA = 0.5f
-
-    /** Smoothed cosine a fact needs to be shown. To be calibrated on the phone: fact-to-fact cosines sit at 0.75-0.89, audio-to-fact is unmeasured. */
-    const val SCORE_FLOOR = 0f
 }

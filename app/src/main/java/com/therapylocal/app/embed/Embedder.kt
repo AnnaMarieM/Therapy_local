@@ -45,6 +45,10 @@ class Embedder(private val context: Context, private val forcedBackend: String? 
         private set
     val dim = EmbeddingConfig.DIM
 
+    /** [EmbeddingConfig.MAX_TOKENS], lowered to the context the model reports. Known after [load]. */
+    var maxTokens: Int = EmbeddingConfig.MAX_TOKENS
+        private set
+
     private var engine: EmbeddingEngine? = null
     private val lock = Mutex()
 
@@ -53,7 +57,8 @@ class Embedder(private val context: Context, private val forcedBackend: String? 
         withContext(Dispatchers.Default) {
             val file = ModelRegistry.EMBED.file(context, ModelRegistry.EMBED.files.first())
             AppLog.span(TAG, "embed_load", LogCtx.NONE, "model" to EmbeddingConfig.MODEL_ID, "model_mb" to (file.length() shr 20), "dim" to dim) { span ->
-                logModelInfo(file)
+                maxTokens = logModelInfo(file)
+                span.put("max_tokens", maxTokens)
                 val attempts = ArrayList<Pair<String, () -> Backend>>()
                 if (forcedBackend != null) {
                     when (forcedBackend.uppercase()) {
@@ -84,7 +89,7 @@ class Embedder(private val context: Context, private val forcedBackend: String? 
                                     backend = make(),
                                     audioBackend = Backend.CPU(), // Gallery pins the audio encoder to CPU
                                     cacheDir = isolatedCacheDir().path,
-                                    maxInputLength = EmbeddingConfig.MAX_TOKENS,
+                                    maxInputLength = maxTokens,
                                 ),
                             )
                             created.initialize()
@@ -110,8 +115,8 @@ class Embedder(private val context: Context, private val forcedBackend: String? 
         }
     }
 
-    /** What the model bundle itself declares: modalities, backends, NPU brand. Audio support is required. */
-    private fun logModelInfo(file: File) {
+    /** What the model bundle itself declares: modalities, backends, NPU brand. Audio support is required. Returns the input length to use. */
+    private fun logModelInfo(file: File): Int =
         ModelInfo.from(file.path).use { info ->
             val m = info.inputModalities()
             AppLog.i(
@@ -122,10 +127,11 @@ class Embedder(private val context: Context, private val forcedBackend: String? 
                 "npu_brand" to info.npuBrand(Modality.TEXT).name, "bundle_soc" to info.socName(Modality.TEXT),
             )
             check(m.audio) { "This EmbeddingGemma build has no audio encoder" }
+            val reported = info.maxContextTokens()
+            if (reported in 1 until EmbeddingConfig.MAX_TOKENS) reported else EmbeddingConfig.MAX_TOKENS
         }
-    }
 
-    private fun isolatedCacheDir(): File = File(context.cacheDir, "emb_t${EmbeddingConfig.MAX_TOKENS}").apply { mkdirs() }
+    private fun isolatedCacheDir(): File = File(context.cacheDir, "emb_t$maxTokens").apply { mkdirs() }
 
     /** Embeds the AUDIO of one chunk directly. No transcript is involved. */
     suspend fun embedAudio(pcm: ShortArray, ctx: LogCtx, role: String = "document"): FloatArray = lock.withLock {

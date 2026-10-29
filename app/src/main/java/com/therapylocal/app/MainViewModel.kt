@@ -9,6 +9,7 @@ import com.therapylocal.app.audio.ChunkRecorder
 import com.therapylocal.app.audio.TestAudio
 import com.therapylocal.app.config.BackendPolicy
 import com.therapylocal.app.config.ChunkConfig
+import com.therapylocal.app.config.liveCueSettings
 import com.therapylocal.app.data.ChunkRow
 import com.therapylocal.app.data.MindStore
 import com.therapylocal.app.data.PendingAudio
@@ -75,7 +76,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     private val embedder = Embedder(app)
 
     /** Realtime fact cues while recording: call `liveCues.start(client)` before startRecording(); it stops itself when the recording ends. */
-    val liveCues = LiveCues(embedder, MindStore.get(app))
+    val liveCues = LiveCues(embedder, MindStore.get(app)) { prefs.liveCueSettings() }
     private var prepareJob: Job? = null
 
     private var recorder: ChunkRecorder? = null
