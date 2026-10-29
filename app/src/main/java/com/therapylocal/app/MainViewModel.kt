@@ -17,10 +17,12 @@ import com.therapylocal.app.data.MindStore
 import com.therapylocal.app.data.PendingAudio
 import com.therapylocal.app.data.RecordingRow
 import com.therapylocal.app.embed.Embedder
+import com.therapylocal.app.jobs.JobRunner
 import com.therapylocal.app.log.AppLog
 import com.therapylocal.app.log.LogCtx
 import com.therapylocal.app.memory.LiveCues
 import com.therapylocal.app.memory.MemoryFiles
+import com.therapylocal.app.memory.MemoryProcessor
 import com.therapylocal.app.models.ModelSetup
 import com.therapylocal.app.models.SetupState
 import kotlinx.coroutines.Dispatchers
@@ -180,9 +182,16 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                 return@launch
             }
             recorder = rec
+            JobRunner.recordingActive = true
             _state.update { it.copy(recording = true, deferred = engine == null, activeRecordingId = rid, status = "Recording", error = null, pendingChunks = 0) }
             pipelineJob = launch(Dispatchers.Default) {
-                if (engine != null) runPipeline(rid, rec, ChunkProcessor(store, engine), engine) else runDeferred(rid, rec)
+                try {
+                    if (engine != null) runPipeline(rid, rec, ChunkProcessor(store, engine), engine) else runDeferred(rid, rec)
+                } finally {
+                    // The queue does not start new jobs while recording; anything that waited runs now.
+                    JobRunner.recordingActive = false
+                    MemoryProcessor.resumePending(ctx)
+                }
                 recorder = null
                 _state.update { it.copy(recording = false, activeRecordingId = null, status = "Done") }
                 refreshRecordings()

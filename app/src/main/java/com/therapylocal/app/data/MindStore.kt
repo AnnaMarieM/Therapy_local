@@ -60,7 +60,7 @@ data class SessionDelete(val promoted: Int, val deleted: Int)
  * Every foreign key cascades, so deleting a client or a session removes everything stored for it. Write-ahead logging keeps UI reads from waiting on the runner.
  */
 class MindStore(context: Context, name: String, password: ByteArray) :
-    SQLiteOpenHelper(context, name, password, null, VERSION, 0, null, null, true) {
+    SQLiteOpenHelper(context, name, password, null, VERSION, 0, null, null, true), JobRepo {
 
     override fun onConfigure(db: SQLiteDatabase) {
         db.setForeignKeyConstraintsEnabled(true)
@@ -243,6 +243,52 @@ class MindStore(context: Context, name: String, password: ByteArray) :
            ORDER BY 5 DESC, 2, 4""",
         factId.toString(), factId.toString(),
     ) { Occurrence(it.getString(0), it.getLong(1), it.getString(2), it.getInt(3), it.getInt(4) == 1) }
+
+    // ---- jobs ----------------------------------------------------------------------------------------------------
+
+    override fun <T> inTransaction(block: () -> T): T = tx { block() }
+
+    override fun jobs(): List<Job> {
+        val deps = HashMap<Long, MutableList<Long>>()
+        readableDatabase.rawQuery("SELECT job_id, depends_on FROM job_deps ORDER BY rowid", null).use { c ->
+            while (c.moveToNext()) deps.getOrPut(c.getLong(0)) { ArrayList() } += c.getLong(1)
+        }
+        return query(
+            """SELECT j.id, j.kind, j.session_id, s.client_id, s.started_at, j.recording_id, j.ref, j.status, j.attempts, j.max_attempts, j.error_code, j.created_at
+               FROM jobs j JOIN sessions s ON s.id = j.session_id ORDER BY j.created_at, j.id""",
+        ) {
+            Job(
+                it.getLong(0), it.getString(1), it.getString(2), it.getString(3), it.getLong(4), if (it.isNull(5)) null else it.getLong(5), it.getString(6),
+                JobStatus.valueOf(it.getString(7)), it.getInt(8), it.getInt(9), it.getStringOrNull(10), it.getLong(11), deps[it.getLong(0)].orEmpty(),
+            )
+        }
+    }
+
+    override fun insertJob(kind: String, sessionId: String, recordingId: Long?, ref: String, maxAttempts: Int, dependsOn: List<Long>, now: Long): Long = tx { db ->
+        val id = db.insertOrThrow(
+            "jobs", null,
+            ContentValues().apply {
+                put("kind", kind); put("session_id", sessionId); if (recordingId != null) put("recording_id", recordingId); put("ref", ref)
+                put("status", JobStatus.Pending.name); put("max_attempts", maxAttempts); put("created_at", now); put("updated_at", now)
+            },
+        )
+        for (d in dependsOn) db.insertOrThrow("job_deps", null, ContentValues().apply { put("job_id", id); put("depends_on", d) })
+        id
+    }
+
+    override fun updateJob(id: Long, status: JobStatus, attempts: Int, errorCode: String?, now: Long) {
+        writableDatabase.update(
+            "jobs",
+            ContentValues().apply { put("status", status.name); put("attempts", attempts); if (errorCode == null) putNull("error_code") else put("error_code", errorCode); put("updated_at", now) },
+            "id = ?", arrayOf(id.toString()),
+        )
+    }
+
+    override fun deleteJobs(ids: Collection<Long>) {
+        tx { db -> ids.forEach { db.delete("jobs", "id = ?", arrayOf(it.toString())) } }
+    }
+
+    override fun sessionExists(id: String): Boolean = query("SELECT 1 FROM sessions WHERE id = ?", id) { true }.isNotEmpty()
 
     // ---- helpers -------------------------------------------------------------------------------------------------
 

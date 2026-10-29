@@ -8,8 +8,8 @@ import com.therapylocal.app.log.LogCtx
 import com.therapylocal.app.data.PendingAudio
 import com.therapylocal.app.memory.Fact
 import com.therapylocal.app.memory.MemoryFiles
+import com.therapylocal.app.jobs.Jobs
 import com.therapylocal.app.memory.MemoryProcessor
-import com.therapylocal.app.memory.MemoryQueue
 import com.therapylocal.app.memory.toFact
 import com.therapylocal.app.models.ModelSetup
 import com.therapylocal.app.ui.models.Patient
@@ -35,8 +35,9 @@ class ClientRepository(context: Context) {
 
     /** Deletes the client and all its stored data, and drops it from the pipeline queue state. */
     fun deleteClient(id: String) {
+        // Its jobs cascade with it; dropping them first also tells the queue's observers.
+        Jobs.queue(appContext).dropClient(id)
         val removed = store.deleteClient(id)
-        MemoryQueue.dropClient(id)
         // Session ids are "<client>_…", so a client's transcripts and extraction caches are recognised by the prefix.
         listOf("in", "cache").forEach { dir ->
             java.io.File(MemoryFiles.secureRoot(appContext), dir).listFiles { f -> f.name.startsWith("${id}_") }?.forEach { it.deleteRecursively() }
@@ -65,8 +66,9 @@ class ClientRepository(context: Context) {
 
     /** Deletes one session with everything stored for it (facts first seen in it move to their next mention), the queued job, its transcript and its extraction cache. */
     fun deleteSession(client: String, session: String) {
-        MemoryQueue.state.value.jobs.firstOrNull { it.id == session }?.takeIf { it.recordingId != 0L }?.let { PendingAudio.delete(appContext, it.recordingId) }
-        MemoryQueue.dropSession(session)
+        val queue = Jobs.queue(appContext)
+        queue.snapshot.value.jobs.filter { it.sessionId == session }.forEach { j -> j.recordingId?.let { PendingAudio.delete(appContext, it) } }
+        queue.dropSession(session)
         MemoryFiles.transcript(appContext, "$session.md").delete()
         MemoryFiles.extractCache(appContext, session).deleteRecursively()
         val r = store.deleteSession(session)

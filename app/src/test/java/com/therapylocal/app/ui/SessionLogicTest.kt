@@ -1,7 +1,10 @@
 package com.therapylocal.app.ui
 
-import com.therapylocal.app.memory.JobStatus
-import com.therapylocal.app.memory.SessionJob
+import com.therapylocal.app.data.Job
+import com.therapylocal.app.data.JobStatus
+import com.therapylocal.app.jobs.JobPhase
+import com.therapylocal.app.jobs.QueueSnapshot
+import com.therapylocal.app.jobs.StepProgress
 import com.therapylocal.app.ui.logic.SessionLogic
 import com.therapylocal.app.ui.logic.SessionLogic.PauseAction
 import com.therapylocal.app.ui.logic.SessionLogic.SessionTabTarget
@@ -85,21 +88,25 @@ class SessionLogicTest {
 
     // ---- processing banner mapping ----
 
-    private fun job(
-        id: String, client: String, status: JobStatus,
-        stage: String = "", date: String = "2026-10-25", recordingId: Long = 0
-    ) = SessionJob(id = id, client = client, file = "$id.md", date = date, status = status, stage = stage, recordingId = recordingId)
+    private var nextId = 1L
+    private val day = java.text.SimpleDateFormat("yyyy-MM-dd", Locale.US).parse("2026-10-25")!!.time
+
+    private fun job(session: String, status: JobStatus, recordingId: Long? = null, dependsOn: List<Long> = emptyList()) =
+        Job(nextId++, "process", session, session.substringBefore('_'), day, recordingId, "$session.md", status, 0, 3, null, nextId, dependsOn)
+
+    private fun banner(vararg jobs: Job, progress: StepProgress? = null, pending: Triple<String, String, String>? = null) =
+        SessionLogic.processingByClient(QueueSnapshot.of(jobs.toList(), progress, false), pending)
 
     @Test
-    fun processingOnlyQueuedAndRunningJobsAppear() {
-        val jobs = listOf(
-            job("a_1", "a", JobStatus.Done),
-            job("b_1", "b", JobStatus.Failed),
-            job("c_1", "c", JobStatus.Cancelled),
-            job("d_1", "d", JobStatus.Queued),
-            job("e_1", "e", JobStatus.Running, stage = "Reading 1/2"),
+    fun processingOnlySessionsWithWorkLeftAndNoFailureAppear() {
+        val map = banner(
+            job("a_1", JobStatus.Done),
+            job("b_1", JobStatus.Failed),
+            job("c_1", JobStatus.Cancelled),
+            job("d_1", JobStatus.Pending),
+            job("e_1", JobStatus.Running),
+            progress = StepProgress(JobPhase.Reading, 1, 2),
         )
-        val map = SessionLogic.processingByClient(jobs, null)
         assertEquals(setOf("d", "e"), map.keys)
         assertEquals("Queued", map["d"]!!.stage)
         assertEquals("Reading 1/2", map["e"]!!.stage)
@@ -112,67 +119,61 @@ class SessionLogicTest {
 
     @Test
     fun processingStageTextRules() {
-        fun stage(j: SessionJob) = SessionLogic.processingByClient(listOf(j), null)[j.client]!!.stage
-        assertEquals("Queued", stage(job("x_1", "x", JobStatus.Queued)))
-        // An explicit stage always wins, even for a queued job.
-        assertEquals("Waiting", stage(job("x_1", "x", JobStatus.Queued, stage = "Waiting")))
-        // Whitespace-only stage counts as blank.
-        assertEquals("Queued", stage(job("x_1", "x", JobStatus.Queued, stage = "  ")))
-        assertEquals("Extracting notes", stage(job("x_1", "x", JobStatus.Running)))
-        assertEquals("Transcribing audio", stage(job("x_1", "x", JobStatus.Running, recordingId = 5)))
-        assertEquals("Reading 1/2", stage(job("x_1", "x", JobStatus.Running, stage = "Reading 1/2", recordingId = 5)))
+        fun stage(j: Job, p: StepProgress? = null) = banner(j, progress = p)[j.clientId]!!.stage
+        assertEquals("Queued", stage(job("x_1", JobStatus.Pending)))
+        assertEquals("Extracting notes", stage(job("x_1", JobStatus.Running)))
+        assertEquals("Transcribing audio", stage(job("x_1", JobStatus.Running, recordingId = 5)))
+        assertEquals("Transcribing audio", stage(job("x_1", JobStatus.Running), StepProgress(JobPhase.Transcribing, 1, 3)))
+        assertEquals("Reading 1/2", stage(job("x_1", JobStatus.Running, recordingId = 5), StepProgress(JobPhase.Reading, 1, 2)))
+        assertEquals("Checking 4/9", stage(job("x_1", JobStatus.Running), StepProgress(JobPhase.Checking, 4, 9)))
     }
 
     @Test
-    fun processingEmptyDateBecomesToday() {
-        val map = SessionLogic.processingByClient(listOf(job("x_1", "x", JobStatus.Queued, date = "")), null)
-        assertEquals("Today", map["x"]!!.date)
-        val p = SessionLogic.processingByClient(emptyList(), Triple("y", "y_1", ""))
-        assertEquals("Today", p["y"]!!.date)
-        assertEquals("2026-01-02", SessionLogic.processingByClient(emptyList(), Triple("y", "y_1", "2026-01-02"))["y"]!!.date)
+    fun processingSessionWaitingBehindACancelledJobSaysWaiting() {
+        val gone = job("x_1", JobStatus.Cancelled)
+        val map = banner(gone, job("x_1", JobStatus.Pending, dependsOn = listOf(gone.id)))
+        assertEquals("Waiting", map["x"]!!.stage)
     }
 
     @Test
-    fun processingLaterJobOfSameClientOverwritesEarlier() {
-        val jobs = listOf(
-            job("g_1", "g", JobStatus.Running, stage = "first"),
-            job("g_2", "g", JobStatus.Queued),
-            job("h_1", "h", JobStatus.Queued),
-        )
-        val map = SessionLogic.processingByClient(jobs, null)
+    fun processingEmptyPendingDateBecomesToday() {
+        assertEquals("Today", banner(pending = Triple("y", "y_1", ""))["y"]!!.date)
+        assertEquals("2026-01-02", banner(pending = Triple("y", "y_1", "2026-01-02"))["y"]!!.date)
+    }
+
+    @Test
+    fun processingLaterSessionOfSameClientOverwritesEarlier() {
+        val map = banner(job("g_1", JobStatus.Running), job("g_2", JobStatus.Pending), job("h_1", JobStatus.Pending))
         assertEquals(2, map.size)
         assertEquals("g_2", map["g"]!!.sessionId)
         assertEquals("Queued", map["g"]!!.stage)
-        // A finished later job does not hide the still-running earlier one.
-        val map2 = SessionLogic.processingByClient(listOf(job("g_1", "g", JobStatus.Running, stage = "first"), job("g_2", "g", JobStatus.Done)), null)
-        assertEquals("g_1", map2["g"]!!.sessionId)
+        // A finished later session does not hide the still-running earlier one.
+        assertEquals("g_1", banner(job("g_1", JobStatus.Running), job("g_2", JobStatus.Done))["g"]!!.sessionId)
     }
 
     @Test
-    fun pendingEnqueueShownOnlyWhenClientHasNoActiveJob() {
+    fun pendingEnqueueShownOnlyWhenClientHasNoActiveSession() {
         val pending = Triple("alice", "alice_20261025-151000", "2026-10-25")
-        val alone = SessionLogic.processingByClient(emptyList(), pending)["alice"]!!
+        val alone = banner(pending = pending)["alice"]!!
         assertEquals("alice_20261025-151000", alone.sessionId)
         assertEquals("Finalizing recording...", alone.stage)
         assertTrue(alone.isPendingEnqueue)
 
-        // Active job for the same client wins over the pending placeholder.
-        val withJob = SessionLogic.processingByClient(listOf(job("alice_0", "alice", JobStatus.Running, stage = "Reading")), pending)["alice"]!!
+        // An active session for the same client wins over the pending placeholder.
+        val withJob = banner(job("alice_0", JobStatus.Running), pending = pending)["alice"]!!
         assertEquals("alice_0", withJob.sessionId)
         assertFalse(withJob.isPendingEnqueue)
 
-        // A Done job for the same client does not block the placeholder.
-        val withDone = SessionLogic.processingByClient(listOf(job("alice_0", "alice", JobStatus.Done)), pending)["alice"]!!
-        assertTrue(withDone.isPendingEnqueue)
+        // A finished session for the same client does not block the placeholder.
+        assertTrue(banner(job("alice_0", JobStatus.Done), pending = pending)["alice"]!!.isPendingEnqueue)
 
-        // Other clients' jobs coexist with the placeholder.
-        val both = SessionLogic.processingByClient(listOf(job("bob_1", "bob", JobStatus.Queued)), pending)
-        assertEquals(setOf("alice", "bob"), both.keys)
+        // Other clients' sessions coexist with the placeholder.
+        assertEquals(setOf("alice", "bob"), banner(job("bob_1", JobStatus.Pending), pending = pending).keys)
     }
 
     @Test
     fun processingEmptyInputs() {
-        assertTrue(SessionLogic.processingByClient(emptyList(), null).isEmpty())
+        assertTrue(banner().isEmpty())
     }
 
     // ---- patient filtering ----

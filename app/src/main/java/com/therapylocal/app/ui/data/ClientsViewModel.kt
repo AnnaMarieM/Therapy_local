@@ -3,8 +3,8 @@ package com.therapylocal.app.ui.data
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.therapylocal.app.memory.JobStatus
-import com.therapylocal.app.memory.MemoryQueue
+import com.therapylocal.app.data.JobStatus
+import com.therapylocal.app.jobs.Jobs
 import com.therapylocal.app.ui.models.Patient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,8 +23,8 @@ class ClientsViewModel(app: Application) : AndroidViewModel(app) {
     init {
         refresh()
         viewModelScope.launch {
-            MemoryQueue.state
-                .map { state -> state.jobs.filter { it.status == JobStatus.Done }.map { it.id }.toSet() }
+            Jobs.snapshot
+                .map { s -> s.jobs.filter { it.status == JobStatus.Done }.map { it.id }.toSet() }
                 .distinctUntilChanged()
                 .collect {
                     refresh()

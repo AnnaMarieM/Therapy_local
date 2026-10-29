@@ -29,8 +29,8 @@ import com.therapylocal.app.MainViewModel
 import com.therapylocal.app.data.Ids
 import com.therapylocal.app.Phase
 import com.therapylocal.app.memory.Fact
-import com.therapylocal.app.memory.JobStatus
-import com.therapylocal.app.memory.MemoryQueue
+import com.therapylocal.app.data.JobStatus
+import com.therapylocal.app.jobs.Jobs
 import com.therapylocal.app.ui.data.ClientsViewModel
 import com.therapylocal.app.ui.components.ChoosePatientSessionDialog
 import com.therapylocal.app.ui.components.MindVaultBottomNav
@@ -90,7 +90,7 @@ fun MindVaultApp(
         val vmState by viewModel.state.collectAsStateWithLifecycle()
         val cues by viewModel.liveCues.cues.collectAsStateWithLifecycle()
         val cuesError by viewModel.liveCues.error.collectAsStateWithLifecycle()
-        val queue by MemoryQueue.state.collectAsStateWithLifecycle()
+        val queue by Jobs.snapshot.collectAsStateWithLifecycle()
         val repo = clientsVm.repo
         val activity = LocalContext.current.findFragmentActivity()
         var confirmLock by remember { mutableStateOf(false) }
@@ -135,7 +135,7 @@ fun MindVaultApp(
             pendingEnqueue = null
             pendingRecordingId = null
         }
-        LaunchedEffect(queue.jobs.firstOrNull { it.id == sessionId }?.status) { clientsVm.refresh() }
+        LaunchedEffect(queue.sessions.firstOrNull { it.sessionId == sessionId }?.done) { clientsVm.refresh() }
         LaunchedEffect(queue.jobs.count { it.status == JobStatus.Done }) { clientsVm.refresh() }
 
         // Keep selectedPatient up-to-date with the latest data in patients
@@ -145,8 +145,8 @@ fun MindVaultApp(
             }
         }
 
-        val processingByClient = remember(queue.jobs, pendingEnqueue) {
-            SessionLogic.processingByClient(queue.jobs, pendingEnqueue)
+        val processingByClient = remember(queue, pendingEnqueue) {
+            SessionLogic.processingByClient(queue, pendingEnqueue)
         }
 
         val resetSession = {
@@ -378,7 +378,7 @@ fun MindVaultApp(
 
                         "settings" -> {
                             SettingsScreen(
-                                onLockVault = { if (queue.running) confirmLock = true else activity?.let(Vault::lock) },
+                                onLockVault = { if (queue.running != null) confirmLock = true else activity?.let(Vault::lock) },
                                 onOpenDebugMlView = onShowLegacyDebugView
                             )
                         }

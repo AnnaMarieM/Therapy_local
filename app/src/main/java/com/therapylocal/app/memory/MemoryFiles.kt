@@ -10,9 +10,8 @@ import java.io.File
 object MemoryFiles {
     fun secureRoot(c: Context): File = File(c.filesDir, "memory")
 
-    /** [fileName] = SessionJob.file = "<sid>.md". */
+    /** [fileName] = the process job's ref, "<sid>.md". */
     fun transcript(c: Context, fileName: String): File = File(secureRoot(c), "in/$fileName")
-    fun queue(c: Context): File = File(secureRoot(c), "queue.json")
 
     /** A directory. */
     fun extractCache(c: Context, sessionId: String): File = File(secureRoot(c), "cache/$sessionId")

@@ -1,7 +1,9 @@
 package com.therapylocal.app.ui.logic
 
-import com.therapylocal.app.memory.JobStatus
-import com.therapylocal.app.memory.SessionJob
+import com.therapylocal.app.data.Job
+import com.therapylocal.app.jobs.JobPhase
+import com.therapylocal.app.jobs.QueueSnapshot
+import com.therapylocal.app.jobs.StepProgress
 import com.therapylocal.app.ui.models.Patient
 import com.therapylocal.app.ui.models.ProcessingSessionInfo
 
@@ -39,21 +41,20 @@ object SessionLogic {
     }
 
     /**
-     * Per-client "processing" banner info: Queued/Running jobs (a later job of the same client replaces an earlier one),
-     * plus the not-yet-enqueued session ([pending] = client, sessionId, date) if that client has no job yet.
+     * Per-client "processing" banner info: sessions with work still to do and nothing failed (a later session of the same client replaces an
+     * earlier one), plus the not-yet-enqueued session ([pending] = client, sessionId, date) if that client has none.
      */
-    fun processingByClient(jobs: List<SessionJob>, pending: Triple<String, String, String>?): Map<String, ProcessingSessionInfo> {
+    fun processingByClient(queue: QueueSnapshot, pending: Triple<String, String, String>?): Map<String, ProcessingSessionInfo> {
         val map = mutableMapOf<String, ProcessingSessionInfo>()
-        jobs.filter { it.status == JobStatus.Queued || it.status == JobStatus.Running }.forEach { job ->
+        queue.sessions.filter { !it.finished && it.failed == 0 }.forEach { s ->
             val stageText = when {
-                job.stage.isNotBlank() -> job.stage
-                job.status == JobStatus.Queued -> "Queued"
-                job.recordingId != 0L -> "Transcribing audio"
-                else -> "Extracting notes"
+                s.running -> runningStage(queue.running, queue.progress)
+                s.blocked > 0 -> "Waiting"
+                else -> "Queued"
             }
-            map[job.client] = ProcessingSessionInfo(
-                sessionId = job.id,
-                date = job.date.ifEmpty { "Today" },
+            map[s.clientId] = ProcessingSessionInfo(
+                sessionId = s.sessionId,
+                date = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(java.util.Date(s.startedAt)),
                 stage = stageText,
                 isPendingEnqueue = false
             )
@@ -69,6 +70,13 @@ object SessionLogic {
             }
         }
         return map
+    }
+
+    private fun runningStage(job: Job?, p: StepProgress?): String = when (p?.phase) {
+        JobPhase.Transcribing -> "Transcribing audio"
+        JobPhase.Reading -> "Reading ${p.step}/${p.steps}"
+        JobPhase.Checking -> "Checking ${p.step}/${p.steps}"
+        else -> if (job?.recordingId != null) "Transcribing audio" else "Extracting notes"
     }
 
     enum class SessionTabTarget { Live, Chooser }
