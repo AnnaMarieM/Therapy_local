@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="snowflake-source" content="cortex-agent-authored" />
+<title>MindVault · 100 icons</title>
+<script type="application/json" id="snowflake-report-metadata">
+{
+  "generated": "2026-10-30",
+  "intent": "Pick a new app icon for MindVault: 100 numbered adaptive-icon variants in the app's paper-and-ink language",
+  "dataSources": [{ "type": "file", "path": "design/icons/build.py", "notes": "Icons are generated SVG; fonts are the app's (app/src/main/res/font)." }],
+  "sections": [
+    { "id": "grid", "title": "The hundred", "producerNotes": "Regenerate with: python3 design/icons/build.py" }
+  ]
+}
+</script>
+<style>
+/*FONTS*/
+:root {
+  color-scheme: light dark;
+  --paper: light-dark(#EDE6D9, #1E1813);
+  --ink: light-dark(#2B221B, #EDE6D9);
+  --soft: light-dark(rgba(43,34,27,.72), rgba(237,230,217,.72));
+  --faint: light-dark(rgba(43,34,27,.5), rgba(237,230,217,.5));
+  --hair: light-dark(rgba(43,34,27,.14), rgba(237,230,217,.14));
+  --tile: light-dark(#E6DECF, #2A221B);
+  --rec: #C9361F;
+  --spring: cubic-bezier(.2, .9, .25, 1.12);
+}
+* { box-sizing: border-box; }
+html { background: var(--paper); }
+body {
+  margin: 0 auto; max-width: 1180px; width: 100%;
+  padding: clamp(20px, 5vw, 56px) clamp(16px, 4vw, 40px) 96px;
+  color: var(--ink); font-family: Geist, system-ui, sans-serif; font-size: 16px; line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+.label { font-family: GeistMono, ui-monospace, monospace; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--soft); }
+h1 { font-family: Fraunces, Georgia, serif; font-weight: 300; font-size: clamp(56px, 11vw, 120px); line-height: .92; letter-spacing: -.04em; margin: 14px 0 0; }
+h1 em { font-family: FrauncesItalic, Georgia, serif; font-style: normal; font-weight: 300; }
+.lead { font-family: FrauncesItalic, Georgia, serif; font-size: clamp(18px, 2.2vw, 22px); color: var(--soft); max-width: 40em; margin: 22px 0 0; }
+.rule { height: 1px; background: var(--hair); margin: 40px 0 22px; border: 0; }
+.family { display: flex; align-items: baseline; gap: 14px; margin: 46px 0 18px; }
+.family h2 { font-family: Fraunces, Georgia, serif; font-weight: 400; font-size: clamp(26px, 3.4vw, 34px); letter-spacing: -.02em; margin: 0; }
+.family p { margin: 0; color: var(--faint); font-family: FrauncesItalic, Georgia, serif; font-size: 16px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(124px, 1fr)); gap: 28px 18px; }
+.cell { appearance: none; border: 0; background: none; padding: 0; color: inherit; cursor: pointer; text-align: center; font: inherit; }
+.cell .mask { width: min(112px, 100%); aspect-ratio: 1; margin: 0 auto; border-radius: 50%; overflow: hidden;
+  box-shadow: 0 1px 0 var(--hair), 0 10px 24px -14px rgba(30, 24, 19, .45);
+  transition: transform .45s var(--spring), box-shadow .45s var(--spring); }
+.cell .mask svg { display: block; width: 100%; height: 100%; }
+.cell:hover .mask, .cell:focus-visible .mask { transform: translateY(-3px) scale(1.04); box-shadow: 0 1px 0 var(--hair), 0 18px 30px -16px rgba(30, 24, 19, .55); }
+.cell:focus-visible { outline: none; }
+.cell:focus-visible .num { color: var(--ink); }
+.cell .num { display: block; margin-top: 12px; font-family: GeistMono, ui-monospace, monospace; font-size: 12px; letter-spacing: .06em; color: var(--soft); }
+.cell .nm { display: block; margin-top: 2px; font-size: 12px; color: var(--faint); }
+.twocol { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px 48px; margin-top: 14px; }
+.sub { font-family: Fraunces, Georgia, serif; font-weight: 400; font-size: 28px; letter-spacing: -.02em; margin: 6px 0 0; }
+.note { margin: 4px 0 14px; color: var(--faint); font-family: FrauncesItalic, Georgia, serif; }
+.dirs, .styles { list-style: none; padding: 0; margin: 0; display: grid; gap: 14px; }
+.dirs li, .styles li { display: grid; grid-template-columns: 34px 1fr; gap: 2px 12px; padding-bottom: 14px; border-bottom: 1px solid var(--hair); }
+.dirs .k, .styles .k { grid-row: span 3; font-family: Fraunces, Georgia, serif; font-size: 30px; line-height: 1; }
+.dirs b, .styles b { font-weight: 500; }
+.dirs .about, .styles .about { color: var(--soft); font-size: 14px; }
+.dirs .cs { font-family: GeistMono, ui-monospace, monospace; font-size: 11px; letter-spacing: .05em; text-transform: uppercase; color: var(--faint); }
+.rules { margin: 8px 0 0; padding-left: 18px; color: var(--soft); font-size: 14px; display: grid; gap: 8px; }
+.matrix { display: grid; grid-template-columns: minmax(96px, 150px) repeat(5, minmax(0, 1fr)); gap: 22px 14px; align-items: center; }
+.matrix .colh { font-family: GeistMono, ui-monospace, monospace; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--faint); text-align: center; }
+.matrix .rowh { font-family: Fraunces, Georgia, serif; font-size: 19px; line-height: 1.15; }
+.matrix .rowh span { display: block; font-family: GeistMono, ui-monospace, monospace; font-size: 11px; letter-spacing: .06em; color: var(--faint); margin-bottom: 4px; }
+.scroller { overflow-x: auto; padding-bottom: 6px; }
+.scroller .matrix { min-width: 640px; }
+
+/* the enlarged view */
+.view { position: fixed; inset: 0; display: grid; place-items: center; padding: clamp(14px, 4vw, 40px);
+  background: color-mix(in srgb, var(--paper) 99%, transparent); backdrop-filter: blur(16px);
+  opacity: 0; pointer-events: none; transition: opacity .28s ease; overflow-y: auto; }
+.view.open { opacity: 1; pointer-events: auto; }
+.card { width: min(980px, 100%); transform: translateY(18px) scale(.97); transition: transform .5s var(--spring); }
+.view.open .card { transform: none; }
+.top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.top h3 { font-family: Fraunces, Georgia, serif; font-weight: 300; font-size: clamp(40px, 7vw, 72px); letter-spacing: -.03em; line-height: 1; margin: 6px 0 0; }
+.actions { display: flex; gap: 8px; }
+.actions button { appearance: none; border: 0; border-radius: 30px; padding: 12px 18px; background: var(--tile); color: var(--ink);
+  font: 500 15px Geist, system-ui, sans-serif; cursor: pointer; transition: transform .3s var(--spring); }
+.actions button:hover { transform: scale(1.04); }
+.actions button:active { transform: scale(.97); }
+.stage { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: clamp(18px, 3vw, 34px); margin-top: 26px; align-items: start; }
+.hero { border-radius: 28%; overflow: hidden; aspect-ratio: 1; box-shadow: 0 30px 60px -30px rgba(30, 24, 19, .55); }
+.hero svg { display: block; width: 100%; height: 100%; }
+.side { display: grid; gap: 18px; }
+.masks { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.masks figure, .homes figure { margin: 0; }
+.masks .m { aspect-ratio: 1; overflow: hidden; box-shadow: 0 0 0 1px var(--hair), 0 12px 24px -16px rgba(30, 24, 19, .5); }
+.masks .m svg, .home .ic svg { display: block; width: 100%; height: 100%; }
+figcaption { margin-top: 8px; font-family: GeistMono, ui-monospace, monospace; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--faint); text-align: center; }
+.homes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.home { border-radius: 18px; padding: 16px 0 12px; display: grid; justify-items: center; gap: 6px; }
+.home .ic { width: 56px; height: 56px; border-radius: 50%; overflow: hidden; box-shadow: 0 0 0 1px rgba(30, 24, 19, .08); }
+.home .ic.small { width: 40px; height: 40px; }
+.home span { font: 12px Geist, system-ui, sans-serif; }
+.h-light { background: #EFE9DE; color: #2B221B; }
+.h-dark { background: linear-gradient(160deg, #2b3531, #141a17); color: #eee; }
+.h-mono { background: #DCE3E8; color: #1f2a30; }
+.h-mono .ic { filter: grayscale(1) contrast(1.15) brightness(1.04); }
+.hint { margin-top: 22px; color: var(--faint); font-size: 13px; }
+@media (max-width: 720px) { .stage { grid-template-columns: 1fr; } }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+
+<span class="label">MindVault · app icon</span>
+<h1>A hundred <em>marks.</em></h1>
+<p class="lead">Five directions, what the icon says; four concepts in each, the mark itself; five art styles, how it is drawn. Every mark is an Android adaptive icon in the app's paper, ink and recording red. Open one to see it under each launcher shape and on a home screen.</p>
+
+<section id="framework">
+  <hr class="rule" />
+  <span class="label">The thinking</span>
+  <div class="twocol">
+    <div>
+      <h2 class="sub">Directions</h2>
+      <p class="note">What the icon says about the app.</p>
+      <ol class="dirs" id="dirs"></ol>
+    </div>
+    <div>
+      <h2 class="sub">Art styles</h2>
+      <p class="note">How any mark is drawn. Each column below is one of these.</p>
+      <ol class="styles" id="styles"></ol>
+      <h2 class="sub" style="margin-top:30px">Rules for all of them</h2>
+      <ul class="rules">
+        <li>Red means live. The dot is the recording dot, as in the app; nothing else is red, except as the ground of the red seal and as the second ink of the two-ink print.</li>
+        <li>Inside the safe zone. The mark fits the 66 dp circle of the 108 dp canvas, so no launcher shape crops it.</li>
+        <li>Readable at 40 px and in the phone's themed (monochrome) mode.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<main id="grid"></main>
+
+<div class="view" id="view" role="dialog" aria-modal="true" aria-labelledby="vname">
+  <div class="card">
+    <div class="top">
+      <div><span class="label" id="vnum">No. 1</span><h3 id="vname"></h3></div>
+      <div class="actions">
+        <button id="prev" aria-label="Previous icon">‹ Previous</button>
+        <button id="next" aria-label="Next icon">Next ›</button>
+        <button id="close" aria-label="Close">Close</button>
+      </div>
+    </div>
+    <div class="stage">
+      <div class="hero" id="hero"></div>
+      <div class="side">
+        <div>
+          <span class="label">Launcher shapes</span>
+          <div class="masks" style="margin-top:10px">
+            <figure><div class="m" id="m-circle" style="border-radius:50%"></div><figcaption>Circle</figcaption></figure>
+            <figure><div class="m" id="m-squircle" style="border-radius:32%"></div><figcaption>Squircle</figcaption></figure>
+            <figure><div class="m" id="m-square" style="border-radius:16%"></div><figcaption>Rounded</figcaption></figure>
+          </div>
+        </div>
+        <div>
+          <span class="label">On a home screen</span>
+          <div class="homes" style="margin-top:10px">
+            <figure><div class="home h-light"><div class="ic" id="h1"></div><span>MindVault</span></div><figcaption>Light</figcaption></figure>
+            <figure><div class="home h-dark"><div class="ic" id="h2"></div><span>MindVault</span></div><figcaption>Dark</figcaption></figure>
+            <figure><div class="home h-mono"><div class="ic small" id="h3"></div><span>MindVault</span></div><figcaption>Themed · small</figcaption></figure>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="hint">← → to browse · Esc to close</p>
+  </div>
+</div>
+
+<script>
+const ICONS = [/*ICONS*/];
+
+const grid = document.getElementById("grid");
+let current = 0;
+
+const META = {/*META*/};
+const STYLE = Object.fromEntries(META.styles.map(x => [x.key, x]));
+const DIR = Object.fromEntries(META.directions.map(x => [x.key, x]));
+const pad = n => String(n).padStart(3, "0");
+const label = ic => `${DIR[ic.dir].name} · ${ic.concept} · ${STYLE[ic.style].name}`;
+
+// The thinking first: directions and styles.
+const dirs = document.getElementById("dirs");
+META.directions.forEach(d => {
+  const li = document.createElement("li");
+  li.innerHTML = `<span class="k"></span><b></b><span class="about"></span><span class="cs"></span>`;
+  li.querySelector(".k").textContent = d.key;
+  li.querySelector("b").textContent = d.name;
+  li.querySelector(".about").textContent = d.about;
+  li.querySelector(".cs").textContent = d.concepts.join(" · ");
+  dirs.appendChild(li);
+});
+const styles = document.getElementById("styles");
+META.styles.forEach((st, i) => {
+  const li = document.createElement("li");
+  li.innerHTML = `<span class="k"></span><b></b><span class="about"></span>`;
+  li.querySelector(".k").textContent = i + 1;
+  li.querySelector("b").textContent = st.name;
+  li.querySelector(".about").textContent = st.about;
+  styles.appendChild(li);
+});
+
+// Then the icons: one section per direction, concepts down, styles across.
+const cells = [];
+META.directions.forEach(d => {
+  const mine = ICONS.filter(ic => ic.dir === d.key);
+  const head = document.createElement("div");
+  head.className = "family";
+  head.id = "dir-" + d.key;
+  head.innerHTML = `<span class="label"></span><h2></h2><p></p>`;
+  head.querySelector(".label").textContent = `${d.key} · ${pad(mine[0].n)}–${pad(mine[mine.length - 1].n)}`;
+  head.querySelector("h2").textContent = d.name;
+  head.querySelector("p").textContent = d.about;
+  grid.appendChild(head);
+  const scroller = document.createElement("div");
+  scroller.className = "scroller";
+  const m = document.createElement("div");
+  m.className = "matrix";
+  m.appendChild(document.createElement("div"));
+  META.styles.forEach(st => { const h = document.createElement("div"); h.className = "colh"; h.textContent = st.name; m.appendChild(h); });
+  d.concepts.forEach((c, ci) => {
+    const rh = document.createElement("div");
+    rh.className = "rowh";
+    rh.innerHTML = `<span></span>`;
+    rh.querySelector("span").textContent = `${d.key}${ci + 1}`;
+    rh.appendChild(document.createTextNode(c));
+    m.appendChild(rh);
+    mine.filter(ic => ic.ci === ci + 1).forEach(ic => {
+      const i = ICONS.indexOf(ic);
+      const b = document.createElement("button");
+      b.className = "cell";
+      b.setAttribute("aria-label", `Icon ${ic.n}: ${label(ic)}`);
+      b.innerHTML = `<div class="mask">${ic.svg}</div><span class="num">No. ${pad(ic.n)}</span>`;
+      b.addEventListener("click", () => open(i));
+      cells[i] = b;
+      m.appendChild(b);
+    });
+  });
+  scroller.appendChild(m);
+  grid.appendChild(scroller);
+});
+
+const view = document.getElementById("view");
+function fill(i) {
+  const ic = ICONS[i];
+  document.getElementById("vnum").textContent = `No. ${pad(ic.n)} of 100 · ${ic.dir}${ic.ci} · ${STYLE[ic.style].name}`;
+  document.getElementById("vname").textContent = `${ic.concept}`;
+  for (const id of ["hero", "m-circle", "m-squircle", "m-square", "h1", "h2", "h3"]) document.getElementById(id).innerHTML = ic.svg;
+}
+function open(i) { current = i; fill(i); view.classList.add("open"); document.getElementById("close").focus(); }
+function close() { view.classList.remove("open"); cells[current].focus(); }
+function step(d) { current = (current + d + ICONS.length) % ICONS.length; fill(current); }
+document.getElementById("close").addEventListener("click", close);
+document.getElementById("prev").addEventListener("click", () => step(-1));
+document.getElementById("next").addEventListener("click", () => step(1));
+view.addEventListener("click", e => { if (e.target === view) close(); });
+document.addEventListener("keydown", e => {
+  if (!view.classList.contains("open")) return;
+  if (e.key === "Escape") close();
+  else if (e.key === "ArrowRight") step(1);
+  else if (e.key === "ArrowLeft") step(-1);
+});
+</script>
+</body>
+</html>
