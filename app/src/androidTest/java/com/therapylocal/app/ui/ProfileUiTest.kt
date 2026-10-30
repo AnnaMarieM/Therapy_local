@@ -41,7 +41,8 @@ import org.junit.runner.RunWith
 
 /**
  * The profile on a real encrypted database seeded with one fact said in two sessions: the fact's sheet shows both occurrences with the
- * transcript around each, text search finds the transcript and the fact, and a live-cue slider saves its setting.
+ * transcript around each, a session shows only its transcript, text search finds the transcript and the fact, and a live-cue slider saves
+ * its setting.
  */
 @OptIn(ExperimentalTestApi::class)
 @RunWith(AndroidJUnit4::class)
@@ -96,6 +97,26 @@ class ProfileUiTest {
         compose.onNode(hasText(LINES_1[0])).assertExists()
         compose.onNode(hasText(LINES_1[6])).assertExists()
         compose.onNode(hasText(LINES_1[7])).assertDoesNotExist()
+    }
+
+    @Test
+    fun aSessionShowsOnlyItsTranscriptWithNoNotesOrFacts() {
+        val patient = repo.patient(CLIENT)
+        compose.setContent {
+            ProfileScreen(
+                patient = patient, isSessionActive = false, repo = repo, onBack = {}, onDeletePatient = {}, onStartSession = {},
+                onReturnToActiveSession = {}, onChanged = {}, search = {}
+            )
+        }
+        compose.onNode(hasText("Sessions") and hasClickAction()).performClick()
+        // Newest first: the second session's card is on top.
+        compose.onAllNodes(hasText("Show transcript")).onFirst().performClick()
+
+        compose.waitUntilAtLeastOneExists(hasText(LINES_2[0]), TIMEOUT_MS)
+        compose.onNode(hasText(LINES_2.last())).assertExists()
+        compose.onNode(hasText(HEADING)).assertDoesNotExist()
+        compose.onNode(hasText(CONTENT)).assertDoesNotExist()
+        compose.onNode(hasSetTextAction()).assertDoesNotExist()
     }
 
     @Test
