@@ -91,12 +91,16 @@ import com.therapylocal.app.ui.logic.splitName
 import com.therapylocal.app.ui.models.Patient
 import com.therapylocal.app.ui.motion.Axis
 import com.therapylocal.app.ui.motion.BoundsRef
+import com.therapylocal.app.ui.motion.Frame
 import com.therapylocal.app.ui.motion.GestureMath
 import com.therapylocal.app.ui.motion.ReelItemLook
+import com.therapylocal.app.ui.motion.SheetState
 import com.therapylocal.app.ui.motion.Side
 import com.therapylocal.app.ui.motion.axisDrag
 import com.therapylocal.app.ui.motion.axisDragHandler
+import com.therapylocal.app.ui.motion.frame
 import com.therapylocal.app.ui.motion.trackBounds
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import kotlin.math.abs
@@ -116,20 +120,32 @@ data class ClientStatus(
     val onTap: (() -> Unit)? = null,
 )
 
-/** What the home screen needs from the app. Origins are where a sheet should grow from. */
+/** What the home screen needs from the app. */
 class HomeActions(
     val openProfile: (Patient) -> Unit,
     val openSession: () -> Unit,
     val addClient: () -> Unit,
     val deleteClient: (Patient) -> Unit,
     val openSettings: () -> Unit,
+    /** A sideways drag of [dx] px (negative, toward the way in) pulls in the page of the client (null: adding one) under the finger. */
+    val peek: (Patient?, Float) -> Unit = { _, _ -> },
+    /** That drag was let go without going in: the page goes back out. */
+    val unpeek: (Patient?) -> Unit = {},
 )
 
-/** Places the sheets grow from. Owned by the app so it can fold sheets back into them. */
+/** Places on home that other pages need. Owned by the app. */
 class HomeRefs {
     val right = BoundsRef()
     val pill = BoundsRef()
     val gear = BoundsRef()
+
+    /** The selected name on the reel, at rest, and whose it is: it travels from here to the top of their page. */
+    val name = BoundsRef()
+    var nameOf: String? by mutableStateOf(null)
+    val frame = Frame()
+
+    /** True while the name is away on another page (the reel then leaves its place empty). */
+    var lent: () -> Boolean = { false }
 }
 
 /**
@@ -154,6 +170,7 @@ fun Home(
     bar: ChoiceState,
     refs: HomeRefs,
     actions: HomeActions,
+    modifier: Modifier = Modifier,
 ) {
     val haptics = rememberHaptics()
     val scope = rememberCoroutineScope()
@@ -162,18 +179,29 @@ fun Home(
     val ordered = remember(clients, index) { index.order.map { clients[it] } }
     val count = ordered.size + 1 // + "New client"
     val pos = remember { Animatable(0f) }
-    val shift = remember { Animatable(0f) }
     val arrive = remember { Animatable(if (reduced) 1f else 0f) }
     var quiet by remember { mutableStateOf(false) }
     var railActive by remember { mutableStateOf(false) }
     var railLetter by remember { mutableIntStateOf(-1) }
     var railY by remember { mutableFloatStateOf(0f) }
+    var scrolling by remember { mutableStateOf(false) }
     var confirmDelete by remember { mutableStateOf<Patient?>(null) }
     val selected by remember(count) { derivedStateOf { pos.value.roundToInt().coerceIn(0, count - 1) } }
     val current = ordered.getOrNull(selected)
     val sessionActive = session.active || session.phase == SessionPhase.Finishing
 
     LaunchedEffect(Unit) { arrive.animateTo(1f, Motion.Arrive) }
+    // The line under the name only once the reel is still: finger up and every settle, jump and fling finished. It goes at once (no fade
+    // out) when anything moves the names again, so it never sits over a name passing by.
+    val still = remember { Animatable(1f) }
+    LaunchedEffect(Unit) {
+        snapshotFlow { !scrolling && !railActive && !pos.isRunning }.distinctUntilChanged().collectLatest { s ->
+            if (s) {
+                kotlinx.coroutines.delay(STILL_AFTER_MS)
+                still.animateTo(1f, Motion.Fade)
+            } else still.snapTo(0f)
+        }
+    }
     // The list changed under the reel (a client added or removed): keep it in range, and land on a client the app asked to show.
     LaunchedEffect(count) { if (pos.value > count - 1) pos.animateTo((count - 1).toFloat(), Motion.Reel) }
     LaunchedEffect(focusClient, ordered) {
@@ -189,7 +217,7 @@ fun Home(
         }
     }
 
-    BoxWithConstraints(Modifier.fillMaxSize()) {
+    BoxWithConstraints(modifier.fillMaxSize()) {
         val density = LocalDensity.current
         val w = constraints.maxWidth.toFloat()
         val h = constraints.maxHeight.toFloat()
@@ -209,15 +237,16 @@ fun Home(
                 accepts = { a, start, _ -> !inRail(start.x, start.y) && (a == Axis.Horizontal || count > 1) },
                 onStart = { a, _ ->
                     onLearned()
-                    if (a == Axis.Vertical) scope.launch { pos.stop() }
+                    if (a == Axis.Vertical) { scrolling = true; scope.launch { pos.stop() } }
                 },
                 onDrag = { a, total, delta ->
                     if (a == Axis.Vertical) {
                         scope.launch { pos.snapTo(GestureMath.reelDrag(pos.value, -delta / itemPx, count)) }
                     } else {
-                        // Home is the top: there is nowhere back, only in (to the client, or to adding one).
+                        // Home is the top: there is nowhere back, only in (to the client, or to adding one). Their page comes in under
+                        // the finger.
                         bar.drag(total) { s -> s == Side.Right }
-                        scope.launch { shift.snapTo(GestureMath.rubberBand(total, bar.tact) * 0.3f) }
+                        actions.peek(ordered.getOrNull(selected), total)
                     }
                 },
                 onEnd = { a, _, velocity ->
@@ -225,28 +254,28 @@ fun Home(
                         val v = -velocity / itemPx
                         val target = GestureMath.snapIndex(pos.value, v, count)
                         scope.launch { pos.animateTo(target.toFloat(), Motion.Reel, initialVelocity = v) }
+                        scrolling = false
                     } else {
-                        scope.launch { shift.animateTo(0f, Motion.Throw) }
-                        if (bar.release() == Side.Right) goIn(selected, ordered, actions)
+                        if (bar.release() == Side.Right) goIn(selected, ordered, actions) else actions.unpeek(ordered.getOrNull(selected))
                     }
                 },
             )
         }
 
-        Box(Modifier.fillMaxSize().axisDrag(drag)) {
+        Box(Modifier.fillMaxSize().frame(refs.frame).axisDrag(drag)) {
             // ---- the reel ----
             val window by remember(count) { derivedStateOf { floor(pos.value).toInt() } }
             Box(
                 Modifier.fillMaxSize().graphicsLayer {
-                    translationX = shift.value
                     val pull = maxOf(bar.left.value, bar.right.value).coerceIn(0f, 1f)
                     alpha = arrive.value * (1f - 0.45f * pull) * (if (railActive) 0.9f else 1f)
                 },
             ) {
                 for (i in (window - 4).coerceAtLeast(0)..(window + 5).coerceAtMost(count - 1)) {
                     key(if (i < ordered.size) ordered[i].id else "+new") {
+                        val c = ordered.getOrNull(i)
                         ReelItem(
-                            client = ordered.getOrNull(i),
+                            client = c,
                             look = { ReelItemLook.of(i - pos.value, near, far) },
                             centerY = centerY + (1f - arrive.value) * 26f,
                             heroSp = heroSp,
@@ -256,21 +285,22 @@ fun Home(
                                     if (i < ordered.size) actions.openProfile(ordered[i]) else actions.addClient()
                                 } else scope.launch { pos.animateTo(i.toFloat(), Motion.Reel) }
                             },
-                            onLongPress = ordered.getOrNull(i)?.let { c -> { if (i == selected) { haptics.arm(); confirmDelete = c } } },
+                            onLongPress = c?.let { p -> { if (i == selected) { haptics.arm(); confirmDelete = p } } },
+                            // Only the selected name travels; it leaves its place empty while it is away.
+                            nameRef = if (i == selected && c != null) refs else null,
                         )
                     }
                 }
-                // Status under the selected name: fades while moving, so it never shows a neighbour's details.
+                // Status under the selected name, only while the reel is still, so it never shows over a name going by or a neighbour's
+                // details. Keyed by the client: a new name gets its own line, not a crossfade from the last one.
                 val status = current?.let(statusOf) ?: if (ordered.isEmpty()) ClientStatus("Add your first client to begin") else ClientStatus("Add someone new")
-                StatusLine(
-                    status,
-                    Modifier.offset { IntOffset(26.dp.roundToPx(), (centerY + with(density) { (heroSp * 0.5f).sp.toPx() } + 18.dp.toPx()).roundToInt()) }
-                        .graphicsLayer {
-                            val f = 1f - abs(pos.value - pos.value.roundToInt()) * 2f
-                            val still = 1f - (abs(pos.velocity) / 6f).coerceIn(0f, 1f)
-                            alpha = GestureMath.smoothstep(0.5f, 1f, f) * still * arrive.value
-                        },
-                )
+                key(current?.id) {
+                    StatusLine(
+                        status,
+                        Modifier.offset { IntOffset(26.dp.roundToPx(), (centerY + with(density) { (heroSp * 0.5f).sp.toPx() } + 18.dp.toPx()).roundToInt()) }
+                            .graphicsLayer { alpha = still.value * arrive.value },
+                    )
+                }
             }
 
             // ---- the rail ----
@@ -375,6 +405,36 @@ private fun goIn(selected: Int, ordered: List<Patient>, actions: HomeActions) {
     if (selected < ordered.size) actions.openProfile(ordered[selected]) else actions.addClient()
 }
 
+/** How long the reel has to be still before the line under the name comes in: a settle that ends in a small step does not blink it. */
+private const val STILL_AFTER_MS = 90L
+
+/**
+ * The client's name on its way between the reel and the top of their page, drawn on its own over both while [sheet] moves: one name that
+ * changes place and size, never two. [shown] says when it is travelling (both ends known and on screen, not at rest on the page).
+ */
+@Composable
+internal fun TravellingName(name: String, sheet: SheetState, from: BoundsRef, to: BoundsRef, shown: () -> Boolean) {
+    if (!sheet.visible) return
+    val density = LocalDensity.current
+    NameTitle(
+        name,
+        Modifier
+            .offset { IntOffset(to.rect.left.roundToInt(), to.rect.top.roundToInt()) }
+            .width(with(density) { to.rect.width.toDp() })
+            .graphicsLayer {
+                if (!shown()) { alpha = 0f; return@graphicsLayer }
+                val q = sheet.progress.value
+                val f = from.rect
+                val t = to.rect
+                val s = GestureMath.lerp(if (t.height > 0f) f.height / t.height else 1f, 1f, q)
+                transformOrigin = TransformOrigin(0f, 0f)
+                scaleX = s; scaleY = s
+                translationX = (f.left - t.left) * (1f - q)
+                translationY = (f.top - t.top) * (1f - q)
+            },
+    )
+}
+
 @Composable
 private fun ReelItem(
     client: Patient?,
@@ -383,12 +443,14 @@ private fun ReelItem(
     heroSp: Float,
     onTap: () -> Unit,
     onLongPress: (() -> Unit)?,
+    nameRef: HomeRefs? = null,
 ) {
     val (first, rest) = client?.let { splitName(it.name) } ?: ("New" to "client")
     val ink = if (client == null) Palette.InkSoft else Palette.Ink
     val heroSize = (heroSp * heroShrink(first.length + (rest?.let { it.length + 1 } ?: 0))).sp
     val tap by rememberUpdatedState(onTap)
     val long by rememberUpdatedState(onLongPress)
+    val refs by rememberUpdatedState(nameRef)
     var bigH by remember { mutableFloatStateOf(0f) }
     Box(
         Modifier.fillMaxWidth().padding(start = 26.dp, end = 72.dp)
@@ -401,10 +463,18 @@ private fun ReelItem(
         // The large form for the centre, the small one for the neighbours; the reel crossfades between them. Both are one line, so a name
         // only grows as it arrives, never re-wraps: past what fits, it ends in an ellipsis like its neighbours do.
         Box(
-            Modifier.onGloballyPositioned { bigH = it.size.height.toFloat() }
+            Modifier.onGloballyPositioned { c ->
+                bigH = c.size.height.toFloat()
+                // Where the name is drawn (the layer below lifts it by half its height), for it to travel from.
+                refs?.let { r ->
+                    val f = r.frame.coords?.takeIf { it.isAttached }
+                    r.name.rect = (if (f != null) f.localBoundingBoxOf(c, clipBounds = false) else c.boundsInRoot()).translate(0f, -bigH / 2)
+                    r.nameOf = client?.id
+                }
+            }
                 .graphicsLayer {
                     val l = look()
-                    alpha = l.bigAlpha
+                    alpha = if (refs?.lent?.invoke() == true) 0f else l.bigAlpha
                     scaleX = l.bigScale; scaleY = l.bigScale
                     transformOrigin = TransformOrigin(0f, 0.5f)
                     translationY = -bigH / 2

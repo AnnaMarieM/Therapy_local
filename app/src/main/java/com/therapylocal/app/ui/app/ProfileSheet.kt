@@ -83,14 +83,18 @@ import com.therapylocal.app.ui.models.SessionItem
 import com.therapylocal.app.ui.models.TranscriptLine
 import com.therapylocal.app.ui.motion.Axis
 import com.therapylocal.app.ui.motion.BoundsRef
-import com.therapylocal.app.ui.motion.ContainerTransform
-import com.therapylocal.app.ui.motion.Origin
+import com.therapylocal.app.ui.motion.LocalPageFrame
+import com.therapylocal.app.ui.motion.PageShift
 import com.therapylocal.app.ui.motion.SheetState
 import com.therapylocal.app.ui.motion.Side
 import com.therapylocal.app.ui.motion.axisDrag
 import com.therapylocal.app.ui.motion.axisDragHandler
+import com.therapylocal.app.ui.motion.recede
 import com.therapylocal.app.ui.motion.rememberSheetState
 import com.therapylocal.app.ui.motion.trackBounds
+import com.therapylocal.app.ui.design.LocalReducedMotion
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.derivedStateOf
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -128,6 +132,8 @@ fun ProfileSheet(
     onRecord: (BoundsRef) -> Unit,
     onDeleteClient: () -> Unit,
     onDeleteSession: (SessionItem) -> Unit,
+    titleRef: BoundsRef? = null,
+    titleLent: () -> Boolean = { false },
 ) {
     val bar = rememberChoiceState()
     val haptics = rememberHaptics()
@@ -138,23 +144,30 @@ fun ProfileSheet(
     var confirmSession by remember { mutableStateOf<SessionItem?>(null) }
     val recordRef = remember { BoundsRef() }
     val density = LocalDensity.current
-    val openLayer = { l: Layer, from: BoundsRef ->
+    val openLayer = { l: Layer, _: BoundsRef ->
         open = l
-        layer.open(Origin(from.rect, Palette.Paper, with(density) { 18.dp.toPx() }))
+        layer.open()
+    }
+    val pageFrame = LocalPageFrame.current
+    if (titleRef != null) {
+        val top by remember { derivedStateOf { list.firstVisibleItemIndex == 0 } }
+        SideEffect { titleRef.present = top }
     }
 
     Box(Modifier.fillMaxSize()) {
         Column(
-            Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().imePadding()
+            Modifier.fillMaxSize().recede(listOf(layer), LocalReducedMotion.current).statusBarsPadding().navigationBarsPadding().imePadding()
                 .axisDrag(sheetDrag(sheet, bar, onBack = onClose, onForward = { onRecord(recordRef) })),
         ) {
             LazyColumn(Modifier.weight(1f), state = list, contentPadding = PaddingValues(start = 26.dp, end = 26.dp, top = 24.dp, bottom = hintsClearance())) {
                 item {
                     Label("Client · ${patient.sessionCount} ${if (patient.sessionCount == 1) "session" else "sessions"}")
                     Spacer(Modifier.height(14.dp))
-                    val (first, rest) = splitName(patient.name)
-                    Text(first, style = Type.Hero, color = Palette.Ink)
-                    if (rest != null) Text(rest, style = Type.Hero.copy(fontStyle = FontStyle.Italic), color = Palette.Ink)
+                    // The name is the one thing that does not fade: it travels here from the reel (drawn by TravellingName meanwhile).
+                    NameTitle(
+                        patient.name,
+                        Modifier.let { m -> titleRef?.let { m.trackBounds(it, pageFrame) } ?: m }.graphicsLayer { alpha = if (titleLent()) 0f else 1f },
+                    )
                     if (status != null) {
                         Spacer(Modifier.height(6.dp))
                         StatusLine(status, Modifier)
@@ -199,7 +212,7 @@ fun ProfileSheet(
             )
         }
 
-        ContainerTransform(layer, Palette.Paper, onBack = { layer.close() }) {
+        PageShift(layer, onBack = { layer.close() }) {
             when (val l = open) {
                 is Layer.Fact -> FactLayer(l.fact, repo, layer)
                 is Layer.Transcript -> TranscriptLayer(l, repo, layer)
@@ -224,8 +237,8 @@ fun ProfileSheet(
 
 /**
  * Drags on a sheet. Only sideways ones: up and down always belong to the page (it scrolls), never to the sheet. Swiping right goes back,
- * the same as the system back gesture: the sheet shrinks toward where it came from as the finger moves, and letting go armed folds it away
- * (unarmed, it springs back open). Swiping left goes in, to [onForward], when the screen has somewhere to go and [canForward] allows it.
+ * the same as the system back gesture: the page goes back the way it came as the finger moves, and letting go armed finishes the way at
+ * the finger's speed (unarmed, it springs back). Swiping left goes in, to [onForward], when the screen has somewhere to go and [canForward] allows it.
  */
 @Composable
 internal fun sheetDrag(
@@ -243,9 +256,8 @@ internal fun sheetDrag(
             accepts = { a, _, _ -> a == Axis.Horizontal },
             onDrag = { _, total, _ ->
                 bar.drag(total) { s -> s == Side.Left || (forward != null && canGo()) }
-                // The same preview as the system back gesture, so both feel like one thing.
-                val p = (total / (bar.tact * 1.6f)).coerceIn(0f, 1f)
-                sheet.follow(1f - 0.32f * com.therapylocal.app.ui.motion.GestureMath.smoothstep(0f, 1f, p))
+                // Going back is scrubbed under the finger, the content moving with it, the same as the system back gesture.
+                sheet.follow(1f - total.coerceAtLeast(0f) / sheet.shiftPx)
             },
             onEnd = { _, _, _ ->
                 when (bar.release()) {
@@ -255,6 +267,16 @@ internal fun sheetDrag(
                 }
             },
         )
+    }
+}
+
+/** A client's name as the title of their page. Also drawn on its own while it travels between the reel and the page. */
+@Composable
+internal fun NameTitle(name: String, modifier: Modifier) {
+    val (first, rest) = splitName(name)
+    Column(modifier) {
+        Text(first, style = Type.Hero, color = Palette.Ink)
+        if (rest != null) Text(rest, style = Type.Hero.copy(fontStyle = FontStyle.Italic), color = Palette.Ink)
     }
 }
 
