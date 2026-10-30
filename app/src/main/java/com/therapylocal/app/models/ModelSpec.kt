@@ -7,7 +7,7 @@ data class ModelFile(val name: String, val url: String, val size: Long, val sha2
 
 /**
  * A downloadable model: one or more files stored under the app's external files dir, which survives `adb install -r`
- * updates. [subdir] is null for Gemma only, to keep the path the first version already downloaded to.
+ * updates. [subdir] is null for the Gemma builds only, to keep the path the first version already downloaded to.
  */
 data class ModelSpec(val id: String, val title: String, val subdir: String?, val files: List<ModelFile>) {
     val totalBytes: Long get() = files.sumOf { it.size }
@@ -33,19 +33,23 @@ data class ModelSpec(val id: String, val title: String, val subdir: String?, val
 object ModelRegistry {
     private const val HF = "https://huggingface.co"
 
-    val GEMMA = ModelSpec(
-        id = "gemma-4-e2b",
-        title = "Gemma 4 E2B",
-        subdir = null,
-        files = listOf(
-            ModelFile(
-                "gemma-4-E2B-it.litertlm",
-                "$HF/litert-community/gemma-4-E2B-it-litert-lm/resolve/main/gemma-4-E2B-it.litertlm",
-                2_588_147_712L,
-                "181938105e0eefd105961417e8da75903eacda102c4fce9ce90f50b97139a63c",
-            ),
-        ),
+    val GEMMA_E2B = gemma(
+        "gemma-4-e2b", "Gemma 4 E2B", "gemma-4-E2B-it-litert-lm", "gemma-4-E2B-it.litertlm", 2_588_147_712L,
+        "181938105e0eefd105961417e8da75903eacda102c4fce9ce90f50b97139a63c",
     )
+
+    val GEMMA_E4B = gemma(
+        "gemma-4-e4b", "Gemma 4 E4B", "gemma-4-E4B-it-litert-lm", "gemma-4-E4B-it.litertlm", 3_659_530_240L,
+        "0b2a8980ce155fd97673d8e820b4d29d9c7d99b8fa6806f425d969b145bd52e0",
+    )
+
+    fun gemma(variant: GemmaVariant): ModelSpec = when (variant) {
+        GemmaVariant.E2B -> GEMMA_E2B
+        GemmaVariant.E4B -> GEMMA_E4B
+    }
+
+    private fun gemma(id: String, title: String, repo: String, file: String, bytes: Long, sha: String) =
+        ModelSpec(id, title, subdir = null, files = listOf(ModelFile(file, "$HF/litert-community/$repo/resolve/main/$file", bytes, sha)))
 
     /**
      * EmbeddingGemma 2 740M, natively multimodal: text and audio map into one 768-d space.
@@ -95,7 +99,7 @@ object ModelRegistry {
         262_226_114L, "acad50b5c782696e91b55914cc5ab4f756f1532f76e22aa6fc615f39fb69a8ee",
     )
 
-    val ALL = listOf(GEMMA, EMBED, WHISPER_TINY, WHISPER_BASE, WHISPER_SMALL)
+    val ALL = listOf(GEMMA_E2B, GEMMA_E4B, EMBED, WHISPER_TINY, WHISPER_BASE, WHISPER_SMALL)
     fun byId(id: String): ModelSpec = ALL.first { it.id == id }
     fun whisperFor(size: String): ModelSpec = when (size) {
         "tiny" -> WHISPER_TINY

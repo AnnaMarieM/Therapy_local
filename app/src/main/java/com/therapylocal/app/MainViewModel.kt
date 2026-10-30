@@ -4,33 +4,28 @@ import android.app.Application
 import android.content.Context
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.therapylocal.app.asr.AsrEngine
-import com.therapylocal.app.asr.GemmaAsr
-import com.therapylocal.app.asr.SherpaWhisperAsr
-import com.therapylocal.app.audio.AudioChunk
 import com.therapylocal.app.audio.ChunkRecorder
 import com.therapylocal.app.audio.TestAudio
 import com.therapylocal.app.config.BackendPolicy
-import com.therapylocal.app.config.EmbeddingConfig
-import com.therapylocal.app.config.SearchConfig
-import com.therapylocal.app.data.ChunkProcessor
+import com.therapylocal.app.config.ChunkConfig
 import com.therapylocal.app.data.ChunkRow
-import com.therapylocal.app.data.HitGroup
+import com.therapylocal.app.data.MindStore
 import com.therapylocal.app.data.PendingAudio
 import com.therapylocal.app.data.RecordingRow
-import com.therapylocal.app.data.Search
-import com.therapylocal.app.data.Store
-import com.therapylocal.app.embed.Embedder
+import com.therapylocal.app.data.SegmentBuilder
+import com.therapylocal.app.embed.Engines
 import com.therapylocal.app.log.AppLog
 import com.therapylocal.app.log.LogCtx
 import com.therapylocal.app.memory.LiveCues
 import com.therapylocal.app.memory.MemoryFiles
-import com.therapylocal.app.memory.MemoryStore
 import com.therapylocal.app.models.ModelSetup
 import com.therapylocal.app.models.SetupState
+import com.therapylocal.app.session.SessionController
+import com.therapylocal.app.ui.data.ClientRepository
+import com.therapylocal.app.ui.models.SearchHit
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -39,35 +34,30 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
-import java.util.concurrent.atomic.AtomicInteger
 
 enum class Phase { Preparing, Ready, Failed }
+
+/** Client search on the profile: [hits] is null before the first search. */
+data class SearchState(val listening: Boolean = false, val searching: Boolean = false, val hits: List<SearchHit>? = null, val info: String? = null)
 
 data class UiState(
     val phase: Phase = Phase.Preparing,
     val prepareMsg: String = "Starting",
-    val engine: String = "whisper", // "gemma" or "whisper": which engine writes the transcript shown for each chunk
+    val engine: String = "whisper", // "gemma" or "whisper": which engine transcribes recordings (in the background, after they stop)
     val whisperSize: String = "base",
     val language: String = "auto", // Whisper language: "auto" or a code such as "en"
     val backendOverride: String = "auto", // debug: auto, npu, gpu, cpu
-    val asrBackend: String = "-",
     val embedBackend: String = "-",
     val recording: Boolean = false,
-    val deferred: Boolean = false, // the active/last recording is stored as audio and transcribed after setup finishes
-    val activeRecordingId: Long? = null,
-    val pendingChunks: Int = 0,
+    val activeRecordingId: Long? = null, // set until every chunk of the recording is saved
     val status: String = "",
     val recordings: List<RecordingRow> = emptyList(),
     val selected: Long? = null,
     val selectedChunks: List<ChunkRow> = emptyList(),
     val selectedMerged: String = "",
-    val query: String = "",
-    val voiceRecording: Boolean = false,
-    val searching: Boolean = false,
-    val hits: List<HitGroup> = emptyList(),
-    val searchInfo: String = "",
     val testFiles: List<String> = emptyList(),
-    val error: String? = null,
+    val error: String? = null, // setup problems only
+    val recordingError: String? = null, // the session's recording problem, from SessionController
 )
 
 class MainViewModel(app: Application) : AndroidViewModel(app) {
@@ -84,23 +74,31 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     )
     val state: StateFlow<UiState> = _state.asStateFlow()
 
-    private val store = Store(app)
-    private val embedder = Embedder(app)
+    private val store get() = MindStore.get(ctx)
+    private val embedder = Engines.embedder(app)
 
-    /** Realtime fact cues while recording: call `liveCues.start(client)` before startRecording(); it stops itself when the recording ends. */
-    val liveCues = LiveCues(embedder, MemoryStore(app))
-    private var asr: AsrEngine? = null
+    /** Realtime fact cues of the running session (owned by [SessionController]). */
+    val liveCues: LiveCues get() = SessionController.liveCues
     private var prepareJob: Job? = null
 
-    private var recorder: ChunkRecorder? = null
+    private val clients = ClientRepository(app)
+    private val _search = MutableStateFlow(SearchState())
+    val search: StateFlow<SearchState> = _search.asStateFlow()
+    private var searchJob: Job? = null
     private var voiceRecorder: ChunkRecorder? = null
-    private var pipelineJob: Job? = null
-    private val queryCounter = AtomicInteger(0)
 
     init {
+        SessionController.init(app)
         BackendPolicy.override = _state.value.backendOverride
+        viewModelScope.launch {
+            SessionController.state.collect { r ->
+                _state.update { it.copy(recording = r.active, activeRecordingId = r.recordingId, recordingError = r.error) }
+                // A session started before setup finished gets its cues as soon as the embedder is ready.
+                if (r.active && !r.cuesOn && _state.value.phase == Phase.Ready) SessionController.enableCues()
+            }
+        }
         refreshRecordings()
-        // Memory-lab launches only need the LLM; loading the embedder and Whisper too would take memory the lab model needs.
+        // Memory-lab launches only need the pipeline's models; loading the embedder here too would take memory they need.
         if (!skipPrepare) prepare()
     }
 
@@ -117,14 +115,13 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         it.copy(backendOverride = o)
     }
 
+    /** The speech settings are read by the transcribe job; [prepare] again because they change which AI files are needed. */
     private fun change(reload: Boolean, f: (UiState) -> UiState) {
-        if (_state.value.recording || _state.value.voiceRecording) return
+        if (_state.value.recording) return
         _state.update(f)
         val s = _state.value
         AppLog.i(TAG, "settings_changed", LogCtx.NONE, "engine" to s.engine, "whisper_size" to s.whisperSize, "language" to s.language, "backend_override" to s.backendOverride)
         if (reload) embedder.close()
-        asr?.close()
-        asr = null
         prepare()
     }
 
@@ -144,16 +141,13 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    /** Only the embedder, for live cues: speech is transcribed after the session by the queue, never while recording. */
     private suspend fun loadEngines() {
-        val s = _state.value
         try {
             _state.update { it.copy(prepareMsg = "Getting ready") }
             embedder.load()
-            _state.update { it.copy(embedBackend = "text ${embedder.backend} / audio CPU", prepareMsg = "Getting ready") }
-            val engine: AsrEngine = if (s.engine == "gemma") GemmaAsr(ctx) else SherpaWhisperAsr(ctx, s.whisperSize, s.language)
-            engine.load()
-            asr = engine
-            _state.update { it.copy(phase = Phase.Ready, asrBackend = "${engine.modelName} ${engine.backend}", prepareMsg = "Ready") }
+            _state.update { it.copy(phase = Phase.Ready, embedBackend = "text ${embedder.backend} / audio CPU", prepareMsg = "Ready") }
+            SessionController.enableCues()
         } catch (t: Throwable) {
             AppLog.e(TAG, "prepare_failed", LogCtx.NONE, t)
             _state.update { it.copy(phase = Phase.Failed, error = t.message) }
@@ -167,115 +161,108 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     // ---- recording ------------------------------------------------------------------------------------------
 
-    fun startRecording() = beginRecording { rec -> rec.start() }
+    /** Records [session] of [client] through the process-wide [SessionController]; live cues run when the embedder is ready. */
+    fun startRecording(client: String, session: String) {
+        SessionController.start(client, cues = _state.value.phase == Phase.Ready, session = session)
+    }
+
+    /** Debug: a recording outside any session. Its audio is kept but never processed. */
+    fun startRecording() {
+        SessionController.startDebug()
+    }
 
     /** Debug: replay `files/test/<name>` through the real chunker instead of the microphone. */
     fun debugRecordFile(name: String) {
         val pcm = TestAudio.load(ctx, name)
         AppLog.i(TAG, "debug_record_file", LogCtx.NONE, "file" to name, "samples" to pcm.size, "audio_sec" to "%.1f".format(pcm.size / 16000.0))
-        beginRecording { rec -> rec.startFromPcm(pcm) }
+        SessionController.startDebug(pcm)
     }
 
-    private fun beginRecording(startSource: (ChunkRecorder) -> Unit) {
+    fun stopRecording() = SessionController.finish()
+
+    fun pauseRecording() = SessionController.pause()
+
+    fun resumeRecording() = SessionController.resume()
+
+    // ---- client search --------------------------------------------------------------------------------------
+
+    /** Searches [client]'s transcripts by meaning (the query embedded as a search query) and its facts by words. Facts only until the embedder is ready. */
+    fun searchText(client: String, query: String) {
+        searchJob?.cancel()
+        if (query.isBlank()) {
+            _search.value = SearchState()
+            return
+        }
+        searchJob = viewModelScope.launch(Dispatchers.IO) {
+            showSearch {
+                val vec = if (_state.value.phase == Phase.Ready) embedder.embedText(query, query = true, LogCtx.NONE) else null
+                SearchState(hits = clients.search(client, vec, query), info = if (vec == null) "Transcripts can be searched once setup finishes." else null)
+            }
+        }
+    }
+
+    /**
+     * Hold-to-search: records until [stopVoiceSearch] or [ChunkConfig.QUERY_MAX_SECONDS], then searches with the audio embedding itself
+     * (no transcription). False if it cannot start now: the embedder is not ready, or a session or another clip is recording.
+     */
+    fun startVoiceSearch(client: String): Boolean {
         val s = _state.value
-        if (s.recording) return
-        val engine = asr.takeIf { s.phase == Phase.Ready } // null: engines not loaded yet, so the audio is only stored and transcribed later
-        viewModelScope.launch {
-            val rid = withContext(Dispatchers.IO) { if (engine != null) store.createRecording(engine.engineName, engine.modelName) else store.createRecording("pending", "pending") }
-            val c = LogCtx(rid)
-            val rec = ChunkRecorder.recording(c)
-            if (engine != null) rec.tap = liveCues::feed
-            try {
-                startSource(rec)
-            } catch (t: Throwable) {
-                AppLog.e(TAG, "record_start_failed", c, t)
-                _state.update { it.copy(error = "Recording failed: ${t.message}") }
+        if (s.phase != Phase.Ready || s.recording || voiceRecorder != null) return false
+        val rec = ChunkRecorder.query(LogCtx.NONE)
+        try {
+            rec.start()
+        } catch (t: Throwable) {
+            AppLog.e(TAG, "voice_search_start_failed", LogCtx.NONE, t)
+            _search.value = SearchState(info = "The microphone could not be opened.")
+            return false
+        }
+        voiceRecorder = rec
+        searchJob?.cancel()
+        _search.value = SearchState(listening = true)
+        searchJob = viewModelScope.launch(Dispatchers.Default) {
+            // The one clip arrives at release, or at the length cap while still recording.
+            val clip = rec.chunks.receiveCatching().getOrNull()
+            stopVoiceSearch()
+            if (clip == null) {
+                _search.value = SearchState(info = "Too short: hold the button while you speak.")
                 return@launch
             }
-            recorder = rec
-            _state.update { it.copy(recording = true, deferred = engine == null, activeRecordingId = rid, status = "Recording", error = null, pendingChunks = 0) }
-            pipelineJob = launch(Dispatchers.Default) {
-                if (engine != null) runPipeline(rid, rec, ChunkProcessor(store, embedder, engine), engine) else runDeferred(rid, rec)
-                recorder = null
-                _state.update { it.copy(recording = false, activeRecordingId = null, status = "Done") }
-                refreshRecordings()
+            showSearch {
+                val vec = embedder.embedAudio(clip.pcm, LogCtx.NONE, role = "query")
+                SearchState(hits = withContext(Dispatchers.IO) { clients.search(client, vec, null) })
             }
         }
+        return true
     }
 
-    /** True when the recording's audio is still waiting to be transcribed. */
-    fun isDeferred(rid: Long): Boolean = PendingAudio.has(ctx, rid)
-
-    /** Engines not ready: keep every chunk's audio (encrypted) for the processing queue; nothing is transcribed now. */
-    private suspend fun runDeferred(rid: Long, rec: ChunkRecorder) {
-        val c = LogCtx(rid)
-        var saved = 0
-        for (chunk in rec.chunks) {
-            try {
-                withContext(Dispatchers.IO) { PendingAudio.save(ctx, rid, chunk) }
-                saved++
-            } catch (t: Throwable) {
-                AppLog.e(TAG, "chunk_save_failed", c.chunk(chunk.idx), t)
-                _state.update { it.copy(error = "Chunk ${chunk.idx} could not be saved: ${t.message}") }
-            }
-        }
-        AppLog.i(TAG, "recording_deferred", c, "chunks" to saved)
-    }
-
-    fun stopRecording() {
-        val rec = recorder ?: return
-        viewModelScope.launch(Dispatchers.Default) {
-            rec.stop()
-            _state.update { it.copy(recording = false, status = "Finishing last chunks") }
+    private suspend fun showSearch(run: suspend () -> SearchState) {
+        _search.value = SearchState(searching = true)
+        _search.value = try {
+            run()
+        } catch (e: CancellationException) {
+            throw e
+        } catch (t: Throwable) {
+            AppLog.e(TAG, "search_failed", LogCtx.NONE, t)
+            SearchState(info = "Search failed. Please try again.")
         }
     }
 
-    fun pauseRecording() {
-        recorder?.isPaused = true
-        _state.update { it.copy(status = "Paused") }
+    fun stopVoiceSearch() {
+        val rec = synchronized(this) { voiceRecorder.also { voiceRecorder = null } } ?: return
+        viewModelScope.launch(Dispatchers.Default) { rec.stop() }
     }
 
-    fun resumeRecording() {
-        recorder?.isPaused = false
-        _state.update { it.copy(status = "Listening") }
-    }
-
-    /** Per chunk: embed the AUDIO directly, transcribe it for reading, embed the transcript too (for the quality comparison), store. */
-    private suspend fun runPipeline(rid: Long, rec: ChunkRecorder, processor: ChunkProcessor, engine: AsrEngine) {
-        val ctx0 = LogCtx(rid)
-        var processed = 0
-        // While live cues run they own the embedder, so chunks are only collected (in memory) until the recording ends; embedding, ASR and storing happen after.
-        val held = ArrayList<AudioChunk>()
-        if (liveCues.running.value) {
-            for (chunk in rec.chunks) held += chunk
-            liveCues.stop()
-        }
-        val queued = if (held.isEmpty()) rec.chunks else Channel<AudioChunk>(Channel.UNLIMITED).also { ch -> held.forEach { ch.trySend(it) }; ch.close() }
-        for (chunk in queued) {
-            val c = ctx0.chunk(chunk.idx)
-            _state.update { it.copy(pendingChunks = it.pendingChunks + 1, status = "Chunk ${chunk.idx}: embedding audio") }
-            try {
-                processor.process(rid, chunk) { stage ->
-                    val label = if (stage == "transcribing") "transcribing (${engine.modelName})" else "embedding audio"
-                    _state.update { it.copy(status = "Chunk ${chunk.idx}: $label") }
-                }
-                processed++
-            } catch (t: Throwable) {
-                AppLog.e(TAG, "chunk_failed", c, t)
-                _state.update { it.copy(error = "Chunk ${chunk.idx} failed: ${t.message}") }
-            } finally {
-                _state.update { it.copy(pendingChunks = (it.pendingChunks - 1).coerceAtLeast(0)) }
-                refreshRecordings()
-            }
-        }
-        AppLog.i(TAG, "recording_done", ctx0, "chunks_stored" to processed)
+    fun clearSearch() {
+        searchJob?.cancel()
+        stopVoiceSearch()
+        _search.value = SearchState()
     }
 
     // ---- recordings list, delete ----------------------------------------------------------------------------
 
     fun refreshRecordings() {
         viewModelScope.launch(Dispatchers.IO) {
-            val list = store.listRecordings()
+            val list = store.recordings()
             val sel = _state.value.selected
             val chunks = if (sel != null) store.chunks(sel) else emptyList()
             val merged = if (chunks.isNotEmpty()) mergedText(sel!!, chunks) else ""
@@ -285,16 +272,10 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     /** The whole recording as one text, with the words repeated in each 5 s overlap removed. */
     private fun mergedText(rid: Long, chunks: List<ChunkRow>): String {
-        val text = ChunkProcessor.transcript(chunks)
+        val text = SegmentBuilder.build(chunks).joinToString(" ") { it.text }
         AppLog.i(TAG, "transcript_merge", LogCtx(rid = rid), "chunks" to chunks.size, "merged_chars" to text.length)
         return text
     }
-
-    /** Chunk transcripts of one recording, in order. For the MindVault UI, which shows the live transcript. */
-    suspend fun recordingChunks(rid: Long): List<ChunkRow> = withContext(Dispatchers.IO) { store.chunks(rid) }
-
-    /** The whole recording as one text (overlap words removed): what the memory pipeline gets when a session ends. */
-    suspend fun recordingTranscript(rid: Long): String = withContext(Dispatchers.IO) { mergedText(rid, store.chunks(rid)) }
 
     fun select(id: Long?) {
         _state.update { it.copy(selected = id, selectedChunks = emptyList(), selectedMerged = "") }
@@ -303,12 +284,10 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     fun deleteRecording(id: Long) {
         viewModelScope.launch(Dispatchers.IO) {
-            val r = store.deleteRecording(id)
+            val removed = store.deleteRecording(id)
             PendingAudio.delete(ctx, id)
-            val (recs, chunks) = store.counts()
-            AppLog.i(TAG, "delete_verified", LogCtx(rid = id), "removed_recordings" to r.recordings, "removed_chunks" to r.chunks, "remaining_recordings" to recs, "remaining_chunks" to chunks, "audio_files_on_disk" to pendingAudioFiles(id))
+            AppLog.i(TAG, "delete_verified", LogCtx(rid = id), "removed" to removed, "chunks_left" to store.chunks(id).size, "audio_files_on_disk" to pendingAudioFiles(id))
             if (_state.value.selected == id) _state.update { it.copy(selected = null) }
-            _state.update { it.copy(hits = it.hits.filter { h -> h.recordingId != id }) }
             refreshRecordings()
         }
     }
@@ -317,95 +296,17 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     fun deleteAll() {
         viewModelScope.launch(Dispatchers.IO) {
-            val r = store.deleteAll()
+            val removed = store.recordings().count { store.deleteRecording(it.id) }
             File(MemoryFiles.secureRoot(ctx), "audio").deleteRecursively()
-            val (recs, chunks) = store.counts()
-            AppLog.i(TAG, "delete_all_verified", LogCtx.NONE, "removed_recordings" to r.recordings, "removed_chunks" to r.chunks, "remaining_recordings" to recs, "remaining_chunks" to chunks, "audio_files_on_disk" to (File(MemoryFiles.secureRoot(ctx), "audio").walkTopDown().count { it.isFile }))
-            _state.update { it.copy(selected = null, hits = emptyList()) }
+            AppLog.i(TAG, "delete_all_verified", LogCtx.NONE, "removed_recordings" to removed, "remaining_recordings" to store.recordings().size, "audio_files_on_disk" to (File(MemoryFiles.secureRoot(ctx), "audio").walkTopDown().count { it.isFile }))
+            _state.update { it.copy(selected = null) }
             refreshRecordings()
         }
     }
 
-    // ---- search ---------------------------------------------------------------------------------------------
-
-    fun setQuery(q: String) = _state.update { it.copy(query = q) }
-
-    /** Text query: embedded as text into the same space as the stored chunk AUDIO vectors. */
-    fun searchText() {
-        val q = _state.value.query.trim()
-        if (q.isEmpty() || _state.value.phase != Phase.Ready) return
-        val c = LogCtx(cid = "q${queryCounter.incrementAndGet()}")
-        viewModelScope.launch(Dispatchers.Default) {
-            runSearch("text", c) { embedder.embedText(q, true, c) }
-        }
-    }
-
-    /** Voice query: the clip's AUDIO is embedded directly. It is never transcribed. */
-    fun startVoiceSearch() = beginVoiceSearch { rec -> rec.start() }
-
-    /** Debug: use `files/test/<name>` as the spoken query. */
-    fun debugQueryFile(name: String) {
-        val pcm = TestAudio.load(ctx, name)
-        AppLog.i(TAG, "debug_query_file", LogCtx.NONE, "file" to name, "audio_sec" to "%.1f".format(pcm.size / 16000.0))
-        beginVoiceSearch { rec -> rec.startFromPcm(pcm) }
-    }
-
-    private fun beginVoiceSearch(startSource: (ChunkRecorder) -> Unit) {
-        if (_state.value.phase != Phase.Ready || _state.value.voiceRecording || _state.value.recording) return
-        val c = LogCtx(cid = "q${queryCounter.incrementAndGet()}")
-        val rec = ChunkRecorder.query(c)
-        try {
-            startSource(rec)
-        } catch (t: Throwable) {
-            _state.update { it.copy(error = "Recording failed: ${t.message}") }
-            return
-        }
-        voiceRecorder = rec
-        _state.update { it.copy(voiceRecording = true, error = null) }
-        viewModelScope.launch(Dispatchers.Default) {
-            var clip: com.therapylocal.app.audio.AudioChunk? = null
-            for (chunk in rec.chunks) if (clip == null) clip = chunk
-            voiceRecorder = null
-            _state.update { it.copy(voiceRecording = false) }
-            val heard = clip
-            if (heard == null) {
-                _state.update { it.copy(searching = false, searchInfo = "Too short, hold the button while speaking") }
-                return@launch
-            }
-            runSearch("voice", c) { embedder.embedAudio(heard.pcm, c, role = "query") }
-        }
-    }
-
-    fun stopVoiceSearch() {
-        val rec = voiceRecorder ?: return
-        viewModelScope.launch(Dispatchers.Default) { rec.stop() }
-    }
-
-    private suspend fun runSearch(kind: String, c: LogCtx, embedQuery: suspend () -> FloatArray) {
-        _state.update { it.copy(searching = true, searchInfo = "Searching") }
-        try {
-            AppLog.span(TAG, "search", c, "kind" to kind) { span ->
-                val t0 = System.nanoTime()
-                val qv = embedQuery()
-                val embedMs = (System.nanoTime() - t0) / 1_000_000
-                val raw = withContext(Dispatchers.IO) { Search.topK(store, qv, SearchConfig.RAW_TOP_K, kind, c) }
-                val groups = Search.collapse(raw, c).take(SearchConfig.SHOWN)
-                span.put("embed_ms", embedMs)
-                span.put("groups", groups.size)
-                _state.update { it.copy(hits = groups, searching = false, searchInfo = "${groups.size} results, query embedded in $embedMs ms") }
-            }
-        } catch (t: Throwable) {
-            AppLog.e(TAG, "search_failed", c, t)
-            _state.update { it.copy(searching = false, error = "Search failed: ${t.message}") }
-        }
-    }
-
+    // The embedder and a running session belong to the process (Engines, SessionController), not to this screen.
     override fun onCleared() {
-        recorder?.stop()
         voiceRecorder?.stop()
-        asr?.close()
-        embedder.close()
-        store.close()
     }
 
     companion object {

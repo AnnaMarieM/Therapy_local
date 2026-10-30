@@ -1,27 +1,55 @@
 # Integration: MindVault UI on the on-device pipeline
 
+How the UI is wired to the memory pipeline. The pipeline itself (database, job graph, live cues, decisions) is described in [MEMORY.md](MEMORY.md).
+
 ## Architecture
 ```
-MainActivity -> MindVaultApp (ui/)  -- screens: Unlock, Patients, Profile, LiveSession, Summary, Settings
-   |-- ClientsViewModel -> ClientRepository (ui/data/) -> MemoryStore (memory.db)      clients, sessions, facts, source chunks, recurrence
-   |-- MainViewModel: startRecording/stopRecording (ChunkRecorder -> Whisper -> Embedder -> Store), liveCues (LiveCues)
-   `-- MemoryProcessor.enqueueSession -> MemoryService/MemoryLab -> MemoryStore;  progress in MemoryQueue.state
+MainActivity -> MindVault (ui/app/)  -- Gate (welcome, permissions, password, biometrics, unlock), then Home with sheets:
+   |                                    Profile, Session, Settings, Add client
+   |-- ClientsViewModel -> ClientRepository (ui/data/) -> MindStore (mind.db)     clients, sessions, facts, mentions, segments, search
+   |-- MainViewModel: setup phase, search (text and held-mic audio)
+   |-- SessionController (session/, process-wide): start/pause/resume/finish, ChunkRecorder -> chunks rows + PendingAudio,
+   |      live cues (LiveCues), mic level; RecordingService (microphone foreground service) keeps it alive in the background
+   `-- JobGraph.enqueueRecording -> JobQueue (jobs/) -> MemoryService -> JobRunner -> Pipeline (facts/: TranscriptWindows, CommitPlanner)
+                                    progress in Jobs.snapshot (QueueSnapshot)
 ```
-The developer harness (Record/Recordings/Search/Memory/Logs tabs, `memory_lab` intent extra, `MainViewModel.skipPrepare`) is kept in `MainActivity`. It opens from Settings -> Diagnostics in debug builds only; a `memory_lab` launch opens it directly.
+The UI never touches SQL; everything goes through `ClientRepository`. The developer harness (Record/Recordings/Memory/Logs tabs, `memory_lab` intent extra, `MainViewModel.skipPrepare`) is kept in `MainActivity`. It opens from Settings -> Developer tools in debug builds only; a `memory_lab` launch opens it directly (see MEMORY.md, Developer harness).
+
+## Interaction model
+Home is always underneath; every other surface is a sheet that grows out of the control that opened it and folds back into it
+(`ContainerTransform`, one interruptible spring per sheet, also driven by predictive back and by pulling down from the top).
+Every swipe has a tap or accessibility equivalent: the two bar buttons are tappable, the hold-to-finish has a "Finish session" action.
+Gesture rules live in plain Kotlin with unit tests (`ui/motion/GestureMath`, `ui/logic/ReelLogic`). Design tokens (palette, type,
+springs, haptics) are in `ui/design/`.
 
 ## Data flow
-- Patients/Profile: `ClientRepository.patients()` maps `MemoryStore` rows to the UI `Patient` model (facts, sessions with their facts as summary, recurring facts shown as "(xN)"). Client id = lowercase slug without underscores (`MemoryProcessor.clientId`). Add patient creates a `clients` row; delete (profile screen or long press in the list) removes chunks, facts, supports, sessions and the row in one transaction and drops the queue jobs.
-- Live session: once the models are ready, `liveCues.start(client)` then `startRecording()`. Elapsed time counts while recording. Transcript lines come from the stored chunks of the active recording. Cue rows (category, fact, score bar) expand to the source chunk (`ClientRepository.sourceChunk`).
-- End session: `liveCues.stop()`, `stopRecording()`. When the pipeline has finished (`recording == false`, `status == "Done"`) the merged transcript goes to `MemoryProcessor.enqueueSession`, then the raw recording rows are deleted. Summary shows the queue stage, the facts of that session as they are committed, and the therapist's observations (`session_meta.observations`). Delete removes the session's chunks, facts, supports, observations, queued job and transcript file.
+- Home (the reel): `ClientRepository.patients()` in alphabetical order (`ReelIndex`). Up/down scrolls the names; the letter rail jumps
+  to the letter under the finger. Under the selected name: recording now, processing stage (`SessionLogic.processingByClient`), a failed
+  session with Retry (`JobQueue.retryFailed`), or the session count. The last item adds a client: first name plus the surname's initial,
+  id a unique slug of the name (`ClientInput`). Long press deletes (drops its jobs, deletes pending audio, removes the row; the rest
+  cascades).
+- Profile: one page: search (`ClientRepository.search`), facts (heading, content, mention count), sessions (newest first). Opening a fact
+  shows every occurrence with the transcript around it (`occurrences`); opening a session shows its transcript (`transcript`).
+  Long press on a session deletes it (`ClientRepository.deleteSession`: its jobs, audio and rows; facts first seen in it move to their
+  next mention, D2).
+- Session: Record starts recording at once (`SessionController.start`, which creates the `sessions` and `recordings` rows and starts
+  `RecordingService`); live cues start too once the embedder is ready (`enableCues` if setup finishes mid-session). A start that fails
+  (no microphone, no storage) rolls back its rows and shows why. Pause and resume are `ChunkRecorder.isPaused`; elapsed time is a
+  monotonic `SessionClock`. There is no live transcript (D1): the screen shows the top live cue, held for at least 8 s unless clearly
+  overtaken (`CueView`), with the fact, its source segment on request (`ClientRepository.sourceChunk`) and the next two. Minimising
+  keeps recording; the pill on Home and the notification open it again.
+- Finish (hold): `SessionController.finish` stops cues and the recorder. Once the last chunk is saved the recording is queued
+  (`JobGraph.enqueueRecording`) and `JobRunner.recordingActive` is cleared, so waiting jobs run (D3). Until then the client shows
+  "Finalizing recording...". A notice offers Discard, which deletes the session.
+- Lock: Settings -> Lock now asks for confirmation while a job is running; processing pauses and continues after unlock.
+- Privacy: `FLAG_SECURE` keeps every screen out of screenshots and the recents preview; notifications never name a client.
 
 ## Mock vs real
-Real: client list, create/delete, facts, sessions, recurring counts, recording, live transcript, live cues, end-of-session processing, summary facts, observations, session delete.
-Mock: the "Consent confirmed" and "100% On-device" badges (static text, no consent capture), Settings toggles (biometrics, auto-surface), pre-session note (first facts of the last session, not a generated briefing), `Patient.age`/`presenting` (from the add form or a goal/emotion fact).
+Real: everything above, including biometric unlock, encrypted storage, model choice and the live-cue settings.
+Not built: consent capture (the old static "Consent confirmed" badge and the unconnected "Show past facts" toggle were removed).
 
 ## Open TODOs
-- Pause: the pause button was removed; `ChunkRecorder` has no pause.
-- Pressing End within about a second of starting can miss the stop (the recorder is created asynchronously).
-- Leaving the app mid-session does not end the session; a process death loses the pending end-of-session handoff.
-- Delete is disabled while a session's job is running; there is no cancel for a single job.
-- Edit/rename client; persisted pre-session notes; encrypted storage (SQLCipher) is still outstanding.
-- Tests of `MemoryStore` queries and `deleteSession` need an instrumented or Robolectric setup (not done).
+- Edit/rename client.
+- Consent capture.
+- Dismissing or marking cues as covered during a session (waiting on design).
+- Dark theme; auto-lock after a period in the background.

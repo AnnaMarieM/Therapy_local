@@ -1,5 +1,6 @@
 package com.therapylocal.app.models
 
+import android.app.ActivityManager
 import android.content.Context
 import androidx.work.BackoffPolicy
 import androidx.work.Constraints
@@ -41,11 +42,46 @@ object ModelSetup {
 
     /** Distinct specs the current settings need: embeddings, the speech engine, and the memory model. */
     fun required(context: Context): List<ModelSpec> {
-        val prefs = context.applicationContext.getSharedPreferences("settings", Context.MODE_PRIVATE)
+        val prefs = prefs(context)
         val engine = prefs.getString("engine", "whisper") ?: "whisper"
         val size = prefs.getString("whisper_size", "base") ?: "base"
-        return listOf(ModelRegistry.EMBED, if (engine == "gemma") ModelRegistry.GEMMA else ModelRegistry.whisperFor(size), ModelRegistry.GEMMA).distinct()
+        val gemma = gemma(context)
+        return listOf(ModelRegistry.EMBED, if (engine == "gemma") gemma else ModelRegistry.whisperFor(size), gemma).distinct()
     }
+
+    fun gemmaVariant(context: Context): GemmaVariant = ModelChoice.resolve(prefs(context).getString(ModelChoice.PREF, null))
+
+    /** The Gemma build the settings choose, for the memory LLM and Gemma speech recognition. */
+    fun gemma(context: Context): ModelSpec = ModelRegistry.gemma(gemmaVariant(context))
+
+    /**
+     * Switches the Gemma build and downloads it if missing. Jobs that need it wait (their precondition is [isReady]) rather than fail.
+     * The other build's file is kept until [removeUnusedGemma].
+     */
+    fun selectGemma(context: Context, variant: GemmaVariant) {
+        if (variant == gemmaVariant(context)) return
+        prefs(context).edit().putString(ModelChoice.PREF, variant.key).apply()
+        AppLog.i(TAG, "gemma_variant_changed", LogCtx.NONE, "variant" to variant.key)
+        retry(context)
+    }
+
+    fun suggestedGemma(context: Context): GemmaVariant {
+        val mem = ActivityManager.MemoryInfo().also { context.getSystemService(ActivityManager::class.java).getMemoryInfo(it) }
+        return ModelChoice.suggested(mem.totalMem)
+    }
+
+    /** The Gemma build not in use, if any of its file (or a partial download) is on disk. */
+    fun unusedGemma(context: Context): ModelSpec? =
+        ModelRegistry.gemma(ModelChoice.other(gemmaVariant(context))).takeIf { spec -> spec.files.any { spec.file(context, it).exists() || spec.part(context, it).exists() } }
+
+    /** Frees the unused build's disk space; it is downloaded again if chosen later. */
+    fun removeUnusedGemma(context: Context) {
+        val spec = unusedGemma(context) ?: return
+        spec.files.forEach { spec.file(context, it).delete(); spec.part(context, it).delete() }
+        AppLog.i(TAG, "gemma_removed", LogCtx.NONE, "model" to spec.id, "freed_mb" to (spec.totalBytes shr 20))
+    }
+
+    private fun prefs(context: Context) = context.applicationContext.getSharedPreferences("settings", Context.MODE_PRIVATE)
 
     fun isReady(context: Context): Boolean = required(context).all { it.isReady(context) }
 

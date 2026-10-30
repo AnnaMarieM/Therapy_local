@@ -7,7 +7,6 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNull
-import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Test
 import kotlin.random.Random
@@ -78,30 +77,23 @@ class KeyFileTest {
     }
 
     @Test
-    fun theFileHoldsExactlyTheStoredBytesAsBase64AndNeverTheRawPasswordOrDek() {
-        // The caller seals the DEK under the password KEK before building the key file; the file must hold only what it was given.
+    fun aKeyFileBuiltLikeVaultCreateHoldsTheSealedDekAndNeverTheRawPasswordOrDek() {
+        // The path Vault.create takes: derive the KEK from the password, seal the DEK under it, store salt and sealed DEK.
         val password = "correct horse battery staple"
         val dek = ByteArray(32) { (0xA0 + it).toByte() }
-        val kf = KeyFile(byteArrayOf(1, 2, 3, 4), 600_000, byteArrayOf(9, 8, 7, 6), byteArrayOf(4, 4, 4), byteArrayOf(5, 6, 5, 6))
-        val o = JSONObject(kf.toJson())
-        val expected = mapOf(
-            "salt" to kf.salt, "passwordSealed" to kf.passwordSealed,
-            "biometricIv" to kf.biometricIv!!, "biometricSealed" to kf.biometricSealed!!,
-        )
+        val salt = byteArrayOf(1, 2, 3, 4)
+        val kek = VaultCrypto.deriveKey(password.toCharArray(), salt, 1000)
+        val json = KeyFile(salt, 1000, VaultCrypto.seal(kek, dek)).toJson()
+        val o = JSONObject(json)
         val dekB64 = java.util.Base64.getEncoder().encodeToString(dek)
         val dekHex = dek.joinToString("") { "%02x".format(it) }
-        for (k in o.keys()) {
-            val v = o.get(k).toString()
-            assertFalse("$k contains the raw password", v.contains(password))
-            assertFalse("$k contains the raw DEK (base64)", v.contains(dekB64))
-            assertFalse("$k contains the raw DEK (hex)", v.contains(dekHex, ignoreCase = true))
-            expected[k]?.let { bytes -> assertArrayEquals("$k decodes to the stored bytes", bytes, java.util.Base64.getDecoder().decode(v)) }
-        }
-        assertEquals(expected.keys + setOf("version", "iterations"), o.keys().asSequence().toSet())
-        // and with the raw DEK itself wrongly stored as a sealed blob, the check above would catch it
-        val leaky = JSONObject(kf.copy(passwordSealed = dek).toJson())
-        assertTrue(leaky.getString("passwordSealed").contains(dekB64))
-        assertFalse(kf.toJson().contains(password))
+        assertFalse("the raw password", json.contains(password))
+        assertFalse("the raw DEK (base64)", json.contains(dekB64))
+        assertFalse("the raw DEK (hex)", json.contains(dekHex, ignoreCase = true))
+        assertEquals(setOf("version", "salt", "iterations", "passwordSealed"), o.keys().asSequence().toSet())
+        // what it holds is the DEK sealed under the password: read back, it opens to the DEK
+        val back = KeyFile.fromJson(json)
+        assertArrayEquals(dek, VaultCrypto.open(VaultCrypto.deriveKey(password.toCharArray(), back.salt, back.iterations), back.passwordSealed))
     }
 
     @Test

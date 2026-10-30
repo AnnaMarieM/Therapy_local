@@ -7,9 +7,11 @@ import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyPermanentlyInvalidatedException
 import android.security.keystore.KeyProperties
 import androidx.biometric.BiometricManager
+import com.therapylocal.app.data.MindStore
 import com.therapylocal.app.log.AppLog
 import com.therapylocal.app.log.LogCtx
 import com.therapylocal.app.memory.MemoryFiles
+import com.therapylocal.app.memory.MemoryService
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -36,6 +38,7 @@ object Vault {
     private const val DEK_AAD = "mindvault.dek.v1"
     private const val BIOMETRIC_ALIAS = "mindvault.biometric"
     private const val TAG = "VAULT"
+    private const val ERASE_WAIT_MS = 10_000L
 
     @Volatile
     private var dek: ByteArray? = null
@@ -117,8 +120,10 @@ object Vault {
 
     // --- biometric path ---
 
+    /** The qa build has no fingerprint at all, as if the phone had no sensor, so a script can unlock it with the password. */
     fun biometricAvailability(context: Context): BiometricAvailability =
-        when (BiometricManager.from(context).canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG)) {
+        if (!com.therapylocal.app.BuildConfig.BIOMETRIC) BiometricAvailability.Unsupported
+        else when (BiometricManager.from(context).canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG)) {
             BiometricManager.BIOMETRIC_SUCCESS -> BiometricAvailability.Available
             BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED -> BiometricAvailability.NotEnrolled
             else -> BiometricAvailability.Unsupported
@@ -206,15 +211,20 @@ object Vault {
         android.os.Process.killProcess(android.os.Process.myPid())
     }
 
-    /** "Forgot password": destroys the keys and all patient data. */
+    /**
+     * "Forgot password": destroys the keys and all patient data. The runner is stopped (and given a moment to finish its step) and the
+     * database closed before its file is deleted; a closed store never reopens, so a runner still holding it cannot re-create the file.
+     */
     fun erase(context: Context) {
+        MemoryService.stop(context)
+        MemoryService.awaitStopped(ERASE_WAIT_MS)
+        MindStore.close()
         wipe()
         _unlocked.value = false
         keyFile(context).delete()
         File(keyFile(context).parentFile, "$KEY_FILE.tmp").delete()
         runCatching { keyStore().deleteEntry(BIOMETRIC_ALIAS) }
-        context.deleteDatabase("recordings.db")
-        context.deleteDatabase("memory.db")
+        (MindStore.LEGACY + MindStore.NAME).forEach { context.deleteDatabase(it) }
         MemoryFiles.secureRoot(context).deleteRecursively()
         File(MemoryFiles.devRoot(context), "in").deleteRecursively()
         File(MemoryFiles.devRoot(context), "out").deleteRecursively()

@@ -7,11 +7,15 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
+    <!-- Live Updates (Android 16+): the running session shows as a chip in the status bar, by the camera, like navigation or a call. -->
+    <uses-permission android:name="android.permission.POST_PROMOTED_NOTIFICATIONS" />
 
     <application
         android:name=".App"
         android:allowBackup="false"
         android:hasFragileUserData="true"
+        android:enableOnBackInvokedCallback="true"
         android:icon="@mipmap/ic_launcher"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:label="Therapy Local"
@@ -33,6 +37,12 @@
         <service
             android:name=".memory.MemoryService"
             android:foregroundServiceType="dataSync"
+            android:exported="false" />
+
+        <!-- Keeps a session recording when the app is in the background or the screen is off. -->
+        <service
+            android:name=".session.RecordingService"
+            android:foregroundServiceType="microphone"
             android:exported="false" />
 
         <service

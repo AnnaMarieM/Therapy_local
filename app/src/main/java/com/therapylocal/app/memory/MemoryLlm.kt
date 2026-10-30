@@ -1,5 +1,7 @@
 package com.therapylocal.app.memory
 
+import com.therapylocal.app.perf.LlmCall
+import com.therapylocal.app.perf.PerfStats
 import android.content.Context
 import com.google.ai.edge.litertlm.Backend
 import com.google.ai.edge.litertlm.BenchmarkInfo
@@ -9,37 +11,36 @@ import com.google.ai.edge.litertlm.Engine
 import com.google.ai.edge.litertlm.EngineConfig
 import com.google.ai.edge.litertlm.ExperimentalApi
 import com.google.ai.edge.litertlm.ExperimentalFlags
+import com.google.ai.edge.litertlm.ModelInfo
 import com.google.ai.edge.litertlm.ResponseFormat
 import com.google.ai.edge.litertlm.SamplerConfig
+import com.therapylocal.app.asr.GemmaAsr
+import com.therapylocal.app.jobs.Asr
+import com.therapylocal.app.jobs.Llm
 import com.therapylocal.app.log.AppLog
 import com.therapylocal.app.log.LogCtx
-import com.therapylocal.app.models.ModelRegistry
+import com.therapylocal.app.models.ModelSpec
 import com.therapylocal.app.models.NpuRuntime
 
-/** Prefill and decode numbers LiteRT-LM reports for one call. [backend] is the one that really loaded, never a guess. */
-data class LlmStats(
-    val backend: String,
-    val promptTokens: Int,
-    val prefillTokPerSec: Double,
-    val ttftSec: Double,
-    val decodeTokens: Int,
-    val decodeTokPerSec: Double,
-    val wallMs: Long,
-)
-
-data class LlmReply(val text: String, val stats: LlmStats)
-
-/** Text-only Gemma 4 E2B on LiteRT-LM for the memory pipeline. Every call is a fresh conversation, so nothing leaks between stages. */
+/**
+ * Gemma 4 ([spec]: the E2B or E4B build) on LiteRT-LM for the memory pipeline. Every call is a fresh conversation, so nothing leaks between stages. When the model bundle
+ * has an audio encoder, the same engine also transcribes speech ([speech]), so Gemma is never loaded twice.
+ */
 @OptIn(ExperimentalApi::class)
-class MemoryLlm(private val context: Context, private val maxTokens: Int) {
+class MemoryLlm(private val context: Context, private val maxTokens: Int, private val spec: ModelSpec) : Llm {
+    override val model: String = spec.id
+
     var backend = "none"
         private set
     private var engine: Engine? = null
+    private var audio = false
 
     /** [order] is tried in turn; each backend is validated with a small reply because GPU/NPU can fail only at the first inference. */
     fun load(order: List<String>) {
         ExperimentalFlags.enableBenchmark = true
-        val file = ModelRegistry.GEMMA.file(context, ModelRegistry.GEMMA.files.first())
+        val file = spec.file(context, spec.files.first())
+        // Audio-stripped builds exist: the bundle says whether it can hear (as the embedder checks too).
+        audio = runCatching { ModelInfo.from(file.path).use { it.inputModalities().audio } }.getOrDefault(false)
         val failures = ArrayList<String>()
         for (name in order) {
             val be: Backend = when (name.uppercase()) {
@@ -55,12 +56,13 @@ class MemoryLlm(private val context: Context, private val maxTokens: Int) {
                 else -> Backend.CPU()
             }
             try {
-                val e = Engine(EngineConfig(modelPath = file.path, backend = be, maxNumTokens = maxTokens, cacheDir = context.cacheDir.path))
+                val config = EngineConfig(modelPath = file.path, backend = be, audioBackend = if (audio) Backend.CPU() else null, maxNumTokens = maxTokens, cacheDir = context.cacheDir.path)
+                val e = Engine(config)
                 e.initialize()
                 e.createConversation().use { it.sendMessage("Reply with OK.") }
                 engine = e
                 backend = name.uppercase()
-                AppLog.i(TAG, "memory_llm_loaded", LogCtx.NONE, "backend" to backend, "max_tokens" to maxTokens)
+                AppLog.i(TAG, "memory_llm_loaded", LogCtx.NONE, "backend" to backend, "max_tokens" to maxTokens, "audio" to audio)
                 return
             } catch (t: Throwable) {
                 failures += "$name: ${t.message}"
@@ -70,29 +72,46 @@ class MemoryLlm(private val context: Context, private val maxTokens: Int) {
         error("No backend could load the memory LLM. " + failures.joinToString("; "))
     }
 
+    /** Speech recognition on this engine, or null if the model has no audio input. Closing it leaves the engine to this LLM. */
+    fun speech(): Asr? = engine?.takeIf { audio }?.let { GemmaAsr(it, model, backend) }
+
     /** [schema] switches on constrained decoding for this call only (it looped on the large extraction schema, so callers use it for small schemas or as a last retry). */
-    fun ask(system: String, user: String, schema: String?, maxOutputTokens: Int = 1500, temperature: Double = 0.1, topK: Int = 20): LlmReply {
+    override fun ask(system: String, user: String, schema: String?, maxOutputTokens: Int, temperature: Double, topK: Int): String {
         val e = checkNotNull(engine) { "not loaded" }
         val t0 = System.nanoTime()
+        // A global flag: switched off again afterwards, or every later conversation on the engine (speech recognition too) pays its ~4 s setup.
         ExperimentalFlags.enableConversationConstrainedDecoding = schema != null
-        val cfg = ConversationConfig(
-            systemInstruction = Contents.of(system),
-            samplerConfig = SamplerConfig(topK = topK, topP = 0.9, temperature = temperature, seed = 1),
-            enableResponseFormat = schema != null,
-            maxOutputToken = maxOutputTokens,
-        )
-        e.createConversation(cfg).use { c ->
-            val msg = if (schema != null) c.sendMessage(user, responseFormat = ResponseFormat.json(schema)) else c.sendMessage(user)
-            val b: BenchmarkInfo = c.getBenchmarkInfo()
-            val wall = (System.nanoTime() - t0) / 1_000_000
-            return LlmReply(
-                msg.toString(),
-                LlmStats(backend, b.lastPrefillTokenCount, b.lastPrefillTokensPerSecond, b.timeToFirstTokenInSecond, b.lastDecodeTokenCount, b.lastDecodeTokensPerSecond, wall),
+        try {
+            val cfg = ConversationConfig(
+                systemInstruction = Contents.of(system),
+                samplerConfig = SamplerConfig(topK = topK, topP = 0.9, temperature = temperature, seed = 1),
+                enableResponseFormat = schema != null,
+                maxOutputToken = maxOutputTokens,
             )
+            e.createConversation(cfg).use { c ->
+                val msg = if (schema != null) c.sendMessage(user, responseFormat = ResponseFormat.json(schema)) else c.sendMessage(user)
+                val b: BenchmarkInfo = c.getBenchmarkInfo()
+                // Numbers only, never text.
+                AppLog.i(
+                    TAG, "llm_call", LogCtx.NONE, "backend" to backend, "constrained" to (schema != null), "prompt_tokens" to b.lastPrefillTokenCount,
+                    "prefill_tok_s" to b.lastPrefillTokensPerSecond, "ttft_s" to b.timeToFirstTokenInSecond, "decode_tokens" to b.lastDecodeTokenCount,
+                    "decode_tok_s" to b.lastDecodeTokensPerSecond, "wall_ms" to (System.nanoTime() - t0) / 1_000_000,
+                )
+                PerfStats.call(
+                    spec.id,
+                    LlmCall(
+                        b.lastPrefillTokenCount.toInt(), b.lastPrefillTokensPerSecond.toDouble(), b.lastDecodeTokenCount.toInt(),
+                        b.lastDecodeTokensPerSecond.toDouble(), (System.nanoTime() - t0) / 1_000_000,
+                    ),
+                )
+                return msg.toString()
+            }
+        } finally {
+            ExperimentalFlags.enableConversationConstrainedDecoding = false
         }
     }
 
-    fun close() {
+    override fun close() {
         engine?.close()
         engine = null
     }

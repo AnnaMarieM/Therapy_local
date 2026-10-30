@@ -5,11 +5,12 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.view.WindowManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,12 +19,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -31,7 +30,6 @@ import androidx.compose.material3.Divider
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -45,12 +43,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
@@ -62,11 +56,10 @@ import com.therapylocal.app.config.ChunkConfig
 import com.therapylocal.app.log.AppLog
 import com.therapylocal.app.models.ModelSetup
 import com.therapylocal.app.models.SetupState
-import com.therapylocal.app.memory.MemoryLab
-import com.therapylocal.app.memory.MemoryProcessor
-import com.therapylocal.app.ui.MindVaultApp
-import com.therapylocal.app.ui.screens.VaultGate
-import com.therapylocal.app.ui.theme.MindVaultTheme
+import com.therapylocal.app.memory.DevHarness
+import com.therapylocal.app.memory.MemoryService
+import com.therapylocal.app.session.RecordingService
+import com.therapylocal.app.ui.app.MindVault
 import com.therapylocal.app.vault.Vault
 
 class MainActivity : FragmentActivity() {
@@ -75,42 +68,34 @@ class MainActivity : FragmentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Edge to edge: the app draws behind the system bars and pads by their insets itself.
+        enableEdgeToEdge()
+        // Patient names and notes must not end up in screenshots or the recents preview. (Not in the qa build: its vault holds only test
+        // data, and screenshots are how its screens are checked.)
+        if (BuildConfig.SECURE_WINDOW) window.setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE)
         memoryLabRequested = isMemoryLabRequested(intent)
         // The AI files are not patient data: the download starts right away, even before the vault is unlocked.
         ModelSetup.start(applicationContext)
+        com.therapylocal.app.perf.PerfStats.init(applicationContext)
+        if (intent?.getBooleanExtra(RecordingService.EXTRA_OPEN_SESSION, false) == true) openSession.intValue++
         setContent {
-            val context = LocalContext.current
             val unlocked by Vault.unlocked.collectAsStateWithLifecycle()
-            var gatePassed by rememberSaveable { mutableStateOf(false) }
             var showDebugScreen by rememberSaveable { mutableStateOf(MainViewModel.skipPrepare) }
 
-            val permissions = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {}
-            LaunchedEffect(Unit) {
-                val wanted = buildList {
-                    add(Manifest.permission.RECORD_AUDIO)
-                    if (Build.VERSION.SDK_INT >= 33) add(Manifest.permission.POST_NOTIFICATIONS)
-                }.filter { ContextCompat.checkSelfPermission(context, it) != PackageManager.PERMISSION_GRANTED }
-                if (wanted.isNotEmpty()) permissions.launch(wanted.toTypedArray())
-            }
-            val hasMic = { ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED }
-            val requestMic = { permissions.launch(arrayOf(Manifest.permission.RECORD_AUDIO)) }
-
-            LaunchedEffect(unlocked, gatePassed) {
-                if (unlocked && gatePassed) {
-                    MemoryProcessor.resumePending(applicationContext)
+            LaunchedEffect(unlocked) {
+                if (unlocked) {
+                    MemoryService.resumePending(applicationContext)
                     if (memoryLabRequested) {
                         memoryLabRequested = false
-                        MemoryLab.start(applicationContext)
+                        DevHarness.start(applicationContext)
                     }
                 }
             }
 
-            if (!unlocked || !gatePassed) {
-                MindVaultTheme { VaultGate(onDone = { gatePassed = true }) }
-            } else if (showDebugScreen) {
+            if (unlocked && showDebugScreen) {
                 MaterialTheme {
                     Surface(Modifier.fillMaxSize()) {
-                        Column(Modifier.fillMaxSize()) {
+                        Column(Modifier.fillMaxSize().safeDrawingPadding()) {
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -130,16 +115,19 @@ class MainActivity : FragmentActivity() {
                     }
                 }
             } else {
-                MindVaultApp(
-                    viewModel = viewModel,
-                    hasMicPermission = hasMic,
-                    requestMicPermission = requestMic,
-                    // The developer harness (Record/Recordings/Search/Memory/Logs) is a Settings menu item in debug builds only.
-                    onShowLegacyDebugView = if (BuildConfig.DEBUG) ({ showDebugScreen = true }) else null
-                )
+                // The developer harness (Record/Recordings/Memory/Logs) is a Settings item in debug builds only.
+                MindVault({ viewModel }, openSession.intValue, onDeveloper = if (BuildConfig.DEBUG) ({ showDebugScreen = true }) else null)
             }
         }
     }
+
+    /** The recording notification brings an existing task forward: open the session it is about. */
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        if (intent.getBooleanExtra(RecordingService.EXTRA_OPEN_SESSION, false)) openSession.intValue++
+    }
+
+    private val openSession = androidx.compose.runtime.mutableIntStateOf(0)
 }
 
 /** Debug only: `adb shell am start -n .../.MainActivity --ez memory_lab true` starts the queue described by files/memory/job.json once the vault is unlocked. */
@@ -149,8 +137,8 @@ private fun isMemoryLabRequested(intent: Intent?): Boolean {
     return true
 }
 
-private const val MEMORY_TAB = 3
-private val TABS = listOf("Record", "Recordings", "Search", "Memory", "Logs")
+private const val MEMORY_TAB = 2
+private val TABS = listOf("Record", "Recordings", "Memory", "Logs")
 
 private fun fmt(ms: Long) = "%d:%02d".format(ms / 60000, ms / 1000 % 60)
 
@@ -175,14 +163,13 @@ private fun Screen(vm: MainViewModel) {
             when (tab) {
                 0 -> RecordTab(state, vm, hasMic, requestMic)
                 1 -> RecordingsTab(state, vm)
-                2 -> SearchTab(state, vm, hasMic, requestMic)
                 MEMORY_TAB -> com.therapylocal.app.memory.MemoryTab()
                 else -> LogsTab()
             }
         }
     }
 
-    // The Memory tab (and a lab launch, which skips model preloading) never needs the Record/Search models, so no blocking dialog there.
+    // The Memory tab (and a lab launch, which skips model preloading) never needs the Record models, so no blocking dialog there.
     if (state.phase != Phase.Ready && tab != MEMORY_TAB && !MainViewModel.skipPrepare) PrepareDialog(state, onRetry = vm::retry)
 }
 
@@ -199,7 +186,7 @@ private fun Chips(label: String, options: List<String>, selected: String, enable
 
 @Composable
 private fun RecordTab(s: UiState, vm: MainViewModel, hasMic: () -> Boolean, requestMic: () -> Unit) {
-    val locked = s.recording || s.pendingChunks > 0
+    val locked = s.recording
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Chips("Transcript", listOf("whisper", "gemma"), s.engine, !locked, vm::setEngine)
         if (s.engine == "whisper") {
@@ -207,7 +194,6 @@ private fun RecordTab(s: UiState, vm: MainViewModel, hasMic: () -> Boolean, requ
             Chips("Language", listOf("auto", "en", "sk", "cs"), s.language, !locked, vm::setLanguage)
         }
         if (BuildConfig.DEBUG) Chips("Backend", listOf("auto", "npu", "gpu", "cpu"), s.backendOverride, !locked, vm::setBackendOverride)
-        Text("Transcript: ${s.asrBackend}", fontSize = 12.sp, fontFamily = FontFamily.Monospace)
         Text("Embeddings: embeddinggemma-2 ${s.embedBackend}", fontSize = 12.sp, fontFamily = FontFamily.Monospace)
         Text("Chunking: ${ChunkConfig.describe()}", fontSize = 12.sp, fontFamily = FontFamily.Monospace)
         Divider()
@@ -217,10 +203,6 @@ private fun RecordTab(s: UiState, vm: MainViewModel, hasMic: () -> Boolean, requ
             modifier = Modifier.fillMaxWidth(),
         ) { Text(if (s.recording) "Stop recording" else "Start recording") }
         Text(s.status.ifEmpty { "Idle" })
-        if (s.pendingChunks > 0) {
-            Text("Chunks in queue: ${s.pendingChunks}")
-            LinearProgressIndicator(Modifier.fillMaxWidth())
-        }
         s.error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
         s.activeRecordingId?.let { Text("Recording #$it (see Recordings)", fontSize = 12.sp) }
         if (BuildConfig.DEBUG && s.testFiles.isNotEmpty()) {
@@ -252,10 +234,10 @@ private fun RecordingsTab(s: UiState, vm: MainViewModel) {
             s.selectedChunks.forEach { c ->
                 Divider()
                 Text(
-                    "chunk ${c.idx}  ${fmt(c.startMs)}-${fmt(c.endMs)}  overlap ${c.overlapMs / 1000}s  ${c.asrModel}  asr ${c.asrMs} ms",
+                    "chunk ${c.idx}  ${fmt(c.startMs)}-${fmt(c.endMs)}  overlap ${c.overlapMs / 1000}s",
                     fontSize = 11.sp, fontFamily = FontFamily.Monospace,
                 )
-                Text(c.text)
+                Text(c.text ?: "(not transcribed yet)")
             }
         }
     } else {
@@ -285,7 +267,7 @@ private fun RecordingsTab(s: UiState, vm: MainViewModel) {
         AlertDialog(
             onDismissRequest = { confirmDelete = null },
             title = { Text("Delete recording #$id?") },
-            text = { Text("Removes its chunks, transcripts and embeddings. This cannot be undone.") },
+            text = { Text("Removes its chunks and transcripts. This cannot be undone.") },
             confirmButton = { TextButton(onClick = { vm.deleteRecording(id); confirmDelete = null }) { Text("Delete") } },
             dismissButton = { TextButton(onClick = { confirmDelete = null }) { Text("Cancel") } },
         )
@@ -294,69 +276,10 @@ private fun RecordingsTab(s: UiState, vm: MainViewModel) {
         AlertDialog(
             onDismissRequest = { confirmAll = false },
             title = { Text("Delete ALL recordings?") },
-            text = { Text("Removes every recording, transcript and embedding. This cannot be undone.") },
+            text = { Text("Removes every recording and transcript. This cannot be undone.") },
             confirmButton = { TextButton(onClick = { vm.deleteAll(); confirmAll = false }) { Text("Delete all") } },
             dismissButton = { TextButton(onClick = { confirmAll = false }) { Text("Cancel") } },
         )
-    }
-}
-
-@Composable
-private fun SearchTab(s: UiState, vm: MainViewModel, hasMic: () -> Boolean, requestMic: () -> Unit) {
-    Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-            OutlinedTextField(s.query, vm::setQuery, Modifier.weight(1f), label = { Text("Search text") }, singleLine = true)
-            val keyboard = LocalSoftwareKeyboardController.current
-            Button(onClick = { keyboard?.hide(); vm.searchText() }, enabled = s.phase == Phase.Ready && !s.searching) { Text("Search") }
-        }
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
-            HoldButton(
-                enabled = s.phase == Phase.Ready && !s.recording && !s.searching,
-                active = s.voiceRecording,
-                label = if (s.voiceRecording) "Listening" else "Hold to speak",
-                onPress = { if (hasMic()) vm.startVoiceSearch() else requestMic() },
-                onRelease = vm::stopVoiceSearch,
-            )
-            Text(s.searchInfo, fontSize = 12.sp)
-        }
-        if (BuildConfig.DEBUG && s.testFiles.isNotEmpty()) {
-            Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                s.testFiles.filter { it.startsWith("q") }.forEach { f ->
-                    OutlinedButton(onClick = { vm.debugQueryFile(f) }, enabled = s.phase == Phase.Ready && !s.searching) {
-                        Text("Query $f", fontSize = 11.sp, maxLines = 1, softWrap = false)
-                    }
-                }
-            }
-        }
-        if (s.searching) LinearProgressIndicator(Modifier.fillMaxWidth())
-        s.error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
-        LazyColumn(Modifier.fillMaxSize()) {
-            items(s.hits, key = { "${it.recordingId}-${it.startMs}" }) { g ->
-                Divider()
-                Column(Modifier.padding(vertical = 6.dp)) {
-                    val chunks = if (g.hits.size > 1) "chunks ${g.hits.minOf { it.row.idx }}-${g.hits.maxOf { it.row.idx }} merged" else "chunk ${g.hits.first().row.idx}"
-                    Text("score %.3f   #%d  %s-%s  %s".format(g.score, g.recordingId, fmt(g.startMs), fmt(g.endMs), chunks), fontSize = 11.sp, fontFamily = FontFamily.Monospace)
-                    Text(g.text.ifEmpty { "(no transcript)" })
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun HoldButton(enabled: Boolean, active: Boolean, label: String, onPress: () -> Unit, onRelease: () -> Unit) {
-    Box(
-        Modifier
-            .size(96.dp)
-            .clip(CircleShape)
-            .pointerInput(enabled) {
-                if (enabled) detectTapGestures(onPress = { onPress(); tryAwaitRelease(); onRelease() })
-            },
-        contentAlignment = Alignment.Center,
-    ) {
-        Surface(Modifier.fillMaxSize(), color = if (active) Color.Red else if (enabled) MaterialTheme.colorScheme.primary else Color.Gray) {
-            Box(contentAlignment = Alignment.Center) { Text(label, color = Color.White, fontSize = 12.sp) }
-        }
     }
 }
 

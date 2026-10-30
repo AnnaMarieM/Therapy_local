@@ -4,7 +4,7 @@ import java.text.Normalizer
 
 /** Pure helpers for creating a client: turning a display name into a memory client id, and checking the form. */
 object ClientInput {
-    /** "Jörg M." -> "jorgm": lowercase ascii letters and digits only, same as MemoryProcessor.clientId. Empty if nothing usable is left. */
+    /** "Jörg M." -> "jorgm": lowercase ascii letters and digits only, same as Ids.clientId. Empty if nothing usable is left. */
     fun slug(name: String): String =
         Normalizer.normalize(name.trim(), Normalizer.Form.NFD)
             .replace(Regex("\\p{Mn}+"), "")

@@ -30,6 +30,9 @@ object ChunkConfig {
 
     const val GEMMA_AUDIO_CAP_SECONDS = 30
 
+    /** A recording does not start with less free internal storage: its audio is kept until processed, about 150 MB per hour with the overlap. */
+    const val MIN_FREE_BYTES = 300L shl 20
+
     init {
         require(CHUNK_SECONDS < GEMMA_AUDIO_CAP_SECONDS) { "CHUNK_SECONDS must stay under Gemma's audio cap" }
         require(OVERLAP_SECONDS in 0 until CHUNK_SECONDS) { "OVERLAP_SECONDS must be smaller than CHUNK_SECONDS" }
@@ -55,29 +58,51 @@ object ChunkConfig {
 
 /** Embedding model identity and vector size, one place. EmbeddingGemma 2 maps text and audio into one 768-d space. */
 object EmbeddingConfig {
-    /** Stored on every chunk row; search only compares vectors with the same model id. */
+    /** Stored on every window row; vectors are only compared within one model id. */
     const val MODEL_ID = "embeddinggemma-2-740m"
 
     /** Native size of the model. Matryoshka truncation to 512, 256 or 128 is possible by changing this one value. */
     const val DIM = 768
 
-    /** Text signature length. 1024 is what the Gallery's video moment finder uses for audio plus text. */
-    const val MAX_TOKENS = 1024
+    /** Input length the embedder asks for: the model's full context (one of its LiteRT input sizes 128..8192), lowered to the context it reports if that is smaller. */
+    const val MAX_TOKENS = 8192
+
+    /** Audio fills the shared context at this rate (google/embeddinggemma-2 model card, "Context Limits": 25 tokens per second, ~327 s at 8,192). */
+    const val AUDIO_TOKENS_PER_SECOND = 25
+
+    /** Kept free for the model's own special tokens around the audio. */
+    const val AUDIO_MARGIN_TOKENS = 16
+
+    /** Longest audio clip that fits [tokens] of context. */
+    fun maxAudioSeconds(tokens: Int) = ((tokens - AUDIO_MARGIN_TOKENS) / AUDIO_TOKENS_PER_SECOND).coerceAtLeast(0)
 
     const val QUERY_PREFIX = "task: search query | text: "
     const val DOC_PREFIX = "task: search result | text: "
 }
 
-/** How many chunks a search looks at and shows. */
-object SearchConfig {
-    /** Chunks fetched before merging neighbours. */
-    const val RAW_TOP_K = 10
+/** The background pipeline that turns a session's transcript into facts (see [com.therapylocal.app.jobs.Pipeline]). */
+object MemoryConfig {
+    const val LLM_MAX_TOKENS = 6144
+    val LLM_BACKENDS = listOf("NPU", "GPU", "CPU")
 
-    /** A chunk is relevant only if its score is within this margin of the best one. Stops merging weak neighbours into a strong hit. */
-    const val SCORE_MARGIN = 0.08f
+    /** Transcript windows, in estimated tokens: each is embedded for search and read by the LLM once. */
+    const val WINDOW_TOKENS = 1000
+    const val WINDOW_OVERLAP_TOKENS = 50
 
-    /** Results shown after neighbours are merged. */
-    const val SHOWN = 5
+    const val EXTRACT_MAX_OUTPUT_TOKENS = 1600
+    const val EXTRACT_TEMPERATURE = 0.1
+    const val EXTRACT_TOP_K = 20
+
+    /** The duplicate review answers with a short verdict, as deterministically as the sampler allows. */
+    const val REVIEW_MAX_OUTPUT_TOKENS = 40
+    const val REVIEW_TEMPERATURE = 0.1
+    const val REVIEW_TOP_K = 1
+
+    /** Known facts shown to the duplicate review. */
+    const val NEIGHBOURS = 10
+
+    /** A candidate with no earlier fact at least this close is new without asking the LLM. Our own choice, not calibrated yet. */
+    const val MIN_SIMILARITY = 0.6f
 }
 
 /** Debug override of which backend the engines try: "auto" (NPU if possible, then GPU, then CPU), "npu", "gpu" or "cpu". */
@@ -88,14 +113,13 @@ object BackendPolicy {
     fun allows(backend: String) = override == "auto" || override.equals(backend, ignoreCase = true)
 }
 
-/** Realtime "possibly relevant" fact cues: the last WINDOW_SECONDS of live audio is embedded every TICK_MS and ranked against the client's facts. */
+/** Realtime "possibly relevant" fact cues: the last few seconds of live audio are embedded every tick and ranked against the client's facts. The adjustable knobs are in [LiveCueSettings]. */
 object LiveCueConfig {
-    /** Audio window embedded per tick. Same length as a stored chunk, so it stays under Gemma's audio cap. */
-    const val WINDOW_SECONDS = ChunkConfig.CHUNK_SECONDS
-    const val WINDOW_SAMPLES = WINDOW_SECONDS * ChunkConfig.SAMPLE_RATE
+    /** Longest lookback a user can choose: as much audio as the embedder's context holds. The ring buffer is this long. */
+    const val MAX_LOOKBACK_S = (EmbeddingConfig.MAX_TOKENS - EmbeddingConfig.AUDIO_MARGIN_TOKENS) / EmbeddingConfig.AUDIO_TOKENS_PER_SECOND
+    const val MAX_LOOKBACK_SAMPLES = MAX_LOOKBACK_S * ChunkConfig.SAMPLE_RATE
 
-    /** Pause between ticks. A tick that overruns it is followed by the next one after MIN_GAP_MS, never queued up. */
-    const val TICK_MS = 5_000L
+    /** A tick that overruns the interval is followed by the next one after this gap, never queued up. */
     const val MIN_GAP_MS = 250L
 
     /** No embedding before this much audio exists. */
@@ -106,10 +130,4 @@ object LiveCueConfig {
 
     /** Cues shown. */
     const val TOP_K = 10
-
-    /** Weight of the newest tick in the per-fact score average. 1.0 = no smoothing. */
-    const val SMOOTH_ALPHA = 0.5f
-
-    /** Smoothed cosine a fact needs to be shown. To be calibrated on the phone: fact-to-fact cosines sit at 0.75-0.89, audio-to-fact is unmeasured. */
-    const val SCORE_FLOOR = 0f
 }

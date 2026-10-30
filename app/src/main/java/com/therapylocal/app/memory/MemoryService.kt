@@ -1,5 +1,6 @@
 package com.therapylocal.app.memory
 
+import com.therapylocal.app.perf.PerfStats
 import android.app.ActivityManager
 import android.app.Notification
 import android.app.NotificationChannel
@@ -11,12 +12,18 @@ import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.os.IBinder
 import android.os.PowerManager
+import com.therapylocal.app.data.MindStore
+import com.therapylocal.app.data.PendingAudio
+import com.therapylocal.app.jobs.JobRunner
+import com.therapylocal.app.jobs.Jobs
+import com.therapylocal.app.jobs.Pipeline
 import com.therapylocal.app.log.AppLog
 import com.therapylocal.app.log.LogCtx
 import com.therapylocal.app.models.ModelSetup
+import com.therapylocal.app.vault.Vault
 
 /**
- * Runs the memory queue as a foreground service, so processing continues when the app is in the background or the screen is off.
+ * Drains the job queue ([JobRunner]) as a foreground service, so processing continues when the app is in the background or the screen is off.
  * The notification says which step is running (session n of N, step n of N; no names) and carries a Stop action; on the lock screen only a
  * generic "Processing sessions" is shown. When the queue finishes the ongoing notification is removed; a short dismissible result is posted
  * only when the app is not on screen (success, which times out) or when something needs attention (failure or stop).
@@ -25,14 +32,14 @@ class MemoryService : Service() {
     private var worker: Thread? = null
     private var wakeLock: PowerManager.WakeLock? = null
 
-    /** Ids of the jobs that belong to the current run, so earlier finished sessions are not counted. */
-    private val runIds = java.util.concurrent.ConcurrentHashMap.newKeySet<String>()
+    /** Sessions that had work in the current run, so sessions finished in earlier runs are not counted. */
+    private val runSessions = java.util.concurrent.ConcurrentHashMap.newKeySet<String>()
 
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (intent?.action == ACTION_STOP) {
-            MemoryQueue.cancelRequested = true
+            Jobs.stopRunning()
             if (worker?.isAlive == true) notify(NOTIF_ID, buildRunning())
             return START_NOT_STICKY
         }
@@ -40,7 +47,7 @@ class MemoryService : Service() {
         val nm = getSystemService(NotificationManager::class.java)
         nm.createNotificationChannel(NotificationChannel(CHANNEL, "Session processing", NotificationManager.IMPORTANCE_LOW))
         // Every startForegroundService needs a startForeground; while a run is going that shows the current step, not a fresh "Starting".
-        if (worker?.isAlive != true) runIds.clear()
+        if (worker?.isAlive != true) runSessions.clear()
         trackRun()
         startForeground(NOTIF_ID, buildRunning(), ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
         if (worker?.isAlive == true) return START_NOT_STICKY
@@ -60,10 +67,24 @@ class MemoryService : Service() {
                 }
             }, "memory-notif").also { it.isDaemon = true; it.start() }
             try {
+                val queue = Jobs.queue(app)
+                queue.clearStop()
+                if (debugJob) DevHarness.seed(app)
+                trackRun()
+                val pipeline = Pipeline(MindStore.get(app), queue, { MemoryFiles.prompt(app, it) }, { PendingAudio.indices(app, it) }, { r, i -> PendingAudio.load(app, r, i) }, { PendingAudio.delete(app, it) })
+                PerfStats.init(app)
+                val pool = DeviceModels.pool(app)
+                val store = MindStore.get(app)
+                val runner = JobRunner(
+                    queue, pipeline.handlers, pool,
+                    canRun = { !JobRunner.recordingActive && ModelSetup.isReady(app) },
+                    onSessionDone = { sid -> PerfStats.sessionDone(sid, pool.llmModel(), store.recordings().filter { it.sessionId == sid }.sumOf { it.durationMs }) },
+                )
                 do {
-                    MemoryLab(app, debugJob).run()
+                    runner.drain()
                     trackRun()
-                } while (MemoryQueue.hasQueued() && !MemoryQueue.cancelRequested && ModelSetup.isReady(app)) // a session enqueued just as the run ended
+                } while (runner.hasWork()) // a session enqueued just as the run ended
+                if (debugJob) DevHarness.markDone(app)
             } catch (t: Throwable) {
                 AppLog.e(MemoryLlm.TAG, "memory_lab_failed", LogCtx.NONE, t)
                 // Stack traces can quote patient text (e.g. JSON parse errors), so they are only written for the developer harness, never in app mode.
@@ -78,7 +99,7 @@ class MemoryService : Service() {
                 wakeLock?.takeIf { it.isHeld }?.release()
                 stopSelf()
             }
-        }, "memory-lab").also { it.start() }
+        }, "memory-lab").also { running = it; it.start() }
         return START_NOT_STICKY
     }
 
@@ -86,13 +107,13 @@ class MemoryService : Service() {
         wakeLock?.takeIf { it.isHeld }?.release()
     }
 
-    /** Adds every job that still has to run (or is running) to this run; finished ones were added while they were waiting. */
+    /** Adds every session that still has work to this run; finished ones were added while they were waiting. */
     private fun trackRun() {
-        MemoryQueue.state.value.jobs.forEach { if (it.status == JobStatus.Queued || it.status == JobStatus.Running) runIds += it.id }
+        Jobs.snapshot.value.sessions.forEach { if (!it.finished) runSessions += it.sessionId }
     }
 
     private fun postResult() {
-        val notice = ProcessingNotice.finished(MemoryQueue.state.value, runIds.toSet()) ?: return
+        val notice = ProcessingNotice.finished(Jobs.snapshot.value, runSessions.toSet()) ?: return
         val success = notice.title == ProcessingNotice.TITLE_DONE
         // On success the app on screen already shows the result; a notification is only useful when the user is elsewhere.
         if (success && isAppInForeground()) return
@@ -104,13 +125,14 @@ class MemoryService : Service() {
     }
 
     private fun buildRunning(): Notification {
-        val n = ProcessingNotice.running(MemoryQueue.state.value, runIds.toSet(), MemoryQueue.cancelRequested)
+        val s = Jobs.snapshot.value
+        val n = ProcessingNotice.running(s, runSessions.toSet())
         val b = base(n.title, n.text)
             .setOngoing(true)
             .setCategory(Notification.CATEGORY_PROGRESS)
             .setPublicVersion(publicVersion("Processing sessions"))
         if (n.progressMax > 0) b.setProgress(n.progressMax, n.progress, n.indeterminate)
-        if (!MemoryQueue.cancelRequested) {
+        if (!s.stopping) {
             val stop = PendingIntent.getService(this, 0, Intent(this, MemoryService::class.java).setAction(ACTION_STOP), PendingIntent.FLAG_IMMUTABLE)
             b.addAction(Notification.Action.Builder(null, "Stop", stop).build())
         }
@@ -151,6 +173,33 @@ class MemoryService : Service() {
         /** [debugJob] makes the run honour files/memory/job.json (fixed session list, settings, optional reset). The app itself never does. */
         fun start(context: Context, debugJob: Boolean = false) {
             context.startForegroundService(Intent(context, MemoryService::class.java).putExtra(EXTRA_DEBUG_JOB, debugJob))
+        }
+
+        /**
+         * After an unlock, a finished download or a recording: continues a queue that still has pending jobs (the process was killed, the app
+         * locked, or the runner paused). The runner needs the vault key and the AI files; until both are there the jobs just wait in the queue.
+         */
+        fun resumePending(context: Context) {
+            if (Vault.isUnlocked && ModelSetup.isReady(context) && Jobs.queue(context).hasPending()) start(context.applicationContext)
+        }
+
+        /** The worker of the current or last run, for [awaitStopped]. */
+        @Volatile
+        private var running: Thread? = null
+
+        /** Asks a running queue to stop after its current step and stops the service. */
+        fun stop(context: Context) {
+            Jobs.stopRunning()
+            context.stopService(Intent(context, MemoryService::class.java))
+        }
+
+        /** Waits up to [timeoutMs] for the worker to finish its step after [stop]. Not on the main thread. */
+        fun awaitStopped(timeoutMs: Long) {
+            try {
+                running?.join(timeoutMs)
+            } catch (_: InterruptedException) {
+                Thread.currentThread().interrupt()
+            }
         }
     }
 }

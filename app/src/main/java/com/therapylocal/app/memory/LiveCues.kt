@@ -2,7 +2,10 @@ package com.therapylocal.app.memory
 
 import android.os.SystemClock
 import com.therapylocal.app.asr.Pcm
+import com.therapylocal.app.config.ChunkConfig
 import com.therapylocal.app.config.LiveCueConfig
+import com.therapylocal.app.config.LiveCueSettings
+import com.therapylocal.app.data.MindStore
 import com.therapylocal.app.embed.Embedder
 import com.therapylocal.app.log.AppLog
 import com.therapylocal.app.log.LogCtx
@@ -18,19 +21,23 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-/** One "possibly relevant" fact. [score] is the smoothed cosine between the live audio window and the fact. [chunk] is the source chunk in memory.db, 0 if unknown. */
-data class Cue(val factId: String, val text: String, val category: String, val session: String, val chunk: Int, val score: Float)
+/** One "possibly relevant" fact. [score] is the smoothed cosine between the live audio window and the fact. [chunk] is the fact's transcript segment. */
+data class Cue(val factId: String, val text: String, val heading: String, val session: String, val chunk: Int, val score: Float)
 
 /**
- * Realtime fact cues during a session. The recorder feeds raw samples into [feed]; every [LiveCueConfig.TICK_MS] the last
- * [LiveCueConfig.WINDOW_SECONDS] of audio are embedded DIRECTLY (EmbeddingGemma 2 audio, no transcript) and compared with the
+ * Realtime fact cues during a session. The recorder feeds raw samples into [feed]; every [LiveCueSettings.intervalMs] the last
+ * [LiveCueSettings.lookbackS] of audio are embedded DIRECTLY (EmbeddingGemma 2 audio, no transcript) and compared with the
  * embedded facts of one client. Scores are averaged over ticks per fact so the list does not jump, then the top [LiveCueConfig.TOP_K]
- * above the floor are published on [cues].
+ * above the floor are published on [cues]. [settings] is read once per session, at [start].
  *
  * Never throws to the caller: failures land on [error] and the next tick retries. An unknown client or one without facts gives an empty list.
- * Audio stays in memory (a 20 s ring), nothing is written to disk and no text is logged, only fact ids and scores.
+ * Audio stays in memory (a [LiveCueConfig.MAX_LOOKBACK_S] ring), nothing is written to disk and no text is logged, only fact ids and scores.
  */
-class LiveCues(private val embedder: Embedder, private val store: MemoryStore) {
+class LiveCues(
+    private val embedder: Embedder,
+    private val store: MindStore,
+    private val settings: () -> LiveCueSettings = { LiveCueSettings.DEFAULT },
+) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private val _cues = MutableStateFlow<List<Cue>>(emptyList())
     private val _running = MutableStateFlow(false)
@@ -40,7 +47,7 @@ class LiveCues(private val embedder: Embedder, private val store: MemoryStore) {
     val running: StateFlow<Boolean> = _running.asStateFlow()
     val error: StateFlow<String?> = _error.asStateFlow()
 
-    private val ring = ShortArray(LiveCueConfig.WINDOW_SAMPLES)
+    private val ring = ShortArray(LiveCueConfig.MAX_LOOKBACK_SAMPLES)
     private var ringPos = 0
     private var ringFilled = 0
 
@@ -79,8 +86,12 @@ class LiveCues(private val embedder: Embedder, private val store: MemoryStore) {
         _error.value = null
         _cues.value = emptyList()
         _running.value = true
-        AppLog.i(TAG, "live_cues_start", LogCtx.NONE, "client" to client, "window_s" to LiveCueConfig.WINDOW_SECONDS, "tick_ms" to LiveCueConfig.TICK_MS)
-        job = scope.launch { loop(client, gen, HashMap()) }
+        val s = settings()
+        AppLog.i(
+            TAG, "live_cues_start", LogCtx.NONE, "client" to client, "lookback_s" to s.lookbackS, "interval_ms" to s.intervalMs,
+            "smoothing" to s.smoothing, "score_floor" to s.scoreFloor,
+        )
+        job = scope.launch { loop(client, gen, s, HashMap()) }
     }
 
     @Synchronized
@@ -103,11 +114,15 @@ class LiveCues(private val embedder: Embedder, private val store: MemoryStore) {
         ringFilled = 0
     }
 
-    private suspend fun loop(client: String, gen: Int, smoothed: HashMap<String, Float>) {
+    private suspend fun loop(client: String, gen: Int, s: LiveCueSettings, smoothed: HashMap<Long, Float>) {
+        var last = 0L
         while (gen == generation) {
             val t0 = SystemClock.elapsedRealtime()
+            // Embedding can take longer than the interval, so the real interval is logged per tick.
+            val since = if (last == 0L) 0L else t0 - last
+            last = t0
             try {
-                tick(client, gen, smoothed)
+                tick(client, gen, s, since, smoothed)
             } catch (e: CancellationException) {
                 throw e
             } catch (t: Throwable) {
@@ -115,46 +130,49 @@ class LiveCues(private val embedder: Embedder, private val store: MemoryStore) {
                 AppLog.e(TAG, "live_cue_tick_failed", LogCtx.NONE, t)
             }
             val spent = SystemClock.elapsedRealtime() - t0
-            delay((LiveCueConfig.TICK_MS - spent).coerceAtLeast(LiveCueConfig.MIN_GAP_MS))
+            delay((s.intervalMs - spent).coerceAtLeast(LiveCueConfig.MIN_GAP_MS))
         }
     }
 
-    private fun snapshot(): ShortArray? = synchronized(ring) {
+    /** The newest [samples] of the ring, or all of it when less was recorded. */
+    private fun snapshot(samples: Int): ShortArray? = synchronized(ring) {
         if (ringFilled < LiveCueConfig.MIN_AUDIO_SAMPLES) return null
-        val out = ShortArray(ringFilled)
-        val start = (ringPos - ringFilled + ring.size) % ring.size
-        val first = minOf(ringFilled, ring.size - start)
+        val n = minOf(ringFilled, samples)
+        val out = ShortArray(n)
+        val start = (ringPos - n + ring.size) % ring.size
+        val first = minOf(n, ring.size - start)
         System.arraycopy(ring, start, out, 0, first)
-        System.arraycopy(ring, 0, out, first, ringFilled - first)
+        System.arraycopy(ring, 0, out, first, n - first)
         out
     }
 
-    private suspend fun tick(client: String, gen: Int, smoothed: HashMap<String, Float>) {
-        val pcm = snapshot() ?: return
+    private suspend fun tick(client: String, gen: Int, s: LiveCueSettings, sinceMs: Long, smoothed: HashMap<Long, Float>) {
+        // A model that reports a smaller context than asked for still gets a clip it can embed whole.
+        val pcm = snapshot(minOf(s.lookbackS, embedder.maxAudioSeconds) * ChunkConfig.SAMPLE_RATE) ?: return
         val rms = Pcm.rms(pcm)
         val n = ++tick
         if (rms < LiveCueConfig.SILENCE_RMS) {
             AppLog.d(TAG, "live_cue_silence", LogCtx.NONE, "tick" to n, "rms" to "%.4f".format(rms))
             return
         }
-        AppLog.span(TAG, "live_cue_tick", LogCtx.NONE, "tick" to n, "client" to client, "audio_sec" to "%.2f".format(Pcm.seconds(pcm)), "rms" to "%.4f".format(rms)) { span ->
+        AppLog.span(TAG, "live_cue_tick", LogCtx.NONE, "tick" to n, "client" to client, "interval_ms" to sinceMs, "audio_sec" to "%.2f".format(Pcm.seconds(pcm)), "rms" to "%.4f".format(rms)) { span ->
             val t0 = SystemClock.elapsedRealtime()
             val vec = embedder.embedAudio(pcm, LogCtx.NONE, role = "live_cue")
             val t1 = SystemClock.elapsedRealtime()
-            val scored = withContext(Dispatchers.IO) { store.nearest(client, vec, Int.MAX_VALUE) }
+            val scored = withContext(Dispatchers.IO) { store.nearestFacts(client, vec, Int.MAX_VALUE) }
             val t2 = SystemClock.elapsedRealtime()
 
-            val a = LiveCueConfig.SMOOTH_ALPHA
+            val a = s.smoothing
             val now = scored.map { (f, raw) ->
                 val prev = smoothed[f.id]
-                val s = if (prev == null) raw else a * raw + (1 - a) * prev
-                smoothed[f.id] = s
-                Triple(f, s, raw)
+                val sm = if (prev == null) raw else a * raw + (1 - a) * prev
+                smoothed[f.id] = sm
+                Triple(f, sm, raw)
             }
-            val top = now.sortedByDescending { it.second }.filter { it.second >= LiveCueConfig.SCORE_FLOOR }.take(LiveCueConfig.TOP_K)
+            val top = now.sortedByDescending { it.second }.filter { it.second >= s.scoreFloor }.take(LiveCueConfig.TOP_K)
             // A stopped or restarted session must not publish a stale tick.
             if (gen == generation) {
-                _cues.value = top.map { (f, s, _) -> Cue(f.id, f.fact, f.category, f.session, f.chunk, s) }
+                _cues.value = top.map { (f, sm, _) -> Cue(f.id.toString(), f.content, f.heading, f.sessionId, f.segIdx, sm) }
                 _error.value = null
             }
             span.put("embed_ms", t1 - t0)

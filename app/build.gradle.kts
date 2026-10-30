@@ -18,6 +18,7 @@ android {
         versionCode = 1
         versionName = "0.1.0"
         ndk { abiFilters += "arm64-v8a" }
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     // Shared debug key: every laptop and CI signs the same, so updates install over the old app and keep the downloaded model
@@ -31,8 +32,29 @@ android {
     }
 
     buildTypes {
+        // The CI emulator is x86_64. Debug and androidTest only; release stays arm64-v8a.
+        debug {
+            ndk { abiFilters += "x86_64" }
+        }
         release {
             isMinifyEnabled = false
+        }
+        // Release speed with the shared debug key, so it installs over a debug build and keeps the models. Debug Compose builds stutter,
+        // so motion and haptics are tuned on this one: ./gradlew :app:assembleFeel
+        create("feel") {
+            initWith(getByName("release"))
+            signingConfig = signingConfigs.getByName("debug")
+            matchingFallbacks += "release"
+        }
+        // The feel build for driving the app from adb: its own app id (its own vault, beside the real app, which it never touches), no
+        // fingerprint so a script can unlock with the password, and screenshots allowed (test data only). It downloads its own models.
+        // ./gradlew :app:assembleQa
+        create("qa") {
+            initWith(getByName("feel"))
+            applicationIdSuffix = ".qa"
+            matchingFallbacks += listOf("feel", "release")
+            buildConfigField("boolean", "BIOMETRIC", "false")
+            buildConfigField("boolean", "SECURE_WINDOW", "false")
         }
     }
     compileOptions {
@@ -58,10 +80,16 @@ android {
         )
     }
     packaging { jniLibs { useLegacyPackaging = true } }
+    // JVM tests run code that logs through AppLog (android.util.Log); the stubs then return defaults instead of throwing.
+    testOptions { unitTests.isReturnDefaultValues = true }
 
     buildTypes.configureEach {
         // Transcript text in logs. Keep false: this is a therapy app. See docs/LOGGING.md.
         buildConfigField("boolean", "LOG_TEXT", "false")
+        if (name != "qa") {
+            buildConfigField("boolean", "BIOMETRIC", "true")
+            buildConfigField("boolean", "SECURE_WINDOW", "true")
+        }
     }
 }
 
@@ -88,11 +116,12 @@ val promptAssets by tasks.registering(Copy::class) {
 tasks.named("preBuild") { dependsOn(fetchSherpa, promptAssets) }
 
 dependencies {
-    implementation(platform("androidx.compose:compose-bom:2024.06.00"))
+    implementation(platform("androidx.compose:compose-bom:2024.12.01"))
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.material:material-icons-extended")
     implementation("androidx.compose.ui:ui")
-    implementation("androidx.activity:activity-compose:1.9.0")
+    implementation("androidx.activity:activity-compose:1.9.3")
+    implementation("androidx.profileinstaller:profileinstaller:1.3.1") // installs Compose's baseline profiles on sideloaded builds: smooth first frames
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.3")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.3")
     implementation("androidx.work:work-runtime-ktx:2.9.1")
@@ -105,6 +134,11 @@ dependencies {
     implementation("androidx.fragment:fragment-ktx:1.8.2") // FragmentActivity for BiometricPrompt
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.json:json:20240303") // the Android stub of org.json does nothing in unit tests
+    androidTestImplementation("androidx.test:runner:1.6.2")
+    androidTestImplementation("androidx.test.ext:junit:1.2.1")
+    androidTestImplementation(platform("androidx.compose:compose-bom:2024.12.01"))
+    androidTestImplementation("androidx.compose.ui:ui-test-junit4")
+    debugImplementation("androidx.compose.ui:ui-test-manifest") // hosts the test activity for createComposeRule
 }
 
 kotlin {

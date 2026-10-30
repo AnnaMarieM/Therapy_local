@@ -1,31 +1,84 @@
-# Long-term memory pipeline (debug harness)
+# Long-term memory
 
-Turns session transcripts into a per-client profile of facts, on the phone, with Gemma 4 E2B (LiteRT-LM) and EmbeddingGemma.
+A journal that remembers for you, on the phone, with Gemma 4 (E2B or E4B, LiteRT-LM) and EmbeddingGemma. Each client has a list of facts: a **heading** (about 6 words) and **content** (1-3 short factual sentences, no interpretation or advice). Every fact keeps a verbatim quote and the transcript segment it came from, so tapping it shows the conversation around it, plus every later passage, in any session, where it came up again. The app gives no insights and writes no summaries. The app shows only the facts and each session's full transcript.
 
-## Flow (per session)
-1. Cut the transcript into token-sized chunks (default 1000 tokens, 50 overlap; tokens are estimated at 1.4 per word). Embed every chunk, store it in `memory.db` (SQLCipher-encrypted).
-2. Gemma extracts facts from each chunk: JSON objects with `category`, `subject`, `fact`, `evidence`. The parser salvages field by field (the model sometimes runs all objects together on one line). A fact is kept only if its quote occurs in the chunk. Up to 3 attempts, the last one with a constrained schema.
-3. Each candidate fact is embedded; its 10 nearest known facts are fetched (no cut-off, no thresholds) and Gemma answers `{"duplicate": bool, "of": id}` (greedy, schema-constrained). One fact at a time, so facts committed earlier in the same session are visible.
-4. `false` commits a new fact (append-only), `true` records the repeat in `fact_support`.
+Facts are append-only: a fact that changes over time is not updated.
 
-## Run it
-- Build debug, `adb install -r`. Put `job.json`, `prompts/*.txt` (from `demo/prompts/`) and the transcripts under `/sdcard/Android/data/com.therapylocal.app/files/memory/` (`in/` for transcripts). This external folder is the developer root and holds only these inputs; the harness imports each transcript into the vault the first time it is used.
-- Unlock the app first (the vault key is needed for the databases and every patient file), then start from the Memory tab, or `adb shell am start -n com.therapylocal.app/.MainActivity --ez memory_lab true`. It runs in a foreground service, so it continues in the background.
-- Diagnostics are written only in this debug-harness mode (`job.json` run), to `files/memory/out/` in the developer root: `bench.jsonl` (prefill/decode per call), `decisions.jsonl` (every review with the 10 neighbours shown, contains fact text), `raw/` (raw model replies), `DONE`, and `ERROR` (stack trace of a crashed run). Use synthetic transcripts only. The normal app writes none of these.
+## One database
+Everything lives in `mind.db` (SQLCipher, see [SECURITY.md](SECURITY.md)), opened once per process by `MindStore.get` after unlock, with WAL and `foreign_keys=ON`. Every foreign key cascades on delete. Opening it deletes the legacy `recordings.db` and `memory.db`; their data is not migrated.
 
-## Processing queue
-Sessions are queued as `SessionJob`s (saved encrypted in `queue.json`) and run one at a time, clients in date order. Stages shown to the user: Waiting, Transcribing 2/5, Reading 1/3, Checking 4/12, Done.
-- Waiting for setup: the runner starts only when the vault is unlocked and all AI files are downloaded (`ModelSetup.isReady`). Until then jobs stay Queued and are visible in `MemoryQueue.state`; when the download finishes the worker calls `MemoryProcessor.resumePending`.
-- Deferred recordings: a session recorded before setup finished is stored as encrypted audio chunks (`PendingAudio`) and queued with a `recordingId`. The runner first transcribes the chunks (Whisper, skipping chunks already stored after a crash), writes the encrypted transcript, then deletes the pending audio and the recording rows. A recording with no speech ends as Failed ("No speech was recorded"). Deleting the session before that also deletes its pending audio.
-- Resume: on every unlock and app start `resumePending` loads the saved jobs (a Running one becomes Queued) and starts the service if work is waiting and setup is complete. Notifications say only "Processing sessions" with counts and stage, no names.
+| Table | Holds |
+|---|---|
+| `clients(id, name, created_at)` | |
+| `sessions(id, client_id, started_at, ended_at)` | |
+| `recordings(id, session_id, started_at, engine, model, chunk_seconds)` | A recording until its session is processed |
+| `chunks(recording_id, idx, start_ms, end_ms, overlap_ms, text)` | Raw speech-recognition output per audio chunk; `text` is empty until transcribed |
+| `segments(session_id, idx, start_ms, end_ms, text)` | The session's transcript with timestamps, derived from `chunks` (rebuilt whole) |
+| `windows(session_id, idx, seg_from, seg_to, text, embedding, embed_model)` | About 1000-token windows over the segments, for extraction and search |
+| `facts(id, client_id, session_id, heading, content, evidence, seg_idx, embedding, llm_model, prompt_version, created_at)` | The fact's first occurrence. `embedding` is of `DOC_PREFIX + heading + ". " + content`. `llm_model` and `prompt_version` are for debugging and never shown |
+| `mentions(id, fact_id, session_id, evidence, seg_idx, created_at)` | A later session where the fact came up again (never the fact's own session) |
+| `extract_cache(session_id, idx, key, json)` | Extraction result per window, keyed by prompt version and model |
+| `review_cache(session_id, cand_key, verdict)` | The LLM's duplicate verdict per candidate |
+| `jobs(id, kind, session_id, recording_id, ref, status, attempts, max_attempts, error_code, created_at, updated_at)` | The job queue. `error_code` is a short code, never raw error text |
+| `job_deps(job_id, depends_on)` | Job dependencies |
 
-## Where the data lives (app mode)
-Internal storage `files/memory/` (private to the app, encrypted with the vault key, see [SECURITY.md](SECURITY.md)): `in/<session>.md` transcripts, `cache/<session>/<n>.json` per-chunk extraction cache, `queue.json` the job queue (resumed after the next unlock). Deleting a session or client removes its transcripts and caches too. The facts themselves are in `memory.db`.
+Deleting a client removes everything of it, jobs included. Deleting a session removes its rows; a fact first seen in it moves to its next mention (D2).
 
-## Findings so far (Snapdragon 8 Elite, GPU; NPU is not available, the Qualcomm dispatch library is not in the app)
+## Job graph
+All processing runs as jobs in `mind.db`, so it survives a crash or a lock (`jobs/`).
+
+```
+transcribe(recording) -> window(session) -> extract(session, 1..n) -> commit(session) -> cleanup(recording)
+```
+
+1. **transcribe** fills in the chunks that have no text yet, with the engine chosen in the settings (Whisper, or Gemma on the LLM's engine; a Gemma build without audio input falls back to Whisper). `SegmentBuilder` then rebuilds the segments from the overlapping chunks, keeping their timestamps.
+2. **window** cuts the segments into windows (1000 tokens, 50 overlap, estimated at 1.4 tokens per word), embeds them with `DOC_PREFIX` and adds the rest of the graph. A window over the embedder's limit is embedded in halves and averaged.
+3. **extract(i)** asks Gemma for the facts of window *i*: one JSON object per line, twice, then a constrained schema as a last resort. A fact is kept only if its evidence quote occurs in the window; the quote is mapped to the segment of its first word.
+4. **commit** has two phases. Phase A, outside any transaction, is `CommitPlanner`: for each candidate in order, the nearest facts of the client's earlier sessions with cosine at least 0.6 are shown to Gemma, which answers whether it is a duplicate. No neighbour above the floor, or an unreadable reply twice, means a new fact. A candidate repeating a fact of an earlier session becomes a mention; one repeating a fact this session already adds is dropped. Phase B is one short transaction that replaces the session's facts and mentions with the plan.
+5. **cleanup** deletes the encrypted audio (`PendingAudio`) and the recording row; its chunks go with it, the segments stay. Audio is deleted only here, after everything else is stored.
+
+Every handler can run again and ends in the same state: results are written whole (delete, then insert) and LLM answers are cached under the prompt version (a short hash of the resolved prompt text) and the model.
+
+Queue rules (`JobQueue`):
+- A job is claimed only when all its dependencies are done and its kind may run now: the models it needs are downloaded (`ModelSetup.isReady`) and no session is recording (D3).
+- A failure counts an attempt; after 3 the job stays failed and its dependents show as blocked until Retry. Stop puts the running job back without counting an attempt. A job whose session was deleted is cancelled, not failed.
+- At startup running jobs go back to pending, and a recording with no job gets its jobs queued.
+- `QueueSnapshot` (done/total per session, the running step, failed and blocked counts) drives the processing notice and the notification ("session n of N, step n of N").
+
+`MemoryService` runs `JobRunner.drain()` in a foreground service with a wake lock. The runner keeps the models it loaded (`ModelPool`) across jobs and closes them when the queue is empty; Gemma speech recognition shares the LLM's engine, so one Gemma file is never loaded twice.
+
+## Decisions
+- **D1. One transcription path.** While recording, every audio chunk is saved encrypted (`PendingAudio`) with an empty `chunks` row. All speech recognition runs in the `transcribe` job after the session. There is no live transcript, and a crash mid-session loses no audio.
+- **D2. Deleting a session that holds a fact's first occurrence.** The fact's earliest remaining mention (by session start) becomes the fact and takes over that mention's session, evidence and segment. A fact with no other mention is deleted. One transaction in `MindStore.deleteSession`.
+- **D3. The runner pauses while a session is recording.** No new job is claimed; a running job finishes first. This keeps the LLM, ASR, embedder and live cues from being loaded together, which with E4B would run out of memory.
+- **D4. A client's sessions are committed strictly in order of their start.** `commit(S)` waits for every unfinished `window`, `extract` and `commit` job of the client's previous session, so S is planned only against facts that are complete. Committing a session again (retry, reprocess) queues the commits of all its later, already committed sessions again, in order, since their mentions may point at its facts.
+- **D5. The CI emulator runs debug builds with an `x86_64` ABI added** (debug and androidTest only). The end-to-end tests use fake `Llm`, `Embed` and `Asr` ports and never load the LiteRT or sherpa native libraries.
+
+## Live cues
+During a session `LiveCues` embeds the last seconds of audio directly (EmbeddingGemma audio, no transcript) and compares them with the client's fact embeddings. Scores are averaged over ticks per fact, and the top 10 above the floor are shown by heading. Audio stays in an in-memory ring of `LiveCueConfig.MAX_LOOKBACK_S` (327 s) and is never written. Settings are read at session start, from "Knobs for nerds" in the settings (`LiveCueSettings`, values clamped):
+
+| Setting | Default | Range |
+|---|---|---|
+| Interval | 2000 ms | 1000-10000 ms |
+| Lookback | 20 s | 5-327 s |
+| Smoothing (weight of the newest tick) | 0.5 | 0.05-1.0 |
+| Score floor | 0.0 | 0-1 |
+
+A tick that takes longer than the interval is followed by the next one after 250 ms; the effective interval is logged. The cap comes from the embedder's context: `EmbeddingConfig.MAX_TOKENS` is 8192, the model's full context and one of the LiteRT build's input sizes, and audio costs 25 tokens per second (google/embeddinggemma-2 model card, "Context Limits"). That leaves about 327 s once a small margin is reserved for special tokens. If the model reports a smaller context, each tick embeds only as much audio as fits (`Embedder.maxAudioSeconds`).
+
+## Search
+The client profile has a search field: the query is embedded with `QUERY_PREFIX` and matched against the client's windows, and the facts are matched by heading and content. A result opens the transcript there. Holding the mic button records up to 20 s; the audio embedding is searched directly, without transcription.
+
+## Model choice
+`ModelChoice` resolves the `gemma_variant` setting to Gemma 4 E2B (default) or E4B. The settings suggest E4B on phones with about 12 GB of RAM or more (our own threshold), show the download size, ask before downloading and offer to remove the unused model. While the new model downloads, jobs that need it wait instead of failing.
+
+## Developer harness (debug builds)
+- Put `job.json`, `prompts/*.txt` (from `demo/prompts/`) and text transcripts in `in/` under `/sdcard/Android/data/com.therapylocal.app/files/memory/`. `job.json`: `{"resetProfiles": false, "stripLabels": false, "sessions": [{"file": "<client>_<n>.md", "date": "yyyy-MM-dd"}]}`. A prompt file there overrides the one shipped in the app.
+- Unlock the app, then start from the Memory tab or `adb shell am start -n com.therapylocal.app/.MainActivity --ez memory_lab true`. Each transcript becomes a session whose segments are its non-blank lines, queued from the window job on. `out/DONE` marks the end of the run. Use synthetic transcripts only.
+
+## Findings so far (Snapdragon 8 Elite, GPU; the NPU is not available, the Qualcomm dispatch library is not in the app)
 - Prefill about 1,200-2,000 tok/s, decode about 37 tok/s unconstrained, about 17 tok/s constrained.
 - Schema-constrained decoding of the large extraction schema looped on whitespace; small schemas (the review answer) work.
-- The embedder rejects more than 1,024 tokens; over-long chunks are embedded in halves and averaged.
 - A review call takes about 6 s wall although prefill is 0.3 s: fixed overhead still to be located.
-- Unrelated facts score 0.75-0.89 cosine (all start with the client's name), so cosine thresholds are unsafe; the LLM decides.
-- Not yet measured: accuracy of duplicate decisions over a full session, and runs on label-free (Whisper-style) transcripts.
+- Unrelated facts can score 0.75-0.89 cosine, so cosine alone does not decide duplicates; the 0.6 floor only skips the LLM for clearly new facts.
+- Still to measure on a device: embed latency at 20 s, 60 s and 327 s lookback, text-window embed latency with the 8192 input size, Gemma E4B speech recognition, and memory use with E4B.

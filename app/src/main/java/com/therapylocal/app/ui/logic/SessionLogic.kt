@@ -1,8 +1,11 @@
 package com.therapylocal.app.ui.logic
 
-import com.therapylocal.app.memory.JobStatus
-import com.therapylocal.app.memory.SessionJob
-import com.therapylocal.app.ui.models.Patient
+import com.therapylocal.app.data.Job
+import com.therapylocal.app.jobs.JobGraph
+import com.therapylocal.app.jobs.JobPhase
+import com.therapylocal.app.jobs.QueueSnapshot
+import com.therapylocal.app.jobs.SessionProgress
+import com.therapylocal.app.jobs.StepProgress
 import com.therapylocal.app.ui.models.ProcessingSessionInfo
 
 /** Pure session/UI rules pulled out of composables so they can be unit tested. No Android imports. */
@@ -22,40 +25,31 @@ object SessionLogic {
         return "${two(s / 3600)}:${two((s / 60) % 60)}:${two(s % 60)}"
     }
 
-    /** Patients whose name, presenting issue, facts or session summaries/topics/quotes contain [query] (trimmed, case-insensitive). Blank query keeps everyone. */
-    fun filterPatients(patients: List<Patient>, query: String): List<Patient> {
-        if (query.isBlank()) return patients
-        val q = query.trim().lowercase()
-        return patients.filter { p ->
-            p.name.lowercase().contains(q) ||
-            p.presenting.lowercase().contains(q) ||
-            p.facts.any { it.lowercase().contains(q) } ||
-            p.sessions.any { s ->
-                s.summary.lowercase().contains(q) ||
-                s.topics.any { t -> t.lowercase().contains(q) } ||
-                s.verbatimQuotes.any { v -> v.lowercase().contains(q) }
-            }
-        }
-    }
-
     /**
-     * Per-client "processing" banner info: Queued/Running jobs (a later job of the same client replaces an earlier one),
-     * plus the not-yet-enqueued session ([pending] = client, sessionId, date) if that client has no job yet.
+     * Per-client "processing" banner info: sessions with work still to do and nothing failed (a later session of the same client replaces an
+     * earlier one), plus the not-yet-enqueued session ([pending] = client, sessionId, date) if that client has none.
      */
-    fun processingByClient(jobs: List<SessionJob>, pending: Triple<String, String, String>?): Map<String, ProcessingSessionInfo> {
+    fun processingByClient(queue: QueueSnapshot, pending: Triple<String, String, String>?, evidence: Evidence = Evidence()): Map<String, ProcessingSessionInfo> {
         val map = mutableMapOf<String, ProcessingSessionInfo>()
-        jobs.filter { it.status == JobStatus.Queued || it.status == JobStatus.Running }.forEach { job ->
+        val open = queue.sessions.filter { !it.finished && it.failed == 0 }
+        val runningNow = open.count { it.running }
+        var waiting = 0
+        open.forEach { s ->
+            // Its place in line (the one being processed counts as ahead): evidence that it is queued, not stuck.
+            val ahead = if (s.running || s.blocked > 0) 0 else runningNow + waiting++
             val stageText = when {
-                job.stage.isNotBlank() -> job.stage
-                job.status == JobStatus.Queued -> "Queued"
-                job.recordingId != 0L -> "Transcribing audio"
-                else -> "Extracting notes"
+                s.running -> runningStage(queue.running, queue.progress)
+                s.blocked > 0 -> "Waiting"
+                ahead == 0 -> "Queued · next"
+                else -> "Queued · $ahead ahead"
             }
-            map[job.client] = ProcessingSessionInfo(
-                sessionId = job.id,
-                date = job.date.ifEmpty { "Today" },
+            val details = evidenceLines(s, ahead, queue.progress, evidence)
+            map[s.clientId] = ProcessingSessionInfo(
+                sessionId = s.sessionId,
+                date = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(java.util.Date(s.startedAt)),
                 stage = stageText,
-                isPendingEnqueue = false
+                isPendingEnqueue = false,
+                details = details,
             )
         }
         pending?.let { (client, sid, date) ->
@@ -71,20 +65,49 @@ object SessionLogic {
         return map
     }
 
-    enum class SessionTabTarget { Live, Chooser }
+    /**
+     * The evidence for one session, each line only what was measured: where it is, how fast the model is going, how much is left to read,
+     * and how long it should take, padded. Where nothing has been measured yet, it says what will be shown and when.
+     */
+    fun evidenceLines(s: SessionProgress, ahead: Int, p: StepProgress?, e: Evidence): List<String> {
+        val step = "Step ${(s.done + 1).coerceAtMost(s.total)}/${s.total}"
+        val audioMin = e.audioMs[s.sessionId]?.takeIf { it > 0 }?.let { it / 60_000.0 }
+        val whole = e.perMinute?.let { m -> audioMin?.let { (it * m.processingMs * Progress.PADDING).toLong() } }
+        val noHistory = "Time left for a whole session shows once ${com.therapylocal.app.perf.PerfStats.MIN_SESSIONS} are measured (${e.measured} so far)"
+        if (!s.running) {
+            val first = when {
+                s.blocked > 0 -> "$step · waits for a job to be retried"
+                ahead == 0 -> "$step · starts next"
+                else -> "$step · starts after ${if (ahead == 1) "1 session" else "$ahead sessions"}"
+            }
+            val second = when {
+                whole != null -> "${audioMin!!.let { kotlin.math.ceil(it).toInt() }} min of interview · ${Progress.left(whole).removeSuffix(" left")} to process once started"
+                e.perMinute == null -> noHistory
+                else -> null
+            }
+            return listOfNotNull(first, second)
+        }
+        val phase = p?.phase ?: JobPhase.None
+        val steps = p?.steps ?: 0
+        val done = p?.step ?: 0
+        // While reading, time left comes from how long a passage has taken on this phone; otherwise from this step's own pace.
+        val readingLeft = e.perPassage?.takeIf { phase == JobPhase.Reading && steps > 0 }?.let { (ms, _) -> ((steps - done).coerceAtLeast(0) * ms * Progress.PADDING).toLong() }
+        val lines = mutableListOf(Progress.detail(s.done + 1, s.total, phase, done, steps, readingLeft ?: e.stepLeftMs))
+        e.live?.let { lines += "Reading ${Progress.count(it.prefillTokS)} tokens/s · writing ${Progress.count(it.decodeTokS)} tokens/s" }
+        e.perPassage?.takeIf { phase == JobPhase.Reading && steps > done }?.let { (_, tokens) ->
+            lines += "About ${Progress.count((steps - done) * tokens.toDouble())} tokens left to read"
+        }
+        lines += when {
+            e.perMinute != null -> "Usually ${Progress.count(e.perMinute.promptTokens)} tokens read and ${Progress.count(e.perMinute.decodeTokens)} written per interview minute"
+            else -> noHistory
+        }
+        return lines
+    }
 
-    /** Tapping the Session tab: go to the live screen if a session with a patient is running, else ask which patient. */
-    fun sessionTabTarget(isSessionActive: Boolean, hasSessionPatient: Boolean): SessionTabTarget =
-        if (isSessionActive && hasSessionPatient) SessionTabTarget.Live else SessionTabTarget.Chooser
-
-    enum class PauseAction { StartRecording, ResumeRecording, PauseRecording }
-
-    data class PauseToggle(val paused: Boolean, val recordingStarted: Boolean, val action: PauseAction)
-
-    /** Play/pause button. A session starts paused and not recording; the first play starts recording, later plays resume it. */
-    fun togglePause(paused: Boolean, recordingStarted: Boolean): PauseToggle = when {
-        !paused -> PauseToggle(paused = true, recordingStarted = recordingStarted, action = PauseAction.PauseRecording)
-        !recordingStarted -> PauseToggle(paused = false, recordingStarted = true, action = PauseAction.StartRecording)
-        else -> PauseToggle(paused = false, recordingStarted = true, action = PauseAction.ResumeRecording)
+    private fun runningStage(job: Job?, p: StepProgress?): String = when (p?.phase) {
+        JobPhase.Transcribing -> "Transcribing audio"
+        JobPhase.Reading -> "Reading ${p.step}/${p.steps}"
+        JobPhase.Checking -> "Checking ${p.step}/${p.steps}"
+        else -> if (job?.kind == JobGraph.TRANSCRIBE) "Transcribing audio" else "Extracting facts"
     }
 }
