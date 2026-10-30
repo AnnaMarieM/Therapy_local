@@ -60,8 +60,8 @@ class JobRunner(
         } catch (t: Throwable) {
             // The session was deleted while the job ran: there is nothing left to do, which is not a failure.
             if (!queue.repo.sessionExists(job.sessionId)) return queue.cancel(job)
-            // Only a code or the exception type is kept: messages can quote patient text.
-            val code = (t as? JobFailure)?.code ?: t.javaClass.simpleName
+            // Only a code or the exception type is kept: messages can quote patient text. An anonymous class has no simple name.
+            val code = (t as? JobFailure)?.code ?: t.javaClass.simpleName.ifEmpty { "ERROR" }
             AppLog.w(TAG, "job_failed", c, "job" to job.id, "kind" to job.kind, "code" to code)
             queue.fail(job, code, (t as? JobFailure)?.permanent == true)
         }

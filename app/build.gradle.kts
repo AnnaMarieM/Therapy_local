@@ -63,6 +63,8 @@ android {
         )
     }
     packaging { jniLibs { useLegacyPackaging = true } }
+    // JVM tests run code that logs through AppLog (android.util.Log); the stubs then return defaults instead of throwing.
+    testOptions { unitTests.isReturnDefaultValues = true }
 
     buildTypes.configureEach {
         // Transcript text in logs. Keep false: this is a therapy app. See docs/LOGGING.md.
