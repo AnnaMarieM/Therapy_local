@@ -7,7 +7,7 @@ import com.therapylocal.app.data.JobStatus
 /** In-memory [JobRepo] with the same visible behaviour as the SQL one: jobs of a deleted session are gone with it. */
 class FakeJobRepo : JobRepo {
     private data class Row(val id: Long, val kind: String, val session: String, val recording: Long?, val ref: String, var status: JobStatus,
-        var attempts: Int, val max: Int, var code: String?, val created: Long, val deps: List<Long>)
+        var attempts: Int, val max: Int, var code: String?, val created: Long, val deps: MutableList<Long>)
 
     /** session id -> (client, started at) */
     val sessions = LinkedHashMap<String, Pair<String, Long>>()
@@ -24,12 +24,16 @@ class FakeJobRepo : JobRepo {
     override fun insertJob(kind: String, sessionId: String, recordingId: Long?, ref: String, maxAttempts: Int, dependsOn: List<Long>, now: Long): Long {
         require(sessionId in sessions) { "foreign key" }
         val id = nextId++
-        rows[id] = Row(id, kind, sessionId, recordingId, ref, JobStatus.Pending, 0, maxAttempts, null, now, dependsOn)
+        rows[id] = Row(id, kind, sessionId, recordingId, ref, JobStatus.Pending, 0, maxAttempts, null, now, dependsOn.toMutableList())
         return id
     }
 
     override fun updateJob(id: Long, status: JobStatus, attempts: Int, errorCode: String?, now: Long) {
         rows[id]?.let { it.status = status; it.attempts = attempts; it.code = errorCode }
+    }
+
+    override fun addDependency(jobId: Long, dependsOn: Long) {
+        rows[jobId]?.deps?.let { if (dependsOn !in it) it += dependsOn }
     }
 
     override fun deleteJobs(ids: Collection<Long>) {

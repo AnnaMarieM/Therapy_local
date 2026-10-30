@@ -368,6 +368,10 @@ class MindStore(context: Context, name: String, password: ByteArray) :
         )
     }
 
+    override fun addDependency(jobId: Long, dependsOn: Long) {
+        writableDatabase.insertWithOnConflict("job_deps", null, ContentValues().apply { put("job_id", jobId); put("depends_on", dependsOn) }, SQLiteDatabase.CONFLICT_IGNORE)
+    }
+
     override fun deleteJobs(ids: Collection<Long>) {
         tx { db -> ids.forEach { db.delete("jobs", "id = ?", arrayOf(it.toString())) } }
     }

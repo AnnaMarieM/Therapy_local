@@ -25,12 +25,17 @@ class JobGraphTest {
     private fun job(id: Long) = repo.jobs().first { it.id == id }
 
     /** Runs the queue like the runner does; [onRun] plays the handler (a window job expands the graph with [windows] windows). */
-    private fun drain(windows: Map<String, Int> = emptyMap(), previous: (String) -> String? = { null }, onRun: (com.therapylocal.app.data.Job) -> Unit = {}): List<String> {
+    private fun drain(
+        windows: Map<String, Int> = emptyMap(),
+        previous: (String) -> String? = { null },
+        next: (String) -> String? = { null },
+        onRun: (com.therapylocal.app.data.Job) -> Unit = {},
+    ): List<String> {
         val ran = ArrayList<String>()
         while (true) {
             val j = q.claimNext { true } ?: break
             ran += "${j.kind}(${j.sessionId}${if (j.ref.isEmpty()) "" else ",${j.ref}"})"
-            if (j.kind == JobGraph.WINDOW) JobGraph.expand(q, j, windows[j.sessionId] ?: 0, previous(j.sessionId))
+            if (j.kind == JobGraph.WINDOW) JobGraph.expand(q, j, windows[j.sessionId] ?: 0, previous(j.sessionId), next(j.sessionId))
             onRun(j)
             q.complete(j)
         }
@@ -96,6 +101,52 @@ class JobGraphTest {
         // Retried, a_1 commits first and a_2 follows.
         q.retryFailed()
         assertEquals(listOf("extract(a_1,1)", "commit(a_1)", "commit(a_2)"), drain())
+    }
+
+    @Test
+    fun anOlderSessionCommitsFirstEvenWhenQueuedAfterTheNewerOne() {
+        val order = listOf("a_1", "a_2")
+        JobGraph.enqueueTranscript(q, "a_2")
+        JobGraph.enqueueTranscript(q, "a_1")
+        val ran = drain(
+            windows = mapOf("a_1" to 1, "a_2" to 1),
+            previous = { order.getOrNull(order.indexOf(it) - 1) },
+            next = { order.getOrNull(order.indexOf(it) + 1) },
+        )
+        assertEquals(listOf("window(a_2)", "window(a_1)", "extract(a_2,1)", "extract(a_1,1)", "commit(a_1)", "commit(a_2)"), ran)
+        // Each session is committed once: no review runs twice.
+        assertEquals(2, repo.jobs().count { it.kind == JobGraph.COMMIT })
+    }
+
+    @Test
+    fun aCommitWaitsForTheUnfinishedJobsOfTheSessionBeforeButNotItsCleanup() {
+        JobGraph.enqueueRecording(q, "a_1", 7)
+        val t1 = q.claimNext { true }!!
+        q.complete(t1)
+        val w1 = q.claimNext { true }!!
+        JobGraph.expand(q, w1, 1, null)
+        q.complete(w1)
+        val pending1 = q.unfinished("a_1")
+        JobGraph.enqueueTranscript(q, "a_2")
+        val w2 = q.claimNext { it == JobGraph.WINDOW }!!
+        JobGraph.expand(q, w2, 0, previousSession = "a_1")
+        val commit2 = q.unfinished(JobGraph.COMMIT, "a_2")!!
+        assertEquals(pending1.filter { it.kind != JobGraph.CLEANUP }.map { it.id }.toSet() + w2.id, commit2.dependsOn.toSet())
+        assertTrue(pending1.any { it.kind == JobGraph.CLEANUP })
+    }
+
+    @Test
+    fun aRunningCommitOfTheNextSessionGetsNoDependency() {
+        JobGraph.enqueueTranscript(q, "a_2")
+        val w2 = q.claimNext { true }!!
+        JobGraph.expand(q, w2, 0, null)
+        q.complete(w2)
+        val c2 = q.claimNext { true }!!
+        assertEquals(JobGraph.COMMIT, c2.kind)
+        JobGraph.enqueueTranscript(q, "a_1")
+        val w1 = q.claimNext { true }!!
+        JobGraph.expand(q, w1, 0, null, nextSession = "a_2")
+        assertEquals(listOf(w2.id), job(c2.id).dependsOn)
     }
 
     @Test

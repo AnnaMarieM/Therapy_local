@@ -1,6 +1,7 @@
 package com.therapylocal.app.jobs
 
 import com.therapylocal.app.data.Job
+import com.therapylocal.app.data.JobStatus
 
 /**
  * The job graph of a session, and the one place that adds its jobs to the queue:
@@ -8,8 +9,9 @@ import com.therapylocal.app.data.Job
  *   transcribe(recording) -> window(session) -> extract(session, 1..n) -> commit(session) -> cleanup(recording)
  *
  * The extracts and later jobs are only known once [WINDOW] has cut the transcript, so it adds them ([expand]). A client's sessions are
- * committed in order of their start (D4): commit(S) also waits for the unfinished commit of the session before S, and a commit re-queues
- * the commits of the client's later sessions that were already committed ([recommit]), because their mentions may point at its facts.
+ * committed in order of their start (D4): commit(S) waits for every unfinished job but cleanup of the session before S, a session windowed
+ * after the one that follows it makes that one's pending commit wait for its own, and a commit re-queues the commits of the client's later
+ * sessions that were already committed ([recommit]), because their mentions may point at its facts.
  */
 object JobGraph {
     const val TRANSCRIBE = "transcribe"
@@ -36,13 +38,19 @@ object JobGraph {
         for ((recording, session) in recordings) if (recording !in queued) enqueueRecording(queue, session, recording)
     }
 
-    /** Called by the [WINDOW] job once it has stored [windows] windows; [previousSession] is the client's session before this one. */
-    fun expand(queue: JobQueue, window: Job, windows: Int, previousSession: String?) {
+    /**
+     * Called by the [WINDOW] job once it has stored [windows] windows; [previousSession] and [nextSession] are the client's sessions before
+     * and after this one.
+     */
+    fun expand(queue: JobQueue, window: Job, windows: Int, previousSession: String?, nextSession: String? = null) {
         val session = window.sessionId
         val extracts = (1..windows).map { queue.enqueue(EXTRACT, session, ref = "$it", dependsOn = listOf(window.id)) }
-        val previousCommit = previousSession?.let { queue.unfinished(COMMIT, it)?.id }
-        val commit = queue.enqueue(COMMIT, session, window.recordingId, dependsOn = listOf(window.id) + extracts + listOfNotNull(previousCommit))
+        val previous = previousSession?.let { p -> queue.unfinished(p).filter { it.kind != CLEANUP }.map { it.id } }.orEmpty()
+        val commit = queue.enqueue(COMMIT, session, window.recordingId, dependsOn = listOf(window.id) + extracts + previous)
         window.recordingId?.let { queue.enqueue(CLEANUP, session, it, dependsOn = listOf(commit)) }
+        // The next session was windowed first: its commit only waited for this window job, so it waits for this commit too. A running one
+        // is committed again after this one ([recommit]).
+        nextSession?.let { queue.unfinished(COMMIT, it) }?.takeIf { it.status != JobStatus.Running }?.let { queue.addDependency(it.id, commit) }
     }
 
     /** Called by a running [COMMIT] job: the [later] sessions (in order) are committed again, each after the one before it. */

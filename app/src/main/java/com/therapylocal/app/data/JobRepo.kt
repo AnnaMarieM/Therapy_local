@@ -30,6 +30,9 @@ interface JobRepo {
 
     fun updateJob(id: Long, status: JobStatus, attempts: Int, errorCode: String?, now: Long)
 
+    /** [jobId] also waits for [dependsOn]; nothing changes if it already did. */
+    fun addDependency(jobId: Long, dependsOn: Long)
+
     fun deleteJobs(ids: Collection<Long>)
 
     fun sessionExists(id: String): Boolean

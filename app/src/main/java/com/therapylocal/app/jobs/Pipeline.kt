@@ -72,7 +72,8 @@ class Pipeline(
         }
         store.replaceWindows(job.sessionId, rows)
         val sessions = store.sessions(job.clientId).map { it.id }
-        JobGraph.expand(queue, job, rows.size, sessions.getOrNull(sessions.indexOf(job.sessionId) - 1))
+        val at = sessions.indexOf(job.sessionId)
+        if (at >= 0) JobGraph.expand(queue, job, rows.size, sessions.getOrNull(at - 1), sessions.getOrNull(at + 1))
     }
 
     /** The facts of window [Job.ref], grounded in it and mapped to their segment, cached for [commit]. */
