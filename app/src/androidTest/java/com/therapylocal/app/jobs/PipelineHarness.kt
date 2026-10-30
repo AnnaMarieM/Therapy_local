@@ -5,7 +5,7 @@ import com.therapylocal.app.audio.AudioChunk
 import com.therapylocal.app.data.ChunkRow
 import com.therapylocal.app.data.JobStatus
 import com.therapylocal.app.data.MindStore
-import com.therapylocal.app.memory.Prompts
+import com.therapylocal.app.facts.Prompts
 import org.json.JSONObject
 import kotlin.math.sqrt
 

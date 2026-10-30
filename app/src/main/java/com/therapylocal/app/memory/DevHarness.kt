@@ -3,6 +3,7 @@ package com.therapylocal.app.memory
 import android.content.Context
 import com.therapylocal.app.data.MindStore
 import com.therapylocal.app.data.SegmentRow
+import com.therapylocal.app.facts.TranscriptWindows
 import com.therapylocal.app.jobs.JobGraph
 import com.therapylocal.app.jobs.Jobs
 import org.json.JSONArray

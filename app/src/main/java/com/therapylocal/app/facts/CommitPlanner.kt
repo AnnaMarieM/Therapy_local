@@ -1,4 +1,4 @@
-package com.therapylocal.app.memory
+package com.therapylocal.app.facts
 
 import com.therapylocal.app.data.VectorMath
 
