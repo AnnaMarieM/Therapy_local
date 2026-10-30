@@ -8,6 +8,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
@@ -94,8 +95,10 @@ fun Gate(onOpen: () -> Unit) {
         AnimatedContent(
             targetState = step,
             transitionSpec = {
+                // One page at a time on the same paper: the old one is gone before the new one shows, both moving the way of the swipe.
                 val forward = targetState.ordinal > initialState.ordinal
-                (slideInHorizontally { if (forward) it / 5 else -it / 5 } + fadeIn()) togetherWith (slideOutHorizontally { if (forward) -it / 5 else it / 5 } + fadeOut())
+                (slideInHorizontally(tween(320, delayMillis = 110)) { if (forward) it / 5 else -it / 5 } + fadeIn(tween(220, delayMillis = 130))) togetherWith
+                    (slideOutHorizontally(tween(160)) { if (forward) -it / 8 else it / 8 } + fadeOut(tween(110)))
             },
             label = "gate",
         ) { s ->

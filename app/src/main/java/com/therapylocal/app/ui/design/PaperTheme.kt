@@ -16,6 +16,7 @@ import androidx.compose.ui.graphics.ImageShader
 import androidx.compose.ui.graphics.ShaderBrush
 import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import android.graphics.Bitmap
 import kotlin.random.Random
 
@@ -56,9 +57,13 @@ fun PaperTheme(content: @Composable () -> Unit) {
  * Paper: the background colour with a faint fixed grain, so large empty areas read as a surface rather than a screen. The grain is one
  * small tile made once and repeated by the GPU; it costs nothing per frame.
  */
-fun Modifier.paper(): Modifier = drawBehind {
-    drawRect(Palette.Paper)
-    drawRect(ShaderBrush(ImageShader(Grain.tile, TileMode.Repeated, TileMode.Repeated)))
+fun Modifier.paper(): Modifier = drawBehind { drawPaper() }
+
+/** Paper at [alpha]: the grain sits at the same place on every page, so paper over paper is invisible and only covers what is on it. */
+fun DrawScope.drawPaper(alpha: Float = 1f) {
+    if (alpha <= 0f) return
+    drawRect(Palette.Paper, alpha = alpha)
+    drawRect(ShaderBrush(ImageShader(Grain.tile, TileMode.Repeated, TileMode.Repeated)), alpha = alpha)
 }
 
 private object Grain {

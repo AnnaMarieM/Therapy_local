@@ -61,8 +61,8 @@ import com.therapylocal.app.ui.logic.Progress
 import com.therapylocal.app.ui.logic.RateMeter
 import com.therapylocal.app.ui.models.Patient
 import com.therapylocal.app.ui.motion.BoundsRef
-import com.therapylocal.app.ui.motion.ContainerTransform
-import com.therapylocal.app.ui.motion.Origin
+import com.therapylocal.app.ui.motion.PageShift
+import com.therapylocal.app.ui.motion.recede
 import com.therapylocal.app.ui.motion.rememberSheetState
 import com.therapylocal.app.ui.security.findFragmentActivity
 import com.therapylocal.app.vault.Vault
@@ -71,8 +71,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /**
- * The whole app after the gate: the client reel, with every other surface a sheet that grows out of what opened it and folds back into
- * it. There is no navigation stack to get lost in: home is always underneath, at most one sheet (plus a layer inside the profile) on top.
+ * The whole app after the gate: the client reel, with every other surface a page shifted in over it on the same paper (see [PageShift]).
+ * There is no navigation stack to get lost in: home is always underneath, at most one sheet (plus a layer inside the profile) on top.
  *
  * [openSession] is bumped when the recording notification is tapped. [viewModel] is only read once the vault is open: creating it opens the
  * encrypted store.
@@ -118,14 +118,20 @@ private fun Main(viewModel: MainViewModel, openSessionRequest: Int, onDeveloper:
     var profileId by rememberSaveable { mutableStateOf<String?>(null) }
     var focus by remember { mutableStateOf<String?>(null) }
     var hint by remember { mutableStateOf(!prefs.getBoolean(KNOWS_REEL, false)) }
-    var sessionFrom by remember { mutableStateOf<BoundsRef?>(null) }
     var confirmLock by remember { mutableStateOf(false) }
     var confirmDiscard by remember { mutableStateOf(false) }
     var confirmShort by remember { mutableStateOf(false) }
 
-    val r30 = with(density) { 30.dp.toPx() }
-    val r24 = with(density) { 24.dp.toPx() }
-    val origin = { ref: BoundsRef, color: androidx.compose.ui.graphics.Color, radius: Float -> Origin(ref.rect, color, radius) }
+    // The client's name travels between the reel and the top of their page while that page comes and goes. Only when both ends are known
+    // and in sight (the page's title can be scrolled away); otherwise the page just shifts in like any other.
+    val reduced = com.therapylocal.app.ui.design.LocalReducedMotion.current
+    val titleRef = remember { BoundsRef() }
+    val nameTravels = {
+        !reduced && profileSheet.visible && profileId != null && refs.nameOf == profileId &&
+            refs.name.rect != Rect.Zero && titleRef.rect != Rect.Zero && titleRef.present
+    }
+    refs.lent = nameTravels
+    val nameMoving = { nameTravels() && profileSheet.progress.value < 0.999f }
 
     val micGranted = { ContextCompat.checkSelfPermission(ctx, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED }
     var afterMic by remember { mutableStateOf<(() -> Unit)?>(null) }
@@ -197,49 +203,53 @@ private fun Main(viewModel: MainViewModel, openSessionRequest: Int, onDeveloper:
     val elapsed = { SessionController.state.value.clock.elapsedMs(SystemClock.elapsedRealtime()) }
 
     // ---- actions ----
+    // Every page comes in from the right and goes back out to it, whatever opened it: the direction of a swipe is the direction of travel.
+    val showProfile = { p: Patient -> if (profileId != p.id) { viewModel.clearSearch(); profileId = p.id } }
     val openProfile = { p: Patient ->
-        viewModel.clearSearch()
-        profileId = p.id
+        showProfile(p)
         haptics.confirm()
-        profileSheet.open(origin(refs.right, Palette.Ink, r30))
+        profileSheet.open()
     }
-    val closeProfile = { profileSheet.close(origin(refs.right, Palette.Ink, r30)) }
-    val openSessionFrom = { from: BoundsRef, color: androidx.compose.ui.graphics.Color, radius: Float ->
-        sessionFrom = from
+    val closeProfile = { profileSheet.close() }
+    val openSessionPage = {
         haptics.confirm()
-        sessionSheet.open(Origin(from.rect, color, radius))
+        sessionSheet.open()
     }
-    val record = { p: Patient, from: BoundsRef ->
+    val record = { p: Patient, _: BoundsRef ->
         withMic {
-            if (session.active) openSessionFrom(from, Palette.Rec, r30)
-            else if (SessionController.start(p.id, cues = vm.phase == Phase.Ready, name = p.name)) openSessionFrom(from, Palette.Rec, r30)
+            if (session.active) openSessionPage()
+            else if (SessionController.start(p.id, cues = vm.phase == Phase.Ready, name = p.name)) openSessionPage()
             else notice.show("The last session is still being saved. One moment.")
         }
     }
-    val openSession = {
-        if (refs.pill.rect != Rect.Zero) openSessionFrom(refs.pill, Palette.Ink, r24)
-        else openSessionFrom(refs.right, Palette.Rec, r30)
-    }
+    val openSession = { openSessionPage() }
     val minimise = {
         haptics.press()
-        // Into the session's card, on whatever page is under it (it appears as the sheet lands); where it was opened from, if the card
-        // has not been laid out yet.
-        if (refs.pill.rect != Rect.Zero) sessionSheet.close(Origin(refs.pill.rect, Palette.Ink, r24))
-        else sessionSheet.close(Origin(sessionFrom?.rect ?: refs.right.rect, Palette.Rec, r30))
+        // The session keeps recording: its card appears at the bottom of the page underneath as this one goes.
+        sessionSheet.close()
     }
     val finish = {
         SessionController.finish()
-        sessionSheet.close(Origin(sessionFrom?.rect ?: refs.right.rect, Palette.Rec, r30))
+        sessionSheet.close()
     }
-    val addClient = { haptics.confirm(); addSheet.open(origin(refs.right, Palette.Ink, r30)) }
+    val addClient = { haptics.confirm(); addSheet.open() }
     val deleteClient = { p: Patient ->
         if (session.active && session.client == p.id) notice.show("${p.name} is being recorded. Finish the session first.")
         else {
-            if (profileId == p.id) profileSheet.close(origin(refs.right, Palette.Ink, r30))
+            if (profileId == p.id) profileSheet.close()
             clientsVm.delete(p.id)
             notice.show("${p.name} deleted")
         }
     }
+    // A sideways drag on home brings the next page in under the finger; let go unarmed and it goes back.
+    val peek = { p: Patient?, dx: Float ->
+        val s = if (p != null) profileSheet else addSheet
+        if (!s.target) {
+            if (p != null) showProfile(p)
+            s.follow((-dx).coerceAtLeast(0f) / s.shiftPx)
+        }
+    }
+    val unpeek = { p: Patient? -> (if (p != null) profileSheet else addSheet).let { if (!it.target) it.close() } }
     val lock: () -> Unit = { if (queue.running != null) confirmLock = true else activity?.let(Vault::lock) }
     val showSaved = { e: EndedSession ->
         haptics.confirm()
@@ -257,8 +267,6 @@ private fun Main(viewModel: MainViewModel, openSessionRequest: Int, onDeveloper:
 
     // The recording notification was tapped.
     LaunchedEffect(openSessionRequest) { if (openSessionRequest > 0 && session.active && !sessionSheet.target) openSession() }
-    // The pill moves (it appears, the list changes): a folding sheet keeps aiming at it.
-    LaunchedEffect(refs.pill.rect) { if (!sessionSheet.target && sessionSheet.visible && refs.pill.rect != Rect.Zero) sessionSheet.retarget(Origin(refs.pill.rect, Palette.Ink, r24)) }
     // The session was saved: say so, with a way to take it back. One too short to be a session goes at once; a short one is asked about.
     LaunchedEffect(session.ended) {
         val e = session.ended ?: return@LaunchedEffect
@@ -277,6 +285,7 @@ private fun Main(viewModel: MainViewModel, openSessionRequest: Int, onDeveloper:
     val dockInset = if (dockShown && dockPx > 0) with(density) { dockPx.toDp() } + 12.dp else 0.dp
     CompositionLocalProvider(LocalIdle provides idle, LocalDockInset provides dockInset) {
     Box(Modifier.fillMaxSize().watchIdle(idle)) {
+        val overHome = listOf(profileSheet, addSheet, settingsSheet, sessionSheet)
         Home(
             clients = clients,
             statusOf = statusOf,
@@ -293,11 +302,14 @@ private fun Main(viewModel: MainViewModel, openSessionRequest: Int, onDeveloper:
                 openSession = openSession,
                 addClient = addClient,
                 deleteClient = deleteClient,
-                openSettings = { haptics.confirm(); settingsSheet.open(origin(refs.gear, Palette.Paper, with(density) { 26.dp.toPx() })) },
+                openSettings = { haptics.confirm(); settingsSheet.open() },
+                peek = peek,
+                unpeek = unpeek,
             ),
+            modifier = Modifier.recede(overHome, reduced),
         )
 
-        ContainerTransform(profileSheet, Palette.Paper, onBack = closeProfile) {
+        PageShift(profileSheet, onBack = closeProfile, under = listOf(sessionSheet)) {
             val p = clients.firstOrNull { it.id == profileId }
             if (p != null) ProfileSheet(
                 sheet = profileSheet,
@@ -329,10 +341,16 @@ private fun Main(viewModel: MainViewModel, openSessionRequest: Int, onDeveloper:
                         notice.show("Session deleted")
                     }
                 },
+                titleRef = titleRef,
+                titleLent = nameMoving,
             )
         }
+        // Over the page (its content fades), under everything opened from it.
+        profileId?.let { id -> clients.firstOrNull { it.id == id } }?.let { p ->
+            TravellingName(p.name, profileSheet, refs.name, titleRef, nameMoving)
+        }
 
-        ContainerTransform(addSheet, Palette.Paper, onBack = { addSheet.close() }) {
+        PageShift(addSheet, onBack = { addSheet.close() }) {
             AddClientSheet(addSheet, onCancel = { addSheet.close() }, onAdd = { name ->
                 scope.launch {
                     val p = withContext(Dispatchers.IO) { runCatching { clientsVm.repo.createClient(name) }.getOrNull() }
@@ -346,25 +364,28 @@ private fun Main(viewModel: MainViewModel, openSessionRequest: Int, onDeveloper:
             })
         }
 
-        ContainerTransform(settingsSheet, Palette.Paper, onBack = { settingsSheet.close() }) {
+        PageShift(settingsSheet, onBack = { settingsSheet.close() }) {
             SettingsSheet(settingsSheet, failedTotal, retryFailed, lock, onDeveloper, onClose = { settingsSheet.close() }, notice = notice)
         }
 
         // ---- the order of layers, bottom to top ----
         // home · pages (profile and what opens from it, add client, settings) · the running session's card · the session itself ·
         // notices · confirmation dialogs (their own windows, always on top). The card is above every page so a recording is never out of
-        // sight anywhere in the app; only opening the session, or a dialog that needs an answer, covers it.
-        if (dockShown) {
+        // sight anywhere in the app; only opening the session, or a dialog that needs an answer, covers it. It stays while the session's
+        // page is still on its way in, dissolving with what is underneath, so it never blinks out.
+        if (dockShown || (session.active && sessionSheet.progress.isRunning)) {
             SessionPill(
                 session.client.takeIf { it.isNotEmpty() }?.let(clientName), session.phase == SessionPhase.Paused, elapsed, refs.pill, openSession,
-                Modifier.align(Alignment.BottomCenter).fillMaxWidth().navigationBarsPadding().imePadding().padding(horizontal = 14.dp, vertical = 14.dp)
-                    .onSizeChanged { dockPx = it.height },
+                Modifier.align(Alignment.BottomCenter).recede(listOf(sessionSheet), reduced)
+                    .fillMaxWidth().navigationBarsPadding().imePadding().padding(horizontal = 14.dp, vertical = 14.dp)
+                    .onSizeChanged { if (dockShown) dockPx = it.height },
             )
-        } else if (dockPx != 0) {
+        }
+        if (!dockShown && dockPx != 0) {
             SideEffect { dockPx = 0 }
         }
 
-        ContainerTransform(sessionSheet, Palette.Paper, onBack = minimise) {
+        PageShift(sessionSheet, onBack = minimise) {
             SessionSheet(
                 sheet = sessionSheet,
                 session = session,
