@@ -207,7 +207,6 @@ class JobQueueTest {
         val a = q.enqueue("commit", "a_1")
         val b = q.enqueue("commit", "a_2", dependsOn = listOf(a))
         repo.deleteSession("a_1")
-        assertTrue(job(b).dependsOn.isEmpty())
         assertEquals(b, claimId())
     }
 

@@ -22,7 +22,7 @@ class FakeJobRepo : JobRepo {
     }
 
     override fun insertJob(kind: String, sessionId: String, recordingId: Long?, ref: String, maxAttempts: Int, dependsOn: List<Long>, now: Long): Long {
-        require(sessionId in sessions) { "foreign key" }
+        require(sessionId in sessions && dependsOn.all { it in rows }) { "foreign key" }
         val id = nextId++
         rows[id] = Row(id, kind, sessionId, recordingId, ref, JobStatus.Pending, 0, maxAttempts, null, now, dependsOn.toMutableList())
         return id
