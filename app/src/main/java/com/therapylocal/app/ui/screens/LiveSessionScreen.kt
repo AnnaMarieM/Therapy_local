@@ -21,7 +21,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -53,12 +52,10 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.therapylocal.app.BuildConfig
 import com.therapylocal.app.ui.components.PillBadge
 import com.therapylocal.app.memory.Cue
 import com.therapylocal.app.ui.logic.SessionLogic
 import com.therapylocal.app.ui.models.Patient
-import com.therapylocal.app.ui.models.SurfacedQuote
 import com.therapylocal.app.ui.theme.BorderSubtle
 import com.therapylocal.app.ui.theme.CharcoalText
 import com.therapylocal.app.ui.theme.DangerBg
@@ -70,31 +67,23 @@ import com.therapylocal.app.ui.theme.SageLight
 import com.therapylocal.app.ui.theme.SagePill
 import com.therapylocal.app.ui.theme.SurfaceCard
 import com.therapylocal.app.ui.theme.WarmBg
+import java.util.Locale
 
 @Composable
 fun LiveSessionScreen(
     patient: Patient,
     sessionSecs: Long,
-    surfacedQuotes: List<SurfacedQuote>,
     statusLine: String?,
     cues: List<Cue>,
     cuesError: String?,
     loadSource: suspend (Cue) -> String?,
     onEndSession: () -> Unit,
     onSwitchPatient: () -> Unit,
-    onTriggerTopic: (String, String, String, String) -> Unit,
     modifier: Modifier = Modifier,
     isPaused: Boolean = false,
     onTogglePause: () -> Unit = {}
 ) {
     val timeFormatted = SessionLogic.formatHourMinSec(sessionSecs)
-
-    val simulatedTriggers = listOf(
-        "Father" to "Strained relationship; client stated 'he never acknowledges the loss.'",
-        "Grief" to "Mother passed Nov 2025; grief wave triggers around holidays.",
-        "Sleep" to "Wakes at 3:15 AM; looping thoughts about performance review.",
-        "Guilt" to "Client reported chronic difficulty saying no without apology."
-    )
 
     Column(
         modifier = modifier
@@ -342,7 +331,7 @@ fun LiveSessionScreen(
             }
             items(cues, key = { it.factId + "@" + it.session }) { cue -> CueRow(cue, loadSource) }
 
-            if (surfacedQuotes.isEmpty() && cues.isEmpty()) {
+            if (cues.isEmpty()) {
                 item {
                     Box(
                         modifier = Modifier
@@ -376,96 +365,12 @@ fun LiveSessionScreen(
                                 color = CharcoalText
                             )
                             Text(
-                                text = "As ${patient.name} speaks, related notes and verbatim quotes from earlier sessions will surface automatically here in real time.",
+                                text = "As ${patient.name} speaks, related facts from earlier sessions will surface here in real time.",
                                 fontSize = 11.sp,
                                 color = MutedText,
                                 textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                                 modifier = Modifier.padding(top = 4.dp)
                             )
-                        }
-                    }
-                }
-            } else {
-                items(surfacedQuotes) { quote ->
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(16.dp),
-                        colors = CardDefaults.cardColors(containerColor = SurfaceCard),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
-                    ) {
-                        Column(modifier = Modifier.padding(14.dp)) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                PillBadge(
-                                    text = "At ${quote.timestamp} · Mentioned \"${quote.topicTrigger}\"",
-                                    color = SageDark,
-                                    background = SageLight
-                                )
-                                Text(
-                                    text = quote.sessionDate,
-                                    fontSize = 11.sp,
-                                    color = MutedText
-                                )
-                            }
-
-                            Spacer(modifier = Modifier.height(8.dp))
-
-                            Text(
-                                text = "\"${quote.quote}\"",
-                                fontSize = 13.sp,
-                                fontStyle = FontStyle.Italic,
-                                color = CharcoalText,
-                                lineHeight = 18.sp
-                            )
-                        }
-                    }
-                }
-            }
-
-            if (BuildConfig.DEBUG) item {
-                // Topic Simulation Chips (debug only: simulated recall, not real memory)
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 10.dp)
-                        .clip(RoundedCornerShape(14.dp))
-                        .background(SurfaceCard.copy(alpha = 0.5f))
-                        .border(1.dp, BorderSubtle, RoundedCornerShape(14.dp))
-                        .padding(12.dp)
-                ) {
-                    Text(
-                        text = "SIMULATE TOPIC RECALL:",
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MutedText
-                    )
-                    Spacer(modifier = Modifier.height(6.dp))
-                    LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        items(simulatedTriggers) { (topic, quote) ->
-                            Box(
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(100.dp))
-                                    .border(1.dp, SageGreen.copy(alpha = 0.4f), RoundedCornerShape(100.dp))
-                                    .background(SurfaceCard)
-                                    .clickable {
-                                        onTriggerTopic(
-                                            timeFormatted,
-                                            topic,
-                                            "Oct 22, 2026",
-                                            quote
-                                        )
-                                    }
-                                    .padding(horizontal = 10.dp, vertical = 5.dp)
-                            ) {
-                                Text(
-                                    text = "+ \"$topic\"",
-                                    fontSize = 11.sp,
-                                    color = SageDark,
-                                    fontWeight = FontWeight.Medium
-                                )
-                            }
                         }
                     }
                 }
@@ -512,7 +417,7 @@ fun WaveformDisplay(isPaused: Boolean) {
     }
 }
 
-/** One live cue: category and fact text, the match score as a thin bar; tap to show the transcript passage it came from. */
+/** One live cue: the fact heading and its match score; tap to show the fact and the transcript passage it came from. */
 @Composable
 private fun CueRow(cue: Cue, loadSource: suspend (Cue) -> String?) {
     var expanded by remember { mutableStateOf(false) }
@@ -530,25 +435,38 @@ private fun CueRow(cue: Cue, loadSource: suspend (Cue) -> String?) {
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                PillBadge(text = cue.heading, color = SageDark, background = SageLight)
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(3.dp)
-                        .clip(CircleShape)
-                        .background(BorderSubtle)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth(cue.score.coerceIn(0f, 1f))
-                            .height(3.dp)
-                            .background(SageGreen.copy(alpha = 0.6f))
-                    )
-                }
+                Text(
+                    text = cue.heading,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = CharcoalText,
+                    modifier = Modifier.weight(1f)
+                )
+                Text(
+                    text = String.format(Locale.US, "%.2f", cue.score),
+                    fontSize = 11.sp,
+                    fontFamily = FontFamily.Monospace,
+                    color = SageDark
+                )
             }
             Spacer(modifier = Modifier.height(6.dp))
-            Text(text = cue.text, fontSize = 13.sp, color = CharcoalText, lineHeight = 18.sp)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(3.dp)
+                    .clip(CircleShape)
+                    .background(BorderSubtle)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth(cue.score.coerceIn(0f, 1f))
+                        .height(3.dp)
+                        .background(SageGreen.copy(alpha = 0.6f))
+                )
+            }
             if (expanded) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(text = cue.text, fontSize = 13.sp, color = CharcoalText, lineHeight = 18.sp)
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(
                     text = source ?: "...",

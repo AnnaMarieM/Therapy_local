@@ -14,7 +14,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -32,13 +31,13 @@ import com.therapylocal.app.data.JobStatus
 import com.therapylocal.app.jobs.Jobs
 import com.therapylocal.app.ui.data.ClientsViewModel
 import com.therapylocal.app.ui.components.ChoosePatientSessionDialog
+import com.therapylocal.app.ui.components.ClientSearch
 import com.therapylocal.app.ui.components.MindVaultBottomNav
 import com.therapylocal.app.ui.components.MinimizedSessionBar
 import com.therapylocal.app.ui.logic.SessionLogic
 import com.therapylocal.app.ui.models.Patient
 import com.therapylocal.app.ui.security.findFragmentActivity
 import com.therapylocal.app.vault.Vault
-import com.therapylocal.app.ui.models.SurfacedQuote
 import com.therapylocal.app.ui.screens.LiveSessionScreen
 import com.therapylocal.app.ui.screens.PatientsScreen
 import com.therapylocal.app.ui.screens.ProfileScreen
@@ -73,7 +72,6 @@ fun MindVaultApp(
         var sessionPatient by remember { mutableStateOf<Patient?>(null) }
         var sessionSecs by rememberSaveable { mutableLongStateOf(0L) }
         var sessionPaused by rememberSaveable { mutableStateOf(true) }
-        val surfacedQuotes = remember { mutableStateListOf<SurfacedQuote>() }
 
         // The real session: the memory client it belongs to, its id, and whether it has ended. Its recording is processed in the background.
         var sessionClient by rememberSaveable { mutableStateOf("") }
@@ -83,6 +81,7 @@ fun MindVaultApp(
         var recordingStarted by rememberSaveable { mutableStateOf(false) }
 
         val vmState by viewModel.state.collectAsStateWithLifecycle()
+        val search by viewModel.search.collectAsStateWithLifecycle()
         val cues by viewModel.liveCues.cues.collectAsStateWithLifecycle()
         val cuesError by viewModel.liveCues.error.collectAsStateWithLifecycle()
         val queue by Jobs.snapshot.collectAsStateWithLifecycle()
@@ -137,7 +136,6 @@ fun MindVaultApp(
             sessionId = Ids.sessionId(client, now)
             sessionDate = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(java.util.Date(now))
             sessionSecs = 0L
-            surfacedQuotes.clear()
             sessionEnded = false
             recordingStarted = false
             sessionPaused = true
@@ -246,9 +244,12 @@ fun MindVaultApp(
                                 ?: selectedPatient
                                 ?: patients.firstOrNull())
                             if (activeP != null) {
+                                // Results belong to one client: a new profile starts with an empty search.
+                                LaunchedEffect(activeP.id) { viewModel.clearSearch() }
                                 ProfileScreen(
                                     patient = activeP,
                                     isSessionActive = isSessionActive && sessionPatient?.id == activeP.id,
+                                    repo = repo,
                                     processingSession = processingByClient[activeP.id],
                                     onBack = {
                                         currentScreen = "patients"
@@ -262,6 +263,24 @@ fun MindVaultApp(
                                     onReturnToActiveSession = {
                                         currentTab = "session"
                                         currentScreen = "live"
+                                    },
+                                    onChanged = { clientsVm.refresh() },
+                                    search = { onOpen ->
+                                        ClientSearch(
+                                            state = search,
+                                            voiceDisabled = when {
+                                                vmState.recording -> "Voice search is off while a session is recording."
+                                                vmState.phase != Phase.Ready -> "Voice search is available once setup finishes."
+                                                else -> null
+                                            },
+                                            onSearchText = { q -> viewModel.searchText(activeP.id, q) },
+                                            onVoiceStart = { viewModel.startVoiceSearch(activeP.id) },
+                                            onVoiceStop = viewModel::stopVoiceSearch,
+                                            onClear = viewModel::clearSearch,
+                                            onOpen = onOpen,
+                                            hasMicPermission = hasMicPermission,
+                                            requestMicPermission = requestMicPermission
+                                        )
                                     }
                                 )
                             }
@@ -272,7 +291,6 @@ fun MindVaultApp(
                             LiveSessionScreen(
                                 patient = p,
                                 sessionSecs = sessionSecs,
-                                surfacedQuotes = surfacedQuotes,
                                 statusLine = when {
                                     vmState.error != null -> "Recording problem: ${vmState.error}"
                                     sessionPaused && sessionSecs == 0L -> "Ready · Tap Play to begin"
@@ -287,18 +305,6 @@ fun MindVaultApp(
                                 onSwitchPatient = {
                                     currentTab = "patients"
                                     currentScreen = "patients"
-                                },
-                                onTriggerTopic = { time, topic, date, quote ->
-                                    surfacedQuotes.add(
-                                        0,
-                                        SurfacedQuote(
-                                            timestamp = time,
-                                            topicTrigger = topic,
-                                            sessionDate = date,
-                                            sessionTheme = topic,
-                                            quote = quote
-                                        )
-                                    )
                                 },
                                 isPaused = sessionPaused,
                                 onTogglePause = togglePause

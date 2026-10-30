@@ -10,7 +10,8 @@ import com.therapylocal.app.ui.logic.SessionLogic
 import com.therapylocal.app.ui.logic.SessionLogic.PauseAction
 import com.therapylocal.app.ui.logic.SessionLogic.SessionTabTarget
 import com.therapylocal.app.ui.models.Patient
-import com.therapylocal.app.ui.models.SessionRecord
+import com.therapylocal.app.ui.models.FactItem
+import com.therapylocal.app.ui.models.SessionNotes
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -181,12 +182,12 @@ class SessionLogicTest {
 
     // ---- patient filtering ----
 
-    private val alex = Patient(id = "p-1", name = "Alex Example Jr.", age = 41, presenting = "Anxiety", lastSession = "", sessionCount = 0, preSessionNote = "")
-    private val sam = Patient(id = "p-2", name = "Sam Example", age = 29, presenting = "Burnout", lastSession = "", sessionCount = 0, preSessionNote = "")
+    private val alex = Patient(id = "p-1", name = "Alex Example Jr.", lastSession = "", sessionCount = 0, facts = listOf(FactItem(1, "Anxiety at work", "Panics before meetings.", "d")))
+    private val sam = Patient(id = "p-2", name = "Sam Example", lastSession = "", sessionCount = 0, facts = listOf(FactItem(2, "Burnout", "Took sick leave in May.", "d")))
     private val rene = Patient(
-        id = "p-3", name = "René Émile", age = 35, presenting = "Depression", lastSession = "", sessionCount = 1, preSessionNote = "",
-        facts = listOf("Has a sister called Lotte"),
-        sessions = listOf(SessionRecord(date = "d", duration = "10:00", summary = "Talked about Grief", topics = listOf("Work stress"), verbatimQuotes = listOf("I can't sleep")))
+        id = "p-3", name = "René Émile", lastSession = "", sessionCount = 1,
+        facts = listOf(FactItem(3, "Sister", "Has a sister called Lotte.", "d")),
+        sessions = listOf(SessionNotes(id = "s", date = "d", duration = "10:00", observations = "Talked about Grief; work stress; can't sleep"))
     )
     private val all = listOf(alex, sam, rene)
 
@@ -208,15 +209,16 @@ class SessionLogicTest {
     }
 
     @Test
-    fun filterMatchesNameAndPresentingSeparately() {
-        assertEquals(listOf("p-1"), names("anxi"))      // presenting only
+    fun filterMatchesNameAndFactHeadingSeparately() {
+        assertEquals(listOf("p-1"), names("anxi"))      // fact heading only
         assertEquals(listOf("p-1"), names("alex"))    // name only
         assertEquals(listOf("p-2"), names("burnout"))
     }
 
     @Test
-    fun filterSearchesFactsAndSessionContent() {
+    fun filterSearchesFactContentAndSessionNotes() {
         assertEquals(listOf("p-3"), names("lotte"))
+        assertEquals(listOf("p-1"), names("meetings"))
         assertEquals(listOf("p-3"), names("grief"))
         assertEquals(listOf("p-3"), names("work stress"))
         assertEquals(listOf("p-3"), names("can't sleep"))

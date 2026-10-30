@@ -55,3 +55,10 @@ fun SharedPreferences.liveCueSettings() = LiveCueSettings.of(
     getFloat(LiveCueSettings.KEY_SMOOTHING, LiveCueSettings.DEFAULT_SMOOTHING),
     getFloat(LiveCueSettings.KEY_SCORE_FLOOR, LiveCueSettings.DEFAULT_SCORE_FLOOR),
 )
+
+fun SharedPreferences.saveLiveCueSettings(s: LiveCueSettings) = edit()
+    .putLong(LiveCueSettings.KEY_INTERVAL_MS, s.intervalMs)
+    .putInt(LiveCueSettings.KEY_LOOKBACK_S, s.lookbackS)
+    .putFloat(LiveCueSettings.KEY_SMOOTHING, s.smoothing)
+    .putFloat(LiveCueSettings.KEY_SCORE_FLOOR, s.scoreFloor)
+    .apply()

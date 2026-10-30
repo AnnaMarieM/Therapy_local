@@ -112,23 +112,14 @@ fun SummaryScreen(
                         horizontalArrangement = Arrangement.spacedBy(14.dp)
                     ) {
                         InitialsAvatar(name = patient.name, size = 48)
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = patient.name,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 17.sp,
-                                fontFamily = FontFamily.Serif,
-                                color = CharcoalText
-                            )
-                            if (patient.presenting.isNotBlank()) {
-                                Text(
-                                    text = patient.presenting,
-                                    fontSize = 12.sp,
-                                    color = MutedText,
-                                    modifier = Modifier.padding(top = 2.dp)
-                                )
-                            }
-                        }
+                        Text(
+                            text = patient.name,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 17.sp,
+                            fontFamily = FontFamily.Serif,
+                            color = CharcoalText,
+                            modifier = Modifier.weight(1f)
+                        )
                     }
 
                     Spacer(modifier = Modifier.height(14.dp))
@@ -262,9 +253,14 @@ fun SummaryScreen(
         AlertDialog(
             onDismissRequest = { confirmDelete = false },
             title = { Text("Delete this session?") },
-            text = { Text("Removes the recorded session from this device. This cannot be undone.") },
+            text = { Text(DELETE_SESSION_TEXT) },
             confirmButton = { TextButton(onClick = { confirmDelete = false; onDeleteSession() }) { Text("Delete", color = DangerRed) } },
             dismissButton = { TextButton(onClick = { confirmDelete = false }) { Text("Cancel") } },
         )
     }
 }
+
+/** Shared by every delete-session dialog: facts first heard in the session are kept if they came up again later. */
+const val DELETE_SESSION_TEXT =
+    "Removes the recording, transcript and notes of this session from this device. Facts first heard in it move to the next session " +
+        "where they came up again; facts heard only in it are removed. This cannot be undone."

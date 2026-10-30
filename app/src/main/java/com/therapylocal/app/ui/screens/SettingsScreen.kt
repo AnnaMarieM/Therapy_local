@@ -1,6 +1,21 @@
 package com.therapylocal.app.ui.screens
 
 import android.widget.Toast
+import android.content.Context
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.RadioButtonDefaults
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import com.therapylocal.app.config.LiveCueSettings
+import com.therapylocal.app.config.liveCueSettings
+import com.therapylocal.app.config.saveLiveCueSettings
+import com.therapylocal.app.models.GemmaVariant
+import java.util.Locale
+import kotlin.math.roundToInt
+import kotlin.math.roundToLong
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -50,7 +65,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.therapylocal.app.models.ModelChoice
 import com.therapylocal.app.models.ModelRegistry
 import com.therapylocal.app.models.ModelSetup
 import com.therapylocal.app.models.SetupState
@@ -193,7 +207,6 @@ fun SettingsScreen(
                                 else LinearProgressIndicator(modifier = Modifier.fillMaxWidth(), color = SageGreen)
                             }
                         }
-                        MemoryModelRow()
                     }
                 }
             }
@@ -214,6 +227,22 @@ fun SettingsScreen(
                             checked = autoSurfacePastNotes,
                             onCheckedChange = { autoSurfacePastNotes = it }
                         )
+                    }
+                }
+            }
+
+            item {
+                SettingsGroupHeader(title = "KNOBS FOR NERDS")
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(18.dp),
+                    colors = CardDefaults.cardColors(containerColor = SurfaceCard),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+                ) {
+                    Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        LiveCueKnobs()
+                        Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(BorderSubtle))
+                        MemoryModelChoice()
                     }
                 }
             }
@@ -285,32 +314,119 @@ fun SettingsScreen(
     }
 }
 
-/** The Gemma build behind the memory (E2B or E4B): switching downloads it, and the unused one's file can be removed. */
+/** The live-cue settings, saved as each slider is let go. A session reads them when it starts. */
 @Composable
-private fun MemoryModelRow() {
+private fun LiveCueKnobs() {
     val context = LocalContext.current
-    // Re-read after each tap: the choice and the files on disk live outside Compose.
+    val prefs = remember { context.getSharedPreferences("settings", Context.MODE_PRIVATE) }
+    var knobs by remember { mutableStateOf(prefs.liveCueSettings()) }
+    val save = { prefs.saveLiveCueSettings(knobs) }
+
+    Text(text = "Live cues", fontSize = 13.sp, fontWeight = FontWeight.Medium, color = CharcoalText)
+    Text(text = "Changes apply from the next session.", fontSize = 11.sp, color = MutedText)
+    KnobSlider(
+        title = "Lookback",
+        value = "${knobs.lookbackS} s",
+        position = knobs.lookbackS.toFloat(),
+        range = LiveCueSettings.LOOKBACK_S.first.toFloat()..LiveCueSettings.LOOKBACK_S.last.toFloat(),
+        steps = LiveCueSettings.LOOKBACK_S.last - LiveCueSettings.LOOKBACK_S.first - 1,
+        onChange = { knobs = LiveCueSettings.of(knobs.intervalMs, it.roundToInt(), knobs.smoothing, knobs.scoreFloor) },
+        onDone = save
+    )
+    KnobSlider(
+        title = "Interval",
+        value = String.format(Locale.US, "%.1f s", knobs.intervalMs / 1000f),
+        position = knobs.intervalMs.toFloat(),
+        range = LiveCueSettings.INTERVAL_MS.first.toFloat()..LiveCueSettings.INTERVAL_MS.last.toFloat(),
+        steps = ((LiveCueSettings.INTERVAL_MS.last - LiveCueSettings.INTERVAL_MS.first) / INTERVAL_STEP_MS - 1).toInt(),
+        onChange = { knobs = LiveCueSettings.of(it.roundToLong(), knobs.lookbackS, knobs.smoothing, knobs.scoreFloor) },
+        onDone = save
+    )
+    KnobSlider(
+        title = "Smoothing (weight of the newest tick)",
+        value = String.format(Locale.US, "%.2f", knobs.smoothing),
+        position = knobs.smoothing,
+        range = LiveCueSettings.SMOOTHING,
+        steps = 18,
+        onChange = { knobs = LiveCueSettings.of(knobs.intervalMs, knobs.lookbackS, it, knobs.scoreFloor) },
+        onDone = save
+    )
+    KnobSlider(
+        title = "Score floor",
+        value = String.format(Locale.US, "%.2f", knobs.scoreFloor),
+        position = knobs.scoreFloor,
+        range = LiveCueSettings.SCORE_FLOOR,
+        steps = 19,
+        onChange = { knobs = LiveCueSettings.of(knobs.intervalMs, knobs.lookbackS, knobs.smoothing, it) },
+        onDone = save
+    )
+    TextButton(onClick = { knobs = LiveCueSettings.DEFAULT; save() }) { Text("Reset to defaults", color = SageDark) }
+}
+
+@Composable
+private fun KnobSlider(title: String, value: String, position: Float, range: ClosedFloatingPointRange<Float>, steps: Int, onChange: (Float) -> Unit, onDone: () -> Unit) {
+    Column {
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Text(text = title, fontSize = 12.sp, color = CharcoalText)
+            Text(text = value, fontSize = 12.sp, fontFamily = FontFamily.Monospace, color = SageDark)
+        }
+        Slider(
+            value = position,
+            onValueChange = onChange,
+            valueRange = range,
+            steps = steps,
+            onValueChangeFinished = onDone,
+            colors = SliderDefaults.colors(thumbColor = SageGreen, activeTrackColor = SageGreen, inactiveTrackColor = BorderSubtle),
+            modifier = Modifier.semantics { contentDescription = title }
+        )
+    }
+}
+
+/** The Gemma build behind the memory (E2B or E4B). A build not on the phone yet is downloaded after a confirmation; the unused one can be removed. */
+@Composable
+private fun MemoryModelChoice() {
+    val context = LocalContext.current
+    // Re-read after each change: the choice and the files on disk live outside Compose.
     var tick by remember { mutableIntStateOf(0) }
     val variant = remember(tick) { ModelSetup.gemmaVariant(context) }
     val unused = remember(tick) { ModelSetup.unusedGemma(context) }
     val suggested = remember { ModelSetup.suggestedGemma(context) }
-    val other = ModelChoice.other(variant)
-    val download = remember(tick) { ModelRegistry.gemma(other).missingBytes(context) }
+    var confirm by remember { mutableStateOf<GemmaVariant?>(null) }
 
-    SettingsRow(
-        icon = Icons.Default.Memory,
-        title = "Memory model: ${variant.title}",
-        subtitle = "Suggested for this phone: ${suggested.title}"
-    )
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        TextButton(onClick = { ModelSetup.selectGemma(context, other); tick++ }) {
-            Text(if (download > 0) "Use ${other.title} (${ModelSetup.formatBytes(download)})" else "Use ${other.title}")
-        }
-        if (unused != null) TextButton(onClick = { ModelSetup.removeUnusedGemma(context); tick++ }) {
-            Text("Remove ${unused.title}")
+    Text(text = "Memory model", fontSize = 13.sp, fontWeight = FontWeight.Medium, color = CharcoalText)
+    Text(text = "Suggested for this phone: ${suggested.title}", fontSize = 11.sp, color = MutedText)
+    GemmaVariant.entries.forEach { v ->
+        val spec = ModelRegistry.gemma(v)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(enabled = v != variant) {
+                    if (spec.missingBytes(context) > 0) confirm = v else { ModelSetup.selectGemma(context, v); tick++ }
+                },
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            RadioButton(selected = v == variant, onClick = null, colors = RadioButtonDefaults.colors(selectedColor = SageGreen))
+            Text(text = v.title, fontSize = 13.sp, color = CharcoalText, modifier = Modifier.weight(1f).padding(start = 8.dp))
+            Text(text = ModelSetup.formatBytes(spec.totalBytes), fontSize = 11.sp, color = MutedText)
         }
     }
+    if (unused != null) TextButton(onClick = { ModelSetup.removeUnusedGemma(context); tick++ }) {
+        Text("Remove the unused model (${unused.title}, ${ModelSetup.formatBytes(unused.totalBytes)})", color = SageDark)
+    }
+
+    confirm?.let { v ->
+        val spec = ModelRegistry.gemma(v)
+        AlertDialog(
+            onDismissRequest = { confirm = null },
+            title = { Text("Download ${v.title}?") },
+            text = { Text("${ModelSetup.formatBytes(spec.missingBytes(context))} will be downloaded. Sessions wait for it, then are processed with it.") },
+            confirmButton = { TextButton(onClick = { ModelSetup.selectGemma(context, v); confirm = null; tick++ }) { Text("Download") } },
+            dismissButton = { TextButton(onClick = { confirm = null }) { Text("Cancel") } },
+        )
+    }
 }
+
+private const val INTERVAL_STEP_MS = 500L
 
 @Composable
 fun SettingsGroupHeader(title: String) {

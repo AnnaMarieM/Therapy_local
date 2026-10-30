@@ -26,6 +26,9 @@ import com.therapylocal.app.memory.MemoryFiles
 import com.therapylocal.app.memory.MemoryService
 import com.therapylocal.app.models.ModelSetup
 import com.therapylocal.app.models.SetupState
+import com.therapylocal.app.ui.data.ClientRepository
+import com.therapylocal.app.ui.models.SearchHit
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -38,6 +41,9 @@ import kotlinx.coroutines.withContext
 import java.io.File
 
 enum class Phase { Preparing, Ready, Failed }
+
+/** Client search on the profile: [hits] is null before the first search. */
+data class SearchState(val listening: Boolean = false, val searching: Boolean = false, val hits: List<SearchHit>? = null, val info: String? = null)
 
 data class UiState(
     val phase: Phase = Phase.Preparing,
@@ -81,6 +87,12 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     private var recorder: ChunkRecorder? = null
     private var pipelineJob: Job? = null
+
+    private val clients = ClientRepository(app)
+    private val _search = MutableStateFlow(SearchState())
+    val search: StateFlow<SearchState> = _search.asStateFlow()
+    private var searchJob: Job? = null
+    private var voiceRecorder: ChunkRecorder? = null
 
     init {
         BackendPolicy.override = _state.value.backendOverride
@@ -248,6 +260,80 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         _state.update { it.copy(status = "Listening") }
     }
 
+    // ---- client search --------------------------------------------------------------------------------------
+
+    /** Searches [client]'s transcripts by meaning (the query embedded as a search query) and its facts by words. Facts only until the embedder is ready. */
+    fun searchText(client: String, query: String) {
+        searchJob?.cancel()
+        if (query.isBlank()) {
+            _search.value = SearchState()
+            return
+        }
+        searchJob = viewModelScope.launch(Dispatchers.IO) {
+            showSearch {
+                val vec = if (_state.value.phase == Phase.Ready) embedder.embedText(query, query = true, LogCtx.NONE) else null
+                SearchState(hits = clients.search(client, vec, query), info = if (vec == null) "Transcripts can be searched once setup finishes." else null)
+            }
+        }
+    }
+
+    /**
+     * Hold-to-search: records until [stopVoiceSearch] or [ChunkConfig.QUERY_MAX_SECONDS], then searches with the audio embedding itself
+     * (no transcription). False if it cannot start now: the embedder is not ready, or a session or another clip is recording.
+     */
+    fun startVoiceSearch(client: String): Boolean {
+        val s = _state.value
+        if (s.phase != Phase.Ready || s.recording || voiceRecorder != null) return false
+        val rec = ChunkRecorder.query(LogCtx.NONE)
+        try {
+            rec.start()
+        } catch (t: Throwable) {
+            AppLog.e(TAG, "voice_search_start_failed", LogCtx.NONE, t)
+            _search.value = SearchState(info = "The microphone could not be opened.")
+            return false
+        }
+        voiceRecorder = rec
+        searchJob?.cancel()
+        _search.value = SearchState(listening = true)
+        searchJob = viewModelScope.launch(Dispatchers.Default) {
+            // The one clip arrives at release, or at the length cap while still recording.
+            val clip = rec.chunks.receiveCatching().getOrNull()
+            stopVoiceSearch()
+            if (clip == null) {
+                _search.value = SearchState(info = "Too short: hold the button while you speak.")
+                return@launch
+            }
+            showSearch {
+                val vec = embedder.embedAudio(clip.pcm, LogCtx.NONE, role = "query")
+                SearchState(hits = withContext(Dispatchers.IO) { clients.search(client, vec, null) })
+            }
+        }
+        return true
+    }
+
+    private suspend fun showSearch(run: suspend () -> SearchState) {
+        _search.value = SearchState(searching = true)
+        _search.value = try {
+            run()
+        } catch (e: CancellationException) {
+            throw e
+        } catch (t: Throwable) {
+            AppLog.e(TAG, "search_failed", LogCtx.NONE, t)
+            SearchState(info = "Search failed. Please try again.")
+        }
+    }
+
+    fun stopVoiceSearch() {
+        val rec = synchronized(this) { voiceRecorder.also { voiceRecorder = null } } ?: return
+        viewModelScope.launch(Dispatchers.Default) { rec.stop() }
+    }
+
+    fun clearSearch() {
+        searchJob?.cancel()
+        stopVoiceSearch()
+        _search.value = SearchState()
+    }
+
     // ---- recordings list, delete ----------------------------------------------------------------------------
 
     fun refreshRecordings() {
@@ -296,6 +382,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     override fun onCleared() {
         recorder?.stop()
+        voiceRecorder?.stop()
         embedder.close()
     }
 

@@ -25,19 +25,14 @@ object SessionLogic {
         return "${two(s / 3600)}:${two((s / 60) % 60)}:${two(s % 60)}"
     }
 
-    /** Patients whose name, presenting issue, facts or session summaries/topics/quotes contain [query] (trimmed, case-insensitive). Blank query keeps everyone. */
+    /** Patients whose name, fact headings and contents or session notes contain [query] (trimmed, case-insensitive). Blank query keeps everyone. */
     fun filterPatients(patients: List<Patient>, query: String): List<Patient> {
         if (query.isBlank()) return patients
         val q = query.trim().lowercase()
         return patients.filter { p ->
             p.name.lowercase().contains(q) ||
-            p.presenting.lowercase().contains(q) ||
-            p.facts.any { it.lowercase().contains(q) } ||
-            p.sessions.any { s ->
-                s.summary.lowercase().contains(q) ||
-                s.topics.any { t -> t.lowercase().contains(q) } ||
-                s.verbatimQuotes.any { v -> v.lowercase().contains(q) }
-            }
+            p.facts.any { it.heading.lowercase().contains(q) || it.content.lowercase().contains(q) } ||
+            p.sessions.any { s -> s.observations.lowercase().contains(q) }
         }
     }
 

@@ -1,15 +1,21 @@
 package com.therapylocal.app.ui.data
 
 import android.content.Context
+import com.therapylocal.app.data.FactRow
 import com.therapylocal.app.data.MindStore
-import com.therapylocal.app.data.SessionRow
+import com.therapylocal.app.data.SegmentRow
 import com.therapylocal.app.log.AppLog
 import com.therapylocal.app.log.LogCtx
 import com.therapylocal.app.data.PendingAudio
 import com.therapylocal.app.jobs.Jobs
 import com.therapylocal.app.models.ModelSetup
+import com.therapylocal.app.ui.logic.SessionLogic
+import com.therapylocal.app.ui.models.FactItem
+import com.therapylocal.app.ui.models.FactOccurrence
 import com.therapylocal.app.ui.models.Patient
-import com.therapylocal.app.ui.models.SessionRecord
+import com.therapylocal.app.ui.models.SearchHit
+import com.therapylocal.app.ui.models.SessionNotes
+import com.therapylocal.app.ui.models.TranscriptLine
 
 /**
  * What the UI knows about clients, read from [MindStore] (the on-device long-term memory). The UI never touches SQL.
@@ -39,8 +45,6 @@ class ClientRepository(context: Context) {
         AppLog.i(TAG, "delete_client_verified", LogCtx.NONE, "client" to id, "removed" to removed, "facts_left" to store.facts(id).size, "sessions_left" to store.sessions(id).size)
     }
 
-    fun observations(session: String): String = store.observations(session)
-
     fun saveObservations(session: String, text: String) = store.setObservations(session, text)
 
     /** True while the AI files are still downloading: new sessions are kept and processed afterwards. */
@@ -54,8 +58,6 @@ class ClientRepository(context: Context) {
         AppLog.i(TAG, "delete_session_verified", LogCtx.NONE, "client" to client, "session" to session, "promoted_facts" to r.promoted, "removed_facts" to r.deleted)
     }
 
-    fun sessions(client: String): List<SessionRow> = store.sessions(client)
-
     /** The audio files of the recordings of the matching sessions; their rows go with the sessions. */
     private fun deleteAudio(ofSession: (String) -> Boolean) {
         store.recordings().filter { r -> r.sessionId?.let(ofSession) == true }.forEach { PendingAudio.delete(appContext, it.id) }
@@ -68,36 +70,72 @@ class ClientRepository(context: Context) {
     fun patients(): List<Patient> = store.clients().map { patient(it.id) }
 
     fun patient(client: String): Patient {
-        val facts = store.facts(client)
-        val sessions = sessions(client)
-        val bySession = facts.groupBy { it.sessionId }
-        val records = sessions.map { s ->
-            val sf = bySession[s.id].orEmpty()
-            SessionRecord(
+        val sessions = store.sessions(client)
+        val dates = sessions.associate { it.id to date(it.startedAt) }
+        val rows = store.facts(client)
+        val notes = sessions.map { s ->
+            SessionNotes(
                 id = s.id,
-                date = date(s),
-                duration = s.endedAt?.let { "${(it - s.startedAt) / 60_000} min" } ?: "-",
-                summary = sf.take(4).joinToString(" ") { it.content }.ifEmpty { "No notes extracted yet." },
-                verbatimQuotes = sf.map { it.evidence }.filter { it.isNotBlank() }.take(3),
+                date = dates.getValue(s.id),
+                duration = store.transcriptLengthMs(s.id).let { if (it > 0) SessionLogic.formatMinSec(it / 1000) else "-" },
+                facts = rows.filter { it.sessionId == s.id }.map { it.toItem(dates) },
+                observations = s.observations,
             )
         }
-        val last = sessions.lastOrNull()
         return Patient(
             id = client,
             name = store.clients().firstOrNull { it.id == client }?.name ?: client.replaceFirstChar { it.uppercase() },
-            age = 0, // age is no longer stored
-            presenting = "",
-            lastSession = last?.let { date(it) } ?: "-",
+            lastSession = sessions.lastOrNull()?.let { dates.getValue(it.id) } ?: "-",
             sessionCount = sessions.size,
-            preSessionNote = last?.let { l -> bySession[l.id].orEmpty().take(3).joinToString(" ") { it.content } }.orEmpty(),
-            sessions = records.asReversed(), // newest first, as the profile lists them
-            facts = facts.map { f -> if (f.mentionCount > 0) "${f.content} (x${f.mentionCount + 1})" else f.content },
+            sessions = notes.asReversed(), // newest first, as the profile lists them
+            facts = rows.map { it.toItem(dates) },
         )
     }
 
-    private fun date(s: SessionRow): String = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(java.util.Date(s.startedAt))
+    /** Where the fact was said, first occurrence first: each with the transcript within [CONTEXT_SEGMENTS] segments of it. */
+    fun occurrences(factId: Long): List<FactOccurrence> = store.factOccurrences(factId).map { o ->
+        FactOccurrence(o.sessionId, date(o.startedAt), o.first, o.segIdx, store.segmentsAround(o.sessionId, o.segIdx, CONTEXT_SEGMENTS).map { it.toLine() })
+    }
+
+    fun transcript(session: String): List<TranscriptLine> = store.segments(session).map { it.toLine() }
+
+    /**
+     * The client's transcript windows closest to [vec] (a query embedding, text or audio), then [text] matched in fact headings and
+     * contents. A null [vec] searches the facts only; a non-null one also ranks the facts by meaning when [text] is null (voice search).
+     */
+    fun search(client: String, vec: FloatArray?, text: String?): List<SearchHit> {
+        val dates = store.sessions(client).associate { it.id to date(it.startedAt) }
+        val windows = vec?.let { store.nearestWindows(client, it, SEARCH_WINDOWS) }.orEmpty().map { (w, _) ->
+            SearchHit(w.sessionId, dates[w.sessionId].orEmpty(), title = null, snippet = snippet(w.text), segFrom = w.segFrom, segTo = w.segTo)
+        }
+        val facts = if (text != null) {
+            val q = text.trim().lowercase()
+            store.facts(client).filter { it.heading.lowercase().contains(q) || it.content.lowercase().contains(q) }.take(SEARCH_TEXT_FACTS)
+        } else {
+            vec?.let { store.nearestFacts(client, it, SEARCH_FACTS).map { (f, _) -> f } }.orEmpty()
+        }
+        return windows + facts.map { f ->
+            SearchHit(f.sessionId, dates[f.sessionId].orEmpty(), f.heading, f.content, f.segIdx - CONTEXT_SEGMENTS, f.segIdx + CONTEXT_SEGMENTS, f.segIdx)
+        }
+    }
+
+    /** Segments [from]..[to] of [session]. */
+    fun transcript(session: String, from: Int, to: Int): List<TranscriptLine> = store.segments(session).filter { it.idx in from..to }.map { it.toLine() }
+
+    private fun FactRow.toItem(dates: Map<String, String>) = FactItem(id, heading, content, dates[sessionId].orEmpty(), mentionCount)
+
+    private fun SegmentRow.toLine() = TranscriptLine(idx, SessionLogic.formatMinSec(startMs / 1000), text)
+
+    private fun snippet(text: String) = if (text.length <= SNIPPET_CHARS) text else text.take(SNIPPET_CHARS).substringBeforeLast(' ') + "…"
+
+    private fun date(millis: Long): String = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(java.util.Date(millis))
 
     companion object {
         const val TAG = "ClientRepository"
+        const val CONTEXT_SEGMENTS = 3
+        private const val SEARCH_WINDOWS = 5
+        private const val SEARCH_FACTS = 3
+        private const val SEARCH_TEXT_FACTS = 10
+        private const val SNIPPET_CHARS = 180
     }
 }

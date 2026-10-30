@@ -375,7 +375,6 @@ fun AddPatientDialog(
 ) {
     var firstName by remember { mutableStateOf("") }
     var lastName by remember { mutableStateOf("") }
-    var preSessionNote by remember { mutableStateOf("") }
 
     // Preview privacy name: "First Name" + first letter of "Last Name"
     val formattedName = remember(firstName, lastName) {
@@ -451,17 +450,6 @@ fun AddPatientDialog(
                         fontWeight = FontWeight.Medium
                     )
                 }
-
-                OutlinedTextField(
-                    value = preSessionNote,
-                    onValueChange = { preSessionNote = it },
-                    label = { Text("Initial pre-session note", fontSize = 12.sp, color = CharcoalText, fontWeight = FontWeight.SemiBold) },
-                    modifier = Modifier.fillMaxWidth(),
-                    maxLines = 3,
-                    textStyle = fieldTextStyle,
-                    colors = patientFieldColors,
-                    shape = RoundedCornerShape(10.dp)
-                )
             }
         },
         confirmButton = {
@@ -470,11 +458,8 @@ fun AddPatientDialog(
                     if (formattedName.isNotBlank()) {
                         val p = Patient(
                             name = formattedName,
-                            age = 0,
-                            presenting = "",
                             lastSession = "Just added",
-                            sessionCount = 0,
-                            preSessionNote = preSessionNote.ifBlank { "Initial intake session" }
+                            sessionCount = 0
                         )
                         onConfirm(p)
                     }

@@ -183,6 +183,9 @@ class MindStore(context: Context, name: String, password: ByteArray) :
     fun segments(session: String): List<SegmentRow> =
         query("SELECT idx, start_ms, end_ms, text FROM segments WHERE session_id = ? ORDER BY idx", session) { SegmentRow(it.getInt(0), it.getLong(1), it.getLong(2), it.getString(3)) }
 
+    /** How far the transcript of [session] reaches, 0 before it is transcribed. */
+    fun transcriptLengthMs(session: String): Long = query("SELECT COALESCE(MAX(end_ms), 0) FROM segments WHERE session_id = ?", session) { it.getLong(0) }.first()
+
     /** Segments [seg] - [r] .. [seg] + [r] of [session], in order. */
     fun segmentsAround(session: String, seg: Int, r: Int): List<SegmentRow> =
         query("SELECT idx, start_ms, end_ms, text FROM segments WHERE session_id = ? AND idx BETWEEN ? AND ? ORDER BY idx", session, (seg - r).toString(), (seg + r).toString()) {
