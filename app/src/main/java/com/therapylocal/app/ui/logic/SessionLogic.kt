@@ -5,7 +5,6 @@ import com.therapylocal.app.jobs.JobGraph
 import com.therapylocal.app.jobs.JobPhase
 import com.therapylocal.app.jobs.QueueSnapshot
 import com.therapylocal.app.jobs.StepProgress
-import com.therapylocal.app.ui.models.Patient
 import com.therapylocal.app.ui.models.ProcessingSessionInfo
 
 /** Pure session/UI rules pulled out of composables so they can be unit tested. No Android imports. */
@@ -23,16 +22,6 @@ object SessionLogic {
     fun formatHourMinSec(secs: Long): String {
         val s = secs.coerceAtLeast(0)
         return "${two(s / 3600)}:${two((s / 60) % 60)}:${two(s % 60)}"
-    }
-
-    /** Patients whose name or fact headings and contents contain [query] (trimmed, case-insensitive). Blank query keeps everyone. */
-    fun filterPatients(patients: List<Patient>, query: String): List<Patient> {
-        if (query.isBlank()) return patients
-        val q = query.trim().lowercase()
-        return patients.filter { p ->
-            p.name.lowercase().contains(q) ||
-            p.facts.any { it.heading.lowercase().contains(q) || it.content.lowercase().contains(q) }
-        }
     }
 
     /**
@@ -72,22 +61,5 @@ object SessionLogic {
         JobPhase.Reading -> "Reading ${p.step}/${p.steps}"
         JobPhase.Checking -> "Checking ${p.step}/${p.steps}"
         else -> if (job?.kind == JobGraph.TRANSCRIBE) "Transcribing audio" else "Extracting facts"
-    }
-
-    enum class SessionTabTarget { Live, Chooser }
-
-    /** Tapping the Session tab: go to the live screen if a session with a patient is running, else ask which patient. */
-    fun sessionTabTarget(isSessionActive: Boolean, hasSessionPatient: Boolean): SessionTabTarget =
-        if (isSessionActive && hasSessionPatient) SessionTabTarget.Live else SessionTabTarget.Chooser
-
-    enum class PauseAction { StartRecording, ResumeRecording, PauseRecording }
-
-    data class PauseToggle(val paused: Boolean, val recordingStarted: Boolean, val action: PauseAction)
-
-    /** Play/pause button. A session starts paused and not recording; the first play starts recording, later plays resume it. */
-    fun togglePause(paused: Boolean, recordingStarted: Boolean): PauseToggle = when {
-        !paused -> PauseToggle(paused = true, recordingStarted = recordingStarted, action = PauseAction.PauseRecording)
-        !recordingStarted -> PauseToggle(paused = false, recordingStarted = true, action = PauseAction.StartRecording)
-        else -> PauseToggle(paused = false, recordingStarted = true, action = PauseAction.ResumeRecording)
     }
 }

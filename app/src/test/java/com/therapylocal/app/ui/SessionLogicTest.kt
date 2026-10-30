@@ -7,13 +7,8 @@ import com.therapylocal.app.jobs.JobPhase
 import com.therapylocal.app.jobs.QueueSnapshot
 import com.therapylocal.app.jobs.StepProgress
 import com.therapylocal.app.ui.logic.SessionLogic
-import com.therapylocal.app.ui.logic.SessionLogic.PauseAction
-import com.therapylocal.app.ui.logic.SessionLogic.SessionTabTarget
-import com.therapylocal.app.ui.models.Patient
-import com.therapylocal.app.ui.models.FactItem
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.util.Locale
@@ -177,128 +172,5 @@ class SessionLogicTest {
     @Test
     fun processingEmptyInputs() {
         assertTrue(banner().isEmpty())
-    }
-
-    // ---- patient filtering ----
-
-    private val alex = Patient(id = "p-1", name = "Alex Example Jr.", lastSession = "", sessionCount = 0, facts = listOf(FactItem(1, "Anxiety at work", "Panics before meetings.", "d")))
-    private val sam = Patient(id = "p-2", name = "Sam Example", lastSession = "", sessionCount = 0, facts = listOf(FactItem(2, "Burnout", "Took sick leave in May.", "d")))
-    private val rene = Patient(
-        id = "p-3", name = "René Émile", lastSession = "", sessionCount = 1,
-        facts = listOf(FactItem(3, "Sister", "Has a sister called Lotte.", "d"))
-    )
-    private val all = listOf(alex, sam, rene)
-
-    private fun names(q: String) = SessionLogic.filterPatients(all, q).map { it.id }
-
-    @Test
-    fun filterBlankQueryReturnsEveryoneInOrder() {
-        assertEquals(listOf("p-1", "p-2", "p-3"), names(""))
-        assertEquals(listOf("p-1", "p-2", "p-3"), names("   "))
-        assertEquals(listOf("p-1", "p-2", "p-3"), names("\t\n"))
-    }
-
-    @Test
-    fun filterIsCaseInsensitiveAndTrimmed() {
-        assertEquals(listOf("p-2"), names("sam"))
-        assertEquals(listOf("p-2"), names("SAM"))
-        assertEquals(listOf("p-2"), names("  SaM  "))
-        assertEquals(listOf("p-2"), names("m ex"))
-    }
-
-    @Test
-    fun filterMatchesNameAndFactHeadingSeparately() {
-        assertEquals(listOf("p-1"), names("anxi"))      // fact heading only
-        assertEquals(listOf("p-1"), names("alex"))    // name only
-        assertEquals(listOf("p-2"), names("burnout"))
-    }
-
-    @Test
-    fun filterSearchesFactContent() {
-        assertEquals(listOf("p-3"), names("lotte"))
-        assertEquals(listOf("p-1"), names("meetings"))
-        assertEquals(listOf("p-2"), names("sick leave"))
-    }
-
-    @Test
-    fun filterNoMatchIsEmpty() {
-        assertTrue(names("zzz").isEmpty())
-        assertTrue(SessionLogic.filterPatients(emptyList(), "a").isEmpty())
-    }
-
-    @Test
-    fun filterMultipleMatchesKeepOrder() {
-        assertEquals(listOf("p-1", "p-2", "p-3"), names("e"))
-        assertEquals(listOf("p-1", "p-2"), names("x"))
-        assertEquals(listOf("p-1", "p-2"), names("example"))
-    }
-
-    @Test
-    fun filterTreatsRegexCharactersLiterally() {
-        assertTrue(names(".*").isEmpty())
-        assertTrue(names("j.").isEmpty())   // as a regex this would match "jr"
-        assertEquals(listOf("p-1"), names("jr."))
-    }
-
-    // ---- session tab routing ----
-
-    @Test
-    fun sessionTabRouting() {
-        assertEquals(SessionTabTarget.Chooser, SessionLogic.sessionTabTarget(isSessionActive = false, hasSessionPatient = false))
-        assertEquals(SessionTabTarget.Chooser, SessionLogic.sessionTabTarget(isSessionActive = false, hasSessionPatient = true))
-        assertEquals(SessionTabTarget.Chooser, SessionLogic.sessionTabTarget(isSessionActive = true, hasSessionPatient = false))
-        assertEquals(SessionTabTarget.Live, SessionLogic.sessionTabTarget(isSessionActive = true, hasSessionPatient = true))
-    }
-
-    // ---- play / pause state machine ----
-
-    /** Drives togglePause the way MindVaultApp does and records the side effects. */
-    private class Session {
-        var paused = true          // sessions start paused
-        var recordingStarted = false
-        val actions = mutableListOf<PauseAction>()
-        fun tap() {
-            val t = SessionLogic.togglePause(paused, recordingStarted)
-            actions += t.action
-            paused = t.paused
-            recordingStarted = t.recordingStarted
-        }
-    }
-
-    @Test
-    fun firstPlayStartsRecordingOnce() {
-        val s = Session()
-        s.tap()
-        assertEquals(listOf(PauseAction.StartRecording), s.actions)
-        assertFalse(s.paused)
-        assertTrue(s.recordingStarted)
-    }
-
-    @Test
-    fun pauseThenResumeDoesNotRestartRecording() {
-        val s = Session()
-        s.tap(); s.tap(); s.tap()
-        assertEquals(listOf(PauseAction.StartRecording, PauseAction.PauseRecording, PauseAction.ResumeRecording), s.actions)
-        assertFalse(s.paused)
-        assertTrue(s.recordingStarted)
-    }
-
-    @Test
-    fun pausingNeverChangesRecordingStartedFlag() {
-        assertEquals(true, SessionLogic.togglePause(paused = false, recordingStarted = true).recordingStarted)
-        assertEquals(false, SessionLogic.togglePause(paused = false, recordingStarted = false).recordingStarted)
-        assertTrue(SessionLogic.togglePause(paused = false, recordingStarted = false).paused)
-    }
-
-    @Test
-    fun manyTapsAlternateAndStartExactlyOnce() {
-        val s = Session()
-        repeat(101) { s.tap() }
-        assertEquals(1, s.actions.count { it == PauseAction.StartRecording })
-        assertEquals(PauseAction.StartRecording, s.actions.first())
-        s.actions.drop(1).forEachIndexed { i, a ->
-            assertEquals(if (i % 2 == 0) PauseAction.PauseRecording else PauseAction.ResumeRecording, a)
-        }
-        assertFalse(s.paused) // odd number of taps -> playing
     }
 }
