@@ -131,7 +131,7 @@ class PipelineEndToEndTest {
         assertEquals(listOf(S2 to true), h.store.factOccurrences(sister.id).map { it.sessionId to it.first })
         assertEquals("the promoted mention is not also kept as a mention", 0, h.count("mentions", "fact_id = ?", "${sister.id}"))
         assertEquals("no fact is mentioned in its own session", 0, h.count("mentions m JOIN facts f ON f.id = m.fact_id", "m.session_id = f.session_id"))
-        assertEquals(listOf(SISTER.heading, LIBRARY.heading), h.store.facts(CLIENT).map { it.heading }.sorted())
+        assertEquals(listOf(SISTER.heading, LIBRARY.heading).sorted(), h.store.facts(CLIENT).map { it.heading }.sorted())
         for (table in listOf("segments", "windows", "facts", "mentions", "extract_cache", "review_cache", "jobs", "recordings")) {
             assertEquals("$table of the deleted session", 0, h.count(table, "session_id = ?", S1))
         }
