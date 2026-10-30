@@ -4,6 +4,8 @@ import android.os.SystemClock
 import com.google.ai.edge.litertlm.Content
 import com.google.ai.edge.litertlm.Contents
 import com.google.ai.edge.litertlm.Engine
+import com.google.ai.edge.litertlm.ExperimentalApi
+import com.google.ai.edge.litertlm.ExperimentalFlags
 import com.therapylocal.app.data.TranscriptClean
 import com.therapylocal.app.jobs.Asr
 import com.therapylocal.app.log.AppLog
@@ -14,6 +16,7 @@ import kotlinx.coroutines.runBlocking
  * Gemma 4 audio input on an engine the memory LLM has loaded ([com.therapylocal.app.memory.MemoryLlm.speech]), so the same Gemma file is
  * never in memory twice. The engine belongs to the LLM: [close] leaves it open.
  */
+@OptIn(ExperimentalApi::class)
 class GemmaAsr(private val engine: Engine, private val modelName: String, private val backend: String) : Asr {
     override fun transcribe(pcm: ShortArray): String {
         val ctx = LogCtx.NONE
@@ -22,6 +25,8 @@ class GemmaAsr(private val engine: Engine, private val modelName: String, privat
         val start = SystemClock.elapsedRealtime()
         return AppLog.span(TAG, "asr_transcribe", ctx, "engine" to "gemma", "model" to modelName, "backend" to backend, "audio_sec" to "%.2f".format(audioSec)) { span ->
             val sb = StringBuilder()
+            // Global; the memory LLM switches it on for a constrained call only, and with it on a conversation takes ~4 s to create.
+            ExperimentalFlags.enableConversationConstrainedDecoding = false
             engine.createConversation().use { conversation ->
                 runBlocking { conversation.sendMessageAsync(Contents.of(Content.AudioBytes(wav), Content.Text(PROMPT))).collect { sb.append(it.toString()) } }
             }

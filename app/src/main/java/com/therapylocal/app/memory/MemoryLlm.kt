@@ -77,23 +77,28 @@ class MemoryLlm(private val context: Context, private val maxTokens: Int, privat
     override fun ask(system: String, user: String, schema: String?, maxOutputTokens: Int, temperature: Double, topK: Int): String {
         val e = checkNotNull(engine) { "not loaded" }
         val t0 = System.nanoTime()
+        // A global flag: switched off again afterwards, or every later conversation on the engine (speech recognition too) pays its ~4 s setup.
         ExperimentalFlags.enableConversationConstrainedDecoding = schema != null
-        val cfg = ConversationConfig(
-            systemInstruction = Contents.of(system),
-            samplerConfig = SamplerConfig(topK = topK, topP = 0.9, temperature = temperature, seed = 1),
-            enableResponseFormat = schema != null,
-            maxOutputToken = maxOutputTokens,
-        )
-        e.createConversation(cfg).use { c ->
-            val msg = if (schema != null) c.sendMessage(user, responseFormat = ResponseFormat.json(schema)) else c.sendMessage(user)
-            val b: BenchmarkInfo = c.getBenchmarkInfo()
-            // Numbers only, never text.
-            AppLog.i(
-                TAG, "llm_call", LogCtx.NONE, "backend" to backend, "constrained" to (schema != null), "prompt_tokens" to b.lastPrefillTokenCount,
-                "prefill_tok_s" to b.lastPrefillTokensPerSecond, "ttft_s" to b.timeToFirstTokenInSecond, "decode_tokens" to b.lastDecodeTokenCount,
-                "decode_tok_s" to b.lastDecodeTokensPerSecond, "wall_ms" to (System.nanoTime() - t0) / 1_000_000,
+        try {
+            val cfg = ConversationConfig(
+                systemInstruction = Contents.of(system),
+                samplerConfig = SamplerConfig(topK = topK, topP = 0.9, temperature = temperature, seed = 1),
+                enableResponseFormat = schema != null,
+                maxOutputToken = maxOutputTokens,
             )
-            return msg.toString()
+            e.createConversation(cfg).use { c ->
+                val msg = if (schema != null) c.sendMessage(user, responseFormat = ResponseFormat.json(schema)) else c.sendMessage(user)
+                val b: BenchmarkInfo = c.getBenchmarkInfo()
+                // Numbers only, never text.
+                AppLog.i(
+                    TAG, "llm_call", LogCtx.NONE, "backend" to backend, "constrained" to (schema != null), "prompt_tokens" to b.lastPrefillTokenCount,
+                    "prefill_tok_s" to b.lastPrefillTokensPerSecond, "ttft_s" to b.timeToFirstTokenInSecond, "decode_tokens" to b.lastDecodeTokenCount,
+                    "decode_tok_s" to b.lastDecodeTokensPerSecond, "wall_ms" to (System.nanoTime() - t0) / 1_000_000,
+                )
+                return msg.toString()
+            }
+        } finally {
+            ExperimentalFlags.enableConversationConstrainedDecoding = false
         }
     }
 
