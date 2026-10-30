@@ -2,6 +2,7 @@ package com.therapylocal.app.memory
 
 import android.os.SystemClock
 import com.therapylocal.app.asr.Pcm
+import com.therapylocal.app.config.ChunkConfig
 import com.therapylocal.app.config.LiveCueConfig
 import com.therapylocal.app.config.LiveCueSettings
 import com.therapylocal.app.data.MindStore
@@ -146,7 +147,8 @@ class LiveCues(
     }
 
     private suspend fun tick(client: String, gen: Int, s: LiveCueSettings, sinceMs: Long, smoothed: HashMap<Long, Float>) {
-        val pcm = snapshot(s.lookbackSamples) ?: return
+        // A model that reports a smaller context than asked for still gets a clip it can embed whole.
+        val pcm = snapshot(minOf(s.lookbackS, embedder.maxAudioSeconds) * ChunkConfig.SAMPLE_RATE) ?: return
         val rms = Pcm.rms(pcm)
         val n = ++tick
         if (rms < LiveCueConfig.SILENCE_RMS) {

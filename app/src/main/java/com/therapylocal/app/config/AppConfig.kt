@@ -64,8 +64,17 @@ object EmbeddingConfig {
     /** Native size of the model. Matryoshka truncation to 512, 256 or 128 is possible by changing this one value. */
     const val DIM = 768
 
-    /** Input length the embedder asks for; lowered to the model's reported context if that is smaller. Live cues need room for [LiveCueConfig.MAX_LOOKBACK_S] of audio. */
-    const val MAX_TOKENS = 2048
+    /** Input length the embedder asks for: the model's full context (one of its LiteRT input sizes 128..8192), lowered to the context it reports if that is smaller. */
+    const val MAX_TOKENS = 8192
+
+    /** Audio fills the shared context at this rate (google/embeddinggemma-2 model card, "Context Limits": 25 tokens per second, ~327 s at 8,192). */
+    const val AUDIO_TOKENS_PER_SECOND = 25
+
+    /** Kept free for the model's own special tokens around the audio. */
+    const val AUDIO_MARGIN_TOKENS = 16
+
+    /** Longest audio clip that fits [tokens] of context. */
+    fun maxAudioSeconds(tokens: Int) = ((tokens - AUDIO_MARGIN_TOKENS) / AUDIO_TOKENS_PER_SECOND).coerceAtLeast(0)
 
     const val QUERY_PREFIX = "task: search query | text: "
     const val DOC_PREFIX = "task: search result | text: "
@@ -106,8 +115,8 @@ object BackendPolicy {
 
 /** Realtime "possibly relevant" fact cues: the last few seconds of live audio are embedded every tick and ranked against the client's facts. The adjustable knobs are in [LiveCueSettings]. */
 object LiveCueConfig {
-    /** Longest lookback a user can choose; the ring buffer is this long. Not derived from audio tokens per second (unmeasured): raise it after a device measurement. */
-    const val MAX_LOOKBACK_S = 60
+    /** Longest lookback a user can choose: as much audio as the embedder's context holds. The ring buffer is this long. */
+    const val MAX_LOOKBACK_S = (EmbeddingConfig.MAX_TOKENS - EmbeddingConfig.AUDIO_MARGIN_TOKENS) / EmbeddingConfig.AUDIO_TOKENS_PER_SECOND
     const val MAX_LOOKBACK_SAMPLES = MAX_LOOKBACK_S * ChunkConfig.SAMPLE_RATE
 
     /** A tick that overruns the interval is followed by the next one after this gap, never queued up. */

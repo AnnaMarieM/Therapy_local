@@ -329,7 +329,7 @@ private fun LiveCueKnobs() {
         value = "${knobs.lookbackS} s",
         position = knobs.lookbackS.toFloat(),
         range = LiveCueSettings.LOOKBACK_S.first.toFloat()..LiveCueSettings.LOOKBACK_S.last.toFloat(),
-        steps = LiveCueSettings.LOOKBACK_S.last - LiveCueSettings.LOOKBACK_S.first - 1,
+        steps = 0, // 1 s ticks over a ~5 min range would only clutter the track; the value is rounded
         onChange = { knobs = LiveCueSettings.of(knobs.intervalMs, it.roundToInt(), knobs.smoothing, knobs.scoreFloor) },
         onDone = save
     )

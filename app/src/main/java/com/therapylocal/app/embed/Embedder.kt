@@ -49,6 +49,9 @@ class Embedder(private val context: Context, private val forcedBackend: String? 
     var maxTokens: Int = EmbeddingConfig.MAX_TOKENS
         private set
 
+    /** Longest audio clip one call can take, from [maxTokens]. */
+    val maxAudioSeconds get() = EmbeddingConfig.maxAudioSeconds(maxTokens)
+
     private var engine: EmbeddingEngine? = null
     private val lock = Mutex()
 

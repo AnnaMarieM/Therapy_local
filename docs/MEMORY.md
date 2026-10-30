@@ -55,16 +55,16 @@ Queue rules (`JobQueue`):
 - **D5. The CI emulator runs debug builds with an `x86_64` ABI added** (debug and androidTest only). The end-to-end tests use fake `Llm`, `Embed` and `Asr` ports and never load the LiteRT or sherpa native libraries.
 
 ## Live cues
-During a session `LiveCues` embeds the last seconds of audio directly (EmbeddingGemma audio, no transcript) and compares them with the client's fact embeddings. Scores are averaged over ticks per fact, and the top 10 above the floor are shown by heading. Audio stays in an in-memory ring of `LiveCueConfig.MAX_LOOKBACK_S` (60 s) and is never written. Settings are read at session start, from "Knobs for nerds" in the settings (`LiveCueSettings`, values clamped):
+During a session `LiveCues` embeds the last seconds of audio directly (EmbeddingGemma audio, no transcript) and compares them with the client's fact embeddings. Scores are averaged over ticks per fact, and the top 10 above the floor are shown by heading. Audio stays in an in-memory ring of `LiveCueConfig.MAX_LOOKBACK_S` (327 s) and is never written. Settings are read at session start, from "Knobs for nerds" in the settings (`LiveCueSettings`, values clamped):
 
 | Setting | Default | Range |
 |---|---|---|
 | Interval | 2000 ms | 1000-10000 ms |
-| Lookback | 20 s | 5-60 s |
+| Lookback | 20 s | 5-327 s |
 | Smoothing (weight of the newest tick) | 0.5 | 0.05-1.0 |
 | Score floor | 0.0 | 0-1 |
 
-A tick that takes longer than the interval is followed by the next one after 250 ms; the effective interval is logged. The embedder limit is `EmbeddingConfig.MAX_TOKENS` (2048). How many audio tokens a second of speech takes is not measured yet, so the 60 s cap is a constant to revisit after a device measurement.
+A tick that takes longer than the interval is followed by the next one after 250 ms; the effective interval is logged. The cap comes from the embedder's context: `EmbeddingConfig.MAX_TOKENS` is 8192, the model's full context and one of the LiteRT build's input sizes, and audio costs 25 tokens per second (google/embeddinggemma-2 model card, "Context Limits"). That leaves about 327 s once a small margin is reserved for special tokens. If the model reports a smaller context, each tick embeds only as much audio as fits (`Embedder.maxAudioSeconds`).
 
 ## Search
 The client profile has a search field: the query is embedded with `QUERY_PREFIX` and matched against the client's windows, and the facts are matched by heading and content. A result opens the transcript there. Holding the mic button records up to 20 s; the audio embedding is searched directly, without transcription.
@@ -81,4 +81,4 @@ The client profile has a search field: the query is embedded with `QUERY_PREFIX`
 - Schema-constrained decoding of the large extraction schema looped on whitespace; small schemas (the review answer) work.
 - A review call takes about 6 s wall although prefill is 0.3 s: fixed overhead still to be located.
 - Unrelated facts can score 0.75-0.89 cosine, so cosine alone does not decide duplicates; the 0.6 floor only skips the LLM for clearly new facts.
-- Still to measure on a device: embed latency at 20 s and 60 s lookback, the embedder at 2048 tokens, Gemma E4B speech recognition, and memory use with E4B.
+- Still to measure on a device: embed latency at 20 s, 60 s and 327 s lookback, text-window embed latency with the 8192 input size, Gemma E4B speech recognition, and memory use with E4B.

@@ -49,8 +49,16 @@ class LiveCueSettingsTest {
     }
 
     @Test
-    fun maxLookbackFitsTheRing() {
-        assertEquals(LiveCueConfig.MAX_LOOKBACK_S * ChunkConfig.SAMPLE_RATE, LiveCueConfig.MAX_LOOKBACK_SAMPLES)
-        assertEquals(LiveCueConfig.MAX_LOOKBACK_S, LiveCueSettings.LOOKBACK_S.last)
+    fun theFullContextHoldsAboutFiveAndAHalfMinutesOfAudio() {
+        // The model card gives ~327 s for 8,192 tokens at 25 tokens per second.
+        assertEquals(327, EmbeddingConfig.maxAudioSeconds(8192))
+        assertEquals(81, EmbeddingConfig.maxAudioSeconds(2048))
+        assertEquals(0, EmbeddingConfig.maxAudioSeconds(8))
+    }
+
+    @Test
+    fun theLookbackCanReachTheEmbeddersLimitButNotBeyond() {
+        assertEquals(EmbeddingConfig.maxAudioSeconds(EmbeddingConfig.MAX_TOKENS), LiveCueSettings.LOOKBACK_S.last)
+        assertEquals(327, LiveCueSettings.of(lookbackS = 10_000).lookbackS)
     }
 }
