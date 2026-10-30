@@ -195,7 +195,7 @@ class MemoryQueueTest {
 
     @Test
     fun everyChangeIsPersistedAndRoundTripsAllFields() {
-        val full = SessionJob("a_1", "a", "a_1.md", "2024-02-03", JobStatus.Done, "done", 5, 4, 11, 8, "e", 100, 200, 12.5, 3.25, 42)
+        val full = SessionJob("a_1", "a", "a_1.md", "2024-02-03", JobStatus.Done, "done", 5, 4, 11, 8, "e", 100, 200, 12.5, 3.25, 42, JobPhase.Checking, 2, 7)
         MemoryQueue.enqueue(full)
         MemoryQueue.enqueue(job("a_2", status = JobStatus.Running))
         MemoryQueue.enqueue(job("a_3", status = JobStatus.Failed).copy(error = "bad"))
@@ -218,7 +218,10 @@ class MemoryQueueTest {
         assertEquals(12.5, o.getDouble("prefill"), 0.0)
         assertEquals(3.25, o.getDouble("decode"), 0.0)
         assertEquals(42L, o.getLong("recordingId"))
-        assertEquals(16, o.length()) // no unexpected extra or missing fields
+        assertEquals("Checking", o.getString("phase"))
+        assertEquals(2, o.getInt("step"))
+        assertEquals(7, o.getInt("steps"))
+        assertEquals(19, o.length()) // no unexpected extra or missing fields
         assertEquals("Running", onDisk.getJSONObject(1).getString("status")) // stored as it was; only reading maps it to Queued
         assertEquals(JSONObject.NULL, onDisk.getJSONObject(1).get("error"))
         assertEquals("bad", onDisk.getJSONObject(2).getString("error"))
