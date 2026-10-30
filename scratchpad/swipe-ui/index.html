@@ -1,0 +1,672 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#EDE6D9">
+<title>Dr. Alex</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,200..500,0..100,0..1;1,9..144,200..500,0..100,0..1&family=Geist+Mono:wght@300..500&family=Geist:wght@100..700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#EDE6D9;--ink:#2B221B;--rec:#C9361F;--rev:#2C7A62;--tonal:#DED5C4;
+  --disp:'Fraunces',Georgia,serif;--ui:'Geist',system-ui,sans-serif;--mono:'Geist Mono',ui-monospace,monospace}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font-family:var(--ui);
+  touch-action:none;overscroll-behavior:none;-webkit-user-select:none;user-select:none;
+  -webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;font-kerning:normal;font-optical-sizing:auto}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+.disp{font-family:var(--disp);font-weight:260;letter-spacing:-.04em;font-variation-settings:"SOFT" 40,"WONK" 0;font-feature-settings:"kern","liga","calt"}
+.em{font-style:italic}
+.mono{font-family:var(--mono);text-transform:uppercase;letter-spacing:.05em;font-weight:400}
+
+/* ── browse ── */
+#greet{position:fixed;left:26px;top:max(26px,env(safe-area-inset-top));font-size:18px;opacity:0;z-index:2;pointer-events:none}
+#hintTop{position:fixed;left:26px;top:calc(max(26px,env(safe-area-inset-top)) + 30px);font-size:12px;opacity:0;z-index:2;pointer-events:none}
+#reel{position:fixed;inset:0;pointer-events:none;z-index:1;will-change:transform,opacity}
+.item{position:absolute;left:0;top:0;width:calc(100% - 92px);padding-left:26px;height:0;will-change:transform;visibility:hidden}
+.item>div{position:absolute;left:26px;top:0;transform-origin:0 50%;white-space:nowrap;pointer-events:auto;will-change:transform,opacity}
+.item .big{font-size:clamp(46px,14.5vw,86px);line-height:.95;opacity:0}
+.item .sm{opacity:0}
+.item .big .g{display:block}
+.item .sm{font-size:26px;line-height:1.2}
+#meta{position:fixed;left:26px;font-size:12px;opacity:0;z-index:1;pointer-events:none;white-space:nowrap}
+#rail{position:fixed;right:0;width:72px;z-index:3;pointer-events:none}
+#rail i{position:absolute;right:22px;font:400 12px/1 var(--mono);font-style:normal;transform-origin:100% 50%;will-change:transform,opacity}
+#tier{position:fixed;right:22px;font-size:12px;opacity:0;z-index:3;pointer-events:none;text-align:right}
+
+/* ── bottom button row: swipe toward a button == tap it ── */
+.bbar{display:flex;gap:10px;height:60px;align-items:stretch}
+#bar{position:fixed;left:14px;right:14px;bottom:max(14px,env(safe-area-inset-bottom));z-index:4}
+.btn{flex:1 1 0;min-width:58px;height:60px;border-radius:30px;display:flex;align-items:center;justify-content:center;gap:8px;
+  font:500 17px/1 var(--ui);letter-spacing:-.005em;overflow:hidden;white-space:nowrap;will-change:flex-grow}
+.btn svg{flex:none}
+.btn.tonal{background:var(--tonal)}
+.btn.rec{background:var(--rec);color:#fff}
+.btn.rev{background:var(--rev);color:#fff}
+.btn.dis{opacity:.42}
+.btn span{display:block;transition:none}
+
+/* ── recording overlay ── */
+#mini{position:fixed;left:14px;right:14px;bottom:calc(max(14px,env(safe-area-inset-bottom)) + 72px);height:86px;border-radius:24px;
+  background:var(--ink);color:var(--bg);z-index:3;padding:14px 18px;opacity:0;visibility:hidden;pointer-events:none;overflow:hidden;
+  box-shadow:0 10px 30px rgba(43,34,27,.22)}
+#mini.on{opacity:1;visibility:visible;pointer-events:auto}
+#mini .t{display:flex;align-items:center;gap:10px;font-size:12px;opacity:.8}
+#mini .t .sp{flex:1}
+#mini #mCue{margin-top:8px;font-size:20px;line-height:1.12;opacity:.95;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+#mini.flag{box-shadow:0 10px 30px rgba(43,34,27,.22),inset 4px 0 0 var(--rec)}
+.rdot{width:8px;height:8px;border-radius:50%;background:var(--rec);animation:pulse 2.4s ease-in-out infinite;flex:none}
+@keyframes pulse{50%{opacity:.3}}
+
+#toast{position:fixed;top:max(22px,env(safe-area-inset-top));left:0;right:0;text-align:center;z-index:9;
+  font-size:12px;opacity:0;transition:opacity .5s;pointer-events:none;padding:0 20px}
+#hlog{position:fixed;left:8px;top:8px;z-index:9;font:11px var(--mono);opacity:0;pointer-events:none}
+
+/* ── sheet (container transform from the button that opened it) ── */
+#ws{position:fixed;inset:0;z-index:5;visibility:hidden;clip-path:inset(50%);will-change:clip-path;color:var(--ink)}
+.pane{position:absolute;inset:0;display:none;flex-direction:column;padding:max(24px,env(safe-area-inset-top)) 26px max(14px,env(safe-area-inset-bottom));will-change:opacity}
+#ws.rec #p-rec{display:flex} #ws.rev #p-rev{display:flex}
+.pane .bbar{margin:0 -12px}
+.pane.light{}
+#rtop{display:flex;align-items:center;gap:12px;font-size:12px;min-height:44px}
+#rtop .l{display:flex;align-items:center;gap:10px}
+#rtop .sp{flex:1}
+.icobtn{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-right:-10px}
+#cueStage{position:relative;flex:1;display:flex;flex-direction:column;justify-content:center;padding-bottom:4vh}
+#earlier{position:absolute;top:1vh;left:0;right:0;display:flex;flex-direction:column;gap:9px}
+.earl{font-size:15px;line-height:1.35;opacity:0;transform:translateY(10px);transition:opacity .8s ease,transform .9s cubic-bezier(.2,.8,.2,1);display:flex;gap:10px}
+.earl b{font-family:var(--mono);font-weight:400;opacity:.8}
+.earl.on{opacity:.55;transform:none}
+.earl.on.old{opacity:.3}
+#cue{will-change:transform,opacity}
+.kick{display:flex;align-items:center;gap:10px;font-size:12px;margin-bottom:20px;opacity:0;transition:opacity .6s ease .1s}
+.kick i{width:8px;height:8px;border-radius:50%;background:var(--ink)}
+#cue.in .kick{opacity:.95}
+.ctext{font-size:clamp(38px,11vw,64px);line-height:1.02;text-wrap:balance;text-align:left}
+.w{display:inline-block;opacity:0;transform:translateY(.4em);filter:blur(6px);
+  transition:opacity .7s cubic-bezier(.2,.7,.2,1),transform .9s cubic-bezier(.2,1.2,.3,1),filter .7s ease}
+#cue.in .w{opacity:1;transform:none;filter:none}
+.heard{margin-top:24px;font-size:12px;line-height:1.5;opacity:0;transition:opacity .8s ease .9s;text-align:left;max-width:34ch}
+#cue.in .heard{opacity:.72}
+#cueLab{position:absolute;top:50%;font-size:12px;opacity:0;pointer-events:none;transform:translateY(-50%)}
+#listen{position:absolute;left:0;top:50%;transform:translateY(-50%);display:flex;align-items:center;gap:12px;font-size:12px;opacity:0;transition:opacity .9s ease}
+#listen i{width:6px;height:6px;border-radius:50%;background:var(--ink);animation:pulse 2.4s ease-in-out infinite}
+#listen.on{opacity:.7}
+#lvl{display:block;width:100%;height:28px;margin-bottom:14px}
+.stop{flex:none;width:60px;height:60px;border-radius:50%;background:var(--tonal);position:relative;display:flex;align-items:center;justify-content:center}
+.stop svg.ring{position:absolute;inset:0;transform:rotate(-90deg)}
+.stop .sq{width:18px;height:18px;border-radius:5px;background:var(--ink)}
+.cap{margin-top:10px;text-align:center;font-size:12px;opacity:.6}
+#revname{margin-top:14px;font-size:clamp(44px,13vw,92px);line-height:.96}
+#revname .g{display:block}
+#rvTop{font-size:12px;opacity:.7;min-height:44px;display:flex;align-items:center}
+.notes{list-style:none;max-width:520px;width:100%;margin-top:30px;text-align:left;flex:1}
+.note{padding:18px 0;border-top:1px solid rgba(43,34,27,.18);opacity:0;transform:translateY(16px);transition:opacity .6s ease,transform .9s cubic-bezier(.2,1.2,.4,1)}
+.on .note{opacity:1;transform:none}
+.note:nth-child(2){transition-delay:.09s}.note:nth-child(3){transition-delay:.18s}
+.note time{display:block;font-family:var(--mono);font-size:12px;letter-spacing:.05em;text-transform:uppercase;opacity:.7;margin-bottom:9px}
+.note p{font-size:18px;line-height:1.5;letter-spacing:-.008em;max-width:36ch;text-wrap:pretty}
+@media (prefers-reduced-motion:reduce){.rdot,#listen i{animation:none}.w{transition:opacity .3s;transform:none;filter:none}}
+</style>
+</head>
+<body>
+<div id="greet" class="disp em"></div>
+<div id="hintTop" class="mono">Swipe up or down to browse</div>
+<div id="reel"></div>
+<div id="meta" class="mono"></div>
+<div id="rail"></div>
+<div id="tier" class="mono"></div>
+
+<div id="mini" data-act="expand" role="button" aria-label="Open recording">
+  <div class="t mono"><i class="rdot"></i><span id="mTime">00:00</span><span id="mName"></span><span class="sp"></span>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 15l6-6 6 6"/></svg></div>
+  <div id="mCue" class="disp"></div>
+</div>
+
+<div id="bar" class="bbar">
+  <button class="btn tonal" data-side="L" data-act="notes" aria-label="Notes">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg><span>Notes</span></button>
+  <button class="btn rec" data-side="R" data-act="rec" aria-label="Record">
+    <span>Record</span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>
+</div>
+
+<section id="ws">
+  <div class="pane" id="p-rec">
+    <div id="rtop" class="mono">
+      <div class="l"><i class="rdot"></i><span id="timer">00:00</span></div>
+      <span id="recname"></span><span class="sp"></span>
+      <button class="icobtn" data-act="min" aria-label="Minimise recording">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>
+    </div>
+    <div id="cueStage">
+      <div id="earlier"></div>
+      <div id="listen" class="mono"><i></i>Listening</div>
+      <div id="cueLab" class="mono"></div>
+      <div id="cue">
+        <div class="kick mono"><i id="kdot"></i><span id="klab"></span></div>
+        <p class="ctext disp" id="ctext"></p>
+        <div class="heard mono" id="heard"></div>
+      </div>
+    </div>
+    <canvas id="lvl"></canvas>
+    <div class="bbar" id="rbar">
+      <button class="btn tonal" data-side="L" data-act="skip" id="bSkip"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg><span>Skip</span></button>
+      <button class="stop" data-act="stop" id="stopBtn" aria-label="Hold to finish recording">
+        <svg class="ring" viewBox="0 0 60 60"><circle id="ring" cx="30" cy="30" r="27" fill="none" stroke="var(--rec)" stroke-width="3" stroke-linecap="round" stroke-dasharray="169.6" stroke-dashoffset="169.6"/></svg><span class="sq"></span></button>
+      <button class="btn rev" data-side="R" data-act="done" id="bDone"><span>Covered</span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>
+    </div>
+    <div class="cap mono">Hold ■ to finish</div>
+  </div>
+
+  <div class="pane" id="p-rev">
+    <div id="rvTop" class="mono">Notes</div>
+    <div id="revname" class="disp"></div>
+    <ul class="notes" id="notes"></ul>
+    <div class="bbar" id="nbar">
+      <button class="btn tonal" data-side="L" data-act="closeNotes"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg><span>Close</span></button>
+      <button class="btn rec" data-side="R" data-act="recFromNotes"><span>Record</span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>
+    </div>
+  </div>
+</section>
+<div id="toast" class="mono"></div>
+<div id="hlog"></div>
+<label id="hxl" style="position:fixed;left:-99px;top:-99px;opacity:0;pointer-events:none"><input type="checkbox" switch id="hx"></label>
+
+<script>
+(()=>{
+'use strict';
+const $=id=>document.getElementById(id);
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const lerp=(a,b,t)=>a+(b-a)*t;
+const smooth=(a,b,x)=>{const t=clamp((x-a)/(b-a),0,1);return t*t*(3-2*t)};
+
+class Spring{
+  constructor(x=0,k=170,c=18){this.x=x;this.v=0;this.t=x;this.k=k;this.c=c}
+  step(dt){const n=Math.max(1,Math.ceil(dt*240)),h=dt/n;
+    for(let i=0;i<n;i++){this.v+=(this.k*(this.t-this.x)-this.c*this.v)*h;this.x+=this.v*h}}
+  snap(x){this.x=this.t=x;this.v=0}
+}
+const crit=k=>2*Math.sqrt(k);
+
+const C={bg:[237,230,217],ink:[43,34,27],rec:[201,54,31],rev:[44,122,98],tonal:[222,213,196]};
+const rgbS=c=>`rgb(${c[0]|0},${c[1]|0},${c[2]|0})`;
+
+/* ───────── data ───────── */
+const RAW=[['Sarah','Chen'],['Marcus','Brody'],['Elena','Rostova'],['Daniel','Cross'],['Amara','Okafor'],
+ ['Arthur','Pendleton'],['Beatrice','Vance'],['Clara','Oswald'],['Diego','Alvarez'],['Hana','Sato'],
+ ['Ingrid','Larsen'],['Jonas','Weber'],['Kofi','Mensah'],['Lena','Novak'],['Mateo','Rivera'],
+ ['Nadia','Haddad'],['Oliver','Grant'],['Priya','Raman'],['Samuel','Loomis'],['Tomas','Berg'],
+ ['Wren','Calloway'],['Yusuf','Demir'],['Chloe','Barnes'],['Rafael','Costa'],['Sofia','Ricci']];
+const hs=s=>{let h=0;for(const c of s)h=(h*31+c.charCodeAt(0))>>>0;return h};
+const DOCTOR='Dr. Alex';
+const NOTE_POOL=['Slept better this week. Anxiety around Monday meetings is still present.',
+ 'Breathing exercise is helping. Agreed to journal each evening.',
+ 'Talked through boundaries with family. Mood steady, energy improving.',
+ 'Revisited the sleep routine. Wants to add a short morning walk.',
+ 'Worked on the thought record. Calm and engaged throughout.',
+ 'Discussed the upcoming move. Some worry, good coping plan.'];
+const fmtDate=d=>new Date(Date.now()-d*864e5).toLocaleDateString('en-GB',{day:'numeric',month:'short'}).toUpperCase();
+const N=RAW.map(([g,s])=>{const h=hs(g+s);return{g,s,full:`${g} ${s}`,n:3+h%28,ago:1+h%21,yob:1950+h%50,h}})
+  .sort((a,b)=>a.s.localeCompare(b.s));
+const LET=[...new Set(N.map(p=>p.s[0]))];
+const firstOf=LET.map(l=>N.findIndex(p=>p.s[0]===l));
+const letIdx=N.map(p=>LET.indexOf(p.s[0]));
+const CUES=[
+ {k:'ask',t:'How has *sleep* been since last session?',h:'“…still waking up around three.”'},
+ {k:'notice',t:'*Monday meetings* came up again.',h:'“I just dread Mondays.”'},
+ {k:'ask',t:'What would make Monday feel *a little lighter*?',h:''},
+ {k:'flag',t:'Gentle *safety check-in*. Ask directly.',h:'“…sometimes I wonder what’s the point.”'},
+ {k:'notice',t:'The *breathing exercise* is helping.',h:'“The breathing thing actually helped.”'},
+ {k:'ask',t:'Shall we choose *one small thing* for this week?',h:''}];
+const KIND={ask:{lab:'Ask',col:'ink'},notice:{lab:'Notice',col:'rev'},flag:{lab:'Flag',col:'rec'}};
+
+/* ───────── haptics (native mapping: tick=CLOCK_TICK, arm=GESTURE_THRESHOLD_ACTIVATE,
+   disarm=GESTURE_THRESHOLD_DEACTIVATE, confirm=CONFIRM, flag=REJECT-style double) ───────── */
+const Hx={sup:('vibrate' in navigator)&&(navigator.maxTouchPoints>0),ctx:null,noise:null,last:0,on:true,log:/[?&]h\b/.test(location.search),
+  init(){
+    if(this.sup||this.ctx)return;const A=window.AudioContext||window.webkitAudioContext;if(!A)return;
+    this.ctx=new A();const n=this.ctx.sampleRate*.05|0,b=this.ctx.createBuffer(1,n,this.ctx.sampleRate),d=b.getChannelData(0);
+    for(let i=0;i<n;i++)d[i]=Math.random()*2-1;this.noise=b;if(this.ctx.state==='suspended')this.ctx.resume();
+  },
+  v(name,p,gate=0){
+    const n=performance.now();if(n-this.last<gate)return;this.last=n;
+    if(this.log){const el=$('hlog');el.textContent='haptic: '+name;el.style.opacity=1;clearTimeout(this.lt);this.lt=setTimeout(()=>el.style.opacity=0,500)}
+    if(this.sup){try{navigator.vibrate(p)}catch(e){}}
+  },
+  click(f,vv,len){
+    if(!this.ctx||!this.on)return;const c=this.ctx,t=c.currentTime,s=c.createBufferSource();s.buffer=this.noise;
+    const bp=c.createBiquadFilter();bp.type='bandpass';bp.frequency.value=f;bp.Q.value=5;
+    const g=c.createGain();g.gain.setValueAtTime(vv,t);g.gain.exponentialRampToValueAtTime(1e-4,t+len);
+    s.connect(bp);bp.connect(g);g.connect(c.destination);s.start(t);s.stop(t+len+.01);
+  },
+  tick(){this.v('tick',12,28);this.click(1500,.04,.02)},
+  soft(){this.v('soft',8,28);this.click(1100,.02,.015)},
+  mode(){this.v('mode',18,0);this.click(1000,.04,.025)},
+  arm(){this.v('arm',24,0);this.click(800,.06,.03)},
+  disarm(){this.v('disarm',10,0);this.click(1000,.02,.02)},
+  confirm(){this.v('confirm',[34],0);this.click(500,.07,.05)},
+  cue(kind){kind==='flag'?this.v('flag',[26,110,26,110,26]):this.v('cue',16);this.click(1300,.03,.02)},
+  done(){this.v('done',[18,70,18]);this.click(700,.04,.03)}
+};
+
+/* ───────── layout ───────── */
+let W=0,H=0,CY=300,RT=200,RH=400,TACT=110,RSTEP=30;
+const EDGE=20,DEAD=12,S1=128,S2=46;
+function resize(){
+  W=innerWidth;H=innerHeight;CY=H*.34;RT=H*.2;RH=Math.min(H*.5,LET.length*32);RSTEP=RH/(LET.length-1);
+  TACT=clamp(W*.28,96,150);
+  const r=$('rail');r.style.top=RT+'px';r.style.height=RH+'px';
+  LET.forEach((l,i)=>{rail[i].style.top=(i*RSTEP-6)+'px'});
+  $('meta').style.top=(CY+Math.min(52,W*.14*.95)+30)+'px';
+  $('tier').style.top=(RT-30)+'px';
+}
+addEventListener('resize',resize);
+
+/* ───────── build DOM: reel + rail ───────── */
+const reelEl=$('reel'),rail=[];
+const items=N.map((p,i)=>{
+  const el=document.createElement('div');el.className='item';
+  el.innerHTML=`<div class="big disp" data-i="${i}"><span class="g">${p.g}</span><span class="g em">${p.s}</span></div><div class="sm disp" data-i="${i}">${p.g} ${p.s}</div>`;
+  reelEl.appendChild(el);return{el,big:el.children[0],sm:el.children[1],vis:false}});
+LET.forEach(l=>{const i=document.createElement('i');i.textContent=l;$('rail').appendChild(i);rail.push(i)});
+$('greet').textContent=`Welcome, ${DOCTOR}`;
+
+/* paper grain */
+(()=>{const c=document.createElement('canvas');c.width=c.height=160;const x=c.getContext('2d'),id=x.createImageData(160,160);
+  for(let i=0;i<id.data.length;i+=4){const v=Math.random()*255|0;id.data[i]=id.data[i+1]=id.data[i+2]=v;id.data[i+3]=9}
+  x.putImageData(id,0,0);const u=`url(${c.toDataURL()})`;document.body.style.backgroundImage=u;$('ws').style.backgroundImage=u})();
+
+/* ───────── state ───────── */
+const S={view:'root',sheet:'closed',rec:null,after:null,knows:false,quiet:false,tapAt:0,
+  armed:null,tgt:0,cue:null,cueI:0,cueNext:0,lvl:.2,lvlT:.3,lvlN:0,samples:[],lvlAcc:0,hold:null,idle:performance.now(),nudged:false,warned:false};
+const Wh={n:N.length,p:0,v:0,t:0,drag:false,sel:0,last:0};
+const pL=new Spring(0,300,26),pR=new Spring(0,300,26),armS=new Spring(0,300,12),q=new Spring(0,300,31),
+  cx=new Spring(0,420,26),shift=new Spring(0,420,26),introA=new Spring(0,70,crit(70)),railA=new Spring(0,200,crit(200)),
+  tierA=new Spring(0,300,crit(300)),metaA=new Spring(1,200,crit(200)),pulse=new Spring(0,320,12),
+  hintA=new Spring(0,60,crit(60)),greetA=new Spring(0,60,crit(60));
+const SP=[pL,pR,armS,q,cx,shift,introA,railA,tierA,metaA,pulse,hintA,greetA];
+const SH={rect:{l:0,t:0,r:0,b:0},rad:30,col:C.tonal};
+
+/* ───────── helpers ───────── */
+let toastTO;
+function toast(s){const e=$('toast');e.textContent=s;e.style.opacity=.7;clearTimeout(toastTO);toastTO=setTimeout(()=>e.style.opacity=0,2200)}
+const rectOf=el=>{const r=el.getBoundingClientRect();return{l:r.left,t:r.top,r:r.right,b:r.bottom}};
+function curBar(){return S.view==='rec'?$('rbar'):S.view==='rev'?$('nbar'):$('bar')}
+function btn(bar,side){return bar.querySelector(`[data-side="${side}"]`)}
+
+/* labels per bar: [rest, armed] */
+function labels(){
+  if(S.view==='rec')return{L:['Skip','Release to skip'],R:['Covered','Release to cover']};
+  if(S.view==='rev')return{L:['Close','Release to close'],R:['Record','Release to record']};
+  return{L:['Notes','Release for notes'],R:[S.rec?'Back to recording':'Record',S.rec?'Release to open':'Release to record']};
+}
+function setLabel(bar,side,txt){const s=btn(bar,side).querySelector('span');if(s.textContent!==txt)s.textContent=txt}
+function refreshLabels(){const L=labels(),bar=curBar();
+  setLabel(bar,'L',S.armed==='L'?L.L[1]:L.L[0]);setLabel(bar,'R',S.armed==='R'?L.R[1]:L.R[0])}
+
+/* ───────── selection ───────── */
+function setMeta(){const p=N[Wh.sel];$('meta').textContent=`b. ${p.yob} · ${p.n} sessions · last ${fmtDate(p.ago)}`}
+function select(i){Wh.t=clamp(i,0,N.length-1)}
+
+/* ───────── sheets: container transform from the button that opened them ───────── */
+function openSheet(kind,rect,col,rad){
+  S.view=kind;S.sheet='opening';SH.rect=rect;SH.col=col;SH.rad=rad;
+  const ws=$('ws');ws.className=kind;ws.style.visibility='visible';q.snap(0);q.t=1;cx.snap(0);
+  $('mini').classList.remove('on');refreshLabels();
+}
+function closeSheet(rect,col,rad,state){SH.rect=rect;SH.col=col;SH.rad=rad;S.sheet=state;q.t=0;S.armed=null}
+function finishSheet(){
+  const was=S.sheet;$('ws').style.visibility='hidden';$('ws').className='';S.view='root';S.sheet='closed';
+  pL.snap(0);pR.snap(0);shift.snap(0);S.armed=null;refreshLabels();
+  if(S.rec)$('mini').classList.add('on');
+  if(S.after==='rec'){S.after=null;startRecord()}
+  S.idle=performance.now();
+}
+function openNotes(){
+  const p=N[S.tgt=Wh.sel];$('revname').innerHTML=`<span class="g">${p.g}</span><span class="g em">${p.s}</span>`;
+  const nl=$('notes');nl.innerHTML='';
+  [0,1,2].forEach(i=>{const li=document.createElement('li');li.className='note';
+    li.innerHTML=`<time>${fmtDate(p.ago+i*7)}</time><p>${NOTE_POOL[(p.h+i*2)%NOTE_POOL.length]}</p>`;nl.appendChild(li)});
+  $('p-rev').classList.remove('on');
+  openSheet('rev',rectOf($('bar').querySelector('[data-side="L"]')),C.tonal,30);Hx.confirm();
+  setTimeout(()=>$('p-rev').classList.add('on'),300);
+}
+function closeNotes(){closeSheet(rectOf($('bar').querySelector('[data-side="L"]')),C.tonal,30,'closing');Hx.soft()}
+function startRecord(){
+  if(S.rec){expandRec();return}
+  const p=N[S.tgt=Wh.sel];
+  S.rec={idx:S.tgt,t0:performance.now()};S.cue=null;S.cueI=0;S.cueNext=performance.now()+2200;$('earlier').innerHTML='';
+  $('recname').textContent=`${p.full} · b. ${p.yob}`;$('mName').textContent=p.full;$('mCue').textContent='Listening…';$('mini').classList.remove('flag');
+  $('cue').classList.remove('in');$('listen').classList.add('on');cx.snap(0);S.samples=[];S.lvlAcc=0;
+  const lc=$('lvl'),d=Math.min(devicePixelRatio||1,2);lc.width=(W-52)*d;lc.height=28*d;
+  $('bSkip').classList.remove('dis');
+  openSheet('rec',rectOf($('bar').querySelector('[data-side="R"]')),C.rec,30);Hx.confirm();
+}
+function miniRect(){return rectOf($('mini'))}
+function minimizeRec(){closeSheet(miniRect(),C.ink,24,'minimizing');Hx.soft()}
+function expandRec(){
+  if(S.view!=='root'||!S.rec)return;
+  const m=miniRect();$('mini').classList.remove('on');openSheet('rec',m,C.ink,24);Hx.soft();
+}
+function finishRec(){
+  if(!S.rec)return;const p=N[S.rec.idx];S.hold=null;
+  closeSheet(rectOf($('bar').querySelector('[data-side="R"]')),C.rec,30,'closing');
+  S.rec=null;Hx.done();toast(`Saved to ${p.g}’s record`);$('mini').classList.remove('on');
+}
+
+/* ───────── live cues ───────── */
+const cueEl=$('cue'),listenEl=$('listen'),cueLab=$('cueLab');
+function wordsHTML(t){
+  const toks=[];t.split('*').forEach((seg,pi)=>seg.split(/\s+/).filter(Boolean).forEach(w=>toks.push({w,em:pi%2===1})));
+  return toks.map((k,i)=>{const nx=toks[i+1],sp=nx&&/^[.,;:!?…]+$/.test(nx.w)?'':' ';
+    return `<span class="w${k.em?' em':''}" style="transition-delay:${i*48}ms">${k.w}</span>${sp}`}).join('')}
+function addEarlier(text,mark){
+  const box=$('earlier'),el=document.createElement('div');el.className='earl';
+  el.innerHTML=`<b>${mark}</b><span>${text.replace(/\*/g,'')}</span>`;box.appendChild(el);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>el.classList.add('on')));
+  const all=[...box.children];all.forEach((e,i)=>{if(i<all.length-2){e.style.opacity=0;setTimeout(()=>e.remove(),700)}else if(i===all.length-2)e.classList.add('old')});
+}
+function showCue(i){
+  const c=CUES[i];if(!c)return;if(S.cue)addEarlier(S.cue.t,S.cue.k==='flag'?'!':'·');
+  S.cue=c;cx.snap(0);cueEl.classList.remove('in');cueEl.style.visibility='visible';
+  const K=KIND[c.k];$('klab').textContent=K.lab;$('kdot').style.background=`var(--${K.col})`;
+  $('ctext').innerHTML=wordsHTML(c.t);$('heard').textContent=c.h?'Heard '+c.h:'';
+  listenEl.classList.remove('on');void cueEl.offsetWidth;requestAnimationFrame(()=>cueEl.classList.add('in'));
+  $('bSkip').classList.toggle('dis',c.k==='flag');
+  $('mCue').textContent=c.t.replace(/\*/g,'');$('mini').classList.toggle('flag',c.k==='flag');
+  Hx.cue(c.k);
+}
+function handleCue(dir){
+  if(!S.cue)return;
+  if(S.cue.k==='flag'&&dir<0){cx.t=0;Hx.disarm();toast('Flags need “Covered”');return}
+  const c=S.cue;S.cue=null;cx.t=dir*W*.9;Hx.tick();$('bSkip').classList.remove('dis');
+  $('mCue').textContent='Listening…';$('mini').classList.remove('flag');
+  setTimeout(()=>{addEarlier(c.t,dir>0?'✓':'–');cueEl.style.visibility='hidden';cueEl.classList.remove('in');cx.snap(0);listenEl.classList.add('on')},420);
+  S.cueNext=performance.now()+1800;
+}
+const lvlC=$('lvl'),lg=lvlC.getContext('2d');
+function updateRec(now,dt){
+  if(!S.rec)return;
+  if(now>S.lvlN){S.lvlT=Math.random()<.25?.06:.2+Math.random()*.8;S.lvlN=now+90+Math.random()*260}
+  S.lvl+=(S.lvlT-S.lvl)*(1-Math.exp(-dt*9));
+  S.lvlAcc+=dt;if(S.lvlAcc>.06){S.lvlAcc=0;S.samples.push(S.lvl);const mx=Math.floor((W-52)/4);if(S.samples.length>mx)S.samples.shift()}
+  if(S.view==='rec'){
+    const d=lvlC.width/(W-52);lg.setTransform(d,0,0,d,0,0);lg.clearRect(0,0,W-52,28);
+    const n=S.samples.length,x0=(W-52)-n*4;
+    for(let i=0;i<n;i++){const s=S.samples[i],h=2+s*22,a=(.12+.3*s)*(.35+.65*i/n);
+      lg.fillStyle=`rgba(43,34,27,${a})`;lg.fillRect(x0+i*4,14-h/2,1.6,h)}
+  }
+  const ms=Math.max(0,now-S.rec.t0),s=ms/1000|0,tx=`${String(s/60|0).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
+  $('timer').textContent=tx;$('mTime').textContent=tx;
+  const ready=S.sheet==='open'||S.view==='root';
+  if(ready&&S.cueI<CUES.length&&now>S.cueNext&&(!S.cue||S.cue.k!=='flag')){showCue(S.cueI++);S.cueNext=now+12000}
+}
+
+/* ───────── input engine ─────────
+   • 12px dead zone, then the axis is LOCKED until release (no mid-gesture surprises)
+   • Sideways = choose (swipe toward a button == tap it; release only fires when armed)
+   • Vertical = depth (down = away/smaller, up = closer) inside sheets; scroll in browse
+   • Rail: slide inward for finer control (letters -> names -> fine)                       */
+const D={on:false,id:null,zone:null,mode:null,x0:0,y0:0,x:0,y:0,ly:0,vx:0,vy:0,lt:0,t0:0,moved:0,target:null,sub:'a',lastLet:-1};
+const rub=d=>{const a=Math.abs(d);return Math.sign(d)*(a<TACT?a:TACT+(a-TACT)*.25)};
+
+function inRail(x,y){return x>W-80&&y>RT-24&&y<RT+RH+24}
+function lockAxis(dx,dy,moved){
+  const ax=Math.abs(dx),ay=Math.abs(dy);
+  if(moved<DEAD)return null;
+  if(ax>ay*1.4)return 'h';if(ay>ax*1.4)return 'v';
+  if(moved>26)return ax>ay?'h':'v';return null;
+}
+function scrollNames(dy,tier){
+  const px=tier==='fine'?120:tier==='names'?52:92,sp=Math.abs(D.vy);
+  const boost=tier==='fine'?1:1+clamp((sp-380)/1400,0,1)*1.8;
+  let p=Wh.p-dy/px*boost;if(p<0)p*=.5;else if(p>Wh.n-1)p=Wh.n-1+(p-(Wh.n-1))*.5;
+  const dtm=Math.max(.008,(performance.now()-D.lt)/1000);Wh.v=lerp(Wh.v,(p-Wh.p)/dtm,.35);Wh.p=p;
+}
+function beginScroll(){Wh.drag=true;Wh.v=0;S.knows=true;hintA.t=0;if(!S.knowsAt)S.knowsAt=performance.now()}
+function endScroll(){Wh.drag=false;Wh.t=clamp(Math.round(Wh.p+Wh.v*.2),0,Wh.n-1)}
+
+/* progress feedback on the active bar */
+function barPull(sideLR,p){   // sideLR: 'L'|'R'|null ; p 0..1.25
+  pL.t=sideLR==='L'?p:0;pR.t=sideLR==='R'?p:0;
+}
+function setArmed(side){
+  if(side===S.armed)return;S.armed=side;refreshLabels();
+  if(side){armS.v+=7;Hx.arm()}else Hx.disarm();
+}
+
+addEventListener('pointerdown',e=>{
+  if(D.on)return;Hx.init();
+  if(!Hx.sup&&!S.warned){S.warned=true;toast('No vibration API here · haptics ship in the Android app')}
+  if(e.clientX<EDGE||e.clientX>W-EDGE)return;                         // palm / system-back guard
+  if(S.sheet==='opening'||S.sheet==='closing'||S.sheet==='minimizing')return;
+  D.target=e.target.closest('[data-act],[data-i]');
+  if(S.view==='rec')D.zone='rec';else if(S.view==='rev')D.zone='rev';
+  else if(D.target&&D.target.dataset.act==='expand')D.zone='mini';
+  else if(inRail(e.clientX,e.clientY)&&!(D.target&&D.target.dataset.act))D.zone='rail';
+  else D.zone='main';
+  D.on=true;D.id=e.pointerId;D.x0=D.x=e.clientX;D.y0=D.y=D.ly=e.clientY;D.vx=D.vy=0;D.lt=D.t0=performance.now();D.moved=0;D.mode=null;D.sub='a';D.lastLet=-1;
+  S.idle=performance.now();
+  if(D.target&&D.target.dataset.act==='stop'){S.hold={t0:performance.now(),moved:false};Hx.soft()}
+});
+addEventListener('pointermove',e=>{
+  if(!D.on||e.pointerId!==D.id)return;
+  const now=performance.now(),dtm=Math.max(.008,(now-D.lt)/1000);
+  D.vx=lerp(D.vx,(e.clientX-D.x)/dtm,.35);D.vy=lerp(D.vy,(e.clientY-D.y)/dtm,.35);
+  D.x=e.clientX;D.y=e.clientY;
+  const dx=D.x-D.x0,dy=D.y-D.y0,moved=Math.hypot(dx,dy);D.moved=Math.max(D.moved,moved);
+  if(S.hold&&moved>24){S.hold=null}
+  if(moved<DEAD){D.lt=now;return}
+
+  if(D.zone==='rail'){
+    if(!D.mode){D.mode='rail';S.knows=true;hintA.t=0;railA.t=1;tierA.t=1;S.quiet=true;beginScroll();Wh.drag=false;D.sub='a'}
+    const dxIn=D.x0-D.x;
+    let to=D.sub;
+    if(D.sub==='a'&&dxIn>60)to='n';else if(D.sub==='n'&&dxIn>150)to='f';else if(D.sub==='f'&&dxIn<120)to='n';else if(D.sub==='n'&&dxIn<30)to='a';
+    if(to!==D.sub){
+      D.sub=to;Hx.mode();D.ly=D.y;
+      if(to==='a'){Wh.drag=false;S.quiet=true}else{beginScroll();S.quiet=false}
+    }
+    if(D.sub==='a'){
+      const li=clamp(Math.round((D.y-RT)/RSTEP),0,LET.length-1);
+      if(li!==D.lastLet){D.lastLet=li;Wh.t=firstOf[li];Hx.tick()}
+    }else{scrollNames(D.y-D.ly,D.sub==='f'?'fine':'names');D.ly=D.y}
+    $('tier').textContent=D.sub==='a'?'Letters':D.sub==='n'?'Names':'Names · fine';
+  }else if(D.zone==='main'){
+    if(!D.mode){D.mode=lockAxis(dx,dy,moved);if(D.mode==='v'){beginScroll();D.ly=D.y}}
+    if(D.mode==='v'){scrollNames(D.y-D.ly,'main');D.ly=D.y}
+    else if(D.mode==='h'){
+      const eff=Math.sign(dx)*Math.max(0,Math.abs(dx)-DEAD),p=Math.abs(eff)/(TACT-DEAD);
+      barPull(eff>0?'R':'L',Math.min(p,1.25));shift.t=rub(eff)*.3;
+      const side=eff>0?'R':'L';setArmed(S.armed?(p>=.88?side:null):(p>=1?side:null));
+    }
+  }else if(D.zone==='rec'||D.zone==='rev'){
+    if(!D.mode){
+      D.mode=lockAxis(dx,dy,moved);
+      if(D.mode==='v'&&dy<0)D.mode='x';                                // up does nothing in a sheet
+      if(D.mode==='v'){ if(D.zone==='rec')SH.rect=miniRect(),SH.col=C.ink,SH.rad=24; else SH.rect=rectOf($('bar').querySelector('[data-side="L"]')),SH.col=C.tonal,SH.rad=30 }
+    }
+    if(D.mode==='h'){
+      let eff=Math.sign(dx)*Math.max(0,Math.abs(dx)-DEAD);const flag=D.zone==='rec'&&S.cue&&S.cue.k==='flag';
+      if(D.zone==='rec'&&!S.cue)eff*=.15;
+      if(flag&&eff<0)eff*=.2;
+      const p=Math.abs(eff)/(TACT-DEAD);barPull(eff>0?'R':'L',Math.min(p,1.25));
+      if(D.zone==='rec')cx.t=eff;
+      const side=eff>0?'R':'L',can=!(flag&&eff<0)&&!(D.zone==='rec'&&!S.cue);
+      setArmed(can&&(S.armed?p>=.88:p>=1)?side:null);
+    }else if(D.mode==='v'){
+      const e=Math.max(0,dy-DEAD),qq=1-clamp(e/(H*.5),0,1)*.9;q.x=q.t=qq;q.v=0;
+      const arm=S.armed?e>H*.12:e>H*.16;if(arm!==!!S.armed)setArmed(arm?'V':null);
+    }
+  }else if(D.zone==='mini'){
+    if(!D.mode&&moved>=DEAD)D.mode=(dy<-DEAD&&Math.abs(dy)>Math.abs(dx))?'up':'x';
+  }
+  D.lt=now;
+});
+function tap(t){
+  if(!t)return;S.knows=true;hintA.t=0;
+  const a=t.dataset.act;
+  if(t.dataset.i!=null){const i=+t.dataset.i;if(i!==Wh.sel){select(i);Hx.tick()}else nudgeBar();return}
+  if(a==='notes'){openNotes()}
+  else if(a==='rec'){startRecord()}
+  else if(a==='expand'){expandRec()}
+  else if(a==='min'){minimizeRec()}
+  else if(a==='closeNotes'){closeNotes()}
+  else if(a==='recFromNotes'){S.after='rec';closeNotes()}
+  else if(a==='skip'){handleCue(-1)}
+  else if(a==='done'){handleCue(1)}
+  else if(a==='stop'){toast('Hold ■ to finish')}
+}
+function endPointer(e){
+  if(!D.on||e.pointerId!==D.id)return;D.on=false;S.idle=performance.now();
+  const isTap=D.moved<DEAD&&performance.now()-D.t0<600,dx=D.x-D.x0,dy=D.y-D.y0;
+  if(S.hold){const done=S.hold.done;S.hold=null;if(!done&&D.target&&D.target.dataset.act==='stop'&&isTap){Hx.soft();toast('Hold ■ to finish')}}
+  else if(isTap){
+    if(D.zone==='rail'){const li=clamp(Math.round((D.y-RT)/RSTEP),0,LET.length-1);Wh.t=firstOf[li];Hx.tick();railA.t=1;setTimeout(()=>{railA.t=0},600)}
+    else tap(D.target);
+  }else{
+    if(D.zone==='rail'){railA.t=0;tierA.t=0;if(D.sub!=='a'&&Wh.drag)endScroll();setTimeout(()=>{S.quiet=false},500)}
+    else if(D.zone==='main'){
+      if(D.mode==='v')endScroll();
+      else if(D.mode==='h'){
+        const armed=S.armed;barPull(null,0);shift.t=0;
+        if(armed==='R')startRecord();else if(armed==='L')openNotes();
+        else if(Math.abs(dx)>40)Hx.soft();
+      }
+    }else if(D.zone==='rec'||D.zone==='rev'){
+      if(D.mode==='h'){
+        const armed=S.armed;barPull(null,0);cx.t=0;
+        if(D.zone==='rec'){ if(armed==='R')handleCue(1);else if(armed==='L')handleCue(-1) }
+        else{ if(armed==='L')closeNotes();else if(armed==='R'){S.after='rec';closeNotes()} }
+      }else if(D.mode==='v'){
+        if(S.armed==='V'){ if(D.zone==='rec')minimizeRec();else closeNotes() }
+        else q.t=1;
+      }
+    }else if(D.zone==='mini'){ if(D.mode==='up')expandRec(); }
+  }
+  S.armed=null;refreshLabels();D.zone=null;
+}
+addEventListener('pointerup',endPointer);
+addEventListener('pointercancel',endPointer);
+addEventListener('contextmenu',e=>e.preventDefault());
+document.addEventListener('click',e=>{ if(e.detail===0){const t=e.target.closest('[data-act]');if(t&&t.dataset.act!=='stop')tap(t)} });  // keyboard/TalkBack activation
+addEventListener('keydown',e=>{
+  Hx.init();const k=e.key;
+  if(k==='m'||k==='M'){Hx.on=!Hx.on;toast(Hx.on?'Sound on':'Sound off');return}
+  if(S.sheet!=='closed'&&S.sheet!=='open')return;
+  if(S.view==='rec'){ if(k==='ArrowRight')handleCue(1);else if(k==='ArrowLeft')handleCue(-1);else if(k==='ArrowDown'||k==='Escape')minimizeRec();return}
+  if(S.view==='rev'){ if(k==='ArrowLeft'||k==='ArrowDown'||k==='Escape')closeNotes();else if(k==='ArrowRight'){S.after='rec';closeNotes()}return}
+  if(k==='ArrowDown'){select(Wh.sel+1);Hx.tick()}else if(k==='ArrowUp'){select(Wh.sel-1);Hx.tick()}
+  else if(k==='ArrowRight'||k==='Enter')startRecord();else if(k==='ArrowLeft')openNotes();
+  else if(/^[a-z]$/i.test(k)){const i=LET.indexOf(k.toUpperCase());if(i>=0){Wh.t=firstOf[i];railA.t=1;setTimeout(()=>railA.t=0,700)}}
+});
+
+/* one-time nudge so people see both buttons are swipeable */
+function nudgeBar(){
+  if(S.nudged)return;S.nudged=true;pR.t=.3;setTimeout(()=>{pR.t=0;pL.t=.3},520);setTimeout(()=>{pL.t=0},1040);
+}
+
+/* ───────── frame ───────── */
+let last=performance.now(),prevSel=-1;
+function frame(now){
+  const dt=Math.min(.033,(now-last)/1000);last=now;const t=now/1000;
+
+  // names wheel physics
+  if(!Wh.drag){const n=Math.max(1,Math.ceil(dt*240)),h=dt/n;for(let i=0;i<n;i++){Wh.v+=(150*(Wh.t-Wh.p)-21*Wh.v)*h;Wh.p+=Wh.v*h}}
+  else Wh.v*=Math.exp(-dt*10);
+  Wh.sel=clamp(Math.round(Wh.p),0,Wh.n-1);
+  if(Wh.sel!==Wh.last){Wh.last=Wh.sel;pulse.v+=6;if(!S.quiet&&prevSel>=0)Hx.tick();setMeta();S.tgt=Wh.sel}
+  prevSel=Wh.sel;
+
+  // idle teaching: nudge the reel once, then the buttons after the first pick
+  if(!S.knows&&S.view==='root'&&!D.on&&now-S.idle>3200&&!S.nudgedReel){S.nudgedReel=true;Wh.t=Wh.p+.35;setTimeout(()=>{if(!S.knows)Wh.t=0},600)}
+
+  if(S.knows&&!S.nudged&&S.view==='root'&&!D.on&&S.knowsAt&&now-S.knowsAt>2400)nudgeBar();
+  for(const s of SP)s.step(dt);
+
+  // hold-to-finish
+  if(S.hold&&S.rec){
+    const prog=clamp((now-S.hold.t0)/700,0,1);$('ring').setAttribute('stroke-dashoffset',(169.6*(1-prog)).toFixed(1));
+    if(prog>=1&&!S.hold.done){S.hold.done=true;finishRec()}
+  }else $('ring').setAttribute('stroke-dashoffset','169.6');
+
+  // reel
+  const p=Wh.p,fastv=clamp(Math.abs(Wh.v)/6,0,1);
+  reelEl.style.transform=`translate3d(${shift.x.toFixed(1)}px,0,0)`;
+  reelEl.style.opacity=(introA.x*(1-.45*Math.max(clamp(pL.x,0,1),clamp(pR.x,0,1)))).toFixed(3);
+  const lo=Math.max(0,Math.floor(p)-4),hi=Math.min(N.length-1,Math.ceil(p)+4);
+  items.forEach((it,i)=>{
+    if(i<lo||i>hi){if(it.vis){it.el.style.visibility='hidden';it.vis=false}return}
+    const rel=i-p,n=Math.abs(rel),f=Math.max(0,1-n);
+    const yy=n<1?n*S1:S1+(n-1)*S2,y=CY+Math.sign(rel)*yy+(1-introA.x)*26;
+    const bigA=smooth(.5,.9,f),al=n<1?lerp(1,.45,n):Math.max(0,.45*Math.pow(.5,n-1)-.02*(n-1)),smA=al*(1-bigA);
+    it.el.style.visibility='visible';it.vis=true;it.el.style.transform=`translate3d(0,${y.toFixed(1)}px,0)`;
+    it.big.style.opacity=bigA.toFixed(3);
+    it.big.style.transform=`translateY(-50%) scale(${lerp(.55,1,f).toFixed(3)})`;
+    it.sm.style.opacity=smA.toFixed(3);it.sm.style.transform='translateY(-50%)';
+  });
+  const fsel=1-Math.abs(p-Math.round(p))*2;
+  $('meta').style.opacity=(smooth(.5,1,fsel)*(1-fastv)*introA.x*.72*(1-Math.max(clamp(pL.x,0,1),clamp(pR.x,0,1)))).toFixed(3);
+  $('meta').style.transform=`translateX(${shift.x.toFixed(1)}px)`;
+
+  // rail
+  const lo2=Math.floor(clamp(p,0,N.length-1)),hi2=Math.min(N.length-1,lo2+1),fr=clamp(p,0,N.length-1)-lo2;
+  const lp=lerp(letIdx[lo2],letIdx[hi2],fr),ra=railA.x;
+  rail.forEach((el,i)=>{
+    const d=i-lp,mag=Math.exp(-d*d/(1.5+ra*1.2));
+    const sc=1+(1.15+ra*.9)*mag,tx=-mag*(10+ra*8);
+    el.style.transform=`translate3d(${tx.toFixed(1)}px,0,0) scale(${sc.toFixed(2)})`;
+    el.style.opacity=((.34+.6*mag+.12*ra)*introA.x).toFixed(3);
+  });
+  $('tier').style.opacity=clamp(tierA.x,0,1)*.7;
+
+  // greeting + hint
+  $('greet').style.opacity=clamp(greetA.x,0,1)*.7*(S.view==='root'?1:0);
+  $('hintTop').style.opacity=(clamp(hintA.x,0,1)*.62*(S.view==='root'?1:0)).toFixed(3);
+
+  // bars: flex-grow springs (button-group expansion)
+  const bar=curBar();
+  for(const b of [$('bar'),$('rbar'),$('nbar')]){
+    const act=b===bar,gl=act?1+2.4*pL.x:1,gr=act?1+2.4*pR.x:1;
+    const l=btn(b,'L'),r=btn(b,'R');l.style.flexGrow=Math.max(.2,gl).toFixed(3);r.style.flexGrow=Math.max(.2,gr).toFixed(3);
+    l.querySelector('span').style.opacity=clamp(1-pR.x*1.7,0,1).toFixed(2);
+    r.querySelector('span').style.opacity=clamp(1-pL.x*1.7,0,1).toFixed(2);
+    const sc=1+armS.x*.03;if(act&&S.armed==='R')r.style.transform=`scale(${sc})`;else r.style.transform='';
+    if(act&&S.armed==='L')l.style.transform=`scale(${sc})`;else l.style.transform='';
+  }
+  $('bar').style.opacity=S.view==='root'?1:0;
+
+  // sheet
+  if(S.sheet!=='closed'){
+    const qq=q.x,r=SH.rect,k=1-qq,ws=$('ws');
+    ws.style.clipPath=`inset(${(r.t*k).toFixed(1)}px ${((W-r.r)*k).toFixed(1)}px ${((H-r.b)*k).toFixed(1)}px ${(r.l*k).toFixed(1)}px round ${Math.max(0,SH.rad*k).toFixed(1)}px)`;
+    const m=smooth(.12,.65,qq),f=SH.col;
+    ws.style.backgroundColor=`rgb(${lerp(f[0],C.bg[0],m)|0},${lerp(f[1],C.bg[1],m)|0},${lerp(f[2],C.bg[2],m)|0})`;
+    const pane=S.view==='rec'?$('p-rec'):$('p-rev');pane.style.opacity=clamp((qq-.5)/.4,0,1);
+    if(S.sheet==='opening'&&qq>.93)S.sheet='open';
+    if((S.sheet==='closing'||S.sheet==='minimizing')&&q.x<.02){const mini=S.sheet==='minimizing';finishSheet();if(mini&&S.rec)$('mini').classList.add('on')}
+    if(S.view==='rec'){
+      const ax=Math.abs(cx.x);
+      cueEl.style.transform=`translate3d(${cx.x.toFixed(1)}px,0,0) rotate(${(cx.x*.01).toFixed(2)}deg)`;
+      cueEl.style.opacity=clamp(1-ax/(W*.55),0,1);
+      const lab=clamp((ax-DEAD)/(TACT-DEAD),0,1);cueLab.style.opacity=lab*.9;
+      cueLab.textContent=cx.x>0?'Covered':'Skip';cueLab.style.left=cx.x>0?'0':'auto';cueLab.style.right=cx.x>0?'auto':'0';
+      cueLab.style.color=cx.x>0?'var(--rev)':'var(--ink)';
+    }
+  }
+  updateRec(now,dt);
+  requestAnimationFrame(frame);
+}
+
+/* ───────── boot ───────── */
+resize();setMeta();Wh.last=Wh.sel;
+setTimeout(()=>{introA.t=1;greetA.t=1},200);
+setTimeout(()=>{if(!S.knows)hintA.t=1},2000);
+refreshLabels();
+requestAnimationFrame(t=>{last=t;requestAnimationFrame(frame)});
+})();
+</script>
+</body>
+</html>
