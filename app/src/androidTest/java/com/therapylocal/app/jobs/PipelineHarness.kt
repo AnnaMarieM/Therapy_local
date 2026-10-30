@@ -29,6 +29,9 @@ class PipelineHarness(private val context: Context, val name: String, private va
     /** Kind and session of every job a handler ran, in order. */
     val ran = ArrayList<Pair<String, String>>()
 
+    /** Kind and session of every job a handler returned from without throwing, in order. */
+    val finished = ArrayList<Pair<String, String>>()
+
     val pipeline = Pipeline(
         store, queue, PROMPTS::getValue,
         chunks = { rid -> audio[rid].orEmpty().map { it.idx } },
@@ -40,6 +43,7 @@ class PipelineHarness(private val context: Context, val name: String, private va
         JobHandler { job, run ->
             ran += kind to job.sessionId
             h.run(job, run)
+            finished += kind to job.sessionId
         }
     }
 

@@ -3,10 +3,12 @@ package com.therapylocal.app.jobs
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.therapylocal.app.data.JobStatus
+import com.therapylocal.app.vault.VaultLockedException
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Test
@@ -14,7 +16,7 @@ import org.junit.runner.RunWith
 
 /**
  * The session pipeline end to end on a real encrypted database: transcribe, window, extract, commit and cleanup, driven by the job runner,
- * with fake models. Covers mentions across sessions, a crash inside the commit's transaction, commit order (D4), and deletes (cascade, D2).
+ * with fake models. Covers mentions across sessions, a crash inside the commit's transaction, commit order (D4), deletes (cascade, D2) and erase.
  */
 @RunWith(AndroidJUnit4::class)
 class PipelineEndToEndTest {
@@ -97,16 +99,15 @@ class PipelineEndToEndTest {
     }
 
     @Test
-    fun theOlderSessionIsCommittedBeforeTheNewerOnesFinalCommitEvenWhenQueuedLater() {
+    fun theOlderSessionIsCommittedFirstAndEachSessionOnceEvenWhenQueuedLater() {
         val h = harness()
         h.record(CLIENT, S2, 2_000, LINES_2)
         h.record(CLIENT, S1, 1_000, LINES_1)
         h.drain()
 
-        val commits = h.ran.filter { it.first == JobGraph.COMMIT }.map { it.second }
-        val older = commits.indexOf(S1)
-        assertTrue("the older session was committed", older >= 0)
-        assertTrue("the newer session is committed again after the older one: $commits", commits.lastIndexOf(S2) > older)
+        // The newer session's commit waits for the older one's, so neither is ever re-run.
+        assertEquals(listOf(S1, S2), h.ran.filter { it.first == JobGraph.COMMIT }.map { it.second })
+        assertEquals(listOf(S1, S2), h.finished.filter { it.first == JobGraph.COMMIT }.map { it.second })
         // The result is as if the sessions had been committed in order: the fact belongs to the older session, the newer one mentions it.
         assertEquals(EXPECTED, h.outcome(CLIENT))
         assertTrue(h.allJobsDone())
@@ -128,6 +129,8 @@ class PipelineEndToEndTest {
         assertEquals(1, sister.segIdx)
         assertEquals(0, sister.mentionCount)
         assertEquals(listOf(S2 to true), h.store.factOccurrences(sister.id).map { it.sessionId to it.first })
+        assertEquals("the promoted mention is not also kept as a mention", 0, h.count("mentions", "fact_id = ?", "${sister.id}"))
+        assertEquals("no fact is mentioned in its own session", 0, h.count("mentions m JOIN facts f ON f.id = m.fact_id", "m.session_id = f.session_id"))
         assertEquals(listOf(SISTER.heading, LIBRARY.heading), h.store.facts(CLIENT).map { it.heading }.sorted())
         for (table in listOf("segments", "windows", "facts", "mentions", "extract_cache", "review_cache", "jobs", "recordings")) {
             assertEquals("$table of the deleted session", 0, h.count(table, "session_id = ?", S1))
@@ -138,6 +141,18 @@ class PipelineEndToEndTest {
         assertTrue(h.store.deleteClient(CLIENT))
         for (table in PipelineHarness.TABLES) assertEquals("rows left in $table", 0, h.count(table))
         assertFalse(h.store.sessionExists(S2))
+    }
+
+    @Test
+    fun anErasedStoreRefusesToReopenItsFile() {
+        val h = harness()
+        h.record(CLIENT, S1, 1_000, LINES_1)
+        h.close()
+        assertFalse(context.getDatabasePath(h.name).exists())
+
+        assertThrows(VaultLockedException::class.java) { h.store.writableDatabase }
+        assertThrows(VaultLockedException::class.java) { h.store.readableDatabase }
+        assertFalse("a holder of the closed store does not recreate the file", context.getDatabasePath(h.name).exists())
     }
 
     companion object {
