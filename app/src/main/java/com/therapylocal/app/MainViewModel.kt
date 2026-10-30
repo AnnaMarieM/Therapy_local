@@ -2,30 +2,25 @@ package com.therapylocal.app
 
 import android.app.Application
 import android.content.Context
-import android.os.storage.StorageManager
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.therapylocal.app.audio.ChunkRecorder
 import com.therapylocal.app.audio.TestAudio
 import com.therapylocal.app.config.BackendPolicy
 import com.therapylocal.app.config.ChunkConfig
-import com.therapylocal.app.config.liveCueSettings
 import com.therapylocal.app.data.ChunkRow
 import com.therapylocal.app.data.MindStore
 import com.therapylocal.app.data.PendingAudio
 import com.therapylocal.app.data.RecordingRow
 import com.therapylocal.app.data.SegmentBuilder
-import com.therapylocal.app.embed.Embedder
-import com.therapylocal.app.jobs.JobGraph
-import com.therapylocal.app.jobs.JobRunner
-import com.therapylocal.app.jobs.Jobs
+import com.therapylocal.app.embed.Engines
 import com.therapylocal.app.log.AppLog
 import com.therapylocal.app.log.LogCtx
 import com.therapylocal.app.memory.LiveCues
 import com.therapylocal.app.memory.MemoryFiles
-import com.therapylocal.app.memory.MemoryService
 import com.therapylocal.app.models.ModelSetup
 import com.therapylocal.app.models.SetupState
+import com.therapylocal.app.session.SessionController
 import com.therapylocal.app.ui.data.ClientRepository
 import com.therapylocal.app.ui.models.SearchHit
 import kotlinx.coroutines.CancellationException
@@ -61,7 +56,8 @@ data class UiState(
     val selectedChunks: List<ChunkRow> = emptyList(),
     val selectedMerged: String = "",
     val testFiles: List<String> = emptyList(),
-    val error: String? = null,
+    val error: String? = null, // setup problems only
+    val recordingError: String? = null, // the session's recording problem, from SessionController
 )
 
 class MainViewModel(app: Application) : AndroidViewModel(app) {
@@ -79,14 +75,11 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     val state: StateFlow<UiState> = _state.asStateFlow()
 
     private val store get() = MindStore.get(ctx)
-    private val embedder = Embedder(app)
+    private val embedder = Engines.embedder(app)
 
-    /** Realtime fact cues while recording: call `liveCues.start(client)` before startRecording(); it stops itself when the recording ends. */
-    val liveCues = LiveCues(embedder, MindStore.get(app)) { prefs.liveCueSettings() }
+    /** Realtime fact cues of the running session (owned by [SessionController]). */
+    val liveCues: LiveCues get() = SessionController.liveCues
     private var prepareJob: Job? = null
-
-    private var recorder: ChunkRecorder? = null
-    private var pipelineJob: Job? = null
 
     private val clients = ClientRepository(app)
     private val _search = MutableStateFlow(SearchState())
@@ -95,7 +88,15 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     private var voiceRecorder: ChunkRecorder? = null
 
     init {
+        SessionController.init(app)
         BackendPolicy.override = _state.value.backendOverride
+        viewModelScope.launch {
+            SessionController.state.collect { r ->
+                _state.update { it.copy(recording = r.active, activeRecordingId = r.recordingId, recordingError = r.error) }
+                // A session started before setup finished gets its cues as soon as the embedder is ready.
+                if (r.active && !r.cuesOn && _state.value.phase == Phase.Ready) SessionController.enableCues()
+            }
+        }
         refreshRecordings()
         // Memory-lab launches only need the pipeline's models; loading the embedder here too would take memory they need.
         if (!skipPrepare) prepare()
@@ -146,6 +147,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             _state.update { it.copy(prepareMsg = "Getting ready") }
             embedder.load()
             _state.update { it.copy(phase = Phase.Ready, embedBackend = "text ${embedder.backend} / audio CPU", prepareMsg = "Ready") }
+            SessionController.enableCues()
         } catch (t: Throwable) {
             AppLog.e(TAG, "prepare_failed", LogCtx.NONE, t)
             _state.update { it.copy(phase = Phase.Failed, error = t.message) }
@@ -159,108 +161,28 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     // ---- recording ------------------------------------------------------------------------------------------
 
-    /** Records [session] of [client]: its row is created now (the first time), and its audio is processed once every chunk is saved. */
-    fun startRecording(client: String, session: String) = beginRecording(client to session) { rec -> rec.start() }
+    /** Records [session] of [client] through the process-wide [SessionController]; live cues run when the embedder is ready. */
+    fun startRecording(client: String, session: String) {
+        SessionController.start(client, cues = _state.value.phase == Phase.Ready, session = session)
+    }
 
     /** Debug: a recording outside any session. Its audio is kept but never processed. */
-    fun startRecording() = beginRecording(null) { rec -> rec.start() }
+    fun startRecording() {
+        SessionController.startDebug()
+    }
 
     /** Debug: replay `files/test/<name>` through the real chunker instead of the microphone. */
     fun debugRecordFile(name: String) {
         val pcm = TestAudio.load(ctx, name)
         AppLog.i(TAG, "debug_record_file", LogCtx.NONE, "file" to name, "samples" to pcm.size, "audio_sec" to "%.1f".format(pcm.size / 16000.0))
-        beginRecording(null) { rec -> rec.startFromPcm(pcm) }
+        SessionController.startDebug(pcm)
     }
 
-    /** [owner] is (client, session), null for a debug recording. */
-    private fun beginRecording(owner: Pair<String, String>?, startSource: (ChunkRecorder) -> Unit) {
-        val s = _state.value
-        if (s.recording) return
-        viewModelScope.launch {
-            // The audio stays on the phone until it is processed; a recording that cannot be saved is better not started.
-            if (withContext(Dispatchers.IO) { freeBytes() } < ChunkConfig.MIN_FREE_BYTES) {
-                _state.update { it.copy(error = "Not enough free storage to record. Free some space and try again.") }
-                return@launch
-            }
-            val rid = withContext(Dispatchers.IO) {
-                owner?.let { (client, session) -> store.createSession(session, client, System.currentTimeMillis()) }
-                store.createRecording(owner?.second, s.engine, "")
-            }
-            val c = LogCtx(rid)
-            val rec = ChunkRecorder.recording(c)
-            rec.tap = liveCues::feed
-            try {
-                startSource(rec)
-            } catch (t: Throwable) {
-                AppLog.e(TAG, "record_start_failed", c, t)
-                // Nothing was recorded: an empty recording left behind would be queued for processing at the next start.
-                withContext(Dispatchers.IO) { store.deleteRecording(rid) }
-                _state.update { it.copy(error = "Recording failed: ${t.message}") }
-                return@launch
-            }
-            recorder = rec
-            JobRunner.recordingActive = true
-            _state.update { it.copy(recording = true, activeRecordingId = rid, status = "Recording", error = null) }
-            pipelineJob = launch(Dispatchers.Default) {
-                try {
-                    saveChunks(rid, rec)
-                    liveCues.stop()
-                    // Only now, with the last chunk saved, is the recording handed to the queue (a deleted session has nothing to process).
-                    owner?.let { (_, session) -> withContext(Dispatchers.IO) { if (store.sessionExists(session)) JobGraph.enqueueRecording(Jobs.queue(ctx), session, rid) } }
-                } finally {
-                    // The queue does not start new jobs while recording; anything that waited runs now.
-                    JobRunner.recordingActive = false
-                    MemoryService.resumePending(ctx)
-                }
-                recorder = null
-                _state.update { it.copy(recording = false, activeRecordingId = null, status = "Done") }
-                refreshRecordings()
-            }
-        }
-    }
+    fun stopRecording() = SessionController.finish()
 
-    /** Internal storage the app can still use, counting cache the system would clear for it. */
-    private fun freeBytes(): Long {
-        val storage = ctx.getSystemService(StorageManager::class.java)
-        return storage.getAllocatableBytes(storage.getUuidForPath(ctx.filesDir))
-    }
+    fun pauseRecording() = SessionController.pause()
 
-    /** Every chunk is kept encrypted for the transcribe job, with a row that has no text yet. Nothing is transcribed while recording. */
-    private suspend fun saveChunks(rid: Long, rec: ChunkRecorder) {
-        val c = LogCtx(rid)
-        var saved = 0
-        for (chunk in rec.chunks) {
-            try {
-                withContext(Dispatchers.IO) {
-                    store.putChunk(ChunkRow(rid, chunk.idx, chunk.startMs, chunk.endMs, chunk.overlapMs, null))
-                    PendingAudio.save(ctx, rid, chunk)
-                }
-                saved++
-            } catch (t: Throwable) {
-                AppLog.e(TAG, "chunk_save_failed", c.chunk(chunk.idx), t, "code" to "IO")
-                _state.update { it.copy(error = "Part of the recording could not be saved (IO).") }
-            }
-        }
-        AppLog.i(TAG, "recording_saved", c, "chunks" to saved)
-    }
-
-    fun stopRecording() {
-        val rec = recorder ?: return
-        viewModelScope.launch(Dispatchers.Default) {
-            rec.stop()
-            _state.update { it.copy(recording = false, status = "Finishing last chunks") }
-        }
-    }
-
-    fun pauseRecording() {
-        recorder?.isPaused = true
-        _state.update { it.copy(status = "Paused") }
-    }
-
-    fun resumeRecording() {
-        recorder?.isPaused = false
-        _state.update { it.copy(status = "Listening") }
-    }
+    fun resumeRecording() = SessionController.resume()
 
     // ---- client search --------------------------------------------------------------------------------------
 
@@ -382,10 +304,9 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    // The embedder and a running session belong to the process (Engines, SessionController), not to this screen.
     override fun onCleared() {
-        recorder?.stop()
         voiceRecorder?.stop()
-        embedder.close()
     }
 
     companion object {

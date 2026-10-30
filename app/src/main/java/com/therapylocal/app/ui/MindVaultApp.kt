@@ -292,7 +292,7 @@ fun MindVaultApp(
                                 patient = p,
                                 sessionSecs = sessionSecs,
                                 statusLine = when {
-                                    vmState.error != null -> "Recording problem: ${vmState.error}"
+                                    vmState.recordingError != null -> "Recording problem: ${vmState.recordingError}"
                                     sessionPaused && sessionSecs == 0L -> "Ready · Tap Play to begin"
                                     sessionPaused -> "Paused"
                                     vmState.recording -> "Listening on device"
