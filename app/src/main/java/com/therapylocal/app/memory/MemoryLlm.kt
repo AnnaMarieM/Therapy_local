@@ -1,5 +1,7 @@
 package com.therapylocal.app.memory
 
+import com.therapylocal.app.perf.LlmCall
+import com.therapylocal.app.perf.PerfStats
 import android.content.Context
 import com.google.ai.edge.litertlm.Backend
 import com.google.ai.edge.litertlm.BenchmarkInfo
@@ -94,6 +96,13 @@ class MemoryLlm(private val context: Context, private val maxTokens: Int, privat
                     TAG, "llm_call", LogCtx.NONE, "backend" to backend, "constrained" to (schema != null), "prompt_tokens" to b.lastPrefillTokenCount,
                     "prefill_tok_s" to b.lastPrefillTokensPerSecond, "ttft_s" to b.timeToFirstTokenInSecond, "decode_tokens" to b.lastDecodeTokenCount,
                     "decode_tok_s" to b.lastDecodeTokensPerSecond, "wall_ms" to (System.nanoTime() - t0) / 1_000_000,
+                )
+                PerfStats.call(
+                    spec.id,
+                    LlmCall(
+                        b.lastPrefillTokenCount.toInt(), b.lastPrefillTokensPerSecond.toDouble(), b.lastDecodeTokenCount.toInt(),
+                        b.lastDecodeTokensPerSecond.toDouble(), (System.nanoTime() - t0) / 1_000_000,
+                    ),
                 )
                 return msg.toString()
             }

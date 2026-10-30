@@ -66,7 +66,7 @@ class PipelineHarness(private val context: Context, val name: String, private va
 
     fun drain(canRun: (String) -> Boolean = { true }) {
         queue.clearStop()
-        JobRunner(queue, handlers, pool(), canRun).drain()
+        JobRunner(queue, handlers, pool(), canRun = canRun).drain()
     }
 
     fun allJobsDone() = store.jobs().isNotEmpty() && store.jobs().all { it.status == JobStatus.Done }

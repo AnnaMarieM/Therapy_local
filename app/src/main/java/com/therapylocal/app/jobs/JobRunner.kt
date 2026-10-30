@@ -3,6 +3,7 @@ package com.therapylocal.app.jobs
 import com.therapylocal.app.data.Job
 import com.therapylocal.app.log.AppLog
 import com.therapylocal.app.log.LogCtx
+import com.therapylocal.app.perf.PerfStats
 
 /** Thrown by a handler that saw Stop: the job goes back to pending without counting an attempt. */
 class JobStopped : Exception()
@@ -32,6 +33,8 @@ class JobRunner(
     private val queue: JobQueue,
     private val handlers: Map<String, JobHandler>,
     private val pool: ModelPool,
+    /** All jobs of a session are done (for the performance history). */
+    private val onSessionDone: (String) -> Unit = {},
     private val canRun: (String) -> Boolean,
 ) {
     fun drain() {
@@ -55,8 +58,15 @@ class JobRunner(
         val c = LogCtx.NONE
         try {
             AppLog.i(TAG, "job_start", c, "job" to job.id, "kind" to job.kind, "attempt" to job.attempts + 1)
-            handlers.getValue(job.kind).run(job, context)
+            val t0 = System.nanoTime()
+            PerfStats.jobStarted(job.sessionId, job.kind)
+            try {
+                handlers.getValue(job.kind).run(job, context)
+            } finally {
+                PerfStats.jobEnded(job.sessionId, (System.nanoTime() - t0) / 1_000_000)
+            }
             queue.complete(job)
+            if (queue.snapshot.value.sessions.firstOrNull { it.sessionId == job.sessionId }?.finished == true) onSessionDone(job.sessionId)
         } catch (_: JobStopped) {
             queue.release(job)
         } catch (_: ModelSwitched) {

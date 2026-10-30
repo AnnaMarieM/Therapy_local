@@ -1,5 +1,6 @@
 package com.therapylocal.app.memory
 
+import com.therapylocal.app.perf.PerfStats
 import android.app.ActivityManager
 import android.app.Notification
 import android.app.NotificationChannel
@@ -71,7 +72,14 @@ class MemoryService : Service() {
                 if (debugJob) DevHarness.seed(app)
                 trackRun()
                 val pipeline = Pipeline(MindStore.get(app), queue, { MemoryFiles.prompt(app, it) }, { PendingAudio.indices(app, it) }, { r, i -> PendingAudio.load(app, r, i) }, { PendingAudio.delete(app, it) })
-                val runner = JobRunner(queue, pipeline.handlers, DeviceModels.pool(app)) { !JobRunner.recordingActive && ModelSetup.isReady(app) }
+                PerfStats.init(app)
+                val pool = DeviceModels.pool(app)
+                val store = MindStore.get(app)
+                val runner = JobRunner(
+                    queue, pipeline.handlers, pool,
+                    canRun = { !JobRunner.recordingActive && ModelSetup.isReady(app) },
+                    onSessionDone = { sid -> PerfStats.sessionDone(sid, pool.llmModel(), store.recordings().filter { it.sessionId == sid }.sumOf { it.durationMs }) },
+                )
                 do {
                     runner.drain()
                     trackRun()

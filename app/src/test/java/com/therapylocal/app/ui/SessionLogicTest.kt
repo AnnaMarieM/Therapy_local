@@ -104,7 +104,7 @@ class SessionLogicTest {
             progress = StepProgress(JobPhase.Reading, 1, 2),
         )
         assertEquals(setOf("d", "e"), map.keys)
-        assertEquals("Queued", map["d"]!!.stage)
+        assertEquals("Queued · 1 ahead", map["d"]!!.stage) // the running session is ahead of it
         assertEquals("Reading 1/2", map["e"]!!.stage)
         assertEquals("d_1", map["d"]!!.sessionId)
         assertEquals("2026-10-25", map["d"]!!.date)
@@ -116,7 +116,7 @@ class SessionLogicTest {
     @Test
     fun processingStageTextRules() {
         fun stage(j: Job, p: StepProgress? = null) = banner(j, progress = p)[j.clientId]!!.stage
-        assertEquals("Queued", stage(job("x_1", JobStatus.Pending)))
+        assertEquals("Queued · next", stage(job("x_1", JobStatus.Pending)))
         assertEquals("Extracting facts", stage(job("x_1", JobStatus.Running)))
         assertEquals("Transcribing audio", stage(job("x_1", JobStatus.Running, recordingId = 5, kind = JobGraph.TRANSCRIBE)))
         // The later jobs of a recording carry its id too; only transcribe is transcribing.
@@ -144,7 +144,7 @@ class SessionLogicTest {
         val map = banner(job("g_1", JobStatus.Running), job("g_2", JobStatus.Pending), job("h_1", JobStatus.Pending))
         assertEquals(2, map.size)
         assertEquals("g_2", map["g"]!!.sessionId)
-        assertEquals("Queued", map["g"]!!.stage)
+        assertEquals("Queued · 1 ahead", map["g"]!!.stage)
         // A finished later session does not hide the still-running earlier one.
         assertEquals("g_1", banner(job("g_1", JobStatus.Running), job("g_2", JobStatus.Done))["g"]!!.sessionId)
     }

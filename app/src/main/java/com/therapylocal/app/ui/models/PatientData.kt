@@ -57,5 +57,7 @@ data class ProcessingSessionInfo(
     val sessionId: String,
     val date: String,
     val stage: String,
-    val isPendingEnqueue: Boolean = false
+    val isPendingEnqueue: Boolean = false,
+    /** The evidence, from what was measured: how far along, how fast, how long; shown in turn once the status has been looked at. */
+    val details: List<String> = emptyList(),
 )
