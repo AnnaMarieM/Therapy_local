@@ -23,7 +23,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.KeyboardArrowUp
+import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material.icons.rounded.Tune
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -61,11 +61,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.therapylocal.app.memory.Cue
 import com.therapylocal.app.session.SessionPhase
 import com.therapylocal.app.session.SessionState
 import com.therapylocal.app.ui.design.Choice
 import com.therapylocal.app.ui.design.ChoiceBar
+import com.therapylocal.app.ui.design.SwipeHints
+import com.therapylocal.app.ui.design.Way
 import com.therapylocal.app.ui.design.ChoiceState
 import com.therapylocal.app.ui.design.LocalReducedMotion
 import com.therapylocal.app.ui.design.Motion
@@ -94,12 +95,21 @@ import kotlin.math.floor
 import kotlin.math.roundToInt
 
 /** One line of status under the selected name. [onTap] makes it actionable (retry). */
-data class ClientStatus(val text: String, val color: androidx.compose.ui.graphics.Color = Palette.InkSoft, val busy: Boolean = false, val onTap: (() -> Unit)? = null)
+/**
+ * A status line. [details] are the evidence behind a busy one (how far along, how fast, measured time left); once the line has been looked
+ * at for a while they take its place, one at a time, so a glance gets the gist and a longer look gets the numbers.
+ */
+data class ClientStatus(
+    val text: String,
+    val color: androidx.compose.ui.graphics.Color = Palette.InkSoft,
+    val busy: Boolean = false,
+    val details: List<String> = emptyList(),
+    val onTap: (() -> Unit)? = null,
+)
 
 /** What the home screen needs from the app. Origins are where a sheet should grow from. */
 class HomeActions(
     val openProfile: (Patient) -> Unit,
-    val record: (Patient) -> Unit,
     val openSession: () -> Unit,
     val addClient: () -> Unit,
     val deleteClient: (Patient) -> Unit,
@@ -108,7 +118,6 @@ class HomeActions(
 
 /** Places the sheets grow from. Owned by the app so it can fold sheets back into them. */
 class HomeRefs {
-    val left = BoundsRef()
     val right = BoundsRef()
     val pill = BoundsRef()
     val gear = BoundsRef()
@@ -128,9 +137,6 @@ fun Home(
     clients: List<Patient>,
     statusOf: (Patient) -> ClientStatus,
     session: SessionState,
-    sessionClientName: String?,
-    sessionElapsed: () -> Long,
-    topCue: Cue?,
     setupLine: ClientStatus?,
     focusClient: String?,
     onFocused: () -> Unit,
@@ -139,7 +145,6 @@ fun Home(
     bar: ChoiceState,
     refs: HomeRefs,
     actions: HomeActions,
-    pillVisible: Boolean,
 ) {
     val haptics = rememberHaptics()
     val scope = rememberCoroutineScope()
@@ -201,7 +206,8 @@ fun Home(
                     if (a == Axis.Vertical) {
                         scope.launch { pos.snapTo(GestureMath.reelDrag(pos.value, -delta / itemPx, count)) }
                     } else {
-                        bar.drag(total) { s -> s == Side.Right || selected < ordered.size }
+                        // Home is the top: there is nowhere back, only in (to the client, or to adding one).
+                        bar.drag(total) { s -> s == Side.Right }
                         scope.launch { shift.snapTo(GestureMath.rubberBand(total, bar.tact) * 0.3f) }
                     }
                 },
@@ -212,11 +218,7 @@ fun Home(
                         scope.launch { pos.animateTo(target.toFloat(), Motion.Reel, initialVelocity = v) }
                     } else {
                         scope.launch { shift.animateTo(0f, Motion.Throw) }
-                        when (bar.release()) {
-                            Side.Left -> ordered.getOrNull(selected)?.let(actions.openProfile)
-                            Side.Right -> rightAction(selected, ordered, sessionActive, actions)
-                            null -> {}
-                        }
+                        if (bar.release() == Side.Right) goIn(selected, ordered, actions)
                     }
                 },
             )
@@ -333,22 +335,16 @@ fun Home(
                 contentAlignment = Alignment.Center,
             ) { Icon(Icons.Rounded.Tune, contentDescription = "Settings", tint = Palette.InkSoft) }
 
-            // ---- bottom: running session, the bar ----
+            // ---- bottom: the way in (the running session's card floats above this, over every page) ----
             Column(Modifier.align(Alignment.BottomCenter).fillMaxWidth().navigationBarsPadding().padding(horizontal = 14.dp, vertical = 14.dp)) {
-                if (pillVisible && session.active) {
-                    SessionPill(sessionClientName, session.phase == SessionPhase.Paused, sessionElapsed, topCue, refs.pill, actions.openSession)
-                    Spacer(Modifier.height(12.dp))
-                }
                 val isNew = selected >= ordered.size
-                ChoiceBar(
+                SwipeHints(
                     bar,
-                    left = Choice("Profile", "Release for profile", Palette.Tonal, Palette.Ink, enabled = !isNew) { current?.let(actions.openProfile) },
-                    right = when {
-                        sessionActive -> Choice("Back to session", "Release to open", Palette.Rec, Palette.OnColor) { actions.openSession() }
-                        isNew -> Choice("New client", "Release to add", Palette.Ink, Palette.Paper) { actions.addClient() }
-                        else -> Choice("Record", "Release to record", Palette.Rec, Palette.OnColor) { current?.let(actions.record) }
-                    },
-                    leftRef = refs.left, rightRef = refs.right,
+                    back = null,
+                    forward = if (isNew) Way("add a client") { actions.addClient() }
+                    else Way("open ${current?.let { splitName(it.name).first } ?: "the profile"}") { current?.let(actions.openProfile) },
+                    forwardRef = refs.right,
+                    modifier = Modifier.fillMaxWidth(),
                 )
             }
         }
@@ -365,12 +361,9 @@ fun Home(
     }
 }
 
-private fun rightAction(selected: Int, ordered: List<Patient>, sessionActive: Boolean, actions: HomeActions) {
-    when {
-        sessionActive -> actions.openSession()
-        selected >= ordered.size -> actions.addClient()
-        else -> actions.record(ordered[selected])
-    }
+/** The one way in from home: the selected client's profile (recording starts there), or adding a client. */
+private fun goIn(selected: Int, ordered: List<Patient>, actions: HomeActions) {
+    if (selected < ordered.size) actions.openProfile(ordered[selected]) else actions.addClient()
 }
 
 @Composable
@@ -427,15 +420,33 @@ private fun ReelItem(
 }
 
 @Composable
-private fun StatusLine(s: ClientStatus, modifier: Modifier) {
+internal fun StatusLine(s: ClientStatus, modifier: Modifier) {
+    // Looked at for DETAIL_AFTER_MS (on screen that long, whatever it says meanwhile), the gist gives way to the evidence: each line in
+    // turn, quietly crossfading, so something on screen is always moving with the work and none of it is invented.
+    val has = s.details.isNotEmpty()
+    var looked by remember { mutableStateOf(false) }
+    var turn by remember { mutableIntStateOf(0) }
+    LaunchedEffect(has) {
+        if (!has) { looked = false; return@LaunchedEffect }
+        kotlinx.coroutines.delay(DETAIL_AFTER_MS)
+        looked = true
+        while (true) { kotlinx.coroutines.delay(DETAIL_TURN_MS); turn++ }
+    }
+    val text = if (looked && has) s.details[turn % s.details.size] else s.text
     Row(
         modifier.let { m -> s.onTap?.let { m.pressable(it, label = s.text) } ?: m }.padding(vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         if (s.busy) { PulseDot(s.color, size = 6); Spacer(Modifier.width(8.dp)) }
-        Label(s.text, color = s.color)
+        androidx.compose.animation.Crossfade(text, animationSpec = androidx.compose.animation.core.tween(600), label = "status") { t ->
+            Label(t, color = s.color)
+        }
     }
 }
+
+/** How long a busy status is shown as its gist before it turns into the numbers behind it, and how long each of those stays. */
+private const val DETAIL_AFTER_MS = 10_000L
+private const val DETAIL_TURN_MS = 4_000L
 
 @Composable
 private fun Rail(
@@ -484,28 +495,33 @@ private fun Bubble(letter: String, first: String, modifier: Modifier) {
     }
 }
 
-/** The running session, docked above the bar while browsing. Tap or swipe up to open it again. */
+/**
+ * The running session, docked at the bottom of whatever page is open: over home, a profile, settings, anything but the session itself and
+ * the confirmation dialogs. Tap it to go back into the session.
+ */
 @Composable
-private fun SessionPill(name: String?, paused: Boolean, elapsed: () -> Long, cue: Cue?, ref: BoundsRef, open: () -> Unit) {
+internal fun SessionPill(name: String?, paused: Boolean, elapsed: () -> Long, ref: BoundsRef, open: () -> Unit, modifier: Modifier = Modifier) {
     var now by remember { mutableStateOf(elapsed()) }
     LaunchedEffect(paused) { while (true) { now = elapsed(); kotlinx.coroutines.delay(250) } }
-    Column(
-        Modifier.fillMaxWidth().trackBounds(ref).clip(RoundedCornerShape(24.dp)).background(Palette.Ink)
+    val time = SessionLogic.formatMinSec(now / 1000)
+    // Who it is, large: the one thing to see at a glance. What is happening, small, underneath.
+    Row(
+        modifier.trackBounds(ref).clip(RoundedCornerShape(24.dp)).background(Palette.Ink)
             .pressable(open, label = "Open the session", depth = 0.015f)
-            .axisDrag(axisDragHandler(accepts = { a, _, d -> a == Axis.Vertical && d < 0 }, onEnd = { _, t, v -> if (t < -20f || v < -600f) open() }))
-            .padding(horizontal = 18.dp, vertical = 14.dp)
-            .semantics { stateDescription = if (paused) "Paused" else "Recording" },
+            .padding(start = 20.dp, end = 12.dp, top = 14.dp, bottom = 14.dp)
+            .semantics(mergeDescendants = true) { stateDescription = if (paused) "Paused" else "Recording" },
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            PulseDot(Palette.Rec, still = paused)
-            Spacer(Modifier.width(10.dp))
-            Label(SessionLogic.formatMinSec(now / 1000), color = Palette.Paper.copy(alpha = 0.85f))
-            Spacer(Modifier.width(10.dp))
-            Label(if (paused) "Paused · ${name.orEmpty()}" else name.orEmpty(), color = Palette.Paper.copy(alpha = 0.85f), modifier = Modifier.weight(1f))
-            Icon(Icons.Rounded.KeyboardArrowUp, contentDescription = null, tint = Palette.Paper)
+        Column(Modifier.weight(1f)) {
+            Text(name.orEmpty(), style = Type.Title.copy(fontSize = 30.sp, lineHeight = 34.sp), color = Palette.Paper, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Spacer(Modifier.height(6.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                PulseDot(Palette.Rec, still = paused, size = 6)
+                Spacer(Modifier.width(8.dp))
+                Label(if (paused) "Session paused · $time" else "Session recording in progress · $time", color = Palette.Paper.copy(alpha = 0.75f))
+            }
         }
-        Spacer(Modifier.height(8.dp))
-        Text(cue?.heading ?: "Listening…", style = Type.Title.copy(fontSize = 20.sp, lineHeight = 23.sp), color = Palette.Paper, maxLines = 2, overflow = TextOverflow.Ellipsis)
+        Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, contentDescription = null, tint = Palette.Paper)
     }
 }
 

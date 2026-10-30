@@ -46,6 +46,16 @@ android {
             signingConfig = signingConfigs.getByName("debug")
             matchingFallbacks += "release"
         }
+        // The feel build for driving the app from adb: its own app id (its own vault, beside the real app, which it never touches), no
+        // fingerprint so a script can unlock with the password, and screenshots allowed (test data only). It downloads its own models.
+        // ./gradlew :app:assembleQa
+        create("qa") {
+            initWith(getByName("feel"))
+            applicationIdSuffix = ".qa"
+            matchingFallbacks += listOf("feel", "release")
+            buildConfigField("boolean", "BIOMETRIC", "false")
+            buildConfigField("boolean", "SECURE_WINDOW", "false")
+        }
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -76,6 +86,10 @@ android {
     buildTypes.configureEach {
         // Transcript text in logs. Keep false: this is a therapy app. See docs/LOGGING.md.
         buildConfigField("boolean", "LOG_TEXT", "false")
+        if (name != "qa") {
+            buildConfigField("boolean", "BIOMETRIC", "true")
+            buildConfigField("boolean", "SECURE_WINDOW", "true")
+        }
     }
 }
 

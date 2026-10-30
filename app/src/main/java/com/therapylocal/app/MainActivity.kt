@@ -70,11 +70,13 @@ class MainActivity : FragmentActivity() {
         super.onCreate(savedInstanceState)
         // Edge to edge: the app draws behind the system bars and pads by their insets itself.
         enableEdgeToEdge()
-        // Patient names and notes must not end up in screenshots or the recents preview.
-        window.setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE)
+        // Patient names and notes must not end up in screenshots or the recents preview. (Not in the qa build: its vault holds only test
+        // data, and screenshots are how its screens are checked.)
+        if (BuildConfig.SECURE_WINDOW) window.setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE)
         memoryLabRequested = isMemoryLabRequested(intent)
         // The AI files are not patient data: the download starts right away, even before the vault is unlocked.
         ModelSetup.start(applicationContext)
+        com.therapylocal.app.perf.PerfStats.init(applicationContext)
         if (intent?.getBooleanExtra(RecordingService.EXTRA_OPEN_SESSION, false) == true) openSession.intValue++
         setContent {
             val unlocked by Vault.unlocked.collectAsStateWithLifecycle()

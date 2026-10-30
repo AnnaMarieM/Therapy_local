@@ -12,6 +12,8 @@ import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasScrollToNodeAction
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.onLast
+import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.performClick
@@ -111,14 +113,21 @@ class ProfileUiTest {
         compose.onNode(hasText("CAME UP 2 TIMES")).assertExists()
         compose.onNode(hasText(HEADING) and hasClickAction()).performClick()
 
-        compose.waitUntilAtLeastOneExists(hasText("CAME UP AGAIN", substring = true), TIMEOUT_MS)
-        compose.onNode(hasText("FIRST HEARD", substring = true)).assertExists()
-        compose.onNode(hasText(LINES_1[3])).assertExists()
-        compose.onNode(hasText(LINES_2[2])).assertExists()
+        compose.waitUntilAtLeastOneExists(hasText("FIRST HEARD", substring = true), TIMEOUT_MS)
+        // The page is a lazy list: on a short screen its lower parts are only built once scrolled to, as a reader would.
+        seeInLayer(hasText(LINES_1[3]))
         // The transcript around the first occurrence: three segments either side of the evidence, no further.
-        compose.onNode(hasText(LINES_1[0])).assertExists()
-        compose.onNode(hasText(LINES_1[6])).assertExists()
+        seeInLayer(hasText(LINES_1[0]))
+        seeInLayer(hasText(LINES_1[6]))
         compose.onNode(hasText(LINES_1[7])).assertDoesNotExist()
+        seeInLayer(hasText("CAME UP AGAIN", substring = true))
+        seeInLayer(hasText(LINES_2[2]))
+    }
+
+    /** Scrolls the layer on top (the last scrolling list on screen) until [m] is built, then checks it is there. */
+    private fun seeInLayer(m: SemanticsMatcher) {
+        compose.onAllNodes(hasScrollToNodeAction()).onLast().performScrollToNode(m)
+        compose.onNode(m).assertExists()
     }
 
     @Test
@@ -168,25 +177,25 @@ class ProfileUiTest {
     }
 
     @Test
-    fun theReelOffersNamesAlphabeticallyAndRecordsTheSelectedOne() {
+    fun theReelOffersNamesAlphabeticallyAndOpensTheSelectedOne() {
         store.createClient("zoe", "Zoe K.")
         store.createClient("ben", "Ben C.")
         val clients = repo.patients() // Ana, Zoe K., Ben C. in creation order
-        var recorded: String? = null
+        var opened: String? = null
         compose.setContent {
             PaperTheme {
                 Home(
-                    clients = clients, statusOf = { ClientStatus("${it.sessionCount} sessions") }, session = SessionState(), sessionClientName = null,
-                    sessionElapsed = { 0L }, topCue = null, setupLine = null, focusClient = null, onFocused = {}, hint = false, onLearned = {},
+                    clients = clients, statusOf = { ClientStatus("${it.sessionCount} sessions") }, session = SessionState(),
+                    setupLine = null, focusClient = null, onFocused = {}, hint = false, onLearned = {},
                     bar = rememberChoiceState(), refs = remember { HomeRefs() },
-                    actions = HomeActions(openProfile = {}, record = { recorded = it.name }, openSession = {}, addClient = {}, deleteClient = {}, openSettings = {}),
-                    pillVisible = true,
+                    actions = HomeActions(openProfile = { opened = it.name }, openSession = {}, addClient = {}, deleteClient = {}, openSettings = {}),
                 )
             }
         }
         compose.onNode(hasContentDescription("New client")).assertExists()
-        compose.onNode(hasText("Record") and hasClickAction()).performClick()
-        compose.runOnIdle { assertEquals("Ana", recorded) } // first alphabetically, whatever the input order
+        // The one way in from home, said in full; it can be tapped as well as swiped.
+        compose.onNode(hasContentDescription("Swipe from right to left to open Ana") and hasClickAction()).performClick()
+        compose.runOnIdle { assertEquals("Ana", opened) } // first alphabetically, whatever the input order
     }
 
     @Test
@@ -196,7 +205,7 @@ class ProfileUiTest {
         compose.onNode(hasContentDescription("First name")).performTextInput("george")
         compose.onNode(hasContentDescription("Surname · only the initial is kept")).performTextInput("miller")
         compose.onNode(hasText("George M.")).assertExists()
-        compose.onNode(hasText("Add") and hasClickAction()).performClick()
+        compose.onNode(hasContentDescription("Swipe from right to left to add George M.") and hasClickAction()).performClick()
         compose.runOnIdle { assertEquals("George M.", added) }
     }
 

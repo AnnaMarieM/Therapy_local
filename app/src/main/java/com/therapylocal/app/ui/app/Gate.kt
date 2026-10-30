@@ -132,9 +132,18 @@ private fun Welcome(onDone: () -> Unit) {
     val last = pager.currentPage == count - 1
     val go: (Int) -> Unit = { p -> if (p >= count) onDone() else if (p >= 0) scope.launch { pager.animateScrollToPage(p) } }
 
-    Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()) {
+    // One rule everywhere: a swipe anywhere is the bar's (right to left continues, left to right goes back), so the last page continues
+    // into the password the same way the others turn, instead of the pager stopping dead at its end.
+    val drag = remember(count) {
+        axisDragHandler(
+            accepts = { a, _, _ -> a == Axis.Horizontal },
+            onDrag = { _, total, _ -> bar.drag(total) { s -> s == Side.Right || pager.currentPage > 0 } },
+            onEnd = { _, _, _ -> when (bar.release()) { Side.Left -> go(pager.currentPage - 1); Side.Right -> go(pager.currentPage + 1); null -> {} } },
+        )
+    }
+    Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().axisDrag(drag)) {
         Dots(pager.currentPage, count, Modifier.padding(start = 26.dp, top = 26.dp))
-        HorizontalPager(pager, Modifier.weight(1f).fillMaxWidth()) { i ->
+        HorizontalPager(pager, Modifier.weight(1f).fillMaxWidth(), userScrollEnabled = false) { i ->
             val offset = (pager.currentPage - i + pager.currentPageOffsetFraction)
             Box(Modifier.fillMaxSize().graphicsLayer { alpha = 1f - kotlin.math.abs(offset).coerceIn(0f, 1f) * 0.6f; translationX = offset * size.width * 0.25f }) {
                 if (i < PAGES.size) WelcomePage(PAGES[i]) else PermissionsPage()
@@ -144,12 +153,7 @@ private fun Welcome(onDone: () -> Unit) {
             bar,
             left = Choice("Back", "Release to go back", Palette.Tonal, Palette.Ink, enabled = pager.currentPage > 0) { go(pager.currentPage - 1) },
             right = Choice(if (last) "Set a password" else "Continue", "Release to continue", Palette.Ink, Palette.Paper) { go(pager.currentPage + 1) },
-            modifier = Modifier.padding(horizontal = 14.dp, vertical = 14.dp)
-                .axisDrag(axisDragHandler(
-                    accepts = { a, _, _ -> a == Axis.Horizontal },
-                    onDrag = { _, total, _ -> bar.drag(total) { s -> s == Side.Right || pager.currentPage > 0 } },
-                    onEnd = { _, _, _ -> when (bar.release()) { Side.Left -> go(pager.currentPage - 1); Side.Right -> go(pager.currentPage + 1); null -> {} } },
-                )),
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 14.dp),
         )
     }
 }
@@ -429,7 +433,8 @@ private fun Unlock(onOpen: () -> Unit, onErased: () -> Unit) {
         }
         ChoiceBar(
             bar,
-            left = Choice(if (biometric) "Fingerprint" else "Unlock with", if (biometric) "Release for fingerprint" else "", Palette.Tonal, Palette.Ink, enabled = biometric && !busy) { withBiometric() },
+            // No fingerprint set up (or none in this build): just Unlock, not a greyed-out button that does nothing.
+            left = if (biometric) Choice("Fingerprint", "Release for fingerprint", Palette.Tonal, Palette.Ink, enabled = !busy) { withBiometric() } else null,
             right = Choice(if (busy) "Opening…" else "Unlock", "Release to unlock", Palette.Ink, Palette.Paper, enabled = !busy) { withPassword() },
             modifier = Modifier.padding(14.dp).axisDrag(axisDragHandler(
                 accepts = { a, _, _ -> a == Axis.Horizontal && !busy },

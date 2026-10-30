@@ -14,15 +14,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.KeyboardArrowDown
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -36,7 +31,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -52,7 +46,11 @@ import com.therapylocal.app.session.SessionPhase
 import com.therapylocal.app.session.SessionState
 import com.therapylocal.app.ui.data.ClientRepository
 import com.therapylocal.app.ui.design.Choice
+import androidx.compose.foundation.layout.heightIn
 import com.therapylocal.app.ui.design.ChoiceBar
+import com.therapylocal.app.ui.design.SwipeHints
+import com.therapylocal.app.ui.design.Way
+import com.therapylocal.app.ui.design.backChoice
 import com.therapylocal.app.ui.design.HoldToFinish
 import com.therapylocal.app.ui.design.LocalReducedMotion
 import com.therapylocal.app.ui.design.Motion
@@ -72,7 +70,7 @@ import kotlinx.coroutines.withContext
 
 /**
  * The session while it records. One thing on screen: what from earlier sessions may matter now, large. The rest (time, level, controls)
- * is quiet. Swipe down or tap the chevron to minimise into the pill; the session keeps recording. Hold the square to finish.
+ * is quiet. Swipe right, go back or tap Back to step out; the session keeps recording, docked on home. Hold the square to finish.
  */
 @Composable
 fun SessionSheet(
@@ -99,22 +97,18 @@ fun SessionSheet(
         if (next.main?.factId != view.main?.factId && next.main != null && view.main != null) haptics.tick()
         view = next
     }
-    val togglePause = { if (paused) onResume() else onPause() }
 
     Column(
         Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()
-            .axisDrag(sheetDrag(sheet, bar, null, onMinimise, onMinimise, haptics, onLeft = togglePause)),
+            .axisDrag(sheetDrag(sheet, bar, onBack = onMinimise)),
     ) {
-        // ---- top: dot, time, who; minimise ----
-        Row(Modifier.fillMaxWidth().padding(start = 26.dp, end = 12.dp, top = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+        // ---- top: dot, time, who ----
+        Row(Modifier.fillMaxWidth().heightIn(min = 48.dp).padding(start = 26.dp, end = 26.dp, top = 12.dp), verticalAlignment = Alignment.CenterVertically) {
             PulseDot(Palette.Rec, still = paused)
             Spacer(Modifier.width(10.dp))
             Clock(elapsed, paused)
             Spacer(Modifier.width(10.dp))
             Label(if (paused) "Paused · $clientName" else clientName, Modifier.weight(1f))
-            Box(Modifier.size(48.dp).clip(CircleShape).pressable(onMinimise, label = "Minimise"), contentAlignment = Alignment.Center) {
-                Icon(Icons.Rounded.KeyboardArrowDown, contentDescription = "Minimise the session", tint = Palette.Ink)
-            }
         }
 
         // ---- the cue ----
@@ -138,14 +132,23 @@ fun SessionSheet(
         // ---- level, controls ----
         LevelMeter(level, paused, Modifier.fillMaxWidth().height(28.dp).padding(horizontal = 26.dp))
         Spacer(Modifier.height(14.dp))
-        ChoiceBar(
+        // Finishing and pausing are always there. Back leaves the session running (docked on home); this is the deepest screen, so
+        // there is no way further in.
+        SwipeHints(
             bar,
-            left = if (paused) Choice("Resume", "Release to resume", Palette.Rec, Palette.OnColor) { onResume() } else Choice("Pause", "Release to pause", Palette.Tonal, Palette.Ink) { onPause() },
-            right = Choice("Minimise", "Release to minimise", Palette.Tonal, Palette.Ink) { onMinimise() },
-            center = { HoldToFinish(onComplete = onFinish, onTooShort = { onHint("Hold the square to finish") }) },
-            modifier = Modifier.padding(horizontal = 14.dp),
+            back = Way("go back · it keeps recording") { onMinimise() },
+            forward = null,
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 10.dp),
+            center = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    TextAction(if (paused) "Resume" else "Pause", { if (paused) onResume() else onPause() }, color = if (paused) Palette.Rec else Palette.InkSoft)
+                    Spacer(Modifier.width(22.dp))
+                    HoldToFinish(onComplete = onFinish, onTooShort = { onHint("Hold the square to finish") })
+                    Spacer(Modifier.width(22.dp))
+                    Label("Hold ■ to finish", color = Palette.InkFaint)
+                }
+            },
         )
-        Label("Hold ■ to finish", Modifier.align(Alignment.CenterHorizontally).padding(top = 10.dp, bottom = 12.dp), color = Palette.InkFaint)
     }
 }
 

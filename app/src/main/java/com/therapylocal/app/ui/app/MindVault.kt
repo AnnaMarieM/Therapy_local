@@ -17,7 +17,19 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.fillMaxWidth
+import com.therapylocal.app.ui.design.LocalDockInset
 import androidx.compose.ui.Modifier
+import com.therapylocal.app.ui.design.LocalIdle
+import com.therapylocal.app.ui.design.rememberIdleState
+import com.therapylocal.app.ui.design.watchIdle
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -40,6 +52,12 @@ import com.therapylocal.app.ui.design.paper
 import com.therapylocal.app.ui.design.rememberChoiceState
 import com.therapylocal.app.ui.design.rememberHaptics
 import com.therapylocal.app.ui.logic.SessionLogic
+import com.therapylocal.app.data.MindStore
+import androidx.compose.runtime.produceState
+import com.therapylocal.app.perf.PerfStats
+import com.therapylocal.app.ui.logic.Evidence
+import com.therapylocal.app.ui.logic.Progress
+import com.therapylocal.app.ui.logic.RateMeter
 import com.therapylocal.app.ui.models.Patient
 import com.therapylocal.app.ui.motion.BoundsRef
 import com.therapylocal.app.ui.motion.ContainerTransform
@@ -124,13 +142,37 @@ private fun Main(viewModel: MainViewModel, openSessionRequest: Int, onDeveloper:
         notice.show("Trying again")
     }
     val finishing = if (session.phase == SessionPhase.Finishing) Triple(session.client, session.sessionId, "Today") else null
-    val processing = remember(queue, finishing) { SessionLogic.processingByClient(queue, finishing) }
+    // Time left is measured, never guessed: how fast the running step has gone so far (and the download, from its bytes).
+    val stepMeter = remember { RateMeter() }
+    val downloadMeter = remember { RateMeter() }
+    val now = System.currentTimeMillis()
+    queue.progress?.let { p -> queue.running?.let { j -> stepMeter.see(j.id to p.phase, p.step.toLong(), p.steps.toLong(), now) } }
+    if (setup.state == SetupState.Downloading && setup.totalBytes > 0) downloadMeter.see("download", setup.doneBytes, setup.totalBytes, now)
+    // Measured on this phone: the latest model speed, what a passage takes, what an interview minute takes; and how long each waiting
+    // session's interview is (from its recording), so its time can be worked out from that history.
+    val perfVersion by PerfStats.version.collectAsStateWithLifecycle()
+    val live by PerfStats.live.collectAsStateWithLifecycle()
+    val llmModel = remember(perfVersion) { ModelSetup.gemma(ctx).id }
+    val audioMs by produceState(emptyMap<String, Long>(), queue.sessions.map { it.sessionId }) {
+        value = withContext(Dispatchers.IO) {
+            runCatching { MindStore.get(ctx).recordings().filter { it.sessionId != null }.groupBy { it.sessionId!! }.mapValues { e -> e.value.sumOf { it.durationMs } } }.getOrDefault(emptyMap())
+        }
+    }
+    val evidence = Evidence(
+        stepLeftMs = stepMeter.leftMs(),
+        live = live?.takeIf { now - it.atMs < 120_000 },
+        perPassage = remember(perfVersion, llmModel) { PerfStats.perCall(llmModel, com.therapylocal.app.jobs.JobGraph.EXTRACT) },
+        perMinute = remember(perfVersion, llmModel) { PerfStats.perMinute(llmModel) },
+        measured = remember(perfVersion, llmModel) { PerfStats.sessionsMeasured(llmModel) },
+        audioMs = audioMs,
+    )
+    val processing = remember(queue, finishing, evidence) { SessionLogic.processingByClient(queue, finishing, evidence) }
     LaunchedEffect(queue.jobs.count { it.status == com.therapylocal.app.data.JobStatus.Done }, session.ended) { clientsVm.refresh() }
 
     val statusOf = { p: Patient ->
         when {
             session.active && session.client == p.id -> ClientStatus(if (session.phase == SessionPhase.Paused) "Session paused" else "Recording now", Palette.Rec, busy = session.phase == SessionPhase.Recording)
-            processing[p.id] != null -> ClientStatus("Processing · ${processing.getValue(p.id).stage}", busy = true)
+            processing[p.id] != null -> processing.getValue(p.id).let { ClientStatus("Processing · ${it.stage}", busy = true, details = it.details) }
             (failedByClient[p.id] ?: 0) > 0 -> ClientStatus("A session could not be processed · Retry", Palette.Rec, onTap = retryFailed)
             p.sessionCount == 0 -> ClientStatus("No sessions yet")
             else -> ClientStatus("${p.sessionCount} ${if (p.sessionCount == 1) "session" else "sessions"} · last ${p.lastSession}")
@@ -142,6 +184,10 @@ private fun Main(viewModel: MainViewModel, openSessionRequest: Int, onDeveloper:
         SetupState.Downloading -> ClientStatus(
             if (setup.totalBytes > 0) "Getting ready · ${ModelSetup.formatBytes(setup.doneBytes)} of ${ModelSetup.formatBytes(setup.totalBytes)}" else setup.message ?: "Getting ready",
             busy = true,
+            details = if (setup.totalBytes > 0) listOf(
+                "Downloading · ${ModelSetup.formatBytes(setup.doneBytes)} of ${ModelSetup.formatBytes(setup.totalBytes)} · " +
+                    (downloadMeter.leftMs()?.let(Progress::left) ?: "measuring…"),
+            ) else emptyList(),
         )
         SetupState.Checking -> ClientStatus("Getting ready", busy = true)
     }
@@ -153,9 +199,9 @@ private fun Main(viewModel: MainViewModel, openSessionRequest: Int, onDeveloper:
         viewModel.clearSearch()
         profileId = p.id
         haptics.confirm()
-        profileSheet.open(origin(refs.left, Palette.Tonal, r30))
+        profileSheet.open(origin(refs.right, Palette.Ink, r30))
     }
-    val closeProfile = { profileSheet.close(origin(refs.left, Palette.Tonal, r30)) }
+    val closeProfile = { profileSheet.close(origin(refs.right, Palette.Ink, r30)) }
     val openSessionFrom = { from: BoundsRef, color: androidx.compose.ui.graphics.Color, radius: Float ->
         sessionFrom = from
         haptics.confirm()
@@ -164,19 +210,20 @@ private fun Main(viewModel: MainViewModel, openSessionRequest: Int, onDeveloper:
     val record = { p: Patient, from: BoundsRef ->
         withMic {
             if (session.active) openSessionFrom(from, Palette.Rec, r30)
-            else if (SessionController.start(p.id, cues = vm.phase == Phase.Ready)) openSessionFrom(from, Palette.Rec, r30)
+            else if (SessionController.start(p.id, cues = vm.phase == Phase.Ready, name = p.name)) openSessionFrom(from, Palette.Rec, r30)
             else notice.show("The last session is still being saved. One moment.")
         }
     }
     val openSession = {
-        if (refs.pill.rect != Rect.Zero && !profileSheet.target) openSessionFrom(refs.pill, Palette.Ink, r24)
+        if (refs.pill.rect != Rect.Zero) openSessionFrom(refs.pill, Palette.Ink, r24)
         else openSessionFrom(refs.right, Palette.Rec, r30)
     }
     val minimise = {
         haptics.press()
-        // Opened from the profile: fold back into its Record button. From home: into the pill, which appears as the sheet lands.
-        if (profileSheet.target) sessionSheet.close(Origin(sessionFrom?.rect ?: refs.right.rect, Palette.Rec, r30))
-        else sessionSheet.close(Origin(if (refs.pill.rect != Rect.Zero) refs.pill.rect else refs.right.rect, Palette.Ink, r24))
+        // Into the session's card, on whatever page is under it (it appears as the sheet lands); where it was opened from, if the card
+        // has not been laid out yet.
+        if (refs.pill.rect != Rect.Zero) sessionSheet.close(Origin(refs.pill.rect, Palette.Ink, r24))
+        else sessionSheet.close(Origin(sessionFrom?.rect ?: refs.right.rect, Palette.Rec, r30))
     }
     val finish = {
         SessionController.finish()
@@ -186,7 +233,7 @@ private fun Main(viewModel: MainViewModel, openSessionRequest: Int, onDeveloper:
     val deleteClient = { p: Patient ->
         if (session.active && session.client == p.id) notice.show("${p.name} is being recorded. Finish the session first.")
         else {
-            if (profileId == p.id) profileSheet.close(origin(refs.left, Palette.Tonal, r30))
+            if (profileId == p.id) profileSheet.close(origin(refs.right, Palette.Ink, r30))
             clientsVm.delete(p.id)
             notice.show("${p.name} deleted")
         }
@@ -196,7 +243,7 @@ private fun Main(viewModel: MainViewModel, openSessionRequest: Int, onDeveloper:
     // The recording notification was tapped.
     LaunchedEffect(openSessionRequest) { if (openSessionRequest > 0 && session.active && !sessionSheet.target) openSession() }
     // The pill moves (it appears, the list changes): a folding sheet keeps aiming at it.
-    LaunchedEffect(refs.pill.rect) { if (!sessionSheet.target && sessionSheet.visible && !profileSheet.target && refs.pill.rect != Rect.Zero) sessionSheet.retarget(Origin(refs.pill.rect, Palette.Ink, r24)) }
+    LaunchedEffect(refs.pill.rect) { if (!sessionSheet.target && sessionSheet.visible && refs.pill.rect != Rect.Zero) sessionSheet.retarget(Origin(refs.pill.rect, Palette.Ink, r24)) }
     // The session was saved: say so, with a way to take it back.
     LaunchedEffect(session.ended) {
         val e = session.ended ?: return@LaunchedEffect
@@ -205,14 +252,17 @@ private fun Main(viewModel: MainViewModel, openSessionRequest: Int, onDeveloper:
     }
     LaunchedEffect(session.error) { session.error?.let { notice.show(it); if (!session.active) SessionController.clearError() } }
 
-    Box(Modifier.fillMaxSize()) {
+    // Every touch resets the idle timer the swipe hints wait on.
+    val idle = rememberIdleState()
+    val dockShown = session.active && !sessionSheet.target
+    var dockPx by remember { mutableIntStateOf(0) }
+    val dockInset = if (dockShown && dockPx > 0) with(density) { dockPx.toDp() } + 12.dp else 0.dp
+    CompositionLocalProvider(LocalIdle provides idle, LocalDockInset provides dockInset) {
+    Box(Modifier.fillMaxSize().watchIdle(idle)) {
         Home(
             clients = clients,
             statusOf = statusOf,
             session = session,
-            sessionClientName = session.client.takeIf { it.isNotEmpty() }?.let(clientName),
-            sessionElapsed = elapsed,
-            topCue = cues.firstOrNull(),
             setupLine = setupLine,
             focusClient = focus,
             onFocused = { focus = null },
@@ -222,13 +272,11 @@ private fun Main(viewModel: MainViewModel, openSessionRequest: Int, onDeveloper:
             refs = refs,
             actions = HomeActions(
                 openProfile = openProfile,
-                record = { p -> record(p, refs.right) },
                 openSession = openSession,
                 addClient = addClient,
                 deleteClient = deleteClient,
                 openSettings = { haptics.confirm(); settingsSheet.open(origin(refs.gear, Palette.Paper, with(density) { 26.dp.toPx() })) },
             ),
-            pillVisible = !sessionSheet.target,
         )
 
         ContainerTransform(profileSheet, Palette.Paper, onBack = closeProfile) {
@@ -284,6 +332,20 @@ private fun Main(viewModel: MainViewModel, openSessionRequest: Int, onDeveloper:
             SettingsSheet(settingsSheet, failedTotal, retryFailed, lock, onDeveloper, onClose = { settingsSheet.close() }, notice = notice)
         }
 
+        // ---- the order of layers, bottom to top ----
+        // home · pages (profile and what opens from it, add client, settings) · the running session's card · the session itself ·
+        // notices · confirmation dialogs (their own windows, always on top). The card is above every page so a recording is never out of
+        // sight anywhere in the app; only opening the session, or a dialog that needs an answer, covers it.
+        if (dockShown) {
+            SessionPill(
+                session.client.takeIf { it.isNotEmpty() }?.let(clientName), session.phase == SessionPhase.Paused, elapsed, refs.pill, openSession,
+                Modifier.align(Alignment.BottomCenter).fillMaxWidth().navigationBarsPadding().imePadding().padding(horizontal = 14.dp, vertical = 14.dp)
+                    .onSizeChanged { dockPx = it.height },
+            )
+        } else if (dockPx != 0) {
+            SideEffect { dockPx = 0 }
+        }
+
         ContainerTransform(sessionSheet, Palette.Paper, onBack = minimise) {
             SessionSheet(
                 sheet = sessionSheet,
@@ -303,6 +365,7 @@ private fun Main(viewModel: MainViewModel, openSessionRequest: Int, onDeveloper:
         }
 
         NoticeHost(notice, Modifier.align(Alignment.TopCenter))
+    }
     }
 
     if (confirmLock) ConfirmDialog(

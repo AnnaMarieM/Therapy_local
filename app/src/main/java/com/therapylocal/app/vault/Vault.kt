@@ -120,8 +120,10 @@ object Vault {
 
     // --- biometric path ---
 
+    /** The qa build has no fingerprint at all, as if the phone had no sensor, so a script can unlock it with the password. */
     fun biometricAvailability(context: Context): BiometricAvailability =
-        when (BiometricManager.from(context).canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG)) {
+        if (!com.therapylocal.app.BuildConfig.BIOMETRIC) BiometricAvailability.Unsupported
+        else when (BiometricManager.from(context).canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG)) {
             BiometricManager.BIOMETRIC_SUCCESS -> BiometricAvailability.Available
             BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED -> BiometricAvailability.NotEnrolled
             else -> BiometricAvailability.Unsupported

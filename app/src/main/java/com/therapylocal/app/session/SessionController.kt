@@ -81,10 +81,12 @@ object SessionController {
      * Starts a session for [client] and begins recording at once. [cues] says whether live cues can run now (the embedder is loaded);
      * [enableCues] turns them on later. False when a session is already running or still saving its last chunk.
      */
-    fun start(client: String, cues: Boolean, now: Long = System.currentTimeMillis(), session: String = Ids.sessionId(client, now)): Boolean {
+    fun start(
+        client: String, cues: Boolean, now: Long = System.currentTimeMillis(), session: String = Ids.sessionId(client, now), name: String = client,
+    ): Boolean {
         if (!_state.value.canStart) return false
         // Shown as recording right away so the screen answers the gesture; rolled back if the microphone cannot open.
-        _state.value = SessionState(SessionPhase.Recording, client, session, now, SessionClock.started(SystemClock.elapsedRealtime()), cuesOn = cues)
+        _state.value = SessionState(SessionPhase.Recording, client, session, now, SessionClock.started(SystemClock.elapsedRealtime()), cuesOn = cues, clientName = name)
         RecordingService.start(app)
         scope.launch { ops.withLock { begin(client to session, cues) { it.start() } } }
         return true

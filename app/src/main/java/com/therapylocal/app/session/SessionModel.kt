@@ -37,6 +37,8 @@ data class SessionState(
     val cuesOn: Boolean = false,
     val error: String? = null,
     val ended: EndedSession? = null,
+    /** The client as people read it ("George M."), for the notification and the status bar; the id when nothing better was given. */
+    val clientName: String = "",
 ) {
     /** Recording or paused: the user is in a session. */
     val active: Boolean get() = phase == SessionPhase.Recording || phase == SessionPhase.Paused

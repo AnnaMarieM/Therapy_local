@@ -24,7 +24,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
@@ -66,6 +65,10 @@ import com.therapylocal.app.SearchState
 import com.therapylocal.app.ui.data.ClientRepository
 import com.therapylocal.app.ui.design.Choice
 import com.therapylocal.app.ui.design.ChoiceBar
+import com.therapylocal.app.ui.design.SwipeHints
+import com.therapylocal.app.ui.design.hintsClearance
+import com.therapylocal.app.ui.design.Way
+import com.therapylocal.app.ui.design.backChoice
 import com.therapylocal.app.ui.design.Motion
 import com.therapylocal.app.ui.design.Palette
 import com.therapylocal.app.ui.design.Type
@@ -109,7 +112,7 @@ private sealed interface Layer {
 
 /**
  * A client: who they are and what is known. One scrolling page, no tabs: search, what is being processed, the facts, the sessions.
- * Pull down from the top, swipe toward Close, or go back to fold it into the button it came from.
+ * Swipe right (or go back) to fold it into the button it came from; swipe left to record.
  */
 @Composable
 fun ProfileSheet(
@@ -143,9 +146,9 @@ fun ProfileSheet(
     Box(Modifier.fillMaxSize()) {
         Column(
             Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().imePadding()
-                .axisDrag(sheetDrag(sheet, bar, list, onClose, onRecord = { onRecord(recordRef) }, haptics)),
+                .axisDrag(sheetDrag(sheet, bar, onBack = onClose, onForward = { onRecord(recordRef) })),
         ) {
-            LazyColumn(Modifier.weight(1f), state = list, contentPadding = PaddingValues(horizontal = 26.dp, vertical = 24.dp)) {
+            LazyColumn(Modifier.weight(1f), state = list, contentPadding = PaddingValues(start = 26.dp, end = 26.dp, top = 24.dp, bottom = hintsClearance())) {
                 item {
                     Label("Client · ${patient.sessionCount} ${if (patient.sessionCount == 1) "session" else "sessions"}")
                     Spacer(Modifier.height(14.dp))
@@ -153,11 +156,8 @@ fun ProfileSheet(
                     Text(first, style = Type.Hero, color = Palette.Ink)
                     if (rest != null) Text(rest, style = Type.Hero.copy(fontStyle = FontStyle.Italic), color = Palette.Ink)
                     if (status != null) {
-                        Spacer(Modifier.height(10.dp))
-                        Row(Modifier.let { m -> status.onTap?.let { m.pressable(it) } ?: m }, verticalAlignment = Alignment.CenterVertically) {
-                            if (status.busy) { PulseDot(status.color, size = 6); Spacer(Modifier.width(8.dp)) }
-                            Label(status.text, color = status.color)
-                        }
+                        Spacer(Modifier.height(6.dp))
+                        StatusLine(status, Modifier)
                     }
                     Spacer(Modifier.height(28.dp))
                     SearchBox(search, requestMic)
@@ -190,13 +190,12 @@ fun ProfileSheet(
                     }
                 }
             }
-            ChoiceBar(
+            SwipeHints(
                 bar,
-                left = Choice("Close", "Release to close", Palette.Tonal, Palette.Ink) { onClose() },
-                right = if (sessionActive) Choice("Back to session", "Release to open", Palette.Rec, Palette.OnColor) { onRecord(recordRef) }
-                else Choice("Record", "Release to record", Palette.Rec, Palette.OnColor) { onRecord(recordRef) },
-                rightRef = recordRef,
-                modifier = Modifier.padding(14.dp),
+                back = Way("go back") { onClose() },
+                forward = Way(if (sessionActive) "open the session" else "record") { onRecord(recordRef) },
+                forwardRef = recordRef,
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 10.dp),
             )
         }
 
@@ -224,45 +223,36 @@ fun ProfileSheet(
 }
 
 /**
- * Drags on a sheet: sideways moves its bar; down from the top of its list folds it away (it follows the finger, arms past a sixth of the
- * screen or on a quick flick, otherwise springs back). Down while the list is scrolled is the list's.
+ * Drags on a sheet. Only sideways ones: up and down always belong to the page (it scrolls), never to the sheet. Swiping right goes back,
+ * the same as the system back gesture: the sheet shrinks toward where it came from as the finger moves, and letting go armed folds it away
+ * (unarmed, it springs back open). Swiping left goes in, to [onForward], when the screen has somewhere to go and [canForward] allows it.
  */
 @Composable
 internal fun sheetDrag(
     sheet: SheetState,
     bar: com.therapylocal.app.ui.design.ChoiceState,
-    list: LazyListState?,
-    onClose: () -> Unit,
-    onRecord: () -> Unit,
-    haptics: com.therapylocal.app.ui.design.Haptics,
-    allowRight: () -> Boolean = { true },
-    onLeft: (() -> Unit)? = null,
+    onBack: () -> Unit,
+    onForward: (() -> Unit)? = null,
+    canForward: () -> Boolean = { true },
 ): com.therapylocal.app.ui.motion.AxisDragHandler {
-    val height = with(LocalDensity.current) { LocalContext.current.resources.displayMetrics.heightPixels.toFloat() }
-    val close by rememberUpdatedState(onClose)
-    val right by rememberUpdatedState(onRecord)
-    val left by rememberUpdatedState(onLeft ?: onClose)
-    val canRight by rememberUpdatedState(allowRight)
-    return remember(sheet, bar, list) {
-        var armed = false
+    val back by rememberUpdatedState(onBack)
+    val forward by rememberUpdatedState(onForward)
+    val canGo by rememberUpdatedState(canForward)
+    return remember(sheet, bar) {
         axisDragHandler(
-            accepts = { a, _, dir ->
-                a == Axis.Horizontal || (dir > 0 && (list == null || (list.firstVisibleItemIndex == 0 && list.firstVisibleItemScrollOffset == 0)))
+            accepts = { a, _, _ -> a == Axis.Horizontal },
+            onDrag = { _, total, _ ->
+                bar.drag(total) { s -> s == Side.Left || (forward != null && canGo()) }
+                // The same preview as the system back gesture, so both feel like one thing.
+                val p = (total / (bar.tact * 1.6f)).coerceIn(0f, 1f)
+                sheet.follow(1f - 0.32f * com.therapylocal.app.ui.motion.GestureMath.smoothstep(0f, 1f, p))
             },
-            onStart = { _, _ -> armed = false },
-            onDrag = { a, total, _ ->
-                if (a == Axis.Horizontal) bar.drag(total) { s -> s == Side.Left || canRight() }
-                else {
-                    val e = total.coerceAtLeast(0f)
-                    sheet.follow(1f - (e / (height * 0.5f)).coerceIn(0f, 1f) * 0.9f)
-                    val now = if (armed) e > height * 0.12f else e > height * 0.16f
-                    if (now != armed) { armed = now; if (now) haptics.arm() else haptics.disarm() }
+            onEnd = { _, _, _ ->
+                when (bar.release()) {
+                    Side.Left -> back()
+                    Side.Right -> { sheet.settleOpen(); forward?.invoke() }
+                    null -> sheet.settleOpen()
                 }
-            },
-            onEnd = { a, _, v ->
-                if (a == Axis.Horizontal) {
-                    when (bar.release()) { Side.Left -> left(); Side.Right -> right(); null -> {} }
-                } else if (armed || v > 1800f) close() else sheet.settleOpen()
             },
         )
     }
@@ -393,8 +383,8 @@ private fun LayerFrame(sheet: SheetState, kicker: String, title: String, content
     val bar = rememberChoiceState()
     val haptics = rememberHaptics()
     val list = rememberLazyListState()
-    Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().axisDrag(sheetDrag(sheet, bar, list, { sheet.close() }, { sheet.close() }, haptics, allowRight = { false }))) {
-        LazyColumn(Modifier.weight(1f), state = list, contentPadding = PaddingValues(horizontal = 26.dp, vertical = 24.dp)) {
+    Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().axisDrag(sheetDrag(sheet, bar, onBack = { sheet.close() }))) {
+        LazyColumn(Modifier.weight(1f), state = list, contentPadding = PaddingValues(start = 26.dp, end = 26.dp, top = 24.dp, bottom = hintsClearance())) {
             item {
                 Label(kicker)
                 Spacer(Modifier.height(14.dp))
@@ -403,7 +393,7 @@ private fun LayerFrame(sheet: SheetState, kicker: String, title: String, content
             }
             content()
         }
-        PillButton("Back", { haptics.confirm(); sheet.close() }, Modifier.padding(14.dp), color = Palette.Tonal, content = Palette.Ink)
+        SwipeHints(bar, back = Way("go back") { haptics.confirm(); sheet.close() }, forward = null, modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 10.dp))
     }
 }
 

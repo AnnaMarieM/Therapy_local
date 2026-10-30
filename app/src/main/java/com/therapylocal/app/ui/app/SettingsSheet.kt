@@ -60,6 +60,10 @@ import com.therapylocal.app.models.SetupState
 import com.therapylocal.app.ui.data.ClientInput
 import com.therapylocal.app.ui.design.Choice
 import com.therapylocal.app.ui.design.ChoiceBar
+import com.therapylocal.app.ui.design.SwipeHints
+import com.therapylocal.app.ui.design.hintsClearance
+import com.therapylocal.app.ui.design.Way
+import com.therapylocal.app.ui.design.backChoice
 import com.therapylocal.app.ui.design.Palette
 import com.therapylocal.app.ui.design.Type
 import com.therapylocal.app.ui.design.rememberChoiceState
@@ -101,8 +105,8 @@ fun SettingsSheet(
     val availability = remember(tick) { Vault.biometricAvailability(ctx) }
     val notifications = remember(tick) { ctx.getSystemService(android.app.NotificationManager::class.java).areNotificationsEnabled() }
 
-    Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().axisDrag(sheetDrag(sheet, bar, list, onClose, onClose, haptics))) {
-        LazyColumn(Modifier.weight(1f), state = list, contentPadding = PaddingValues(horizontal = 26.dp, vertical = 24.dp)) {
+    Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().axisDrag(sheetDrag(sheet, bar, onBack = onClose))) {
+        LazyColumn(Modifier.weight(1f), state = list, contentPadding = PaddingValues(start = 26.dp, end = 26.dp, top = 24.dp, bottom = hintsClearance())) {
             item {
                 Label("MindVault")
                 Spacer(Modifier.height(14.dp))
@@ -187,7 +191,7 @@ fun SettingsSheet(
                 )
             }
         }
-        PillButton("Done", { haptics.confirm(); onClose() }, Modifier.padding(14.dp), color = Palette.Tonal, content = Palette.Ink)
+        SwipeHints(bar, back = Way("go back") { haptics.confirm(); onClose() }, forward = null, modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 10.dp))
     }
 }
 
@@ -333,8 +337,8 @@ fun AddClientSheet(sheet: SheetState, onCancel: () -> Unit, onAdd: (String) -> U
     androidx.compose.runtime.LaunchedEffect(Unit) { kotlinx.coroutines.delay(320); runCatching { focus.requestFocus() } }
     val add = { if (error == null) onAdd(name) else haptics.reject() }
 
-    Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().imePadding().axisDrag(sheetDrag(sheet, bar, null, onCancel, { add() }, haptics, allowRight = { error == null }))) {
-        Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 26.dp, vertical = 24.dp)) {
+    Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().imePadding().axisDrag(sheetDrag(sheet, bar, onBack = onCancel, onForward = { add() }, canForward = { error == null }))) {
+        Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(start = 26.dp, end = 26.dp, top = 24.dp, bottom = hintsClearance())) {
             Label("New client")
             Spacer(Modifier.height(14.dp))
             Text(if (name.isBlank()) "Who is it?" else name, style = Type.Hero, color = if (name.isBlank()) Palette.InkFaint else Palette.Ink, maxLines = 2)
@@ -345,11 +349,11 @@ fun AddClientSheet(sheet: SheetState, onCancel: () -> Unit, onAdd: (String) -> U
             Spacer(Modifier.height(14.dp))
             Text("Keep names minimal. Everything else MindVault learns comes from the sessions.", style = Type.BodySmall, color = Palette.InkFaint)
         }
-        ChoiceBar(
+        SwipeHints(
             bar,
-            left = Choice("Cancel", "Release to cancel", Palette.Tonal, Palette.Ink) { onCancel() },
-            right = Choice("Add", "Release to add", Palette.Ink, Palette.Paper, enabled = error == null) { add() },
-            modifier = Modifier.padding(14.dp),
+            back = Way("go back") { onCancel() },
+            forward = Way(if (error == null) "add $name" else "add", enabled = error == null) { add() },
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 10.dp),
         )
     }
 }
