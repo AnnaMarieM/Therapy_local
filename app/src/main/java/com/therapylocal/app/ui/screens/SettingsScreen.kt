@@ -98,7 +98,7 @@ fun SettingsScreen(
     val scope = rememberCoroutineScope()
     var biometricsEnabled by remember { mutableStateOf(Vault.isBiometricEnabled(context)) }
     val availability = Vault.biometricAvailability(context)
-    var autoSurfacePastNotes by remember { mutableStateOf(true) }
+    var autoSurfacePastFacts by remember { mutableStateOf(true) }
     val setup by ModelSetup.progress.collectAsStateWithLifecycle()
 
     Column(
@@ -222,10 +222,10 @@ fun SettingsScreen(
                     Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         SettingsToggleRow(
                             icon = Icons.Default.Security,
-                            title = "Show past notes",
+                            title = "Show past facts",
                             subtitle = "Bring up relevant quotes from earlier sessions while you talk",
-                            checked = autoSurfacePastNotes,
-                            onCheckedChange = { autoSurfacePastNotes = it }
+                            checked = autoSurfacePastFacts,
+                            onCheckedChange = { autoSurfacePastFacts = it }
                         )
                     }
                 }

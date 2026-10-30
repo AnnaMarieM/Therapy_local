@@ -58,8 +58,6 @@ import com.therapylocal.app.ui.theme.WarmBg
 fun SummaryScreen(
     patient: Patient,
     durationFormatted: String,
-    observations: String = "",
-    onObservationsChange: (String) -> Unit = {},
     canLeave: Boolean = true,
     canDelete: Boolean = true,
     onSaveToVault: () -> Unit,
@@ -258,5 +256,5 @@ fun SummaryScreen(
 
 /** Shared by every delete-session dialog: facts first heard in the session are kept if they came up again later. */
 const val DELETE_SESSION_TEXT =
-    "Removes the recording, transcript and notes of this session from this device. Facts first heard in it move to the next session " +
+    "Removes the recording and transcript of this session from this device. Facts first heard in it move to the next session " +
         "where they came up again; facts heard only in it are removed. This cannot be undone."

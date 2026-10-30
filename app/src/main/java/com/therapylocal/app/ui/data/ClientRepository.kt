@@ -14,7 +14,7 @@ import com.therapylocal.app.ui.models.FactItem
 import com.therapylocal.app.ui.models.FactOccurrence
 import com.therapylocal.app.ui.models.Patient
 import com.therapylocal.app.ui.models.SearchHit
-import com.therapylocal.app.ui.models.SessionNotes
+import com.therapylocal.app.ui.models.SessionItem
 import com.therapylocal.app.ui.models.TranscriptLine
 
 /**
@@ -45,8 +45,6 @@ class ClientRepository(context: Context, private val open: (Context) -> MindStor
         AppLog.i(TAG, "delete_client_verified", LogCtx.NONE, "client" to id, "removed" to removed, "facts_left" to store.facts(id).size, "sessions_left" to store.sessions(id).size)
     }
 
-    fun saveObservations(session: String, text: String) = store.setObservations(session, text)
-
     /** True while the AI files are still downloading: new sessions are kept and processed afterwards. */
     fun waitingForSetup(): Boolean = !ModelSetup.isReady(appContext)
 
@@ -75,14 +73,11 @@ class ClientRepository(context: Context, private val open: (Context) -> MindStor
         val sessions = store.sessions(client)
         val dates = sessions.associate { it.id to date(it.startedAt) }
         val rows = store.facts(client)
-        val bySession = rows.groupBy { it.sessionId }
-        val notes = sessions.map { s ->
-            SessionNotes(
+        val items = sessions.map { s ->
+            SessionItem(
                 id = s.id,
                 date = dates.getValue(s.id),
                 duration = store.transcriptLengthMs(s.id).let { if (it > 0) SessionLogic.formatMinSec(it / 1000) else "-" },
-                facts = bySession[s.id].orEmpty().map { it.toItem(dates) },
-                observations = s.observations,
             )
         }
         return Patient(
@@ -90,7 +85,7 @@ class ClientRepository(context: Context, private val open: (Context) -> MindStor
             name = name ?: client.replaceFirstChar { it.uppercase() },
             lastSession = sessions.lastOrNull()?.let { dates.getValue(it.id) } ?: "-",
             sessionCount = sessions.size,
-            sessions = notes.asReversed(), // newest first, as the profile lists them
+            sessions = items.asReversed(), // newest first, as the profile lists them
             facts = rows.map { it.toItem(dates) },
         )
     }

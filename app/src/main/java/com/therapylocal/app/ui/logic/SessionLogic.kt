@@ -25,14 +25,13 @@ object SessionLogic {
         return "${two(s / 3600)}:${two((s / 60) % 60)}:${two(s % 60)}"
     }
 
-    /** Patients whose name, fact headings and contents or session notes contain [query] (trimmed, case-insensitive). Blank query keeps everyone. */
+    /** Patients whose name or fact headings and contents contain [query] (trimmed, case-insensitive). Blank query keeps everyone. */
     fun filterPatients(patients: List<Patient>, query: String): List<Patient> {
         if (query.isBlank()) return patients
         val q = query.trim().lowercase()
         return patients.filter { p ->
             p.name.lowercase().contains(q) ||
-            p.facts.any { it.heading.lowercase().contains(q) || it.content.lowercase().contains(q) } ||
-            p.sessions.any { s -> s.observations.lowercase().contains(q) }
+            p.facts.any { it.heading.lowercase().contains(q) || it.content.lowercase().contains(q) }
         }
     }
 
@@ -72,7 +71,7 @@ object SessionLogic {
         JobPhase.Transcribing -> "Transcribing audio"
         JobPhase.Reading -> "Reading ${p.step}/${p.steps}"
         JobPhase.Checking -> "Checking ${p.step}/${p.steps}"
-        else -> if (job?.kind == JobGraph.TRANSCRIBE) "Transcribing audio" else "Extracting notes"
+        else -> if (job?.kind == JobGraph.TRANSCRIBE) "Transcribing audio" else "Extracting facts"
     }
 
     enum class SessionTabTarget { Live, Chooser }

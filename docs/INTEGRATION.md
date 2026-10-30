@@ -12,10 +12,10 @@ The developer harness (Record/Recordings/Search/Memory/Logs tabs, `memory_lab` i
 ## Data flow
 - Patients/Profile: `ClientRepository.patients()` maps `MemoryStore` rows to the UI `Patient` model (facts, sessions with their facts as summary, recurring facts shown as "(xN)"). Client id = lowercase slug without underscores (`MemoryProcessor.clientId`). Add patient creates a `clients` row; delete (profile screen or long press in the list) removes chunks, facts, supports, sessions and the row in one transaction and drops the queue jobs.
 - Live session: once the models are ready, `liveCues.start(client)` then `startRecording()`. Elapsed time counts while recording. Transcript lines come from the stored chunks of the active recording. Cue rows (category, fact, score bar) expand to the source chunk (`ClientRepository.sourceChunk`).
-- End session: `liveCues.stop()`, `stopRecording()`. When the pipeline has finished (`recording == false`, `status == "Done"`) the merged transcript goes to `MemoryProcessor.enqueueSession`, then the raw recording rows are deleted. Summary shows the queue stage, the facts of that session as they are committed, and the therapist's observations (`session_meta.observations`). Delete removes the session's chunks, facts, supports, observations, queued job and transcript file.
+- End session: `liveCues.stop()`, `stopRecording()`. When the pipeline has finished (`recording == false`, `status == "Done"`) the merged transcript goes to `MemoryProcessor.enqueueSession`, then the raw recording rows are deleted. Summary shows the queue stage, the facts of that session as they are committed. Delete removes the session's chunks, facts, supports, queued job and transcript file.
 
 ## Mock vs real
-Real: client list, create/delete, facts, sessions, recurring counts, recording, live transcript, live cues, end-of-session processing, summary facts, observations, session delete.
+Real: client list, create/delete, facts, sessions, recurring counts, recording, live transcript, live cues, end-of-session processing, summary facts, session delete.
 Mock: the "Consent confirmed" and "100% On-device" badges (static text, no consent capture), Settings toggles (biometrics, auto-surface), pre-session note (first facts of the last session, not a generated briefing), `Patient.age`/`presenting` (from the add form or a goal/emotion fact).
 
 ## Open TODOs

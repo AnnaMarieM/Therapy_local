@@ -11,7 +11,6 @@ import com.therapylocal.app.ui.logic.SessionLogic.PauseAction
 import com.therapylocal.app.ui.logic.SessionLogic.SessionTabTarget
 import com.therapylocal.app.ui.models.Patient
 import com.therapylocal.app.ui.models.FactItem
-import com.therapylocal.app.ui.models.SessionNotes
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -123,10 +122,10 @@ class SessionLogicTest {
     fun processingStageTextRules() {
         fun stage(j: Job, p: StepProgress? = null) = banner(j, progress = p)[j.clientId]!!.stage
         assertEquals("Queued", stage(job("x_1", JobStatus.Pending)))
-        assertEquals("Extracting notes", stage(job("x_1", JobStatus.Running)))
+        assertEquals("Extracting facts", stage(job("x_1", JobStatus.Running)))
         assertEquals("Transcribing audio", stage(job("x_1", JobStatus.Running, recordingId = 5, kind = JobGraph.TRANSCRIBE)))
         // The later jobs of a recording carry its id too; only transcribe is transcribing.
-        assertEquals("Extracting notes", stage(job("x_1", JobStatus.Running, recordingId = 5, kind = JobGraph.COMMIT)))
+        assertEquals("Extracting facts", stage(job("x_1", JobStatus.Running, recordingId = 5, kind = JobGraph.COMMIT)))
         assertEquals("Transcribing audio", stage(job("x_1", JobStatus.Running), StepProgress(JobPhase.Transcribing, 1, 3)))
         assertEquals("Reading 1/2", stage(job("x_1", JobStatus.Running, recordingId = 5), StepProgress(JobPhase.Reading, 1, 2)))
         assertEquals("Checking 4/9", stage(job("x_1", JobStatus.Running), StepProgress(JobPhase.Checking, 4, 9)))
@@ -186,8 +185,7 @@ class SessionLogicTest {
     private val sam = Patient(id = "p-2", name = "Sam Example", lastSession = "", sessionCount = 0, facts = listOf(FactItem(2, "Burnout", "Took sick leave in May.", "d")))
     private val rene = Patient(
         id = "p-3", name = "René Émile", lastSession = "", sessionCount = 1,
-        facts = listOf(FactItem(3, "Sister", "Has a sister called Lotte.", "d")),
-        sessions = listOf(SessionNotes(id = "s", date = "d", duration = "10:00", observations = "Talked about Grief; work stress; can't sleep"))
+        facts = listOf(FactItem(3, "Sister", "Has a sister called Lotte.", "d"))
     )
     private val all = listOf(alex, sam, rene)
 
@@ -216,12 +214,10 @@ class SessionLogicTest {
     }
 
     @Test
-    fun filterSearchesFactContentAndSessionNotes() {
+    fun filterSearchesFactContent() {
         assertEquals(listOf("p-3"), names("lotte"))
         assertEquals(listOf("p-1"), names("meetings"))
-        assertEquals(listOf("p-3"), names("grief"))
-        assertEquals(listOf("p-3"), names("work stress"))
-        assertEquals(listOf("p-3"), names("can't sleep"))
+        assertEquals(listOf("p-2"), names("sick leave"))
     }
 
     @Test

@@ -24,7 +24,7 @@ Everything the app stores about patients is encrypted under one data key (DEK) t
 
 | Data | Where | How |
 |---|---|---|
-| `mind.db`, the only database (clients, sessions, transcripts with timestamps, windows and embeddings, facts, mentions and evidence quotes, LLM caches, therapist's notes, the job queue) | internal `databases/` | SQLCipher (AES-256), DEK as raw key, incl. journal/WAL |
+| `mind.db`, the only database (clients, sessions, transcripts with timestamps, windows and embeddings, facts, mentions and evidence quotes, LLM caches, the job queue) | internal `databases/` | SQLCipher (AES-256), DEK as raw key, incl. journal/WAL |
 | Audio of a recording until its session is processed | internal `files/memory/audio/<recording>/<idx>.pcm` | SecureFile: magic `TLV1` + AES-256-GCM, AAD = file name, atomic write. Deleted by the session's last job (`cleanup`) |
 | Log fields `client` and `session` | `logs/tl.log` | written as an 8-hex HMAC pseudonym keyed by the DEK (`locked` while locked) |
 | Foreground notification | lock screen | private visibility; the public version only reads "Building client memory" |

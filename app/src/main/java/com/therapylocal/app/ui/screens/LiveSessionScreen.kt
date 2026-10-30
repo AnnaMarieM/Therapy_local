@@ -300,14 +300,14 @@ fun LiveSessionScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Surfaced Notes Section
+        // Surfaced facts section
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "NOTES FROM PAST SESSIONS",
+                text = "FROM PAST SESSIONS",
                 fontSize = 11.sp,
                 fontWeight = FontWeight.Bold,
                 color = MutedText

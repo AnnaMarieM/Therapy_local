@@ -11,7 +11,7 @@ import com.therapylocal.app.vault.VaultLockedException
 
 data class ClientRow(val id: String, val name: String, val createdAt: Long)
 
-data class SessionRow(val id: String, val clientId: String, val startedAt: Long, val endedAt: Long?, val observations: String)
+data class SessionRow(val id: String, val clientId: String, val startedAt: Long, val endedAt: Long?)
 
 data class RecordingRow(val id: Long, val sessionId: String?, val startedAt: Long, val engine: String, val model: String, val chunkCount: Int, val durationMs: Long)
 
@@ -119,15 +119,9 @@ class MindStore(context: Context, name: String, password: ByteArray) :
 
     /** Oldest first. */
     fun sessions(client: String): List<SessionRow> =
-        query("SELECT id, client_id, started_at, ended_at, observations FROM sessions WHERE client_id = ? ORDER BY started_at, id", client) {
-            SessionRow(it.getString(0), it.getString(1), it.getLong(2), if (it.isNull(3)) null else it.getLong(3), it.getString(4))
+        query("SELECT id, client_id, started_at, ended_at FROM sessions WHERE client_id = ? ORDER BY started_at, id", client) {
+            SessionRow(it.getString(0), it.getString(1), it.getLong(2), if (it.isNull(3)) null else it.getLong(3))
         }
-
-    fun observations(session: String): String = query("SELECT observations FROM sessions WHERE id = ?", session) { it.getString(0) }.firstOrNull().orEmpty()
-
-    fun setObservations(session: String, text: String) {
-        writableDatabase.update("sessions", ContentValues().apply { put("observations", text) }, "id = ?", arrayOf(session))
-    }
 
     /**
      * Deletes a session and everything stored for it, in one transaction. A fact first seen in it moves to its earliest mention in another
@@ -417,8 +411,7 @@ class MindStore(context: Context, name: String, password: ByteArray) :
                  id TEXT PRIMARY KEY,
                  client_id TEXT NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
                  started_at INTEGER NOT NULL,
-                 ended_at INTEGER,
-                 observations TEXT NOT NULL DEFAULT '')""",
+                 ended_at INTEGER)""",
             "CREATE INDEX sessions_client ON sessions(client_id, started_at)",
             // session_id is null for a recording made outside a session (the developer harness).
             """CREATE TABLE recordings(

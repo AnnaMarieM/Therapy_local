@@ -1,6 +1,6 @@
 # Long-term memory
 
-A journal that takes notes for you, on the phone, with Gemma 4 (E2B or E4B, LiteRT-LM) and EmbeddingGemma. Each client has a list of facts: a **heading** (about 6 words) and **content** (1-3 short factual sentences, no interpretation or advice). Every fact keeps a verbatim quote and the transcript segment it came from, so tapping it shows the conversation around it, plus every later passage, in any session, where it came up again. The app gives no insights and writes no summaries. A session's meeting notes are its facts, its transcript and the therapist's own notes.
+A journal that remembers for you, on the phone, with Gemma 4 (E2B or E4B, LiteRT-LM) and EmbeddingGemma. Each client has a list of facts: a **heading** (about 6 words) and **content** (1-3 short factual sentences, no interpretation or advice). Every fact keeps a verbatim quote and the transcript segment it came from, so tapping it shows the conversation around it, plus every later passage, in any session, where it came up again. The app gives no insights and writes no summaries. The app shows only the facts and each session's full transcript.
 
 Facts are append-only: a fact that changes over time is not updated.
 
@@ -10,7 +10,7 @@ Everything lives in `mind.db` (SQLCipher, see [SECURITY.md](SECURITY.md)), opene
 | Table | Holds |
 |---|---|
 | `clients(id, name, created_at)` | |
-| `sessions(id, client_id, started_at, ended_at, observations)` | `observations` are the therapist's notes |
+| `sessions(id, client_id, started_at, ended_at)` | |
 | `recordings(id, session_id, started_at, engine, model, chunk_seconds)` | A recording until its session is processed |
 | `chunks(recording_id, idx, start_ms, end_ms, overlap_ms, text)` | Raw speech-recognition output per audio chunk; `text` is empty until transcribed |
 | `segments(session_id, idx, start_ms, end_ms, text)` | The session's transcript with timestamps, derived from `chunks` (rebuilt whole) |

@@ -11,13 +11,11 @@ data class FactItem(
     val mentionCount: Int = 0
 )
 
-/** The meeting notes of one session: its facts and the therapist's own notes. The transcript is loaded on demand. */
-data class SessionNotes(
+/** One recorded session. Its transcript is loaded on demand. */
+data class SessionItem(
     val id: String,
     val date: String,
-    val duration: String,
-    val facts: List<FactItem> = emptyList(),
-    val observations: String = ""
+    val duration: String
 )
 
 /** One transcript segment; [time] is its offset into the session ("mm:ss"). */
@@ -51,7 +49,7 @@ data class Patient(
     val name: String, // e.g. "George M."
     val lastSession: String,
     val sessionCount: Int,
-    val sessions: List<SessionNotes> = emptyList(),
+    val sessions: List<SessionItem> = emptyList(),
     val facts: List<FactItem> = emptyList()
 )
 

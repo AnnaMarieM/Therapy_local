@@ -88,7 +88,7 @@ fun PatientsScreen(
     var showAddDialog by remember { mutableStateOf(false) }
     var patientToDelete by remember { mutableStateOf<Patient?>(null) }
 
-    // Search across patient names, facts, and past notes/quotes
+    // Search across patient names and facts
     val filteredPatients by remember(searchQuery, patients) {
         derivedStateOf {
             SessionLogic.filterPatients(patients, searchQuery)
@@ -149,7 +149,7 @@ fun PatientsScreen(
             onValueChange = { searchQuery = it },
             modifier = Modifier.fillMaxWidth(),
             textStyle = androidx.compose.ui.text.TextStyle(color = CharcoalText, fontSize = 14.sp, fontWeight = FontWeight.Medium),
-            placeholder = { Text("Search patients or notes (e.g. 'father')...", fontSize = 13.sp, color = CharcoalText) },
+            placeholder = { Text("Search patients or facts (e.g. 'father')...", fontSize = 13.sp, color = CharcoalText) },
             leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = SageDark, modifier = Modifier.size(20.dp)) },
             singleLine = true,
             shape = RoundedCornerShape(16.dp),
@@ -282,7 +282,7 @@ fun ConfirmDeletePatientDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Delete ${patient.name}?", fontWeight = FontWeight.Bold, fontFamily = FontFamily.Serif, color = CharcoalText) },
-        text = { Text("Removes the profile, all sessions, transcripts and notes stored for them. This cannot be undone.", fontSize = 13.sp, color = CharcoalText) },
+        text = { Text("Removes the profile, all sessions, transcripts and facts stored for them. This cannot be undone.", fontSize = 13.sp, color = CharcoalText) },
         confirmButton = {
             Button(onClick = onConfirm, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFB3261E))) { Text("Delete") }
         },

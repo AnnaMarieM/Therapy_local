@@ -32,8 +32,6 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.TabRowDefaults
@@ -66,7 +64,7 @@ import com.therapylocal.app.ui.models.FactItem
 import com.therapylocal.app.ui.models.Patient
 import com.therapylocal.app.ui.models.ProcessingSessionInfo
 import com.therapylocal.app.ui.models.SearchHit
-import com.therapylocal.app.ui.models.SessionNotes
+import com.therapylocal.app.ui.models.SessionItem
 import com.therapylocal.app.ui.models.TranscriptLine
 import com.therapylocal.app.ui.theme.BorderSubtle
 import com.therapylocal.app.ui.theme.CharcoalText
@@ -84,8 +82,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /**
- * One client: start a session, search its sessions ([search] is the search box, given a way to open a result), its meeting notes and its
- * facts. Facts and transcripts are read through [repo]; [onChanged] reloads the client after a session is deleted or notes are saved.
+ * One client: start a session, search its sessions ([search] is the search box, given a way to open a result), its session transcripts
+ * and its facts. Facts and transcripts are read through [repo]; [onChanged] reloads the client after a session is deleted.
  */
 @Composable
 fun ProfileScreen(
@@ -105,7 +103,7 @@ fun ProfileScreen(
     var confirmDelete by remember(patient.id) { mutableStateOf(false) }
     var openFact by remember(patient.id) { mutableStateOf<FactItem?>(null) }
     var openHit by remember(patient.id) { mutableStateOf<SearchHit?>(null) }
-    // Saving notes and deleting a session run here, not in their card: scrolling the card away must not cancel them.
+    // Deleting a session runs here, not in its card: scrolling the card away must not cancel them.
     val scope = rememberCoroutineScope()
     val tabs = listOf("Overview", "Sessions", "Facts")
 
@@ -213,7 +211,7 @@ fun ProfileScreen(
                 onReturnToActiveSession = onReturnToActiveSession,
                 search = { search { openHit = it } }
             )
-            1 -> SessionsTab(patient = patient, repo = repo, scope = scope, processingSession = processingSession, onOpenFact = { openFact = it }, onChanged = onChanged)
+            1 -> SessionsTab(patient = patient, repo = repo, scope = scope, processingSession = processingSession, onChanged = onChanged)
             2 -> FactsTab(patient = patient, onOpenFact = { openFact = it })
         }
     }
@@ -349,13 +347,6 @@ fun OverviewTab(
                                 color = MutedText
                             )
                         }
-                        Spacer(modifier = Modifier.height(6.dp))
-                        Text(
-                            text = if (session.facts.isEmpty()) "No new facts." else session.facts.joinToString(" · ") { it.heading },
-                            fontSize = 12.sp,
-                            color = CharcoalText,
-                            lineHeight = 17.sp
-                        )
                     }
                 }
             }
@@ -370,14 +361,13 @@ fun OverviewTab(
     }
 }
 
-/** Meeting notes per session: the facts first heard in it, the full transcript (on demand) and the therapist's own notes. */
+/** One card per session: its date, duration and full transcript (on demand). */
 @Composable
 fun SessionsTab(
     patient: Patient,
     repo: ClientRepository,
     scope: CoroutineScope,
     processingSession: ProcessingSessionInfo? = null,
-    onOpenFact: (FactItem) -> Unit,
     onChanged: () -> Unit
 ) {
     LazyColumn(
@@ -440,28 +430,26 @@ fun SessionsTab(
 
         if (patient.sessions.isEmpty() && processingSession == null) {
             item {
-                EmptyCard(title = "No sessions yet", text = "Each session's facts, transcript and your notes will be listed here.")
+                EmptyCard(title = "No sessions yet", text = "Each session's transcript will be listed here.")
             }
         }
 
         items(patient.sessions, key = { it.id }) { session ->
-            SessionNotesCard(patient = patient, session = session, repo = repo, scope = scope, onOpenFact = onOpenFact, onChanged = onChanged)
+            SessionCard(patient = patient, session = session, repo = repo, scope = scope, onChanged = onChanged)
         }
     }
 }
 
 @Composable
-private fun SessionNotesCard(
+private fun SessionCard(
     patient: Patient,
-    session: SessionNotes,
+    session: SessionItem,
     repo: ClientRepository,
     scope: CoroutineScope,
-    onOpenFact: (FactItem) -> Unit,
     onChanged: () -> Unit
 ) {
     var showTranscript by remember { mutableStateOf(false) }
     var transcript by remember(session.id) { mutableStateOf<List<TranscriptLine>?>(null) }
-    var notes by remember(session.id, session.observations) { mutableStateOf(session.observations) }
     var confirmDelete by remember { mutableStateOf(false) }
     // Re-read on each show: a card opened before transcription finished must pick up the transcript.
     LaunchedEffect(showTranscript) {
@@ -493,10 +481,6 @@ private fun SessionNotesCard(
                 }
             }
 
-            SectionLabel("FACTS")
-            if (session.facts.isEmpty()) Text(text = "No new facts in this session.", fontSize = 12.sp, color = MutedText)
-            session.facts.forEach { fact -> FactRow(fact, onClick = { onOpenFact(fact) }) }
-
             SectionLabel("TRANSCRIPT")
             TextButton(onClick = { showTranscript = !showTranscript }) {
                 Text(if (showTranscript) "Hide transcript" else "Show transcript", color = SageDark, fontSize = 12.sp)
@@ -508,25 +492,6 @@ private fun SessionNotesCard(
                     lines.isEmpty() -> Text(text = "Not transcribed yet.", fontSize = 12.sp, color = MutedText)
                     else -> TranscriptLines(lines = lines)
                 }
-            }
-
-            SectionLabel("YOUR NOTES")
-            OutlinedTextField(
-                value = notes,
-                onValueChange = { notes = it },
-                placeholder = { Text("Your own notes on this session", fontSize = 12.sp) },
-                modifier = Modifier.fillMaxWidth(),
-                minLines = 2,
-                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = SageGreen, unfocusedBorderColor = BorderSubtle, cursorColor = SageGreen),
-                shape = RoundedCornerShape(10.dp)
-            )
-            if (notes != session.observations) {
-                TextButton(onClick = {
-                    scope.launch {
-                        withContext(Dispatchers.IO) { repo.saveObservations(session.id, notes) }
-                        onChanged()
-                    }
-                }) { Text("Save notes", color = SageDark, fontSize = 12.sp, fontWeight = FontWeight.SemiBold) }
             }
         }
     }
@@ -688,7 +653,7 @@ fun ProcessingSessionCard(
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = "Transcribing and taking notes on this session...",
+                text = "Transcribing this session and finding facts...",
                 fontSize = 12.sp,
                 color = CharcoalText,
                 lineHeight = 17.sp
