@@ -67,24 +67,27 @@ class ClientRepository(context: Context, private val open: (Context) -> MindStor
     fun sourceChunk(session: String, segIdx: Int): String? = store.segmentsAround(session, segIdx, 0).firstOrNull()?.text
 
     /** All clients as UI patients. */
-    fun patients(): List<Patient> = store.clients().map { patient(it.id) }
+    fun patients(): List<Patient> = store.clients().map { patient(it.id, it.name) }
 
-    fun patient(client: String): Patient {
+    fun patient(client: String): Patient = patient(client, store.clients().firstOrNull { it.id == client }?.name)
+
+    private fun patient(client: String, name: String?): Patient {
         val sessions = store.sessions(client)
         val dates = sessions.associate { it.id to date(it.startedAt) }
         val rows = store.facts(client)
+        val bySession = rows.groupBy { it.sessionId }
         val notes = sessions.map { s ->
             SessionNotes(
                 id = s.id,
                 date = dates.getValue(s.id),
                 duration = store.transcriptLengthMs(s.id).let { if (it > 0) SessionLogic.formatMinSec(it / 1000) else "-" },
-                facts = rows.filter { it.sessionId == s.id }.map { it.toItem(dates) },
+                facts = bySession[s.id].orEmpty().map { it.toItem(dates) },
                 observations = s.observations,
             )
         }
         return Patient(
             id = client,
-            name = store.clients().firstOrNull { it.id == client }?.name ?: client.replaceFirstChar { it.uppercase() },
+            name = name ?: client.replaceFirstChar { it.uppercase() },
             lastSession = sessions.lastOrNull()?.let { dates.getValue(it.id) } ?: "-",
             sessionCount = sessions.size,
             sessions = notes.asReversed(), // newest first, as the profile lists them
@@ -120,7 +123,11 @@ class ClientRepository(context: Context, private val open: (Context) -> MindStor
     }
 
     /** Segments [from]..[to] of [session]. */
-    fun transcript(session: String, from: Int, to: Int): List<TranscriptLine> = store.segments(session).filter { it.idx in from..to }.map { it.toLine() }
+    fun transcript(session: String, from: Int, to: Int): List<TranscriptLine> {
+        // segmentsAround reads a centred range; it covers [from]..[to] (one more when the span is even), trimmed here.
+        val r = (to - from + 1) / 2
+        return store.segmentsAround(session, from + r, r).filter { it.idx in from..to }.map { it.toLine() }
+    }
 
     private fun FactRow.toItem(dates: Map<String, String>) = FactItem(id, heading, content, dates[sessionId].orEmpty(), mentionCount)
 

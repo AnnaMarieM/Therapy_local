@@ -1,5 +1,6 @@
 package com.therapylocal.app.ui.components
 
+import android.Manifest
 import android.media.AudioManager
 import android.media.ToneGenerator
 import android.view.HapticFeedbackConstants
@@ -45,7 +46,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -54,6 +55,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -62,10 +64,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.app.ActivityCompat
 import com.therapylocal.app.SearchState
 import com.therapylocal.app.config.ChunkConfig
 import com.therapylocal.app.ui.logic.SessionLogic
 import com.therapylocal.app.ui.models.SearchHit
+import com.therapylocal.app.ui.security.findFragmentActivity
 import com.therapylocal.app.ui.theme.BorderSubtle
 import com.therapylocal.app.ui.theme.CharcoalText
 import com.therapylocal.app.ui.theme.DangerRed
@@ -74,7 +78,6 @@ import com.therapylocal.app.ui.theme.SageDark
 import com.therapylocal.app.ui.theme.SageGreen
 import com.therapylocal.app.ui.theme.SurfaceCard
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 
 /**
  * Search one client's sessions: type, or hold the mic and speak (the clip itself is searched, it is never transcribed).
@@ -92,8 +95,8 @@ fun ClientSearch(
     hasMicPermission: () -> Boolean,
     requestMicPermission: () -> Unit
 ) {
+    val activity = LocalContext.current.findFragmentActivity()
     var query by rememberSaveable { mutableStateOf("") }
-    var askedMic by rememberSaveable { mutableStateOf(false) }
     var micRefused by remember { mutableStateOf(false) }
 
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -129,9 +132,9 @@ fun ClientSearch(
                         micRefused = false
                         onVoiceStart()
                     } else {
-                        // Asked once already: Android will not ask again, so say where to allow it.
-                        if (askedMic) micRefused = true else requestMicPermission()
-                        askedMic = true
+                        // The app asks at startup, so without a rationale to show Android will not ask again: say where to allow it.
+                        micRefused = activity != null && !ActivityCompat.shouldShowRequestPermissionRationale(activity, Manifest.permission.RECORD_AUDIO)
+                        requestMicPermission()
                         false
                     }
                 },
@@ -179,14 +182,27 @@ private fun SearchHitRow(hit: SearchHit, onClick: () -> Unit) {
     }
 }
 
-/** Hold to record, release to search. Pulses red while listening; on release it pops, ticks and beeps. */
+/** Hold to record, release to search. Pulses red while listening; when recording stops (release or the length cap) it pops, ticks and beeps. */
 @Composable
 private fun HoldToSearchButton(listening: Boolean, enabled: Boolean, onPress: () -> Boolean, onRelease: () -> Unit) {
     val view = LocalView.current
-    val scope = rememberCoroutineScope()
     val pop = remember { Animatable(1f) }
     val tone = remember { runCatching { ToneGenerator(AudioManager.STREAM_SYSTEM, POP_VOLUME) }.getOrNull() }
     DisposableEffect(Unit) { onDispose { tone?.release() } }
+    // pointerInput keeps its first lambdas; read the callbacks through these.
+    val currentOnPress by rememberUpdatedState(onPress)
+    val currentOnRelease by rememberUpdatedState(onRelease)
+
+    var wasListening by remember { mutableStateOf(false) }
+    LaunchedEffect(listening) {
+        val stopped = wasListening && !listening
+        wasListening = listening
+        if (!stopped) return@LaunchedEffect
+        view.performHapticFeedback(HapticFeedbackConstants.CONFIRM)
+        tone?.startTone(ToneGenerator.TONE_PROP_BEEP, POP_MS)
+        pop.snapTo(1.25f)
+        pop.animateTo(1f, spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMedium))
+    }
 
     var seconds by remember { mutableIntStateOf(0) }
     LaunchedEffect(listening) {
@@ -231,15 +247,9 @@ private fun HoldToSearchButton(listening: Boolean, enabled: Boolean, onPress: ()
                     .pointerInput(enabled) {
                         if (!enabled) return@pointerInput
                         detectTapGestures(onPress = {
-                            if (!onPress()) return@detectTapGestures
+                            if (!currentOnPress()) return@detectTapGestures
                             tryAwaitRelease()
-                            onRelease()
-                            view.performHapticFeedback(HapticFeedbackConstants.CONFIRM)
-                            tone?.startTone(ToneGenerator.TONE_PROP_BEEP, POP_MS)
-                            scope.launch {
-                                pop.snapTo(1.25f)
-                                pop.animateTo(1f, spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMedium))
-                            }
+                            currentOnRelease()
                         })
                     }
             ) {

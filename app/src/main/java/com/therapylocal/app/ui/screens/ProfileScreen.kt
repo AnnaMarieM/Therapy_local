@@ -78,6 +78,7 @@ import com.therapylocal.app.ui.theme.SageLight
 import com.therapylocal.app.ui.theme.SagePill
 import com.therapylocal.app.ui.theme.SurfaceCard
 import com.therapylocal.app.ui.theme.WarmBg
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -100,10 +101,12 @@ fun ProfileScreen(
     search: @Composable (onOpen: (SearchHit) -> Unit) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var selectedTab by remember { mutableIntStateOf(0) }
-    var confirmDelete by remember { mutableStateOf(false) }
-    var openFact by remember { mutableStateOf<FactItem?>(null) }
-    var openHit by remember { mutableStateOf<SearchHit?>(null) }
+    var selectedTab by remember(patient.id) { mutableIntStateOf(0) }
+    var confirmDelete by remember(patient.id) { mutableStateOf(false) }
+    var openFact by remember(patient.id) { mutableStateOf<FactItem?>(null) }
+    var openHit by remember(patient.id) { mutableStateOf<SearchHit?>(null) }
+    // Saving notes and deleting a session run here, not in their card: scrolling the card away must not cancel them.
+    val scope = rememberCoroutineScope()
     val tabs = listOf("Overview", "Sessions", "Facts")
 
     Column(
@@ -210,7 +213,7 @@ fun ProfileScreen(
                 onReturnToActiveSession = onReturnToActiveSession,
                 search = { search { openHit = it } }
             )
-            1 -> SessionsTab(patient = patient, repo = repo, processingSession = processingSession, onOpenFact = { openFact = it }, onChanged = onChanged)
+            1 -> SessionsTab(patient = patient, repo = repo, scope = scope, processingSession = processingSession, onOpenFact = { openFact = it }, onChanged = onChanged)
             2 -> FactsTab(patient = patient, onOpenFact = { openFact = it })
         }
     }
@@ -372,6 +375,7 @@ fun OverviewTab(
 fun SessionsTab(
     patient: Patient,
     repo: ClientRepository,
+    scope: CoroutineScope,
     processingSession: ProcessingSessionInfo? = null,
     onOpenFact: (FactItem) -> Unit,
     onChanged: () -> Unit
@@ -441,20 +445,27 @@ fun SessionsTab(
         }
 
         items(patient.sessions, key = { it.id }) { session ->
-            SessionNotesCard(patient = patient, session = session, repo = repo, onOpenFact = onOpenFact, onChanged = onChanged)
+            SessionNotesCard(patient = patient, session = session, repo = repo, scope = scope, onOpenFact = onOpenFact, onChanged = onChanged)
         }
     }
 }
 
 @Composable
-private fun SessionNotesCard(patient: Patient, session: SessionNotes, repo: ClientRepository, onOpenFact: (FactItem) -> Unit, onChanged: () -> Unit) {
-    val scope = rememberCoroutineScope()
+private fun SessionNotesCard(
+    patient: Patient,
+    session: SessionNotes,
+    repo: ClientRepository,
+    scope: CoroutineScope,
+    onOpenFact: (FactItem) -> Unit,
+    onChanged: () -> Unit
+) {
     var showTranscript by remember { mutableStateOf(false) }
     var transcript by remember(session.id) { mutableStateOf<List<TranscriptLine>?>(null) }
     var notes by remember(session.id, session.observations) { mutableStateOf(session.observations) }
     var confirmDelete by remember { mutableStateOf(false) }
+    // Re-read on each show: a card opened before transcription finished must pick up the transcript.
     LaunchedEffect(showTranscript) {
-        if (showTranscript && transcript == null) transcript = withContext(Dispatchers.IO) { repo.transcript(session.id) }
+        if (showTranscript) transcript = withContext(Dispatchers.IO) { repo.transcript(session.id) }
     }
 
     Card(

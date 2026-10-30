@@ -1,21 +1,7 @@
 package com.therapylocal.app.ui.screens
 
-import android.widget.Toast
 import android.content.Context
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.RadioButton
-import androidx.compose.material3.RadioButtonDefaults
-import androidx.compose.material3.Slider
-import androidx.compose.material3.SliderDefaults
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
-import com.therapylocal.app.config.LiveCueSettings
-import com.therapylocal.app.config.liveCueSettings
-import com.therapylocal.app.config.saveLiveCueSettings
-import com.therapylocal.app.models.GemmaVariant
-import java.util.Locale
-import kotlin.math.roundToInt
-import kotlin.math.roundToLong
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -32,17 +18,22 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Fingerprint
 import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Memory
 import androidx.compose.material.icons.filled.Security
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.RadioButtonDefaults
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
@@ -51,8 +42,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -60,22 +51,23 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.therapylocal.app.config.LiveCueSettings
+import com.therapylocal.app.config.liveCueSettings
+import com.therapylocal.app.config.saveLiveCueSettings
+import com.therapylocal.app.models.GemmaVariant
 import com.therapylocal.app.models.ModelRegistry
 import com.therapylocal.app.models.ModelSetup
 import com.therapylocal.app.models.SetupState
 import com.therapylocal.app.ui.components.PillBadge
 import com.therapylocal.app.ui.security.authenticateWithBiometric
 import com.therapylocal.app.ui.security.findFragmentActivity
-import com.therapylocal.app.vault.BiometricAvailability
-import com.therapylocal.app.vault.Vault
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import com.therapylocal.app.ui.theme.BorderSubtle
 import com.therapylocal.app.ui.theme.CharcoalText
 import com.therapylocal.app.ui.theme.DangerBg
@@ -86,6 +78,14 @@ import com.therapylocal.app.ui.theme.SageGreen
 import com.therapylocal.app.ui.theme.SageLight
 import com.therapylocal.app.ui.theme.SurfaceCard
 import com.therapylocal.app.ui.theme.WarmBg
+import com.therapylocal.app.vault.BiometricAvailability
+import com.therapylocal.app.vault.Vault
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.util.Locale
+import kotlin.math.roundToInt
+import kotlin.math.roundToLong
 
 @Composable
 fun SettingsScreen(
@@ -392,6 +392,7 @@ private fun MemoryModelChoice() {
     val unused = remember(tick) { ModelSetup.unusedGemma(context) }
     val suggested = remember { ModelSetup.suggestedGemma(context) }
     var confirm by remember { mutableStateOf<GemmaVariant?>(null) }
+    var confirmRemove by remember { mutableStateOf(false) }
 
     Text(text = "Memory model", fontSize = 13.sp, fontWeight = FontWeight.Medium, color = CharcoalText)
     Text(text = "Suggested for this phone: ${suggested.title}", fontSize = 11.sp, color = MutedText)
@@ -410,8 +411,20 @@ private fun MemoryModelChoice() {
             Text(text = ModelSetup.formatBytes(spec.totalBytes), fontSize = 11.sp, color = MutedText)
         }
     }
-    if (unused != null) TextButton(onClick = { ModelSetup.removeUnusedGemma(context); tick++ }) {
+    if (unused != null) TextButton(onClick = { confirmRemove = true }) {
         Text("Remove the unused model (${unused.title}, ${ModelSetup.formatBytes(unused.totalBytes)})", color = SageDark)
+    }
+
+    if (confirmRemove && unused != null) {
+        AlertDialog(
+            onDismissRequest = { confirmRemove = false },
+            title = { Text("Remove ${unused.title}?") },
+            text = { Text("${ModelSetup.formatBytes(unused.totalBytes)} will be freed. Choosing it again downloads it again.") },
+            confirmButton = {
+                TextButton(onClick = { ModelSetup.removeUnusedGemma(context); confirmRemove = false; tick++ }) { Text("Remove", color = DangerRed) }
+            },
+            dismissButton = { TextButton(onClick = { confirmRemove = false }) { Text("Cancel") } },
+        )
     }
 
     confirm?.let { v ->
