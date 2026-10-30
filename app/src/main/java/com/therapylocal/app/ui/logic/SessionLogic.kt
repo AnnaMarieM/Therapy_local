@@ -25,6 +25,21 @@ object SessionLogic {
         return "${two(s / 3600)}:${two((s / 60) % 60)}:${two(s % 60)}"
     }
 
+    /** What ending a session of [durationMs] leads to: too short to be one is thrown away, a short one is asked about, the rest saved. */
+    enum class EndOutcome { Discard, Ask, Save }
+
+    /** Under this a session is a slip of the finger, not a session. */
+    const val DISCARD_UNDER_MS = 10_000L
+
+    /** Under this a session is short enough to ask whether it was meant. */
+    const val ASK_UNDER_MS = 5 * 60_000L
+
+    fun endOutcome(durationMs: Long): EndOutcome = when {
+        durationMs < DISCARD_UNDER_MS -> EndOutcome.Discard
+        durationMs < ASK_UNDER_MS -> EndOutcome.Ask
+        else -> EndOutcome.Save
+    }
+
     /**
      * Per-client "processing" banner info: sessions with work still to do and nothing failed (a later session of the same client replaces an
      * earlier one), plus the not-yet-enqueued session ([pending] = client, sessionId, date) if that client has none.

@@ -43,6 +43,7 @@ import com.therapylocal.app.jobs.Jobs
 import com.therapylocal.app.memory.MemoryService
 import com.therapylocal.app.models.ModelSetup
 import com.therapylocal.app.models.SetupState
+import com.therapylocal.app.session.EndedSession
 import com.therapylocal.app.session.SessionController
 import com.therapylocal.app.session.SessionPhase
 import com.therapylocal.app.ui.data.ClientsViewModel
@@ -120,6 +121,7 @@ private fun Main(viewModel: MainViewModel, openSessionRequest: Int, onDeveloper:
     var sessionFrom by remember { mutableStateOf<BoundsRef?>(null) }
     var confirmLock by remember { mutableStateOf(false) }
     var confirmDiscard by remember { mutableStateOf(false) }
+    var confirmShort by remember { mutableStateOf(false) }
 
     val r30 = with(density) { 30.dp.toPx() }
     val r24 = with(density) { 24.dp.toPx() }
@@ -239,16 +241,32 @@ private fun Main(viewModel: MainViewModel, openSessionRequest: Int, onDeveloper:
         }
     }
     val lock: () -> Unit = { if (queue.running != null) confirmLock = true else activity?.let(Vault::lock) }
+    val showSaved = { e: EndedSession ->
+        haptics.confirm()
+        notice.show("Saved to ${clientName(e.client)}'s record", "Discard" to { confirmDiscard = true }, durationMs = 8_000)
+    }
+    val discard = { e: EndedSession, message: String ->
+        scope.launch {
+            withContext(Dispatchers.IO) { clientsVm.repo.deleteSession(e.client, e.sessionId) }
+            SessionController.dismissEnded()
+            clientsVm.refresh()
+            notice.show(message)
+        }
+        Unit
+    }
 
     // The recording notification was tapped.
     LaunchedEffect(openSessionRequest) { if (openSessionRequest > 0 && session.active && !sessionSheet.target) openSession() }
     // The pill moves (it appears, the list changes): a folding sheet keeps aiming at it.
     LaunchedEffect(refs.pill.rect) { if (!sessionSheet.target && sessionSheet.visible && refs.pill.rect != Rect.Zero) sessionSheet.retarget(Origin(refs.pill.rect, Palette.Ink, r24)) }
-    // The session was saved: say so, with a way to take it back.
+    // The session was saved: say so, with a way to take it back. One too short to be a session goes at once; a short one is asked about.
     LaunchedEffect(session.ended) {
         val e = session.ended ?: return@LaunchedEffect
-        haptics.confirm()
-        notice.show("Saved to ${clientName(e.client)}'s record", "Discard" to { confirmDiscard = true }, durationMs = 8_000)
+        when (SessionLogic.endOutcome(e.durationMs)) {
+            SessionLogic.EndOutcome.Discard -> discard(e, "Under 10 seconds, so not saved")
+            SessionLogic.EndOutcome.Ask -> confirmShort = true
+            SessionLogic.EndOutcome.Save -> showSaved(e)
+        }
     }
     LaunchedEffect(session.error) { session.error?.let { notice.show(it); if (!session.active) SessionController.clearError() } }
 
@@ -378,14 +396,22 @@ private fun Main(viewModel: MainViewModel, openSessionRequest: Int, onDeveloper:
             "Discard this session?", "Its recording is deleted from the phone and it will not be processed. This cannot be undone.", "Discard",
             onConfirm = {
                 confirmDiscard = false
-                if (e != null) scope.launch {
-                    withContext(Dispatchers.IO) { clientsVm.repo.deleteSession(e.client, e.sessionId) }
-                    SessionController.dismissEnded()
-                    clientsVm.refresh()
-                    notice.show("Session discarded")
-                }
+                if (e != null) discard(e, "Session discarded")
             },
             onDismiss = { confirmDiscard = false },
+        )
+    }
+    // Back, or a tap beside it, keeps the session: nothing is thrown away without being asked to.
+    if (confirmShort) {
+        val e = session.ended
+        ConfirmDialog(
+            "That was quick.", "Do you want to save this session?", "Discard",
+            onConfirm = {
+                confirmShort = false
+                if (e != null) discard(e, "Session discarded")
+            },
+            onDismiss = { confirmShort = false; e?.let(showSaved) },
+            dismiss = "Save",
         )
     }
 }
