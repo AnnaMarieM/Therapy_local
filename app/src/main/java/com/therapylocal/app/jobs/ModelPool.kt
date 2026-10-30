@@ -16,11 +16,27 @@ class ModelPool(
     private var embed: Embed? = null
     private var asr: Asr? = null
 
-    fun llm(): Llm = llm ?: loadLlm().also { llm = it }
+    fun llm(): Llm {
+        dropStaleLlm()
+        return llm ?: loadLlm().also { llm = it }
+    }
 
     fun embed(): Embed = embed ?: loadEmbed().also { embed = it }
 
-    fun asr(): Asr = asr ?: loadAsr(::llm).also { asr = it }
+    fun asr(): Asr {
+        dropStaleLlm()
+        return asr ?: loadAsr(::llm).also { asr = it }
+    }
+
+    /** The Gemma build was switched in the settings mid-drain: unload the old one, and the speech recogniser that may run on it. */
+    private fun dropStaleLlm() {
+        val loaded = llm ?: return
+        if (loaded.model == llmModel()) return
+        asr?.close()
+        loaded.close()
+        asr = null
+        llm = null
+    }
 
     /** The speech recogniser first: it may run on the LLM's engine. */
     override fun close() {

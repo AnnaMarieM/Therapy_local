@@ -17,16 +17,16 @@ import com.therapylocal.app.jobs.Asr
 import com.therapylocal.app.jobs.Llm
 import com.therapylocal.app.log.AppLog
 import com.therapylocal.app.log.LogCtx
-import com.therapylocal.app.models.ModelRegistry
+import com.therapylocal.app.models.ModelSpec
 import com.therapylocal.app.models.NpuRuntime
 
 /**
- * Gemma 4 on LiteRT-LM for the memory pipeline. Every call is a fresh conversation, so nothing leaks between stages. When the model bundle
+ * Gemma 4 ([spec]: the E2B or E4B build) on LiteRT-LM for the memory pipeline. Every call is a fresh conversation, so nothing leaks between stages. When the model bundle
  * has an audio encoder, the same engine also transcribes speech ([speech]), so Gemma is never loaded twice.
  */
 @OptIn(ExperimentalApi::class)
-class MemoryLlm(private val context: Context, private val maxTokens: Int) : Llm {
-    override val model: String = ModelRegistry.GEMMA.id
+class MemoryLlm(private val context: Context, private val maxTokens: Int, private val spec: ModelSpec) : Llm {
+    override val model: String = spec.id
 
     var backend = "none"
         private set
@@ -36,7 +36,7 @@ class MemoryLlm(private val context: Context, private val maxTokens: Int) : Llm 
     /** [order] is tried in turn; each backend is validated with a small reply because GPU/NPU can fail only at the first inference. */
     fun load(order: List<String>) {
         ExperimentalFlags.enableBenchmark = true
-        val file = ModelRegistry.GEMMA.file(context, ModelRegistry.GEMMA.files.first())
+        val file = spec.file(context, spec.files.first())
         // Audio-stripped builds exist: the bundle says whether it can hear (as the embedder checks too).
         audio = runCatching { ModelInfo.from(file.path).use { it.inputModalities().audio } }.getOrDefault(false)
         val failures = ArrayList<String>()

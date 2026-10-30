@@ -34,6 +34,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.remember
@@ -49,6 +50,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.therapylocal.app.models.ModelChoice
+import com.therapylocal.app.models.ModelRegistry
 import com.therapylocal.app.models.ModelSetup
 import com.therapylocal.app.models.SetupState
 import com.therapylocal.app.ui.components.PillBadge
@@ -190,6 +193,7 @@ fun SettingsScreen(
                                 else LinearProgressIndicator(modifier = Modifier.fillMaxWidth(), color = SageGreen)
                             }
                         }
+                        MemoryModelRow()
                     }
                 }
             }
@@ -277,6 +281,33 @@ fun SettingsScreen(
                     )
                 }
             }
+        }
+    }
+}
+
+/** The Gemma build behind the memory (E2B or E4B): switching downloads it, and the unused one's file can be removed. */
+@Composable
+private fun MemoryModelRow() {
+    val context = LocalContext.current
+    // Re-read after each tap: the choice and the files on disk live outside Compose.
+    var tick by remember { mutableIntStateOf(0) }
+    val variant = remember(tick) { ModelSetup.gemmaVariant(context) }
+    val unused = remember(tick) { ModelSetup.unusedGemma(context) }
+    val suggested = remember { ModelSetup.suggestedGemma(context) }
+    val other = ModelChoice.other(variant)
+    val download = remember(tick) { ModelRegistry.gemma(other).missingBytes(context) }
+
+    SettingsRow(
+        icon = Icons.Default.Memory,
+        title = "Memory model: ${variant.title}",
+        subtitle = "Suggested for this phone: ${suggested.title}"
+    )
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        TextButton(onClick = { ModelSetup.selectGemma(context, other); tick++ }) {
+            Text(if (download > 0) "Use ${other.title} (${ModelSetup.formatBytes(download)})" else "Use ${other.title}")
+        }
+        if (unused != null) TextButton(onClick = { ModelSetup.removeUnusedGemma(context); tick++ }) {
+            Text("Remove ${unused.title}")
         }
     }
 }

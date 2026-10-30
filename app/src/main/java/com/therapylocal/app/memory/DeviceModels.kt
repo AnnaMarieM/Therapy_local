@@ -11,16 +11,16 @@ import com.therapylocal.app.jobs.Llm
 import com.therapylocal.app.jobs.ModelPool
 import com.therapylocal.app.log.AppLog
 import com.therapylocal.app.log.LogCtx
-import com.therapylocal.app.models.ModelRegistry
+import com.therapylocal.app.models.ModelSetup
 import kotlinx.coroutines.runBlocking
 
 /** The phone's models behind the pipeline's ports, for the runner's [ModelPool]. */
 object DeviceModels {
     fun pool(context: Context): ModelPool = ModelPool(
-        loadLlm = { MemoryLlm(context, MemoryConfig.LLM_MAX_TOKENS).apply { load(MemoryConfig.LLM_BACKENDS) } },
+        loadLlm = { MemoryLlm(context, MemoryConfig.LLM_MAX_TOKENS, ModelSetup.gemma(context)).apply { load(MemoryConfig.LLM_BACKENDS) } },
         loadEmbed = { embed(context) },
         loadAsr = { llm -> asr(context, llm) },
-        llmModel = { ModelRegistry.GEMMA.id },
+        llmModel = { ModelSetup.gemma(context).id },
     )
 
     /** The engine chosen in the settings. Gemma runs on the LLM's engine; a Gemma build without audio input falls back to Whisper. */
