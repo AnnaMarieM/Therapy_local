@@ -98,12 +98,21 @@ fun sessionDate(sessionId: String): String? {
     return "${d.substring(0, 4)}-${d.substring(4, 6)}-${d.substring(6, 8)}"
 }
 
-/** "George M." -> ("George", "M."): the reel shows the first word large and the rest in italics below. One word stays one line. */
+/** "George M." -> ("George", "M."): the reel shows the first word large and the rest in italics after it, on the one line. */
 fun splitName(name: String): Pair<String, String?> {
     val t = name.trim().replace(Regex("\\s+"), " ")
     val i = t.indexOf(' ')
     return if (i <= 0) t to null else t.substring(0, i) to t.substring(i + 1)
 }
+
+/** Characters of a selected name that fit its line at full size. */
+const val HERO_FULL_CHARS = 10
+
+/** The smallest a long selected name is set, as a share of full size; anything longer than fits at it ends in an ellipsis. */
+const val HERO_MIN_SHRINK = 0.6f
+
+/** The share of full size a selected name of [chars] characters is set at, so it stays on one line as long as it reasonably can. */
+fun heroShrink(chars: Int): Float = if (chars <= HERO_FULL_CHARS) 1f else (HERO_FULL_CHARS.toFloat() / chars).coerceAtLeast(HERO_MIN_SHRINK)
 
 /** A time-of-day greeting from the hour (0..23). */
 fun greeting(hour: Int): String = when (hour) {
