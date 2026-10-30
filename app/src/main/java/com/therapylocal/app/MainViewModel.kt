@@ -193,6 +193,8 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                 startSource(rec)
             } catch (t: Throwable) {
                 AppLog.e(TAG, "record_start_failed", c, t)
+                // Nothing was recorded: an empty recording left behind would be queued for processing at the next start.
+                withContext(Dispatchers.IO) { store.deleteRecording(rid) }
                 _state.update { it.copy(error = "Recording failed: ${t.message}") }
                 return@launch
             }
