@@ -73,7 +73,7 @@ object SessionLogic {
         val step = "Step ${(s.done + 1).coerceAtMost(s.total)}/${s.total}"
         val audioMin = e.audioMs[s.sessionId]?.takeIf { it > 0 }?.let { it / 60_000.0 }
         val whole = e.perMinute?.let { m -> audioMin?.let { (it * m.processingMs * Progress.PADDING).toLong() } }
-        val noHistory = "Time left for a whole session shows once ${com.therapylocal.app.perf.PerfStats.MIN_SESSIONS} are measured (${e.measured} so far)"
+        val noHistory = "Time left: after ${com.therapylocal.app.perf.PerfStats.MIN_SESSIONS} sessions are measured (${e.measured} so far)"
         if (!s.running) {
             val first = when {
                 s.blocked > 0 -> "$step · waits for a job to be retried"

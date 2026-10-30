@@ -42,6 +42,8 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
+import com.therapylocal.app.ui.design.SteadyText
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.TransformOrigin
@@ -434,12 +436,19 @@ internal fun StatusLine(s: ClientStatus, modifier: Modifier) {
     }
     val text = if (looked && has) s.details[turn % s.details.size] else s.text
     Row(
-        modifier.let { m -> s.onTap?.let { m.pressable(it, label = s.text) } ?: m }.padding(vertical = 4.dp),
-        verticalAlignment = Alignment.CenterVertically,
+        modifier.let { m -> s.onTap?.let { m.pressable(it, label = s.text) } ?: m }.padding(vertical = 4.dp).testTag(STATUS_TAG),
+        verticalAlignment = Alignment.Top,
     ) {
-        if (s.busy) { PulseDot(s.color, size = 6); Spacer(Modifier.width(8.dp)) }
-        androidx.compose.animation.Crossfade(text, animationSpec = androidx.compose.animation.core.tween(600), label = "status") { t ->
-            Label(t, color = s.color)
+        if (s.busy) { PulseDot(s.color, size = 6, modifier = Modifier.padding(top = 5.dp)); Spacer(Modifier.width(8.dp)) }
+        // Fades only when the line becomes a different message (the gist, or another of the evidence lines). Numbers ticking within one
+        // ("149 MB" to "151 MB", "00:07" to "00:08") just update in place: a line that blinks on every update reads as broken.
+        val slot = if (looked && has) "d${turn % s.details.size}" else "g:" + s.text.replace(DIGITS, "#")
+        // As tall as its longest message, so turning from one to the next never moves the page; while busy it never shrinks back.
+        SteadyText((listOf(s.text) + s.details).map { it.uppercase() }, Type.Label, key = s.busy) {
+            androidx.compose.animation.Crossfade(slot, animationSpec = androidx.compose.animation.core.tween(600), label = "status") { k ->
+                val t = if (k.startsWith("d")) s.details.getOrNull(k.drop(1).toInt()) ?: text else s.text
+                Label(t, color = s.color)
+            }
         }
     }
 }
@@ -447,6 +456,10 @@ internal fun StatusLine(s: ClientStatus, modifier: Modifier) {
 /** How long a busy status is shown as its gist before it turns into the numbers behind it, and how long each of those stays. */
 private const val DETAIL_AFTER_MS = 10_000L
 private const val DETAIL_TURN_MS = 4_000L
+private val DIGITS = Regex("[0-9][0-9.,:]*")
+
+/** Test handle on a status line (the layout-stability tests measure what is around it). */
+const val STATUS_TAG = "status"
 
 @Composable
 private fun Rail(

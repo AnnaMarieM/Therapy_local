@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -261,8 +262,8 @@ class IdleState internal constructor(private val scope: CoroutineScope) {
     companion object { const val IDLE_MS = 2_500L }
 }
 
-/** How long a hint stays before it flies off. */
-private const val HINT_LINGER_MS = 2_000L
+/** How long a hint stays before a fingertip comes and swipes it away. */
+private const val HINT_LINGER_MS = 4_000L
 
 @Composable
 fun rememberIdleState(): IdleState {
@@ -312,26 +313,33 @@ fun SwipeHints(
     val ctx = androidx.compose.ui.platform.LocalContext.current
     val talkback = remember(ctx) { ctx.getSystemService(android.view.accessibility.AccessibilityManager::class.java)?.isTouchExplorationEnabled == true }
     val shown = idle == null || idle.idle || talkback
-    // A hint's life: after a pause it fades in (and its chevron strokes the gesture), stays two seconds, then flies off the way the
-    // gesture goes, as if showing it once more, and is gone until the next pause. A touch sends it away at once. With TalkBack it stays.
+    // A hint's life: after a pause it fades in and stays a few seconds; then a fingertip lands on it and swipes it away, the very gesture
+    // it names, and it is gone until the next pause. A touch sends it away at once. With TalkBack it stays.
     val rest = remember { Animatable(0f) }
+    val grab = remember { Animatable(0f) }
     val fly = remember { Animatable(0f) }
     var live by remember { mutableStateOf(false) }
+    val reduced = LocalReducedMotion.current
     val steady = talkback || idle == null // TalkBack, or no idle tracking at all (tests, previews): always there, never moving
     LaunchedEffect(shown, steady) {
         when {
-            steady -> { fly.snapTo(0f); rest.snapTo(1f); live = true }
-            !shown -> { live = false; rest.animateTo(0f, Motion.Fade); fly.snapTo(0f) }
+            steady -> { fly.snapTo(0f); grab.snapTo(0f); rest.snapTo(1f); live = true }
+            !shown -> { live = false; rest.animateTo(0f, Motion.Fade); fly.snapTo(0f); grab.snapTo(0f) }
             else -> while (true) {
-                // Still nobody touching: show it, let it stay, send it off, and again after the next pause.
-                fly.snapTo(0f)
+                // Still nobody touching: show it, let it stay, swipe it off, and again after the next pause.
+                fly.snapTo(0f); grab.snapTo(0f)
                 live = true
                 rest.animateTo(1f, Motion.Fade)
                 kotlinx.coroutines.delay(HINT_LINGER_MS)
                 live = false
-                fly.animateTo(1f, androidx.compose.animation.core.tween(460, easing = androidx.compose.animation.core.FastOutLinearInEasing))
-                rest.snapTo(0f)
-                fly.snapTo(0f)
+                if (!reduced) {
+                    grab.animateTo(1f, androidx.compose.animation.core.tween(320, easing = androidx.compose.animation.core.FastOutSlowInEasing))
+                    kotlinx.coroutines.delay(120) // pressed: a beat before it moves, as a finger would
+                    fly.animateTo(1f, androidx.compose.animation.core.tween(520, easing = androidx.compose.animation.core.FastOutSlowInEasing))
+                } else {
+                    rest.animateTo(0f, Motion.Fade)
+                }
+                rest.snapTo(0f); fly.snapTo(0f); grab.snapTo(0f)
                 kotlinx.coroutines.delay(IdleState.IDLE_MS)
             }
         }
@@ -345,8 +353,8 @@ fun SwipeHints(
         val lines = @Composable { m: Modifier ->
             androidx.compose.foundation.layout.Column(m) {
                 // A hidden line is not an invisible button: it only takes taps while it shows.
-                if (back != null) HintLine(back, Side.Left, "Swipe from left to right to ${back.verb}", live, state, seen, { fly.value }, haptics, null)
-                if (forward != null) HintLine(forward, Side.Right, "Swipe from right to left to ${forward.verb}", live, state, seen, { fly.value }, haptics, forwardRef)
+                if (back != null) HintLine(back, Side.Left, "Swipe from left to right to ${back.verb}", live, state, seen, { grab.value }, { fly.value }, haptics, null)
+                if (forward != null) HintLine(forward, Side.Right, "Swipe from right to left to ${forward.verb}", live, state, seen, { grab.value }, { fly.value }, haptics, forwardRef)
             }
         }
         if (center != null) {
@@ -388,25 +396,16 @@ fun hintsClearance(): androidx.compose.ui.unit.Dp = 96.dp + LocalDockInset.curre
 
 @Composable
 private fun androidx.compose.foundation.layout.ColumnScope.HintLine(
-    way: Way, side: Side, text: String, shown: Boolean, state: ChoiceState, rest: () -> Float, fly: () -> Float, haptics: Haptics, ref: BoundsRef?,
+    way: Way, side: Side, text: String, shown: Boolean, state: ChoiceState, rest: () -> Float, grab: () -> Float, fly: () -> Float,
+    haptics: Haptics, ref: BoundsRef?,
 ) {
     val pull = if (side == Side.Left) state.left else state.right
     val other = if (side == Side.Left) state.right else state.left
     val armed = state.armed == side
     // Which way the finger goes: +1 to the right (back), -1 to the left (in).
     val dir = if (side == Side.Left) 1f else -1f
-    // The chevron shows the motion instead of only naming it: as the hint appears it makes two short strokes the way the finger goes,
-    // then rests. The line reads in the order of the gesture: where it starts, which way, what it does.
-    val reduced = LocalReducedMotion.current
-    val stroke = remember { Animatable(0f) }
-    LaunchedEffect(shown) {
-        if (!shown || reduced) { stroke.snapTo(0f); return@LaunchedEffect }
-        kotlinx.coroutines.delay(250)
-        repeat(2) {
-            stroke.animateTo(1f, Motion.Pull)
-            stroke.animateTo(0f, Motion.Pull)
-        }
-    }
+    val armedText = "Release to ${way.verb}"
+    val distance = 140.dp
     Row(
         Modifier.align(if (side == Side.Left) Alignment.Start else Alignment.End)
             .let { m -> ref?.let { m.trackBounds(it) } ?: m }
@@ -417,39 +416,41 @@ private fun androidx.compose.foundation.layout.ColumnScope.HintLine(
                 role = Role.Button,
                 onClickLabel = way.verb,
             ) { haptics.press(); way.onClick() }
-            .semantics(mergeDescendants = true) { contentDescription = if (armed) "Release to ${way.verb}" else text }
+            .semantics(mergeDescendants = true) { contentDescription = if (armed) armedText else text }
             .padding(horizontal = 12.dp, vertical = 7.dp)
             .graphicsLayer {
-                // Resting: the idle fade. Swiping toward it: comes up with the pull. Swiping the other way: gives way.
+                // Resting: the idle fade. Swiping toward it: comes up with the pull. Swiping the other way: gives way. Swiped off by the
+                // fingertip: carried the way the gesture goes. Drawn moved, never laid out moved: nothing around it shifts.
                 val toward = pull.value.coerceIn(0f, 1f)
                 alpha = (maxOf(rest(), toward) * (1f - other.value.coerceIn(0f, 1f))).coerceIn(0f, 1f) * (if (way.enabled) 1f else 0.42f)
-                translationX = dir * (10.dp.toPx() * toward + 120.dp.toPx() * fly())
+                translationX = dir * (10.dp.toPx() * toward + distance.toPx() * fly())
             },
         verticalAlignment = Alignment.CenterVertically,
     ) {
         val color = if (armed) Palette.Ink else Palette.InkSoft
-        // The same chevrons as everywhere else in the app (and Android's own back gesture): they point where you go, ‹ back and › in,
-        // and sit at the edge the swipe starts from. The stroke moves with the finger, the way the system's back arrow is pulled out of
-        // the edge.
-        val arrow = @Composable {
-            Icon(
-                if (side == Side.Left) Icons.AutoMirrored.Rounded.KeyboardArrowLeft else Icons.AutoMirrored.Rounded.KeyboardArrowRight,
-                contentDescription = null,
-                tint = color,
-                modifier = Modifier.graphicsLayer { translationX = dir * 8.dp.toPx() * stroke.value },
+        // The fingertip: lands on the edge the swipe starts from (it presses in, from a little larger), then carries the line away.
+        val tip = @Composable {
+            Box(
+                Modifier.size(14.dp).graphicsLayer {
+                    val g = grab()
+                    alpha = (g * 0.9f).coerceIn(0f, 1f)
+                    val press = 1.7f - 0.7f * g
+                    scaleX = press; scaleY = press
+                }.clip(androidx.compose.foundation.shape.CircleShape).background(Palette.Ink.copy(alpha = 0.55f)),
             )
         }
         val words = @Composable {
-            Text(
-                if (armed) "Release to ${way.verb}" else text,
-                style = Type.Label,
-                color = color,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-                textAlign = if (side == Side.Left) TextAlign.Start else TextAlign.End,
-                modifier = Modifier.weight(1f, fill = false).clearAndSetSemantics { },
-            )
+            SteadyText(listOf(text, armedText), Type.Label, Modifier.weight(1f, fill = false).clearAndSetSemantics { }) {
+                Text(
+                    if (armed) armedText else text,
+                    style = Type.Label,
+                    color = color,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    textAlign = if (side == Side.Left) TextAlign.Start else TextAlign.End,
+                )
+            }
         }
-        if (side == Side.Left) { arrow(); Spacer(Modifier.width(6.dp)); words() } else { words(); Spacer(Modifier.width(6.dp)); arrow() }
+        if (side == Side.Left) { tip(); Spacer(Modifier.width(8.dp)); words() } else { words(); Spacer(Modifier.width(8.dp)); tip() }
     }
 }
