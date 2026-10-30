@@ -4,6 +4,7 @@ import com.therapylocal.app.memory.Cue
 import com.therapylocal.app.ui.logic.CueView
 import com.therapylocal.app.ui.logic.ReelIndex
 import com.therapylocal.app.ui.logic.greeting
+import com.therapylocal.app.ui.logic.heroShrink
 import com.therapylocal.app.ui.logic.railLetterAt
 import com.therapylocal.app.ui.logic.railLetterY
 import com.therapylocal.app.ui.logic.sessionDate
@@ -139,6 +140,15 @@ class ReelLogicTest {
         assertEquals("George" to "M.", splitName(" George   M. "))
         assertEquals("Prince" to null, splitName("Prince"))
         assertEquals("Ana" to "de la Cruz", splitName("Ana de la Cruz"))
+    }
+
+    @Test
+    fun longNamesShrinkToAFloor() {
+        assertEquals(1f, heroShrink(0), 0f)
+        assertEquals(1f, heroShrink(10), 0f)
+        assertEquals(10f / 12, heroShrink(12), 1e-6f)
+        assertEquals(0.6f, heroShrink(17), 1e-6f)
+        assertEquals(0.6f, heroShrink(40), 0f)
     }
 
     @Test

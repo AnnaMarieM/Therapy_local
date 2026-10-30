@@ -58,7 +58,10 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -81,6 +84,7 @@ import com.therapylocal.app.ui.design.rememberHaptics
 import com.therapylocal.app.ui.logic.ReelIndex
 import com.therapylocal.app.ui.logic.SessionLogic
 import com.therapylocal.app.ui.logic.greeting
+import com.therapylocal.app.ui.logic.heroShrink
 import com.therapylocal.app.ui.logic.railLetterAt
 import com.therapylocal.app.ui.logic.railLetterY
 import com.therapylocal.app.ui.logic.splitName
@@ -260,7 +264,7 @@ fun Home(
                 val status = current?.let(statusOf) ?: if (ordered.isEmpty()) ClientStatus("Add your first client to begin") else ClientStatus("Add someone new")
                 StatusLine(
                     status,
-                    Modifier.offset { IntOffset(26.dp.roundToPx(), (centerY + with(density) { (heroSp * 1.05f).sp.toPx() } + 18.dp.toPx()).roundToInt()) }
+                    Modifier.offset { IntOffset(26.dp.roundToPx(), (centerY + with(density) { (heroSp * 0.5f).sp.toPx() } + 18.dp.toPx()).roundToInt()) }
                         .graphicsLayer {
                             val f = 1f - abs(pos.value - pos.value.roundToInt()) * 2f
                             val still = 1f - (abs(pos.velocity) / 6f).coerceIn(0f, 1f)
@@ -382,7 +386,7 @@ private fun ReelItem(
 ) {
     val (first, rest) = client?.let { splitName(it.name) } ?: ("New" to "client")
     val ink = if (client == null) Palette.InkSoft else Palette.Ink
-    val heroSize = (heroSp * (if (first.length > 9) 9f / first.length else 1f)).sp
+    val heroSize = (heroSp * heroShrink(first.length + (rest?.let { it.length + 1 } ?: 0))).sp
     val tap by rememberUpdatedState(onTap)
     val long by rememberUpdatedState(onLongPress)
     var bigH by remember { mutableFloatStateOf(0f) }
@@ -394,8 +398,9 @@ private fun ReelItem(
                 if (onLongPress != null) customActions = listOf(CustomAccessibilityAction("Delete client") { long?.invoke(); true })
             },
     ) {
-        // The large two-line form for the centre, the small one-line form for the neighbours; the reel crossfades between them.
-        Column(
+        // The large form for the centre, the small one for the neighbours; the reel crossfades between them. Both are one line, so a name
+        // only grows as it arrives, never re-wraps: past what fits, it ends in an ellipsis like its neighbours do.
+        Box(
             Modifier.onGloballyPositioned { bigH = it.size.height.toFloat() }
                 .graphicsLayer {
                     val l = look()
@@ -409,8 +414,11 @@ private fun ReelItem(
                 },
         ) {
             val style = Type.Hero.copy(fontSize = heroSize, lineHeight = heroSize * 0.95f)
-            Text(first, style = style, color = ink, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            if (rest != null) Text(rest, style = style.copy(fontStyle = FontStyle.Italic), color = ink, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            val text = buildAnnotatedString {
+                append(first)
+                if (rest != null) withStyle(SpanStyle(fontStyle = FontStyle.Italic)) { append(" $rest") }
+            }
+            Text(text, style = style, color = ink, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
         Text(
             client?.name ?: "New client",
