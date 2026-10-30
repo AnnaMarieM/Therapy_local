@@ -38,6 +38,7 @@ object Vault {
     private const val DEK_AAD = "mindvault.dek.v1"
     private const val BIOMETRIC_ALIAS = "mindvault.biometric"
     private const val TAG = "VAULT"
+    private const val ERASE_WAIT_MS = 10_000L
 
     @Volatile
     private var dek: ByteArray? = null
@@ -208,9 +209,13 @@ object Vault {
         android.os.Process.killProcess(android.os.Process.myPid())
     }
 
-    /** "Forgot password": destroys the keys and all patient data. The runner is stopped and the database closed before its file is deleted. */
+    /**
+     * "Forgot password": destroys the keys and all patient data. The runner is stopped (and given a moment to finish its step) and the
+     * database closed before its file is deleted; a closed store never reopens, so a runner still holding it cannot re-create the file.
+     */
     fun erase(context: Context) {
         MemoryService.stop(context)
+        MemoryService.awaitStopped(ERASE_WAIT_MS)
         MindStore.close()
         wipe()
         _unlocked.value = false

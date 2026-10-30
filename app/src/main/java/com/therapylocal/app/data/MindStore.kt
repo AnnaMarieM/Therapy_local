@@ -7,6 +7,7 @@ import android.database.Cursor
 import net.zetetic.database.sqlcipher.SQLiteDatabase
 import net.zetetic.database.sqlcipher.SQLiteOpenHelper
 import com.therapylocal.app.vault.Vault
+import com.therapylocal.app.vault.VaultLockedException
 
 data class ClientRow(val id: String, val name: String, val createdAt: Long)
 
@@ -63,6 +64,27 @@ data class SessionDelete(val promoted: Int, val deleted: Int)
  */
 class MindStore(context: Context, name: String, password: ByteArray) :
     SQLiteOpenHelper(context, name, password, null, VERSION, 0, null, null, true), JobRepo {
+
+    /** Once closed, a holder that kept this store (a runner finishing a step) must not reopen the file, which may be being erased. */
+    @Volatile
+    private var closed = false
+
+    override val writableDatabase: SQLiteDatabase
+        get() {
+            if (closed) throw VaultLockedException()
+            return super.writableDatabase
+        }
+
+    override val readableDatabase: SQLiteDatabase
+        get() {
+            if (closed) throw VaultLockedException()
+            return super.readableDatabase
+        }
+
+    override fun close() {
+        closed = true
+        super.close()
+    }
 
     override fun onConfigure(db: SQLiteDatabase) {
         db.setForeignKeyConstraintsEnabled(true)

@@ -91,7 +91,7 @@ class MemoryService : Service() {
                 wakeLock?.takeIf { it.isHeld }?.release()
                 stopSelf()
             }
-        }, "memory-lab").also { it.start() }
+        }, "memory-lab").also { running = it; it.start() }
         return START_NOT_STICKY
     }
 
@@ -175,10 +175,23 @@ class MemoryService : Service() {
             if (Vault.isUnlocked && ModelSetup.isReady(context) && Jobs.queue(context).hasPending()) start(context.applicationContext)
         }
 
+        /** The worker of the current or last run, for [awaitStopped]. */
+        @Volatile
+        private var running: Thread? = null
+
         /** Asks a running queue to stop after its current step and stops the service. */
         fun stop(context: Context) {
             Jobs.stopRunning()
             context.stopService(Intent(context, MemoryService::class.java))
+        }
+
+        /** Waits up to [timeoutMs] for the worker to finish its step after [stop]. Not on the main thread. */
+        fun awaitStopped(timeoutMs: Long) {
+            try {
+                running?.join(timeoutMs)
+            } catch (_: InterruptedException) {
+                Thread.currentThread().interrupt()
+            }
         }
     }
 }
