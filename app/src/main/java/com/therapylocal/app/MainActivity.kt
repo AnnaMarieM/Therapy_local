@@ -58,9 +58,8 @@ import com.therapylocal.app.models.ModelSetup
 import com.therapylocal.app.models.SetupState
 import com.therapylocal.app.memory.DevHarness
 import com.therapylocal.app.memory.MemoryService
-import com.therapylocal.app.ui.MindVaultApp
-import com.therapylocal.app.ui.screens.VaultGate
-import com.therapylocal.app.ui.theme.MindVaultTheme
+import com.therapylocal.app.session.RecordingService
+import com.therapylocal.app.ui.app.MindVault
 import com.therapylocal.app.vault.Vault
 
 class MainActivity : FragmentActivity() {
@@ -76,25 +75,13 @@ class MainActivity : FragmentActivity() {
         memoryLabRequested = isMemoryLabRequested(intent)
         // The AI files are not patient data: the download starts right away, even before the vault is unlocked.
         ModelSetup.start(applicationContext)
+        if (intent?.getBooleanExtra(RecordingService.EXTRA_OPEN_SESSION, false) == true) openSession.intValue++
         setContent {
-            val context = LocalContext.current
             val unlocked by Vault.unlocked.collectAsStateWithLifecycle()
-            var gatePassed by rememberSaveable { mutableStateOf(false) }
             var showDebugScreen by rememberSaveable { mutableStateOf(MainViewModel.skipPrepare) }
 
-            val permissions = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {}
-            LaunchedEffect(Unit) {
-                val wanted = buildList {
-                    add(Manifest.permission.RECORD_AUDIO)
-                    if (Build.VERSION.SDK_INT >= 33) add(Manifest.permission.POST_NOTIFICATIONS)
-                }.filter { ContextCompat.checkSelfPermission(context, it) != PackageManager.PERMISSION_GRANTED }
-                if (wanted.isNotEmpty()) permissions.launch(wanted.toTypedArray())
-            }
-            val hasMic = { ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED }
-            val requestMic = { permissions.launch(arrayOf(Manifest.permission.RECORD_AUDIO)) }
-
-            LaunchedEffect(unlocked, gatePassed) {
-                if (unlocked && gatePassed) {
+            LaunchedEffect(unlocked) {
+                if (unlocked) {
                     MemoryService.resumePending(applicationContext)
                     if (memoryLabRequested) {
                         memoryLabRequested = false
@@ -103,9 +90,7 @@ class MainActivity : FragmentActivity() {
                 }
             }
 
-            if (!unlocked || !gatePassed) {
-                MindVaultTheme { Box(Modifier.safeDrawingPadding()) { VaultGate(onDone = { gatePassed = true }) } }
-            } else if (showDebugScreen) {
+            if (unlocked && showDebugScreen) {
                 MaterialTheme {
                     Surface(Modifier.fillMaxSize()) {
                         Column(Modifier.fillMaxSize().safeDrawingPadding()) {
@@ -128,17 +113,19 @@ class MainActivity : FragmentActivity() {
                     }
                 }
             } else {
-                MindVaultApp(
-                    modifier = Modifier.safeDrawingPadding(),
-                    viewModel = viewModel,
-                    hasMicPermission = hasMic,
-                    requestMicPermission = requestMic,
-                    // The developer harness (Record/Recordings/Memory/Logs) is a Settings menu item in debug builds only.
-                    onShowLegacyDebugView = if (BuildConfig.DEBUG) ({ showDebugScreen = true }) else null
-                )
+                // The developer harness (Record/Recordings/Memory/Logs) is a Settings item in debug builds only.
+                MindVault({ viewModel }, openSession.intValue, onDeveloper = if (BuildConfig.DEBUG) ({ showDebugScreen = true }) else null)
             }
         }
     }
+
+    /** The recording notification brings an existing task forward: open the session it is about. */
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        if (intent.getBooleanExtra(RecordingService.EXTRA_OPEN_SESSION, false)) openSession.intValue++
+    }
+
+    private val openSession = androidx.compose.runtime.mutableIntStateOf(0)
 }
 
 /** Debug only: `adb shell am start -n .../.MainActivity --ez memory_lab true` starts the queue described by files/memory/job.json once the vault is unlocked. */

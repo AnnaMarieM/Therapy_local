@@ -191,7 +191,7 @@ private fun BarButton(choice: Choice, side: Side, state: ChoiceState, haptics: H
                 indication = null,
                 role = Role.Button,
                 onClickLabel = choice.label,
-                onClick = { haptics.confirm(); choice.onClick() },
+                onClick = { haptics.press(); choice.onClick() },
             ),
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically,
