@@ -20,11 +20,11 @@ import com.therapylocal.app.ui.models.TranscriptLine
 /**
  * What the UI knows about clients, read from [MindStore] (the on-device long-term memory). The UI never touches SQL.
  * A client id is the lowercase memory client name, e.g. "george"; a [Patient.id] built here is that id.
- * Blocking calls: run them off the main thread.
+ * Blocking calls: run them off the main thread. [open] is the vault's database; tests give their own.
  */
-class ClientRepository(context: Context) {
+class ClientRepository(context: Context, private val open: (Context) -> MindStore = { MindStore.get(it) }) {
     private val appContext = context.applicationContext
-    private val store get() = MindStore.get(appContext)
+    private val store get() = open(appContext)
 
     fun clients(): List<String> = store.clients().map { it.id }
 
