@@ -29,7 +29,12 @@ class PipelineHarness(private val context: Context, val name: String, private va
     /** Kind and session of every job a handler ran, in order. */
     val ran = ArrayList<Pair<String, String>>()
 
-    val pipeline = Pipeline(store, queue, PROMPTS::getValue, { audio[it].orEmpty() }, { audio.remove(it) })
+    val pipeline = Pipeline(
+        store, queue, PROMPTS::getValue,
+        chunks = { rid -> audio[rid].orEmpty().map { it.idx } },
+        chunk = { rid, idx -> audio[rid]?.firstOrNull { it.idx == idx } },
+        deleteAudio = { audio.remove(it) },
+    )
 
     val handlers: Map<String, JobHandler> = pipeline.handlers.mapValues { (kind, h) ->
         JobHandler { job, run ->
