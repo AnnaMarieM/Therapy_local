@@ -16,6 +16,19 @@ import kotlin.random.Random
 
 class SessionLogicTest {
 
+    // ---- what ending a session leads to ----
+
+    @Test
+    fun endOutcomeBoundaries() {
+        assertEquals(SessionLogic.EndOutcome.Discard, SessionLogic.endOutcome(0))
+        assertEquals(SessionLogic.EndOutcome.Discard, SessionLogic.endOutcome(-1))
+        assertEquals(SessionLogic.EndOutcome.Discard, SessionLogic.endOutcome(9_999))
+        assertEquals(SessionLogic.EndOutcome.Ask, SessionLogic.endOutcome(10_000))
+        assertEquals(SessionLogic.EndOutcome.Ask, SessionLogic.endOutcome(5 * 60_000L - 1))
+        assertEquals(SessionLogic.EndOutcome.Save, SessionLogic.endOutcome(5 * 60_000L))
+        assertEquals(SessionLogic.EndOutcome.Save, SessionLogic.endOutcome(Long.MAX_VALUE))
+    }
+
     // ---- duration formatting ----
 
     @Test

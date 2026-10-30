@@ -171,9 +171,9 @@ fun PaperField(
     }
 }
 
-/** A destructive or important confirmation, in paper colours. [confirm] is the verb ("Delete"), never "OK". */
+/** A destructive or important confirmation, in paper colours. [confirm] is the verb ("Delete"), never "OK"; so is [dismiss] when it is more than a way out. */
 @Composable
-fun ConfirmDialog(title: String, text: String, confirm: String, onConfirm: () -> Unit, onDismiss: () -> Unit, destructive: Boolean = true) {
+fun ConfirmDialog(title: String, text: String, confirm: String, onConfirm: () -> Unit, onDismiss: () -> Unit, destructive: Boolean = true, dismiss: String = "Cancel") {
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = Palette.Paper,
@@ -181,7 +181,7 @@ fun ConfirmDialog(title: String, text: String, confirm: String, onConfirm: () ->
         title = { Text(title, style = Type.Title, color = Palette.Ink) },
         text = { Text(text, style = Type.BodySmall, color = Palette.InkSoft) },
         confirmButton = { TextAction(confirm, { onConfirm() }, color = if (destructive) Palette.Rec else Palette.Ink) },
-        dismissButton = { TextAction("Cancel", onDismiss, color = Palette.InkSoft) },
+        dismissButton = { TextAction(dismiss, onDismiss, color = Palette.InkSoft) },
     )
 }
 
