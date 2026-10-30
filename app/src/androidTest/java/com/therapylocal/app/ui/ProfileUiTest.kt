@@ -133,7 +133,8 @@ class ProfileUiTest {
     @Test
     fun aSessionOpensItsTranscript() {
         profile()
-        // Newest first: the second session is on top.
+        // Newest first: the second session is on top. On a short screen it is below the fold: scroll to it, as a reader would.
+        compose.onAllNodes(hasScrollToNodeAction()).onFirst().performScrollToNode(hasContentDescription("Session of", substring = true))
         compose.onAllNodes(hasContentDescription("Session of", substring = true)).onFirst().performClick()
 
         compose.waitUntilAtLeastOneExists(hasText(LINES_2[0]), TIMEOUT_MS)

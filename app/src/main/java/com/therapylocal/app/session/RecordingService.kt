@@ -56,13 +56,15 @@ class RecordingService : Service() {
         watch = scope.launch {
             // Redrawn on every change and, while recording, every second: the status bar chip and the notification say the running time
             // as it runs, the evidence that it is really recording.
+            // Only while a session is on: once it is finishing or over, the service is about to stop, and a redraw now would post a
+            // "Recording 00:00" notification that outlives it.
             SessionController.state.map { it.phase to it.clock }.distinctUntilChanged().collectLatest {
                 val nm = getSystemService(NotificationManager::class.java)
-                do {
+                while (SessionController.state.value.active) {
                     nm.notify(NOTIF_ID, build(SessionController.state.value))
                     if (SessionController.state.value.phase != SessionPhase.Recording) break
                     delay(1_000L - SessionController.state.value.clock.elapsedMs(SystemClock.elapsedRealtime()) % 1_000L)
-                } while (true)
+                }
             }
         }
         // The process dying ends the recording with it; there is nothing to restart into.
@@ -71,6 +73,9 @@ class RecordingService : Service() {
 
     override fun onDestroy() {
         scope.cancel()
+        // The recording is over: its notification and status bar chip go with it, whatever was posted last.
+        stopForeground(STOP_FOREGROUND_REMOVE)
+        getSystemService(NotificationManager::class.java).cancel(NOTIF_ID)
         super.onDestroy()
     }
 
