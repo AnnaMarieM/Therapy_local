@@ -223,7 +223,7 @@ fun SettingsScreen(
                         SettingsToggleRow(
                             icon = Icons.Default.Security,
                             title = "Show past facts",
-                            subtitle = "Bring up relevant quotes from earlier sessions while you talk",
+                            subtitle = "Bring up relevant facts from earlier sessions while you talk",
                             checked = autoSurfacePastFacts,
                             onCheckedChange = { autoSurfacePastFacts = it }
                         )

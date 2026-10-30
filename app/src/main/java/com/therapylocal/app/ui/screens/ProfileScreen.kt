@@ -419,7 +419,7 @@ fun SessionsTab(
 
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = "Facts and the transcript will appear here once processing completes.",
+                            text = "The transcript will appear here once processing completes.",
                             fontSize = 11.sp,
                             color = MutedText
                         )
