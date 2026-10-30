@@ -41,7 +41,6 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.therapylocal.app.memory.Fact
 import com.therapylocal.app.ui.components.InitialsAvatar
 import com.therapylocal.app.ui.models.Patient
 import com.therapylocal.app.ui.theme.BorderSubtle
@@ -59,9 +58,6 @@ import com.therapylocal.app.ui.theme.WarmBg
 fun SummaryScreen(
     patient: Patient,
     durationFormatted: String,
-    processing: String = "",
-    waitingForSetup: Boolean = false,
-    facts: List<Fact> = emptyList(),
     observations: String = "",
     onObservationsChange: (String) -> Unit = {},
     canLeave: Boolean = true,
