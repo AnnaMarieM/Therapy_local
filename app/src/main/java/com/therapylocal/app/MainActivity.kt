@@ -5,8 +5,10 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.view.WindowManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Arrangement
@@ -17,6 +19,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -66,6 +69,10 @@ class MainActivity : FragmentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Edge to edge: the app draws behind the system bars and pads by their insets itself.
+        enableEdgeToEdge()
+        // Patient names and notes must not end up in screenshots or the recents preview.
+        window.setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE)
         memoryLabRequested = isMemoryLabRequested(intent)
         // The AI files are not patient data: the download starts right away, even before the vault is unlocked.
         ModelSetup.start(applicationContext)
@@ -97,11 +104,11 @@ class MainActivity : FragmentActivity() {
             }
 
             if (!unlocked || !gatePassed) {
-                MindVaultTheme { VaultGate(onDone = { gatePassed = true }) }
+                MindVaultTheme { Box(Modifier.safeDrawingPadding()) { VaultGate(onDone = { gatePassed = true }) } }
             } else if (showDebugScreen) {
                 MaterialTheme {
                     Surface(Modifier.fillMaxSize()) {
-                        Column(Modifier.fillMaxSize()) {
+                        Column(Modifier.fillMaxSize().safeDrawingPadding()) {
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -122,6 +129,7 @@ class MainActivity : FragmentActivity() {
                 }
             } else {
                 MindVaultApp(
+                    modifier = Modifier.safeDrawingPadding(),
                     viewModel = viewModel,
                     hasMicPermission = hasMic,
                     requestMicPermission = requestMic,
