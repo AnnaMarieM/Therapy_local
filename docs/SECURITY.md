@@ -32,7 +32,7 @@ Everything the app stores about patients is encrypted under one data key (DEK) t
 | Log fields `client` and `session` | `logs/tl.log` | written as an 8-hex HMAC pseudonym keyed by the DEK (`locked` while locked) |
 | Foreground notification | lock screen | private visibility; the public version only reads "Building client memory" |
 
-Opening a database or a patient file while locked fails closed (`VaultLockedException`). On every unlock an idempotent migration moves data of older builds: plaintext databases are re-keyed with `sqlcipher_export`, legacy external transcripts and queue become SecureFiles, legacy external diagnostics containing patient text are deleted.
+Opening a database or a patient file while locked fails closed (`VaultLockedException`).
 
 ## What is NOT encrypted, and why
 
@@ -49,5 +49,4 @@ Opening a database or a patient file while locked fails closed (`VaultLockedExce
 - A forgotten password cannot be recovered: the DEK exists only sealed under the password (and the optional biometric key). Use Erase, which deletes the key file, both databases and all patient files.
 - Face unlock is offered only if the device rates it Class 3 (BIOMETRIC_STRONG); otherwise use fingerprint or the password.
 - Adding a new fingerprint or face invalidates the biometric key; unlock with the password and enroll again.
-- Plaintext files written by older builds are deleted on migration but not securely wiped from flash storage; remnants may be recoverable with forensic tools.
 - The password is only as strong as the user's choice; 600k PBKDF2 iterations slow offline guessing but do not stop weak passwords.

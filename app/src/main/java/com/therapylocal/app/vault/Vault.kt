@@ -72,9 +72,9 @@ object Vault {
         return hex(mac.doFinal("log:$value".toByteArray(Charsets.UTF_8))).take(8)
     }
 
-    // --- password path (blocking: KDF ~1 s and migration) ---
+    // --- password path (blocking: KDF ~1 s) ---
 
-    /** First-time setup: new DEK, key file, unlock, migrate. */
+    /** First-time setup: new DEK, key file, unlock. */
     fun create(context: Context, password: CharArray) {
         val newDek = VaultCrypto.randomBytes(VaultCrypto.KEY_BYTES)
         val salt = VaultCrypto.randomBytes(16)
@@ -111,7 +111,6 @@ object Vault {
     private fun finishUnlock(context: Context, key: ByteArray, method: String) {
         dek = key
         AppLog.pseudonymize = ::pseudonym
-        VaultMigration.run(context)
         _unlocked.value = true
         AppLog.i(TAG, "vault_unlocked", LogCtx.NONE, "method" to method)
     }
