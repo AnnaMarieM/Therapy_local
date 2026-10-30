@@ -131,24 +131,24 @@ class MindStore(context: Context, name: String, password: ByteArray) :
 
     /**
      * Deletes a session and everything stored for it, in one transaction. A fact first seen in it moves to its earliest mention in another
-     * session (that mention's session, evidence and segment), which then stops being a mention; a fact with no other mention is deleted.
+     * session (that mention's session, evidence and segment); its mentions in that session then stop being mentions, as a mention is always
+     * in a session other than the fact's own. A fact with no other mention is deleted.
      */
     fun deleteSession(id: String): SessionDelete = tx { db ->
         var promoted = 0
         var deleted = 0
         for (factId in query("SELECT id FROM facts WHERE session_id = ?", id) { it.getLong(0) }) {
             val next = query(
-                """SELECT m.id, m.session_id, m.evidence, m.seg_idx FROM mentions m JOIN sessions s ON s.id = m.session_id
+                """SELECT m.session_id, m.evidence, m.seg_idx FROM mentions m JOIN sessions s ON s.id = m.session_id
                    WHERE m.fact_id = ? AND m.session_id <> ? ORDER BY s.started_at, m.seg_idx, m.id LIMIT 1""",
                 factId.toString(), id,
-            ) { it.getLong(0) to ContentValues().apply { put("session_id", it.getString(1)); put("evidence", it.getString(2)); put("seg_idx", it.getInt(3)) } }.firstOrNull()
+            ) { ContentValues().apply { put("session_id", it.getString(0)); put("evidence", it.getString(1)); put("seg_idx", it.getInt(2)) } }.firstOrNull()
             if (next == null) {
                 db.delete("facts", "id = ?", arrayOf(factId.toString()))
                 deleted++
             } else {
-                val (mentionId, takeOver) = next
-                db.update("facts", takeOver, "id = ?", arrayOf(factId.toString()))
-                db.delete("mentions", "id = ?", arrayOf(mentionId.toString()))
+                db.update("facts", next, "id = ?", arrayOf(factId.toString()))
+                db.delete("mentions", "fact_id = ? AND session_id = ?", arrayOf(factId.toString(), next.getAsString("session_id")))
                 promoted++
             }
         }
