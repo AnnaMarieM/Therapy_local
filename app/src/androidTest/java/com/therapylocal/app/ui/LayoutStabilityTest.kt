@@ -170,7 +170,7 @@ class LayoutStabilityTest {
         // A swipe from left to right, held past the point where it acts: the hint now says "Release to go back".
         compose.onRoot().performTouchInput { down(Offset(width * 0.2f, height * 0.5f)); moveBy(Offset(width * 0.55f, 0f), 200) }
         compose.mainClock.advanceTimeBy(300)
-        assertTrue(compose.onAllNodes(hasContentDescription("Release to go back", substring = true)).fetchSemanticsNodes().isNotEmpty())
+        assertTrue("the hint says what letting go will do", compose.onAllNodes(hasContentDescription("Release to go back", substring = true)).fetchSemanticsNodes().isNotEmpty())
         assertEquals(before, listOf(bounds(square), bounds(pause)))
         compose.onRoot().performTouchInput { up() }
         compose.mainClock.advanceTimeBy(300)

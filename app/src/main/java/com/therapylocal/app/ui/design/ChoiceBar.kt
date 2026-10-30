@@ -75,7 +75,7 @@ class ChoiceState internal constructor(private val scope: CoroutineScope, privat
     var armed by mutableStateOf<Side?>(null)
         private set
 
-    /** Action distance in px: about a quarter of the screen width (set by the screen once it knows its size). */
+    /** Action distance in px: about a quarter of the screen width, so the same swipe acts on a small phone and a large one. */
     var tact by mutableFloatStateOf(300f)
 
     /**
@@ -128,8 +128,17 @@ class ChoiceState internal constructor(private val scope: CoroutineScope, privat
 fun rememberChoiceState(): ChoiceState {
     val scope = rememberCoroutineScope()
     val haptics = rememberHaptics()
-    return remember { ChoiceState(scope, haptics) }
+    val density = androidx.compose.ui.platform.LocalDensity.current
+    val widthDp = androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp
+    return remember { ChoiceState(scope, haptics) }.also {
+        it.tact = with(density) { (widthDp * ACTION_SHARE).coerceIn(ACTION_MIN_DP, ACTION_MAX_DP).dp.toPx() }
+    }
 }
+
+/** A swipe acts at this share of the screen's width, never under [ACTION_MIN_DP] or over [ACTION_MAX_DP]. */
+const val ACTION_SHARE = 0.28f
+const val ACTION_MIN_DP = 96f
+const val ACTION_MAX_DP = 150f
 
 /**
  * One side of the bar. [armedLabel] is shown while a swipe toward it is armed ("Release to record"). A choice that is not a step back or in

@@ -74,6 +74,9 @@ import com.therapylocal.app.ui.design.LocalReducedMotion
 import com.therapylocal.app.ui.design.Motion
 import com.therapylocal.app.ui.design.Palette
 import com.therapylocal.app.ui.design.Type
+import com.therapylocal.app.ui.design.ACTION_MAX_DP
+import com.therapylocal.app.ui.design.ACTION_MIN_DP
+import com.therapylocal.app.ui.design.ACTION_SHARE
 import com.therapylocal.app.ui.design.rememberHaptics
 import com.therapylocal.app.ui.logic.ReelIndex
 import com.therapylocal.app.ui.logic.SessionLogic
@@ -193,7 +196,7 @@ fun Home(
         val railTop = h * 0.2f
         val railH = minOf(h * 0.5f, with(density) { (index.letters.size * 30).dp.toPx() })
         val railW = with(density) { 56.dp.toPx() }
-        bar.tact = (w * 0.28f).coerceIn(with(density) { 96.dp.toPx() }, with(density) { 150.dp.toPx() })
+        bar.tact = (w * ACTION_SHARE).coerceIn(with(density) { ACTION_MIN_DP.dp.toPx() }, with(density) { ACTION_MAX_DP.dp.toPx() })
         val inRail = { x: Float, y: Float -> index.letters.size > 1 && x > w - railW && y > railTop - railW / 2 && y < railTop + railH + railW / 2 }
         val heroSp = (constraints.maxWidth / density.density * 0.145f).coerceIn(46f, 86f)
 
