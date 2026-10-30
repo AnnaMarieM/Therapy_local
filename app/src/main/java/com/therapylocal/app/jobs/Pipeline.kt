@@ -98,7 +98,8 @@ class Pipeline(
         run.progress(JobPhase.Reading, idx, windows.size)
         val system = prompt(Prompts.EXTRACT_SYSTEM)
         val template = prompt(Prompts.EXTRACT_USER)
-        val key = "${Prompts.version(system, template)}|${run.pool.llmModel()}"
+        // Prompt version | model | window text: a window cut or transcribed differently is read again.
+        val key = "${Prompts.version(system, template)}|${run.pool.llmModel()}|${Prompts.hash(window.text)}"
         if (store.extractCache(job.sessionId, idx)?.first == key) return
         val client = store.clients().firstOrNull { it.id == job.clientId }?.name ?: job.clientId
         val user = Prompts.fill(
@@ -118,7 +119,7 @@ class Pipeline(
         var answered = false
         for (attempt in 1..3) {
             val reply = try {
-                llm.ask(system, user, if (attempt == 3) FactSchemas.EXTRACT_STRICT else null, MemoryConfig.EXTRACT_MAX_OUTPUT_TOKENS, MemoryConfig.EXTRACT_TEMPERATURE, 20)
+                llm.ask(system, user, if (attempt == 3) FactSchemas.EXTRACT_STRICT else null, MemoryConfig.EXTRACT_MAX_OUTPUT_TOKENS, MemoryConfig.EXTRACT_TEMPERATURE, MemoryConfig.EXTRACT_TOP_K)
             } catch (t: Throwable) {
                 AppLog.w(JobRunner.TAG, "extract_attempt_failed", LogCtx.NONE, "attempt" to attempt, "type" to t.javaClass.simpleName)
                 continue
@@ -164,8 +165,8 @@ class Pipeline(
         store.replaceSessionFacts(
             sid,
             plan.facts.map { c ->
-                val key = keyOf.getValue(c)
-                NewFact(job.clientId, sid, c.fact.heading, c.fact.content, c.fact.evidence, c.fact.segIdx, c.vec, key.substringAfter('|'), key.substringBefore('|'))
+                val (promptVersion, model) = keyOf.getValue(c).split('|')
+                NewFact(job.clientId, sid, c.fact.heading, c.fact.content, c.fact.evidence, c.fact.segIdx, c.vec, model, promptVersion)
             },
             plan.mentions.map { (factId, f) -> NewMention(factId, sid, f.evidence, f.segIdx) },
         )
@@ -184,7 +185,7 @@ class Pipeline(
         val user = Prompts.fill(template, mapOf("KNOWN" to listed, "FACT" to "${fact.heading}: ${fact.content}"))
         // Not schema-constrained: turning constrained decoding on makes createConversation take about 4 s (measured), against 2 ms without it.
         val reply = try {
-            llm.ask(system, user, null, 40, 0.1, 1)
+            llm.ask(system, user, null, MemoryConfig.REVIEW_MAX_OUTPUT_TOKENS, MemoryConfig.REVIEW_TEMPERATURE, MemoryConfig.REVIEW_TOP_K)
         } catch (t: Throwable) {
             AppLog.w(JobRunner.TAG, "review_failed", LogCtx.NONE, "type" to t.javaClass.simpleName)
             return null

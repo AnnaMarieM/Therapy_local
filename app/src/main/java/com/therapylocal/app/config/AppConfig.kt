@@ -82,6 +82,12 @@ object MemoryConfig {
 
     const val EXTRACT_MAX_OUTPUT_TOKENS = 1600
     const val EXTRACT_TEMPERATURE = 0.1
+    const val EXTRACT_TOP_K = 20
+
+    /** The duplicate review answers with a short verdict, as deterministically as the sampler allows. */
+    const val REVIEW_MAX_OUTPUT_TOKENS = 40
+    const val REVIEW_TEMPERATURE = 0.1
+    const val REVIEW_TOP_K = 1
 
     /** Known facts shown to the duplicate review. */
     const val NEIGHBOURS = 10
