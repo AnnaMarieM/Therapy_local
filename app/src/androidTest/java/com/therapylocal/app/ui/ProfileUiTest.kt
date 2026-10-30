@@ -28,10 +28,25 @@ import com.therapylocal.app.data.NewFact
 import com.therapylocal.app.data.NewMention
 import com.therapylocal.app.data.SegmentRow
 import com.therapylocal.app.data.WindowRow
-import com.therapylocal.app.ui.components.ClientSearch
+import com.therapylocal.app.memory.Cue
+import com.therapylocal.app.session.SessionClock
+import com.therapylocal.app.session.SessionPhase
+import com.therapylocal.app.session.SessionState
+import com.therapylocal.app.ui.app.AddClientSheet
+import com.therapylocal.app.ui.app.ClientStatus
+import com.therapylocal.app.ui.app.Home
+import com.therapylocal.app.ui.app.HomeActions
+import com.therapylocal.app.ui.app.HomeRefs
+import com.therapylocal.app.ui.app.NoticeState
+import com.therapylocal.app.ui.app.ProfileSheet
+import com.therapylocal.app.ui.app.SearchActions
+import com.therapylocal.app.ui.app.SessionSheet
+import com.therapylocal.app.ui.app.SettingsSheet
 import com.therapylocal.app.ui.data.ClientRepository
-import com.therapylocal.app.ui.screens.ProfileScreen
-import com.therapylocal.app.ui.screens.SettingsScreen
+import com.therapylocal.app.ui.design.PaperTheme
+import com.therapylocal.app.ui.design.rememberChoiceState
+import com.therapylocal.app.ui.motion.rememberSheetState
+import kotlinx.coroutines.flow.MutableStateFlow
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
@@ -40,9 +55,9 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 /**
- * The profile on a real encrypted database seeded with one fact said in two sessions: the fact's sheet shows both occurrences with the
- * transcript around each, a session shows only its transcript, text search finds the transcript and the fact, and a live-cue slider saves
- * its setting.
+ * The screens on a real encrypted database seeded with one fact said in two sessions. Every swipe has a tap or accessibility equivalent,
+ * and these tests go through those: a fact opens where it was said, a session opens its transcript, search finds both, a slider saves, the
+ * reel offers its names in order, a client can be added, and a session can be finished without holding (TalkBack's action).
  */
 @OptIn(ExperimentalTestApi::class)
 @RunWith(AndroidJUnit4::class)
@@ -76,21 +91,28 @@ class ProfileUiTest {
         prefs().edit().remove(LiveCueSettings.KEY_LOOKBACK_S).commit()
     }
 
-    @Test
-    fun tappingAFactShowsWhereItWasFirstSaidAndWhereItCameUpAgain() {
+    private fun profile(search: SearchActions = noSearch()) {
         val patient = repo.patient(CLIENT)
         compose.setContent {
-            ProfileScreen(
-                patient = patient, isSessionActive = false, repo = repo, onBack = {}, onDeletePatient = {}, onStartSession = {},
-                onReturnToActiveSession = {}, onChanged = {}, search = {}
-            )
+            PaperTheme {
+                ProfileSheet(
+                    sheet = rememberSheetState(), patient = patient, repo = repo, status = null, processingSession = null, search = search,
+                    sessionActive = false, requestMic = {}, onClose = {}, onRecord = {}, onDeleteClient = {}, onDeleteSession = {},
+                )
+            }
         }
-        compose.onNode(hasText("Facts") and hasClickAction()).performClick()
-        compose.onNode(hasText("×2")).assertExists()
+    }
+
+    private fun noSearch() = SearchActions(SearchState(), "Not in this test", {}, { false }, {}, {})
+
+    @Test
+    fun tappingAFactShowsWhereItWasFirstSaidAndWhereItCameUpAgain() {
+        profile()
+        compose.onNode(hasText("CAME UP 2 TIMES")).assertExists()
         compose.onNode(hasText(HEADING) and hasClickAction()).performClick()
 
-        compose.waitUntilAtLeastOneExists(hasText("Came up again", substring = true), TIMEOUT_MS)
-        compose.onNode(hasText("First heard", substring = true)).assertExists()
+        compose.waitUntilAtLeastOneExists(hasText("CAME UP AGAIN", substring = true), TIMEOUT_MS)
+        compose.onNode(hasText("FIRST HEARD", substring = true)).assertExists()
         compose.onNode(hasText(LINES_1[3])).assertExists()
         compose.onNode(hasText(LINES_2[2])).assertExists()
         // The transcript around the first occurrence: three segments either side of the evidence, no further.
@@ -100,61 +122,108 @@ class ProfileUiTest {
     }
 
     @Test
-    fun aSessionShowsOnlyItsTranscriptWithNoNotesOrFacts() {
-        val patient = repo.patient(CLIENT)
-        compose.setContent {
-            ProfileScreen(
-                patient = patient, isSessionActive = false, repo = repo, onBack = {}, onDeletePatient = {}, onStartSession = {},
-                onReturnToActiveSession = {}, onChanged = {}, search = {}
-            )
-        }
-        compose.onNode(hasText("Sessions") and hasClickAction()).performClick()
-        // Newest first: the second session's card is on top.
-        compose.onAllNodes(hasText("Show transcript")).onFirst().performClick()
+    fun aSessionOpensItsTranscript() {
+        profile()
+        // Newest first: the second session is on top.
+        compose.onAllNodes(hasContentDescription("Session of", substring = true)).onFirst().performClick()
 
         compose.waitUntilAtLeastOneExists(hasText(LINES_2[0]), TIMEOUT_MS)
         compose.onNode(hasText(LINES_2.last())).assertExists()
-        compose.onNode(hasText(HEADING)).assertDoesNotExist()
-        compose.onNode(hasText(CONTENT)).assertDoesNotExist()
-        compose.onNode(hasSetTextAction()).assertDoesNotExist()
+        compose.onNode(hasText(LINES_1[0])).assertDoesNotExist()
     }
 
     @Test
     fun textSearchFindsTheTranscriptAndTheFact() {
+        val patient = repo.patient(CLIENT)
         compose.setContent {
             var state by remember { mutableStateOf(SearchState()) }
-            ClientSearch(
-                state = state,
-                voiceDisabled = "Not in this test",
-                // The app embeds the query first (MainViewModel.searchText); a fixed vector stands in for the embedder.
-                onSearchText = { state = SearchState(hits = repo.search(CLIENT, QUERY_VEC, it)) },
-                onVoiceStart = { false },
-                onVoiceStop = {},
-                onClear = { state = SearchState() },
-                onOpen = {},
-                hasMicPermission = { false },
-                requestMicPermission = {}
-            )
+            PaperTheme {
+                ProfileSheet(
+                    sheet = rememberSheetState(), patient = patient, repo = repo, status = null, processingSession = null,
+                    // The app embeds the query first (MainViewModel.searchText); a fixed vector stands in for the embedder.
+                    search = SearchActions(state, "Not in this test", { q -> state = SearchState(hits = repo.search(CLIENT, QUERY_VEC, q)) }, { false }, {}, { state = SearchState() }),
+                    sessionActive = false, requestMic = {}, onClose = {}, onRecord = {}, onDeleteClient = {}, onDeleteSession = {},
+                )
+            }
         }
         compose.onNode(hasSetTextAction()).performTextInput("running")
         compose.onNode(hasSetTextAction()).performImeAction()
 
-        compose.waitUntilAtLeastOneExists(hasText("From the transcript"), TIMEOUT_MS)
+        compose.waitUntilAtLeastOneExists(hasText("FROM THE TRANSCRIPT"), TIMEOUT_MS)
         compose.onNode(hasText(LINES_1[0], substring = true)).assertExists()
-        compose.onNode(hasText(HEADING)).assertExists()
-        compose.onNode(hasText("Nothing found.")).assertDoesNotExist()
+        compose.onNode(hasText(HEADING.uppercase())).assertExists()
+        compose.onNode(hasText("NOTHING FOUND")).assertDoesNotExist()
     }
 
     @Test
     fun theLookbackSliderSavesItsSetting() {
         prefs().edit().remove(LiveCueSettings.KEY_LOOKBACK_S).commit()
-        compose.setContent { SettingsScreen(onLockVault = {}) }
+        compose.setContent { PaperTheme { SettingsSheet(rememberSheetState(), 0, {}, {}, null, {}, remember { NoticeState() }) } }
 
-        compose.onAllNodes(hasScrollToNodeAction()).onFirst().performScrollToNode(hasContentDescription("Lookback"))
-        compose.onNode(hasContentDescription("Lookback")).performSemanticsAction(SemanticsActions.SetProgress) { it(LOOKBACK.toFloat()) }
+        compose.onAllNodes(hasScrollToNodeAction()).onFirst().performScrollToNode(hasContentDescription("Listens back"))
+        compose.onNode(hasContentDescription("Listens back")).performSemanticsAction(SemanticsActions.SetProgress) { it(LOOKBACK.toFloat()) }
 
-        compose.onNode(hasText("$LOOKBACK s")).assertExists()
+        compose.onNode(hasText("$LOOKBACK S")).assertExists()
         assertEquals(LOOKBACK, prefs().getInt(LiveCueSettings.KEY_LOOKBACK_S, -1))
+    }
+
+    @Test
+    fun theReelOffersNamesAlphabeticallyAndRecordsTheSelectedOne() {
+        store.createClient("zoe", "Zoe K.")
+        store.createClient("ben", "Ben C.")
+        val clients = repo.patients() // Ana, Zoe K., Ben C. in creation order
+        var recorded: String? = null
+        compose.setContent {
+            PaperTheme {
+                Home(
+                    clients = clients, statusOf = { ClientStatus("${it.sessionCount} sessions") }, session = SessionState(), sessionClientName = null,
+                    sessionElapsed = { 0L }, topCue = null, setupLine = null, focusClient = null, onFocused = {}, hint = false, onLearned = {},
+                    bar = rememberChoiceState(), refs = remember { HomeRefs() },
+                    actions = HomeActions(openProfile = {}, record = { recorded = it.name }, openSession = {}, addClient = {}, deleteClient = {}, openSettings = {}),
+                    pillVisible = true,
+                )
+            }
+        }
+        compose.onNode(hasContentDescription("New client")).assertExists()
+        compose.onNode(hasText("Record") and hasClickAction()).performClick()
+        compose.runOnIdle { assertEquals("Ana", recorded) } // first alphabetically, whatever the input order
+    }
+
+    @Test
+    fun addingAClientKeepsOnlyTheInitialOfTheSurname() {
+        var added: String? = null
+        compose.setContent { PaperTheme { AddClientSheet(rememberSheetState(), onCancel = {}, onAdd = { added = it }) } }
+        compose.onNode(hasContentDescription("First name")).performTextInput("george")
+        compose.onNode(hasContentDescription("Surname · only the initial is kept")).performTextInput("miller")
+        compose.onNode(hasText("George M.")).assertExists()
+        compose.onNode(hasText("Add") and hasClickAction()).performClick()
+        compose.runOnIdle { assertEquals("George M.", added) }
+    }
+
+    @Test
+    fun aSessionCanBeFinishedWithoutHoldingAndShowsTheCue() {
+        var finished = false
+        val cue = Cue("1", CONTENT, HEADING, S1, 3, 0.6f)
+        // The level meter and the clock run on every frame while recording, so the screen is never idle: step the clock by hand.
+        compose.mainClock.autoAdvance = false
+        compose.setContent {
+            PaperTheme {
+                SessionSheet(
+                    sheet = rememberSheetState(),
+                    session = SessionState(SessionPhase.Recording, CLIENT, "ana_x", 0, SessionClock.started(0), cuesOn = true),
+                    clientName = "Ana", elapsed = { 65_000L }, level = remember { MutableStateFlow(0.4f) }, cues = listOf(cue), cuesError = null, repo = repo,
+                    onPause = {}, onResume = {}, onMinimise = {}, onFinish = { finished = true }, onHint = {},
+                )
+            }
+        }
+        compose.mainClock.advanceTimeBy(2_000)
+        compose.onNode(hasText(CONTENT)).assertExists()
+        compose.onNode(hasText("Runs ")).assertExists() // the heading, word by word
+        compose.onNode(hasText("01:05")).assertExists()
+        val node = compose.onNode(hasContentDescription("Hold to finish the session")).fetchSemanticsNode()
+        compose.runOnUiThread { node.config[SemanticsActions.CustomActions].first { it.label == "Finish session" }.action() }
+        compose.mainClock.advanceTimeBy(100)
+        assertEquals(true, finished)
     }
 
     private fun prefs() = context.getSharedPreferences("settings", Context.MODE_PRIVATE)

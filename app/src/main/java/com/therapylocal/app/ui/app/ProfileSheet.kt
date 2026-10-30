@@ -3,7 +3,11 @@ package com.therapylocal.app.ui.app
 import android.Manifest
 import android.content.pm.PackageManager
 import androidx.compose.animation.core.Animatable
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -287,22 +291,23 @@ private fun FactRow(f: FactItem, ref: BoundsRef, onOpen: () -> Unit) {
     Hairline()
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun SessionRow(s: SessionItem, processing: Boolean, ref: BoundsRef, onOpen: () -> Unit, onDelete: () -> Unit) {
-    val open by rememberUpdatedState(onOpen)
-    val del by rememberUpdatedState(onDelete)
     val haptics = rememberHaptics()
+    val interaction = remember { MutableInteractionSource() }
+    val pressed by interaction.collectIsPressedAsState()
     val press = remember { Animatable(0f) }
+    LaunchedEffect(pressed) { press.animateTo(if (pressed) 1f else 0f, Motion.Pull) }
     Row(
         Modifier.fillMaxWidth().trackBounds(ref)
             .graphicsLayer { val k = 1f - 0.015f * press.value; scaleX = k; scaleY = k }
-            .pointerInput(Unit) {
-                detectTapGestures(
-                    onPress = { press.animateTo(1f, Motion.Pull); tryAwaitRelease(); press.animateTo(0f, Motion.Pull) },
-                    onTap = { haptics.press(); open() },
-                    onLongPress = { del() },
-                )
-            }
+            // Tap opens the transcript, long press offers to delete; TalkBack gets both as actions.
+            .combinedClickable(
+                interactionSource = interaction, indication = null,
+                onClickLabel = "Open the transcript", onLongClickLabel = "Delete the session",
+                onLongClick = onDelete, onClick = { haptics.press(); onOpen() },
+            )
             .semantics { contentDescription = "Session of ${s.date}" }
             .padding(vertical = 18.dp),
         verticalAlignment = Alignment.CenterVertically,
