@@ -12,8 +12,7 @@ import org.junit.Before
 import org.junit.Test
 
 class JobRunnerTest {
-    private class FakeLlm : Llm {
-        override val model = "gemma-test"
+    private class FakeLlm(override val model: String) : Llm {
         var closed = false
         override fun ask(system: String, user: String, schema: String?, maxOutputTokens: Int, temperature: Double, topK: Int) = ""
         override fun close() {
@@ -40,7 +39,9 @@ class JobRunnerTest {
         q = JobQueue(repo, clock = { now++ })
     }
 
-    private fun pool() = ModelPool({ FakeLlm().also { llms += it } }, { error("not used") }, { error("not used") }, { "gemma-test" })
+    private var chosen = "gemma-test"
+
+    private fun pool() = ModelPool({ FakeLlm(chosen).also { llms += it } }, { error("not used") }, { error("not used") }, { chosen })
 
     private fun runner(handler: (Job, JobContext) -> Unit) =
         JobRunner(q, mapOf("work" to JobHandler { j, c -> ran += j.id; handler(j, c) }), pool()) { true }
@@ -119,5 +120,41 @@ class JobRunnerTest {
         JobRunner(q, mapOf("work" to JobHandler { j, _ -> ran += j.id }), pool()) { false }.drain()
         assertEquals(JobStatus.Pending, job(id).status)
         assertTrue(ran.isEmpty())
+    }
+
+    @Test
+    fun aBuildSwitchedMidJobIsOnlyPickedUpByTheNextJob() {
+        val first = q.enqueue("work", "a_1")
+        val second = q.enqueue("work", "a_2")
+        val used = HashMap<Long, List<String>>()
+        runner { j, c ->
+            val before = c.pool.llm()
+            if (j.id == first) chosen = "gemma-other"
+            used[j.id] = listOf(before.model, c.pool.llm().model, c.pool.llmModel())
+        }.drain()
+        assertEquals(listOf("gemma-test", "gemma-test", "gemma-test"), used[first])
+        assertEquals(listOf("gemma-other", "gemma-other", "gemma-other"), used[second])
+        assertEquals(listOf("gemma-test", "gemma-other"), llms.map { it.model })
+        assertTrue(llms.all { it.closed })
+        assertEquals(JobStatus.Done, job(first).status)
+        assertEquals(JobStatus.Done, job(second).status)
+    }
+
+    @Test
+    fun aBuildSwitchedBeforeTheJobLoadedItReleasesTheJobWithoutAnAttempt() {
+        val id = q.enqueue("work", "a_1")
+        var switched = false
+        runner { _, c ->
+            c.pool.llmModel()
+            if (!switched) {
+                switched = true
+                chosen = "gemma-other"
+            }
+            c.pool.llm()
+        }.drain()
+        assertEquals(listOf(id, id), ran)
+        assertEquals(JobStatus.Done, job(id).status)
+        assertEquals(0, job(id).attempts)
+        assertEquals(listOf("gemma-other"), llms.map { it.model })
     }
 }

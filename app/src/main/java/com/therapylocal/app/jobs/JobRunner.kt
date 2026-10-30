@@ -39,6 +39,8 @@ class JobRunner(
         try {
             while (!queue.stopRequested) {
                 val job = queue.claimNext { it in handlers && canRun(it) } ?: break
+                // Between jobs only, and after the claim checked that the chosen models are ready.
+                pool.refresh()
                 run(job, context)
             }
         } finally {
@@ -56,6 +58,9 @@ class JobRunner(
             handlers.getValue(job.kind).run(job, context)
             queue.complete(job)
         } catch (_: JobStopped) {
+            queue.release(job)
+        } catch (_: ModelSwitched) {
+            // Picked up again with the new build once it is ready.
             queue.release(job)
         } catch (t: Throwable) {
             // The session was deleted while the job ran: there is nothing left to do, which is not a failure.
