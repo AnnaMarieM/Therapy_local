@@ -21,6 +21,8 @@ import com.therapylocal.app.memory.Prompts
 import com.therapylocal.app.memory.TranscriptWindows
 import com.therapylocal.app.memory.Verdict
 import org.json.JSONArray
+import java.io.IOException
+import java.security.GeneralSecurityException
 import kotlin.math.sqrt
 
 /**
@@ -32,8 +34,10 @@ class Pipeline(
     private val queue: JobQueue,
     /** A prompt file's text: a developer copy wins over the one shipped in the app. */
     private val prompt: (String) -> String,
-    /** The saved audio of a recording, in chunk order. */
-    private val audio: (Long) -> List<AudioChunk>,
+    /** The indices of a recording's saved chunks, in order. */
+    private val chunks: (Long) -> List<Int>,
+    /** One saved chunk of a recording, null if it is missing; throws if it cannot be read. */
+    private val chunk: (Long, Int) -> AudioChunk?,
     private val deleteAudio: (Long) -> Unit,
 ) {
     val handlers: Map<String, JobHandler> = mapOf(
@@ -44,14 +48,24 @@ class Pipeline(
         JobGraph.CLEANUP to JobHandler(::cleanup),
     )
 
-    /** Transcribes the chunks that have no text yet, then rebuilds the session's segments from all of them. */
+    /**
+     * Transcribes the chunks that have no text yet, one loaded at a time, then rebuilds the session's segments from all of them. A chunk that
+     * cannot be read fails the job (code AUDIO), so the audio is kept and the session is not processed with a hole in it.
+     */
     private fun transcribe(job: Job, run: JobContext) {
         val rid = job.recordingId ?: throw JobFailure("NO_RECORDING", permanent = true)
         val done = store.chunks(rid).filter { it.text != null }.map { it.idx }.toSet()
-        val todo = audio(rid).filter { it.idx !in done }
+        val todo = chunks(rid).filter { it !in done }
         run.progress(JobPhase.Transcribing, 0, todo.size)
-        todo.forEachIndexed { i, c ->
+        todo.forEachIndexed { i, idx ->
             run.checkStop()
+            val c = try {
+                chunk(rid, idx)
+            } catch (_: IOException) {
+                null
+            } catch (_: GeneralSecurityException) {
+                null
+            } ?: throw JobFailure("AUDIO")
             store.putChunk(ChunkRow(rid, c.idx, c.startMs, c.endMs, c.overlapMs, run.pool.asr().transcribe(c.pcm)))
             run.progress(JobPhase.Transcribing, i + 1, todo.size)
         }

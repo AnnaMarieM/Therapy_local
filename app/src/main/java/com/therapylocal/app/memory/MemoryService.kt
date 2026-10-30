@@ -70,7 +70,7 @@ class MemoryService : Service() {
                 queue.clearStop()
                 if (debugJob) DevHarness.seed(app)
                 trackRun()
-                val pipeline = Pipeline(MindStore.get(app), queue, { MemoryFiles.prompt(app, it) }, { PendingAudio.load(app, it) }, { PendingAudio.delete(app, it) })
+                val pipeline = Pipeline(MindStore.get(app), queue, { MemoryFiles.prompt(app, it) }, { PendingAudio.indices(app, it) }, { r, i -> PendingAudio.load(app, r, i) }, { PendingAudio.delete(app, it) })
                 val runner = JobRunner(queue, pipeline.handlers, DeviceModels.pool(app)) { !JobRunner.recordingActive && ModelSetup.isReady(app) }
                 do {
                     runner.drain()

@@ -26,14 +26,13 @@ object PendingAudio {
         SecureFile.write(File(dir(context, recordingId), "${chunk.idx}.pcm"), encode(chunk), Vault.key())
     }
 
-    /** All stored chunks of the recording, in chunk order. */
-    fun load(context: Context, recordingId: Long): List<AudioChunk> {
-        val files = dir(context, recordingId).listFiles { f -> f.isFile && f.name.endsWith(".pcm") }.orEmpty()
-        val key = Vault.key()
-        return files.sortedBy { it.name.removeSuffix(".pcm").toIntOrNull() ?: Int.MAX_VALUE }
-            .mapNotNull { f -> SecureFile.read(f, key)?.let { decode(it) } }
-            .sortedBy { it.idx }
-    }
+    /** The indices of the stored chunks, in order, without reading them (a long recording does not fit in memory at once). */
+    fun indices(context: Context, recordingId: Long): List<Int> =
+        dir(context, recordingId).listFiles { f -> f.isFile && f.name.endsWith(".pcm") }.orEmpty().mapNotNull { it.name.removeSuffix(".pcm").toIntOrNull() }.sorted()
+
+    /** One stored chunk, null if it is missing. Throws (IOException / GeneralSecurityException) if it cannot be read. */
+    fun load(context: Context, recordingId: Long, idx: Int): AudioChunk? =
+        SecureFile.read(File(dir(context, recordingId), "$idx.pcm"), Vault.key())?.let { decode(it) }
 
     fun has(context: Context, recordingId: Long): Boolean =
         dir(context, recordingId).listFiles { f -> f.isFile && f.name.endsWith(".pcm") }.orEmpty().isNotEmpty()
