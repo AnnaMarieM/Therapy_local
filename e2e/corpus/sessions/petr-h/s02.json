@@ -1,0 +1,124 @@
+{
+ "client": "petr-h",
+ "session": "s02",
+ "lang": "cs",
+ "date": "2026-01-15",
+ "turns": [
+  {
+   "who": "therapist",
+   "text": "Rád vás zase vidím. Kde byste dnes chtěla začít?"
+  },
+  {
+   "who": "client",
+   "text": "Byl to šedivý týden a to počasí mi na náladě moc nepřidává, po pravdě řečeno."
+  },
+  {
+   "who": "therapist",
+   "text": "Řekněte mi o tom víc."
+  },
+  {
+   "who": "client",
+   "text": "Začal jsem chodit do práce pěšky, trvá to čtyřicet minut, ale metrem jet nechci."
+  },
+  {
+   "who": "therapist",
+   "text": "Co se vám v tu chvíli honilo hlavou?"
+  },
+  {
+   "who": "client",
+   "text": "Dnes ráno byl jen čaj a chvíle u okna. Není snadné o tom mluvit."
+  },
+  {
+   "who": "therapist",
+   "text": "A jak vám z toho bylo?"
+  },
+  {
+   "who": "client",
+   "text": "Včerejšek byl dlouhý den a večer už mi nezbyly žádné síly, byla jen televize a gauč."
+  },
+  {
+   "who": "therapist",
+   "text": "Rozumím. Můžete to trochu rozvést?"
+  },
+  {
+   "who": "client",
+   "text": "Piju denně pět káv a k tomu energetický nápoj, jinak bych odpoledne usnul."
+  },
+  {
+   "who": "therapist",
+   "text": "Hm. Pokračujte."
+  },
+  {
+   "who": "client",
+   "text": "Dnes ráno mi ujel autobus, takže to bylo na poslední chvíli. Asi ano."
+  },
+  {
+   "who": "therapist",
+   "text": "Řekněte mi o tom víc."
+  },
+  {
+   "who": "client",
+   "text": "V pátek jsem měl další záchvat na eskalátoru na Můstku a musel jsem se posadit na schody."
+  },
+  {
+   "who": "therapist",
+   "text": "Jaké to pro vás bylo?"
+  },
+  {
+   "who": "client",
+   "text": "Je zvláštní sedět tady a říkat to všechno nahlas, ale trochu to pomáhá. Není snadné o tom mluvit."
+  },
+  {
+   "who": "therapist",
+   "text": "Hm. Pokračujte."
+  },
+  {
+   "who": "client",
+   "text": "V práci máme od prosince nového vedoucího, který se jmenuje Ondřej, a ten požaduje, abychom pracovali o víkendech."
+  },
+  {
+   "who": "therapist",
+   "text": "Rozumím. Můžete to trochu rozvést?"
+  },
+  {
+   "who": "client",
+   "text": "Cesta sem trvá dlouho, ale aspoň je čas si trochu srovnat myšlenky. Tak to prostě je."
+  },
+  {
+   "who": "therapist",
+   "text": "Za chvíli nám končí čas. Chcete ještě něco dodat?"
+  },
+  {
+   "who": "client",
+   "text": "Děkuji, uvidíme se příští týden."
+  }
+ ],
+ "expected": {
+  "facts": [
+   {
+    "id": "s02.f1",
+    "heading": "Nový vedoucí týmu",
+    "said": "V práci máme od prosince nového vedoucího, který se jmenuje Ondřej, a ten požaduje, abychom pracovali o víkendech.",
+    "repeat_of": null
+   },
+   {
+    "id": "s02.f2",
+    "heading": "Další panika",
+    "said": "V pátek jsem měl další záchvat na eskalátoru na Můstku a musel jsem se posadit na schody.",
+    "repeat_of": "s01.f2"
+   },
+   {
+    "id": "s02.f3",
+    "heading": "Káva a energetické nápoje",
+    "said": "Piju denně pět káv a k tomu energetický nápoj, jinak bych odpoledne usnul.",
+    "repeat_of": null
+   },
+   {
+    "id": "s02.f4",
+    "heading": "Vyhýbá se metru",
+    "said": "Začal jsem chodit do práce pěšky, trvá to čtyřicet minut, ale metrem jet nechci.",
+    "repeat_of": null
+   }
+  ]
+ }
+}

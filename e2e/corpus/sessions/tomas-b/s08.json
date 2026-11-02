@@ -1,0 +1,124 @@
+{
+ "client": "tomas-b",
+ "session": "s08",
+ "lang": "cs",
+ "date": "2026-02-28",
+ "turns": [
+  {
+   "who": "therapist",
+   "text": "Dobrý den, pojďte dál. Jak se vám vedlo od minula?"
+  },
+  {
+   "who": "client",
+   "text": "Něco mám poznamenané na papíře, ale teď si polovinu z toho nepamatuju."
+  },
+  {
+   "who": "therapist",
+   "text": "Rozumím. Můžete to trochu rozvést?"
+  },
+  {
+   "who": "client",
+   "text": "Pavel mi vytkl chybu v rozvaděči, i když šlo o vadný přístroj od dodavatele."
+  },
+  {
+   "who": "therapist",
+   "text": "Co se vám v tu chvíli honilo hlavou?"
+  },
+  {
+   "who": "client",
+   "text": "Nevím, kde začít, v hlavě mi teď běží spousta věcí najednou. Pořád se k tomu vracím."
+  },
+  {
+   "who": "therapist",
+   "text": "Řekněte mi o tom víc."
+  },
+  {
+   "who": "client",
+   "text": "Pan Novák říká, že relaps patří k OCD, a nejde o selhání."
+  },
+  {
+   "who": "therapist",
+   "text": "Hm. Pokračujte."
+  },
+  {
+   "who": "client",
+   "text": "Dnes ráno mi ujel autobus, takže to bylo na poslední chvíli. Pořád se k tomu vracím."
+  },
+  {
+   "who": "therapist",
+   "text": "Jaké to pro vás bylo?"
+  },
+  {
+   "who": "client",
+   "text": "Barbora mě večer objala a řekla, že jsem skvělý elektrikář."
+  },
+  {
+   "who": "therapist",
+   "text": "A co se stalo potom?"
+  },
+  {
+   "who": "client",
+   "text": "Některé dny jsou lepší než jiné a snažím se si to připomínat, když je těžko. Asi ano."
+  },
+  {
+   "who": "therapist",
+   "text": "Rozumím. Můžete to trochu rozvést?"
+  },
+  {
+   "who": "client",
+   "text": "Po hádce s Pavlem jsem se zase vrátil ke starým rituálům a kontroloval jsem všechno dvacetkrát."
+  },
+  {
+   "who": "therapist",
+   "text": "Řekněte mi o tom víc."
+  },
+  {
+   "who": "client",
+   "text": "Cesta sem trvá dlouho, ale aspoň je čas si trochu srovnat myšlenky. Asi ano."
+  },
+  {
+   "who": "therapist",
+   "text": "Co se vám v tu chvíli honilo hlavou?"
+  },
+  {
+   "who": "client",
+   "text": "Dnes ráno byl jen čaj a chvíle u okna."
+  },
+  {
+   "who": "therapist",
+   "text": "Pro dnešek tady skončíme."
+  },
+  {
+   "who": "client",
+   "text": "Děkuji, uvidíme se příští týden."
+  }
+ ],
+ "expected": {
+  "facts": [
+   {
+    "id": "s08.f1",
+    "heading": "Relaps po stresu",
+    "said": "Po hádce s Pavlem jsem se zase vrátil ke starým rituálům a kontroloval jsem všechno dvacetkrát.",
+    "repeat_of": null
+   },
+   {
+    "id": "s08.f2",
+    "heading": "Diagnóza OCD",
+    "said": "Pan Novák říká, že relaps patří k OCD, a nejde o selhání.",
+    "repeat_of": "s03.f2"
+   },
+   {
+    "id": "s08.f3",
+    "heading": "Hádka s Pavlem",
+    "said": "Pavel mi vytkl chybu v rozvaděči, i když šlo o vadný přístroj od dodavatele.",
+    "repeat_of": null
+   },
+   {
+    "id": "s08.f4",
+    "heading": "Barbořina podpora",
+    "said": "Barbora mě večer objala a řekla, že jsem skvělý elektrikář.",
+    "repeat_of": "s03.f1"
+   }
+  ]
+ }
+}

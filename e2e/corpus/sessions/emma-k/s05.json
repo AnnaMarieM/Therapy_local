@@ -1,0 +1,140 @@
+{
+ "client": "emma-k",
+ "session": "s05",
+ "lang": "en",
+ "date": "2026-02-05",
+ "turns": [
+  {
+   "who": "therapist",
+   "text": "Hello, come in. How have you been since last time?"
+  },
+  {
+   "who": "client",
+   "text": "Some days are better than others, and I try to remind myself of that when things get heavy."
+  },
+  {
+   "who": "therapist",
+   "text": "And how was that for you?"
+  },
+  {
+   "who": "client",
+   "text": "Tom and I argued about money, because his night shift pay is not enough with only my maternity pay."
+  },
+  {
+   "who": "therapist",
+   "text": "How did that feel for you?"
+  },
+  {
+   "who": "client",
+   "text": "The journey here took a while, but at least I had time to gather my thoughts. Yes, it was like that."
+  },
+  {
+   "who": "therapist",
+   "text": "What went through your mind then?"
+  },
+  {
+   "who": "client",
+   "text": "Having Mum here gave me my first full night of sleep in five months."
+  },
+  {
+   "who": "therapist",
+   "text": "Take your time."
+  },
+  {
+   "who": "client",
+   "text": "The train was late again this morning, so I almost did not make it on time today. It is not easy to talk about."
+  },
+  {
+   "who": "therapist",
+   "text": "How did that feel for you?"
+  },
+  {
+   "who": "client",
+   "text": "I am not sure where to begin, there are so many things going round in my head at the moment."
+  },
+  {
+   "who": "therapist",
+   "text": "How did that feel for you?"
+  },
+  {
+   "who": "client",
+   "text": "I am supposed to go back to school in September and the thought makes my stomach turn."
+  },
+  {
+   "who": "therapist",
+   "text": "What went through your mind then?"
+  },
+  {
+   "who": "client",
+   "text": "I had a long day yesterday and I was so tired in the evening that I just sat in front of the television. It is not easy to talk about."
+  },
+  {
+   "who": "therapist",
+   "text": "And how was that for you?"
+  },
+  {
+   "who": "client",
+   "text": "It has been a grey week, and the weather does not help my mood much, to be honest."
+  },
+  {
+   "who": "therapist",
+   "text": "What happened next?"
+  },
+  {
+   "who": "client",
+   "text": "The stair thought comes less often now, maybe twice this week."
+  },
+  {
+   "who": "therapist",
+   "text": "And how was that for you?"
+  },
+  {
+   "who": "client",
+   "text": "I wrote a few notes before coming here, but now I cannot remember half of what I wanted to say. I keep coming back to it."
+  },
+  {
+   "who": "therapist",
+   "text": "Tell me more about that."
+  },
+  {
+   "who": "client",
+   "text": "I made myself a cup of tea this morning and just stood by the window for a while."
+  },
+  {
+   "who": "therapist",
+   "text": "Let us stop here for today."
+  },
+  {
+   "who": "client",
+   "text": "Thank you, see you next week."
+  }
+ ],
+ "expected": {
+  "facts": [
+   {
+    "id": "s05.f1",
+    "heading": "Mum's visit helped",
+    "said": "Having Mum here gave me my first full night of sleep in five months.",
+    "repeat_of": null
+   },
+   {
+    "id": "s05.f2",
+    "heading": "Worried about returning to work",
+    "said": "I am supposed to go back to school in September and the thought makes my stomach turn.",
+    "repeat_of": null
+   },
+   {
+    "id": "s05.f3",
+    "heading": "Thought about stairs fading",
+    "said": "The stair thought comes less often now, maybe twice this week.",
+    "repeat_of": "s03.f1"
+   },
+   {
+    "id": "s05.f4",
+    "heading": "Argument with Tom about money",
+    "said": "Tom and I argued about money, because his night shift pay is not enough with only my maternity pay.",
+    "repeat_of": null
+   }
+  ]
+ }
+}

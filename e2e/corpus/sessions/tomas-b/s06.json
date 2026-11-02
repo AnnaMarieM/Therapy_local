@@ -1,0 +1,132 @@
+{
+ "client": "tomas-b",
+ "session": "s06",
+ "lang": "cs",
+ "date": "2026-02-14",
+ "turns": [
+  {
+   "who": "therapist",
+   "text": "Rád vás zase vidím. Kde byste dnes chtěla začít?"
+  },
+  {
+   "who": "client",
+   "text": "Byl to šedivý týden a to počasí mi na náladě moc nepřidává, po pravdě řečeno."
+  },
+  {
+   "who": "therapist",
+   "text": "Co se vám v tu chvíli honilo hlavou?"
+  },
+  {
+   "who": "client",
+   "text": "Šéf Pavel poznamenal, že chodím včas, a pochválil mě před kolegy."
+  },
+  {
+   "who": "therapist",
+   "text": "Jaké to pro vás bylo?"
+  },
+  {
+   "who": "client",
+   "text": "Některé dny jsou lepší než jiné a snažím se si to připomínat, když je těžko. Není snadné o tom mluvit."
+  },
+  {
+   "who": "therapist",
+   "text": "Hm. Pokračujte."
+  },
+  {
+   "who": "client",
+   "text": "Cesta sem trvá dlouho, ale aspoň je čas si trochu srovnat myšlenky."
+  },
+  {
+   "who": "therapist",
+   "text": "A co se stalo potom?"
+  },
+  {
+   "who": "client",
+   "text": "Tento týden mi kontrola dveří trvala v průměru pět minut, ne čtyřicet."
+  },
+  {
+   "who": "therapist",
+   "text": "A co se stalo potom?"
+  },
+  {
+   "who": "client",
+   "text": "Dnes ráno mi ujel autobus, takže to bylo na poslední chvíli. Není snadné o tom mluvit."
+  },
+  {
+   "who": "therapist",
+   "text": "A jak vám z toho bylo?"
+  },
+  {
+   "who": "client",
+   "text": "Plyn kontroluji jednou a zbytek zvládám bez návratů."
+  },
+  {
+   "who": "therapist",
+   "text": "Rozumím. Můžete to trochu rozvést?"
+  },
+  {
+   "who": "client",
+   "text": "Je zvláštní sedět tady a říkat to všechno nahlas, ale trochu to pomáhá. Pořád se k tomu vracím."
+  },
+  {
+   "who": "therapist",
+   "text": "A jak vám z toho bylo?"
+  },
+  {
+   "who": "client",
+   "text": "Dnes ráno byl jen čaj a chvíle u okna."
+  },
+  {
+   "who": "therapist",
+   "text": "A jak vám z toho bylo?"
+  },
+  {
+   "who": "client",
+   "text": "Bojím se, že budu mít nekontrolovatelné myšlenky, že dítěti ublížím, i když vím, že bych to nikdy neudělal."
+  },
+  {
+   "who": "therapist",
+   "text": "A jak vám z toho bylo?"
+  },
+  {
+   "who": "client",
+   "text": "Nevím, kde začít, v hlavě mi teď běží spousta věcí najednou. Ano, přesně tak to bylo."
+  },
+  {
+   "who": "therapist",
+   "text": "Pro dnešek tady skončíme."
+  },
+  {
+   "who": "client",
+   "text": "Děkuji, uvidíme se příští týden."
+  }
+ ],
+ "expected": {
+  "facts": [
+   {
+    "id": "s06.f1",
+    "heading": "Zlepšení kontroly",
+    "said": "Tento týden mi kontrola dveří trvala v průměru pět minut, ne čtyřicet.",
+    "repeat_of": null
+   },
+   {
+    "id": "s06.f2",
+    "heading": "Plyn už jen jednou",
+    "said": "Plyn kontroluji jednou a zbytek zvládám bez návratů.",
+    "repeat_of": "s02.f3"
+   },
+   {
+    "id": "s06.f3",
+    "heading": "Šéf si všiml",
+    "said": "Šéf Pavel poznamenal, že chodím včas, a pochválil mě před kolegy.",
+    "repeat_of": null
+   },
+   {
+    "id": "s06.f4",
+    "heading": "Intruzivní myšlenky o dítěti",
+    "said": "Bojím se, že budu mít nekontrolovatelné myšlenky, že dítěti ublížím, i když vím, že bych to nikdy neudělal.",
+    "repeat_of": null
+   }
+  ]
+ }
+}

@@ -1,0 +1,70 @@
+client: lucie-s | Lucie S. | cs
+
+s01 2026-01-09
+ f1 | Smrt maminky | Maminka zemřela v listopadu na rakovinu slinivky a od té doby se cítím, jako by mi někdo vypnul zvuk.
+ f2 | Bratr Ondra | Mám bratra Ondru, který žije v Plzni, a po pohřbu jsme se spolu skoro nebavili.
+ f3 | Pracuje jako zdravotní sestra | Pracuji jako zdravotní sestra na interně v Ostravě a v práci se musím držet.
+ f4 | Dům po mamince | Zdědili jsme po mamince dům ve Frýdku-Místku a nevíme, co s ním.
+
+s02 2026-01-16
+ f1 | Poslední týdny maminky | Maminka byla poslední tři týdny doma a já jsem se o ni starala po nočních směnách.
+ f2 = s01.f2 | Spor s bratrem o dům | Ondra chce dům prodat co nejdřív, ale já k němu mám obrovské citové pouto.
+ f3 | Pláč v práci | Včera jsem se na pokoji rozplakala u jedné pacientky, která mi připomínala maminku.
+ f4 | Partner Michal | Můj partner Michal mi nabídl, že pojedeme společně uklízet dům, ale já nejsem připravená.
+
+s03 2026-01-23
+ f1 | Vina, že nebyla u smrti | Maminka zemřela v noci, když jsem byla v práci, a nikdy si to neodpustím.
+ f2 | Sny o mamince | Zdá se mi, že maminka stojí v kuchyni a vaří polévku, a ráno je to hrozné.
+ f3 = s02.f4 | Michal tlačí na uklizení | Michal si myslí, že bych měla začít s úklidem, aby to bylo za mnou.
+ f4 | Chybí chuť k jídlu | Skoro nejím, za poslední měsíc jsem zhubla šest kilo.
+
+s04 2026-01-30
+ f1 | Návštěva domu | Jela jsem do domu sama a seděla jsem hodinu v maminčině křesle.
+ f2 = s01.f4 | Co s domem | Nemám jasno, jestli dům prodat, nebo ho nechat a pronajímat.
+ f3 | Ondra volal | Ondra mi zavolal poprvé po měsíci a řekl, že na pohřbu nebyl schopen mluvit.
+ f4 = s03.f4 | Hubnutí | Kamarádka z práce Hana říká, že jsem hubená jako vrabec, a nutí mě jíst obědy.
+
+s05 2026-02-06
+ f1 | Sešla se s bratrem | S Ondrou jsme se sešli v Olomouci na půl cesty a dlouho jsme si povídali o dětství.
+ f2 | Naše vzpomínky na maminku | Vzpomínali jsme, jak nás maminka brala na houby do Beskyd a vždycky jsme našli víc hřibů než ona.
+ f3 = s03.f1 | Stále vina | Pořád na to myslím, že jsem u ní nebyla, když odcházela.
+ f4 | Dostala doporučení na terapii | Hana mi dala kontakt na psycholožku, která se specializuje na truchlení.
+
+s06 2026-02-13
+ f1 | První sezení u psycholožky | Byla jsem poprvé u psycholožky Mgr. Horákové a hodinu jsem jen plakala.
+ f2 = s03.f2 | Sny o mamince jsou jiné | Dnes v noci se mi zdálo, že mi maminka z kuchyně něco řekla, ale nerozuměla jsem.
+ f3 | Rozhodnutí o domě | S Ondrou jsme se dohodli, že dům nechceme prodat letos, a necháme si čas do léta.
+ f4 | Michal trpělivý | Michal pochopil, že na úklid ještě není čas, a omluvil se, že na mě tlačil.
+
+s07 2026-02-20
+ f1 | Terapeutka o vině | Paní Horáková mi řekla, že vina je způsob, jak se pokoušíme mít kontrolu nad něčím, co jsme nemohly ovlivnit.
+ f2 | Začala jíst | Jím tři jídla denně, přibrala jsem jeden kilogram a Hana mě pochválila.
+ f3 = s01.f3 | Nelehká práce | V práci to zvládám, ale po směně pláču v autě na parkovišti.
+ f4 | Dopis mamince | Terapeutka mi doporučila napsat mamince dopis, a já ho začala psát.
+
+s08 2026-02-27
+ f1 | Dopis dopsán | Dopsala jsem dopis mamince na čtyři stránky a přečetla jsem ho nahlas u jejího hrobu.
+ f2 = s02.f1 | Vzpomínka na poslední týdny | Vzpomněla jsem si, že poslední týden se maminka usmívala a držela mě za ruku.
+ f3 | Úklid pokojů | S Michalem jsme uklidili jen maminčin pokoj a nechali jsme tam její fotografie.
+ f4 | Dovolená | Vzala jsem si týden dovolené a jedeme s Michalem do Tater.
+
+s09 2026-03-05
+ f1 | Výlet do Tater | V Tatrách jsme chodili po horách a poprvé po měsících jsem se smála.
+ f2 = s04.f3 | Ondra pomáhá | Ondra mi teď volá každý týden a chce přijet na Velikonoce.
+ f3 = s01.f1 | Smutek přetrvává | Smutek je pořád tady, ale už mě nezaplavuje každý den.
+ f4 | Úvaha o pronájmu | S Ondrou uvažujeme, že dům pronajmeme mladé rodině z Frýdku-Místku.
+
+s10 2026-03-12
+ f1 | Ondra přijede | Ondra s rodinou přijede na Velikonoce a všichni budeme u mě.
+ f2 = s03.f1 | Odpuštění | Cítím, že si už pomalu odpouštím, že jsem u maminky nebyla.
+ f3 = s05.f2 | Houby v Beskydech | Chci s Ondrou na podzim zajet do Beskyd na houby, jako jsme jezdili s maminkou.
+ f4 = s03.f4 | Váha | Přibrala jsem už tři kila a Hana říká, že vypadám líp.
+
+q | úmrtí v rodině | s01.f1 s03.f1 s08.f2
+q | vztah s bratrem | s01.f2 s04.f3 s05.f1 s09.f2
+q | dům po mamince | s01.f4 s02.f2 s06.f3 s09.f4
+q | terapie | s05.f4 s06.f1 s07.f1 s07.f4
+q | stravování a váha | s03.f4 s07.f2 s10.f4
+q | partner | s02.f4 s06.f4 s08.f3
+neg | strach z létání
+neg | problémy s hazardem

@@ -1,0 +1,124 @@
+{
+ "client": "raj-p",
+ "session": "s08",
+ "lang": "en",
+ "date": "2026-03-02",
+ "turns": [
+  {
+   "who": "therapist",
+   "text": "Hello, come in. How have you been since last time?"
+  },
+  {
+   "who": "client",
+   "text": "It is strange to sit here and say all of this out loud, but it does help a little."
+  },
+  {
+   "who": "therapist",
+   "text": "How did that feel for you?"
+  },
+  {
+   "who": "client",
+   "text": "I told my boss Gareth about the problem, because I was afraid he would find out through my accounts."
+  },
+  {
+   "who": "therapist",
+   "text": "What happened next?"
+  },
+  {
+   "who": "client",
+   "text": "Some days are better than others, and I try to remind myself of that when things get heavy. That is how it was."
+  },
+  {
+   "who": "therapist",
+   "text": "And how was that for you?"
+  },
+  {
+   "who": "client",
+   "text": "I had a long day yesterday and I was so tired in the evening that I just sat in front of the television."
+  },
+  {
+   "who": "therapist",
+   "text": "How did that feel for you?"
+  },
+  {
+   "who": "client",
+   "text": "It is thirty days without a bet and Meera noticed and said well done."
+  },
+  {
+   "who": "therapist",
+   "text": "Tell me more about that."
+  },
+  {
+   "who": "client",
+   "text": "I wrote a few notes before coming here, but now I cannot remember half of what I wanted to say. I keep coming back to it."
+  },
+  {
+   "who": "therapist",
+   "text": "Tell me more about that."
+  },
+  {
+   "who": "client",
+   "text": "Meera moved back into our bedroom on Thursday, but she says it does not mean everything is forgiven."
+  },
+  {
+   "who": "therapist",
+   "text": "I see. Can you say a bit more?"
+  },
+  {
+   "who": "client",
+   "text": "The train was late again this morning, so I almost did not make it on time today. I think so, yes."
+  },
+  {
+   "who": "therapist",
+   "text": "What happened next?"
+  },
+  {
+   "who": "client",
+   "text": "I sleep five or six hours now because the debt has a plan."
+  },
+  {
+   "who": "therapist",
+   "text": "Mm-hm. Go on."
+  },
+  {
+   "who": "client",
+   "text": "The journey here took a while, but at least I had time to gather my thoughts. That is how it was."
+  },
+  {
+   "who": "therapist",
+   "text": "We are nearly out of time. Is there anything you want to add?"
+  },
+  {
+   "who": "client",
+   "text": "No, I think that is everything. Thank you."
+  }
+ ],
+ "expected": {
+  "facts": [
+   {
+    "id": "s08.f1",
+    "heading": "Thirty days without betting",
+    "said": "It is thirty days without a bet and Meera noticed and said well done.",
+    "repeat_of": null
+   },
+   {
+    "id": "s08.f2",
+    "heading": "Sleeping better",
+    "said": "I sleep five or six hours now because the debt has a plan.",
+    "repeat_of": "s03.f4"
+   },
+   {
+    "id": "s08.f3",
+    "heading": "Meera back in bedroom",
+    "said": "Meera moved back into our bedroom on Thursday, but she says it does not mean everything is forgiven.",
+    "repeat_of": null
+   },
+   {
+    "id": "s08.f4",
+    "heading": "Told boss",
+    "said": "I told my boss Gareth about the problem, because I was afraid he would find out through my accounts.",
+    "repeat_of": null
+   }
+  ]
+ }
+}

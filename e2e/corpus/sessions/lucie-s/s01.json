@@ -1,0 +1,124 @@
+{
+ "client": "lucie-s",
+ "session": "s01",
+ "lang": "cs",
+ "date": "2026-01-09",
+ "turns": [
+  {
+   "who": "therapist",
+   "text": "Rád vás zase vidím. Kde byste dnes chtěla začít?"
+  },
+  {
+   "who": "client",
+   "text": "Dnes ráno byl jen čaj a chvíle u okna."
+  },
+  {
+   "who": "therapist",
+   "text": "Hm. Pokračujte."
+  },
+  {
+   "who": "client",
+   "text": "Pracuji jako zdravotní sestra na interně v Ostravě a v práci se musím držet."
+  },
+  {
+   "who": "therapist",
+   "text": "Co se vám v tu chvíli honilo hlavou?"
+  },
+  {
+   "who": "client",
+   "text": "Nevím, kde začít, v hlavě mi teď běží spousta věcí najednou. Tak to prostě je."
+  },
+  {
+   "who": "therapist",
+   "text": "A jak vám z toho bylo?"
+  },
+  {
+   "who": "client",
+   "text": "Zdědili jsme po mamince dům ve Frýdku-Místku a nevíme, co s ním."
+  },
+  {
+   "who": "therapist",
+   "text": "A co se stalo potom?"
+  },
+  {
+   "who": "client",
+   "text": "Je zvláštní sedět tady a říkat to všechno nahlas, ale trochu to pomáhá. Ano, přesně tak to bylo."
+  },
+  {
+   "who": "therapist",
+   "text": "A co se stalo potom?"
+  },
+  {
+   "who": "client",
+   "text": "Maminka zemřela v listopadu na rakovinu slinivky a od té doby se cítím, jako by mi někdo vypnul zvuk."
+  },
+  {
+   "who": "therapist",
+   "text": "Jaké to pro vás bylo?"
+  },
+  {
+   "who": "client",
+   "text": "Něco mám poznamenané na papíře, ale teď si polovinu z toho nepamatuju. Pořád se k tomu vracím."
+  },
+  {
+   "who": "therapist",
+   "text": "Řekněte mi o tom víc."
+  },
+  {
+   "who": "client",
+   "text": "Mám bratra Ondru, který žije v Plzni, a po pohřbu jsme se spolu skoro nebavili."
+  },
+  {
+   "who": "therapist",
+   "text": "Nespěchejte."
+  },
+  {
+   "who": "client",
+   "text": "Včerejšek byl dlouhý den a večer už mi nezbyly žádné síly, byla jen televize a gauč. Ano, přesně tak to bylo."
+  },
+  {
+   "who": "therapist",
+   "text": "Rozumím. Můžete to trochu rozvést?"
+  },
+  {
+   "who": "client",
+   "text": "Cesta sem trvá dlouho, ale aspoň je čas si trochu srovnat myšlenky."
+  },
+  {
+   "who": "therapist",
+   "text": "Pro dnešek tady skončíme."
+  },
+  {
+   "who": "client",
+   "text": "Ne, myslím, že je to všechno. Děkuji."
+  }
+ ],
+ "expected": {
+  "facts": [
+   {
+    "id": "s01.f1",
+    "heading": "Smrt maminky",
+    "said": "Maminka zemřela v listopadu na rakovinu slinivky a od té doby se cítím, jako by mi někdo vypnul zvuk.",
+    "repeat_of": null
+   },
+   {
+    "id": "s01.f2",
+    "heading": "Bratr Ondra",
+    "said": "Mám bratra Ondru, který žije v Plzni, a po pohřbu jsme se spolu skoro nebavili.",
+    "repeat_of": null
+   },
+   {
+    "id": "s01.f3",
+    "heading": "Pracuje jako zdravotní sestra",
+    "said": "Pracuji jako zdravotní sestra na interně v Ostravě a v práci se musím držet.",
+    "repeat_of": null
+   },
+   {
+    "id": "s01.f4",
+    "heading": "Dům po mamince",
+    "said": "Zdědili jsme po mamince dům ve Frýdku-Místku a nevíme, co s ním.",
+    "repeat_of": null
+   }
+  ]
+ }
+}

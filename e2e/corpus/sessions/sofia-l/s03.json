@@ -1,0 +1,124 @@
+{
+ "client": "sofia-l",
+ "session": "s03",
+ "lang": "en",
+ "date": "2026-01-20",
+ "turns": [
+  {
+   "who": "therapist",
+   "text": "Hello, come in. How have you been since last time?"
+  },
+  {
+   "who": "client",
+   "text": "I made myself a cup of tea this morning and just stood by the window for a while."
+  },
+  {
+   "who": "therapist",
+   "text": "Mm-hm. Go on."
+  },
+  {
+   "who": "client",
+   "text": "I fainted in the library on Friday and woke up with a security guard over me."
+  },
+  {
+   "who": "therapist",
+   "text": "What went through your mind then?"
+  },
+  {
+   "who": "client",
+   "text": "It has been a grey week, and the weather does not help my mood much, to be honest. That is how it was."
+  },
+  {
+   "who": "therapist",
+   "text": "What happened next?"
+  },
+  {
+   "who": "client",
+   "text": "The journey here took a while, but at least I had time to gather my thoughts."
+  },
+  {
+   "who": "therapist",
+   "text": "What went through your mind then?"
+  },
+  {
+   "who": "client",
+   "text": "The GP did blood tests and said my potassium is low and I need to come back next week."
+  },
+  {
+   "who": "therapist",
+   "text": "What happened next?"
+  },
+  {
+   "who": "client",
+   "text": "I had a long day yesterday and I was so tired in the evening that I just sat in front of the television. I think so, yes."
+  },
+  {
+   "who": "therapist",
+   "text": "Mm-hm. Go on."
+  },
+  {
+   "who": "client",
+   "text": "Aisha made pasta and sat with me until I ate half of it, and I hated her for it."
+  },
+  {
+   "who": "therapist",
+   "text": "Tell me more about that."
+  },
+  {
+   "who": "client",
+   "text": "The train was late again this morning, so I almost did not make it on time today. Yes, it was like that."
+  },
+  {
+   "who": "therapist",
+   "text": "Tell me more about that."
+  },
+  {
+   "who": "client",
+   "text": "I cannot tell my father about any of this, he would say I am being dramatic."
+  },
+  {
+   "who": "therapist",
+   "text": "What happened next?"
+  },
+  {
+   "who": "client",
+   "text": "Some days are better than others, and I try to remind myself of that when things get heavy. Yes, it was like that."
+  },
+  {
+   "who": "therapist",
+   "text": "Let us stop here for today."
+  },
+  {
+   "who": "client",
+   "text": "No, I think that is everything. Thank you."
+  }
+ ],
+ "expected": {
+  "facts": [
+   {
+    "id": "s03.f1",
+    "heading": "Fainting episode",
+    "said": "I fainted in the library on Friday and woke up with a security guard over me.",
+    "repeat_of": null
+   },
+   {
+    "id": "s03.f2",
+    "heading": "GP blood tests",
+    "said": "The GP did blood tests and said my potassium is low and I need to come back next week.",
+    "repeat_of": null
+   },
+   {
+    "id": "s03.f3",
+    "heading": "Aisha asked her to eat",
+    "said": "Aisha made pasta and sat with me until I ate half of it, and I hated her for it.",
+    "repeat_of": "s01.f4"
+   },
+   {
+    "id": "s03.f4",
+    "heading": "Fear of telling parents",
+    "said": "I cannot tell my father about any of this, he would say I am being dramatic.",
+    "repeat_of": null
+   }
+  ]
+ }
+}

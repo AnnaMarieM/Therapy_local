@@ -1,0 +1,140 @@
+{
+ "client": "lucie-s",
+ "session": "s05",
+ "lang": "cs",
+ "date": "2026-02-06",
+ "turns": [
+  {
+   "who": "therapist",
+   "text": "Dobrý den, pojďte dál. Jak se vám vedlo od minula?"
+  },
+  {
+   "who": "client",
+   "text": "Dnes ráno mi ujel autobus, takže to bylo na poslední chvíli."
+  },
+  {
+   "who": "therapist",
+   "text": "Jaké to pro vás bylo?"
+  },
+  {
+   "who": "client",
+   "text": "S Ondrou jsme se sešli v Olomouci na půl cesty a dlouho jsme si povídali o dětství."
+  },
+  {
+   "who": "therapist",
+   "text": "Hm. Pokračujte."
+  },
+  {
+   "who": "client",
+   "text": "Byl to šedivý týden a to počasí mi na náladě moc nepřidává, po pravdě řečeno. Ano, přesně tak to bylo."
+  },
+  {
+   "who": "therapist",
+   "text": "A jak vám z toho bylo?"
+  },
+  {
+   "who": "client",
+   "text": "Nevím, kde začít, v hlavě mi teď běží spousta věcí najednou."
+  },
+  {
+   "who": "therapist",
+   "text": "Hm. Pokračujte."
+  },
+  {
+   "who": "client",
+   "text": "Pořád na to myslím, že jsem u ní nebyla, když odcházela."
+  },
+  {
+   "who": "therapist",
+   "text": "Nespěchejte."
+  },
+  {
+   "who": "client",
+   "text": "Něco mám poznamenané na papíře, ale teď si polovinu z toho nepamatuju. Asi ano."
+  },
+  {
+   "who": "therapist",
+   "text": "Nespěchejte."
+  },
+  {
+   "who": "client",
+   "text": "Je zvláštní sedět tady a říkat to všechno nahlas, ale trochu to pomáhá."
+  },
+  {
+   "who": "therapist",
+   "text": "Řekněte mi o tom víc."
+  },
+  {
+   "who": "client",
+   "text": "Vzpomínali jsme, jak nás maminka brala na houby do Beskyd a vždycky jsme našli víc hřibů než ona."
+  },
+  {
+   "who": "therapist",
+   "text": "Nespěchejte."
+  },
+  {
+   "who": "client",
+   "text": "Dnes ráno byl jen čaj a chvíle u okna. Pořád se k tomu vracím."
+  },
+  {
+   "who": "therapist",
+   "text": "Jaké to pro vás bylo?"
+  },
+  {
+   "who": "client",
+   "text": "Cesta sem trvá dlouho, ale aspoň je čas si trochu srovnat myšlenky."
+  },
+  {
+   "who": "therapist",
+   "text": "Rozumím. Můžete to trochu rozvést?"
+  },
+  {
+   "who": "client",
+   "text": "Hana mi dala kontakt na psycholožku, která se specializuje na truchlení."
+  },
+  {
+   "who": "therapist",
+   "text": "Co se vám v tu chvíli honilo hlavou?"
+  },
+  {
+   "who": "client",
+   "text": "Některé dny jsou lepší než jiné a snažím se si to připomínat, když je těžko. Nevím, těžko se to vysvětluje."
+  },
+  {
+   "who": "therapist",
+   "text": "Pro dnešek tady skončíme."
+  },
+  {
+   "who": "client",
+   "text": "Ne, myslím, že je to všechno. Děkuji."
+  }
+ ],
+ "expected": {
+  "facts": [
+   {
+    "id": "s05.f1",
+    "heading": "Sešla se s bratrem",
+    "said": "S Ondrou jsme se sešli v Olomouci na půl cesty a dlouho jsme si povídali o dětství.",
+    "repeat_of": null
+   },
+   {
+    "id": "s05.f2",
+    "heading": "Naše vzpomínky na maminku",
+    "said": "Vzpomínali jsme, jak nás maminka brala na houby do Beskyd a vždycky jsme našli víc hřibů než ona.",
+    "repeat_of": null
+   },
+   {
+    "id": "s05.f3",
+    "heading": "Stále vina",
+    "said": "Pořád na to myslím, že jsem u ní nebyla, když odcházela.",
+    "repeat_of": "s03.f1"
+   },
+   {
+    "id": "s05.f4",
+    "heading": "Dostala doporučení na terapii",
+    "said": "Hana mi dala kontakt na psycholožku, která se specializuje na truchlení.",
+    "repeat_of": null
+   }
+  ]
+ }
+}

@@ -1,0 +1,132 @@
+{
+ "client": "daniel-r",
+ "session": "s08",
+ "lang": "en",
+ "date": "2026-02-25",
+ "turns": [
+  {
+   "who": "therapist",
+   "text": "Good to see you again. Where would you like to start today?"
+  },
+  {
+   "who": "client",
+   "text": "It has been a grey week, and the weather does not help my mood much, to be honest."
+  },
+  {
+   "who": "therapist",
+   "text": "Tell me more about that."
+  },
+  {
+   "who": "client",
+   "text": "Dad's doctor suggested we start looking at nursing homes near Leeds, and I cried in the car afterwards."
+  },
+  {
+   "who": "therapist",
+   "text": "Mm-hm. Go on."
+  },
+  {
+   "who": "client",
+   "text": "I made myself a cup of tea this morning and just stood by the window for a while. That is how it was."
+  },
+  {
+   "who": "therapist",
+   "text": "What went through your mind then?"
+  },
+  {
+   "who": "client",
+   "text": "The director approved the four-day week starting in April, with a pay cut of twenty percent."
+  },
+  {
+   "who": "therapist",
+   "text": "Tell me more about that."
+  },
+  {
+   "who": "client",
+   "text": "The train was late again this morning, so I almost did not make it on time today. I keep coming back to it."
+  },
+  {
+   "who": "therapist",
+   "text": "Take your time."
+  },
+  {
+   "who": "client",
+   "text": "I am not sure where to begin, there are so many things going round in my head at the moment."
+  },
+  {
+   "who": "therapist",
+   "text": "How did that feel for you?"
+  },
+  {
+   "who": "client",
+   "text": "Now I sleep about six hours and I do not wake at three as often."
+  },
+  {
+   "who": "therapist",
+   "text": "Mm-hm. Go on."
+  },
+  {
+   "who": "client",
+   "text": "I had a long day yesterday and I was so tired in the evening that I just sat in front of the television. I think so, yes."
+  },
+  {
+   "who": "therapist",
+   "text": "What happened next?"
+  },
+  {
+   "who": "client",
+   "text": "Some days are better than others, and I try to remind myself of that when things get heavy."
+  },
+  {
+   "who": "therapist",
+   "text": "Take your time."
+  },
+  {
+   "who": "client",
+   "text": "My goal is to run the ten kilometres again by June, there is a charity race in Roundhay Park."
+  },
+  {
+   "who": "therapist",
+   "text": "I see. Can you say a bit more?"
+  },
+  {
+   "who": "client",
+   "text": "It is strange to sit here and say all of this out loud, but it does help a little. I do not know, it is hard to explain."
+  },
+  {
+   "who": "therapist",
+   "text": "Let us stop here for today."
+  },
+  {
+   "who": "client",
+   "text": "No, I think that is everything. Thank you."
+  }
+ ],
+ "expected": {
+  "facts": [
+   {
+    "id": "s08.f1",
+    "heading": "Four-day week approved",
+    "said": "The director approved the four-day week starting in April, with a pay cut of twenty percent.",
+    "repeat_of": null
+   },
+   {
+    "id": "s08.f2",
+    "heading": "Sleep improving to six hours",
+    "said": "Now I sleep about six hours and I do not wake at three as often.",
+    "repeat_of": "s01.f3"
+   },
+   {
+    "id": "s08.f3",
+    "heading": "Nursing home discussion",
+    "said": "Dad's doctor suggested we start looking at nursing homes near Leeds, and I cried in the car afterwards.",
+    "repeat_of": null
+   },
+   {
+    "id": "s08.f4",
+    "heading": "Running ten kilometres again goal",
+    "said": "My goal is to run the ten kilometres again by June, there is a charity race in Roundhay Park.",
+    "repeat_of": null
+   }
+  ]
+ }
+}

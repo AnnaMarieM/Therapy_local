@@ -1,0 +1,140 @@
+{
+ "client": "jana-n",
+ "session": "s06",
+ "lang": "cs",
+ "date": "2026-02-11",
+ "turns": [
+  {
+   "who": "therapist",
+   "text": "Dobrý den, pojďte dál. Jak se vám vedlo od minula?"
+  },
+  {
+   "who": "client",
+   "text": "Některé dny jsou lepší než jiné a snažím se si to připomínat, když je těžko."
+  },
+  {
+   "who": "therapist",
+   "text": "Rozumím. Můžete to trochu rozvést?"
+  },
+  {
+   "who": "client",
+   "text": "S Radkem jsme se pohádali o střídavé péči, já navrhuji děti u mě a o víkendech u něj."
+  },
+  {
+   "who": "therapist",
+   "text": "Jaké to pro vás bylo?"
+  },
+  {
+   "who": "client",
+   "text": "Něco mám poznamenané na papíře, ale teď si polovinu z toho nepamatuju. Tak to prostě je."
+  },
+  {
+   "who": "therapist",
+   "text": "Rozumím. Můžete to trochu rozvést?"
+  },
+  {
+   "who": "client",
+   "text": "Maminka mi slíbila, že na děti pohlídá a přijede z Prostějova každý čtvrtek."
+  },
+  {
+   "who": "therapist",
+   "text": "Co se vám v tu chvíli honilo hlavou?"
+  },
+  {
+   "who": "client",
+   "text": "Je zvláštní sedět tady a říkat to všechno nahlas, ale trochu to pomáhá. Ano, přesně tak to bylo."
+  },
+  {
+   "who": "therapist",
+   "text": "Co se vám v tu chvíli honilo hlavou?"
+  },
+  {
+   "who": "client",
+   "text": "Včerejšek byl dlouhý den a večer už mi nezbyly žádné síly, byla jen televize a gauč."
+  },
+  {
+   "who": "therapist",
+   "text": "Co se vám v tu chvíli honilo hlavou?"
+  },
+  {
+   "who": "client",
+   "text": "Psycholožka s dětmi mluvila hodinu a Matěj jí nakreslil naši rodinu, všichni byli pohromadě."
+  },
+  {
+   "who": "therapist",
+   "text": "A jak vám z toho bylo?"
+  },
+  {
+   "who": "client",
+   "text": "Cesta sem trvá dlouho, ale aspoň je čas si trochu srovnat myšlenky. Tak to prostě je."
+  },
+  {
+   "who": "therapist",
+   "text": "Hm. Pokračujte."
+  },
+  {
+   "who": "client",
+   "text": "Dnes ráno byl jen čaj a chvíle u okna."
+  },
+  {
+   "who": "therapist",
+   "text": "A co se stalo potom?"
+  },
+  {
+   "who": "client",
+   "text": "Naběhala jsem tento týden dvacet kilometrů a spala jsem o něco lépe."
+  },
+  {
+   "who": "therapist",
+   "text": "A co se stalo potom?"
+  },
+  {
+   "who": "client",
+   "text": "Byl to šedivý týden a to počasí mi na náladě moc nepřidává, po pravdě řečeno. Není snadné o tom mluvit."
+  },
+  {
+   "who": "therapist",
+   "text": "Co se vám v tu chvíli honilo hlavou?"
+  },
+  {
+   "who": "client",
+   "text": "Nevím, kde začít, v hlavě mi teď běží spousta věcí najednou."
+  },
+  {
+   "who": "therapist",
+   "text": "Pro dnešek tady skončíme."
+  },
+  {
+   "who": "client",
+   "text": "Děkuji, uvidíme se příští týden."
+  }
+ ],
+ "expected": {
+  "facts": [
+   {
+    "id": "s06.f1",
+    "heading": "Návštěva psycholožky s dětmi",
+    "said": "Psycholožka s dětmi mluvila hodinu a Matěj jí nakreslil naši rodinu, všichni byli pohromadě.",
+    "repeat_of": null
+   },
+   {
+    "id": "s06.f2",
+    "heading": "Spor o péči o děti",
+    "said": "S Radkem jsme se pohádali o střídavé péči, já navrhuji děti u mě a o víkendech u něj.",
+    "repeat_of": "s04.f2"
+   },
+   {
+    "id": "s06.f3",
+    "heading": "Maminka mi pomáhá",
+    "said": "Maminka mi slíbila, že na děti pohlídá a přijede z Prostějova každý čtvrtek.",
+    "repeat_of": null
+   },
+   {
+    "id": "s06.f4",
+    "heading": "Běhání pomáhá",
+    "said": "Naběhala jsem tento týden dvacet kilometrů a spala jsem o něco lépe.",
+    "repeat_of": "s04.f4"
+   }
+  ]
+ }
+}

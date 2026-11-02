@@ -1,0 +1,132 @@
+{
+ "client": "marcus-t",
+ "session": "s02",
+ "lang": "en",
+ "date": "2026-01-16",
+ "turns": [
+  {
+   "who": "therapist",
+   "text": "Good to see you again. Where would you like to start today?"
+  },
+  {
+   "who": "client",
+   "text": "The journey here took a while, but at least I had time to gather my thoughts."
+  },
+  {
+   "who": "therapist",
+   "text": "Mm-hm. Go on."
+  },
+  {
+   "who": "client",
+   "text": "I sleep on the sofa because I cannot sleep in our bed without her."
+  },
+  {
+   "who": "therapist",
+   "text": "Take your time."
+  },
+  {
+   "who": "client",
+   "text": "I made myself a cup of tea this morning and just stood by the window for a while. I do not know, it is hard to explain."
+  },
+  {
+   "who": "therapist",
+   "text": "Take your time."
+  },
+  {
+   "who": "client",
+   "text": "It has been a grey week, and the weather does not help my mood much, to be honest."
+  },
+  {
+   "who": "therapist",
+   "text": "What went through your mind then?"
+  },
+  {
+   "who": "client",
+   "text": "Denise and I got our dog Biscuit eleven years ago, and he follows me from room to room."
+  },
+  {
+   "who": "therapist",
+   "text": "Tell me more about that."
+  },
+  {
+   "who": "client",
+   "text": "I had a long day yesterday and I was so tired in the evening that I just sat in front of the television. That is how it was."
+  },
+  {
+   "who": "therapist",
+   "text": "Take your time."
+  },
+  {
+   "who": "client",
+   "text": "Walter from church invited me for a walk, but I made an excuse."
+  },
+  {
+   "who": "therapist",
+   "text": "What happened next?"
+  },
+  {
+   "who": "client",
+   "text": "It is strange to sit here and say all of this out loud, but it does help a little. I do not know, it is hard to explain."
+  },
+  {
+   "who": "therapist",
+   "text": "Take your time."
+  },
+  {
+   "who": "client",
+   "text": "I had beans on toast three nights in a row, Joy would be shocked."
+  },
+  {
+   "who": "therapist",
+   "text": "I see. Can you say a bit more?"
+  },
+  {
+   "who": "client",
+   "text": "I wrote a few notes before coming here, but now I cannot remember half of what I wanted to say. I keep coming back to it."
+  },
+  {
+   "who": "therapist",
+   "text": "Tell me more about that."
+  },
+  {
+   "who": "client",
+   "text": "I am not sure where to begin, there are so many things going round in my head at the moment."
+  },
+  {
+   "who": "therapist",
+   "text": "We are nearly out of time. Is there anything you want to add?"
+  },
+  {
+   "who": "client",
+   "text": "Thank you, see you next week."
+  }
+ ],
+ "expected": {
+  "facts": [
+   {
+    "id": "s02.f1",
+    "heading": "Dog Biscuit",
+    "said": "Denise and I got our dog Biscuit eleven years ago, and he follows me from room to room.",
+    "repeat_of": null
+   },
+   {
+    "id": "s02.f2",
+    "heading": "Cannot sleep in the bed",
+    "said": "I sleep on the sofa because I cannot sleep in our bed without her.",
+    "repeat_of": null
+   },
+   {
+    "id": "s02.f3",
+    "heading": "Meals are tinned food",
+    "said": "I had beans on toast three nights in a row, Joy would be shocked.",
+    "repeat_of": "s01.f4"
+   },
+   {
+    "id": "s02.f4",
+    "heading": "Church friend Walter",
+    "said": "Walter from church invited me for a walk, but I made an excuse.",
+    "repeat_of": null
+   }
+  ]
+ }
+}

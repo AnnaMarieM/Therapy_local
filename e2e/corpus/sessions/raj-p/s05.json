@@ -1,0 +1,140 @@
+{
+ "client": "raj-p",
+ "session": "s05",
+ "lang": "en",
+ "date": "2026-02-09",
+ "turns": [
+  {
+   "who": "therapist",
+   "text": "Good to see you again. Where would you like to start today?"
+  },
+  {
+   "who": "client",
+   "text": "I had a long day yesterday and I was so tired in the evening that I just sat in front of the television."
+  },
+  {
+   "who": "therapist",
+   "text": "And how was that for you?"
+  },
+  {
+   "who": "client",
+   "text": "I added everything up, the debt is nineteen thousand pounds with the credit cards and the payday loan."
+  },
+  {
+   "who": "therapist",
+   "text": "I see. Can you say a bit more?"
+  },
+  {
+   "who": "client",
+   "text": "It is strange to sit here and say all of this out loud, but it does help a little. Yes, it was like that."
+  },
+  {
+   "who": "therapist",
+   "text": "What went through your mind then?"
+  },
+  {
+   "who": "client",
+   "text": "I wrote a few notes before coming here, but now I cannot remember half of what I wanted to say."
+  },
+  {
+   "who": "therapist",
+   "text": "Tell me more about that."
+  },
+  {
+   "who": "client",
+   "text": "It is twelve days since my last bet, the longest in three years."
+  },
+  {
+   "who": "therapist",
+   "text": "Tell me more about that."
+  },
+  {
+   "who": "client",
+   "text": "Some days are better than others, and I try to remind myself of that when things get heavy. That is how it was."
+  },
+  {
+   "who": "therapist",
+   "text": "What went through your mind then?"
+  },
+  {
+   "who": "client",
+   "text": "I went to Gamblers Anonymous at the community centre and a man named Frank shared a story just like mine."
+  },
+  {
+   "who": "therapist",
+   "text": "What went through your mind then?"
+  },
+  {
+   "who": "client",
+   "text": "It has been a grey week, and the weather does not help my mood much, to be honest. I keep coming back to it."
+  },
+  {
+   "who": "therapist",
+   "text": "Mm-hm. Go on."
+  },
+  {
+   "who": "client",
+   "text": "The train was late again this morning, so I almost did not make it on time today."
+  },
+  {
+   "who": "therapist",
+   "text": "And how was that for you?"
+  },
+  {
+   "who": "client",
+   "text": "Meera stayed but she sleeps in the spare room and barely speaks to me."
+  },
+  {
+   "who": "therapist",
+   "text": "Mm-hm. Go on."
+  },
+  {
+   "who": "client",
+   "text": "I am not sure where to begin, there are so many things going round in my head at the moment. I do not know, it is hard to explain."
+  },
+  {
+   "who": "therapist",
+   "text": "I see. Can you say a bit more?"
+  },
+  {
+   "who": "client",
+   "text": "The journey here took a while, but at least I had time to gather my thoughts."
+  },
+  {
+   "who": "therapist",
+   "text": "Let us stop here for today."
+  },
+  {
+   "who": "client",
+   "text": "No, I think that is everything. Thank you."
+  }
+ ],
+ "expected": {
+  "facts": [
+   {
+    "id": "s05.f1",
+    "heading": "Attended Gamblers Anonymous",
+    "said": "I went to Gamblers Anonymous at the community centre and a man named Frank shared a story just like mine.",
+    "repeat_of": null
+   },
+   {
+    "id": "s05.f2",
+    "heading": "Twelve days free of betting",
+    "said": "It is twelve days since my last bet, the longest in three years.",
+    "repeat_of": "s01.f1"
+   },
+   {
+    "id": "s05.f3",
+    "heading": "Meera stayed but cold",
+    "said": "Meera stayed but she sleeps in the spare room and barely speaks to me.",
+    "repeat_of": null
+   },
+   {
+    "id": "s05.f4",
+    "heading": "Total debt calculated",
+    "said": "I added everything up, the debt is nineteen thousand pounds with the credit cards and the payday loan.",
+    "repeat_of": null
+   }
+  ]
+ }
+}

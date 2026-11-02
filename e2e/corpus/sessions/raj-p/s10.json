@@ -1,0 +1,132 @@
+{
+ "client": "raj-p",
+ "session": "s10",
+ "lang": "en",
+ "date": "2026-03-16",
+ "turns": [
+  {
+   "who": "therapist",
+   "text": "Hello, come in. How have you been since last time?"
+  },
+  {
+   "who": "client",
+   "text": "It has been a grey week, and the weather does not help my mood much, to be honest."
+  },
+  {
+   "who": "therapist",
+   "text": "Tell me more about that."
+  },
+  {
+   "who": "client",
+   "text": "We held a small party for Arjun in the garden, cheaper but he loved it."
+  },
+  {
+   "who": "therapist",
+   "text": "And how was that for you?"
+  },
+  {
+   "who": "client",
+   "text": "I had a long day yesterday and I was so tired in the evening that I just sat in front of the television. Yes, it was like that."
+  },
+  {
+   "who": "therapist",
+   "text": "I see. Can you say a bit more?"
+  },
+  {
+   "who": "client",
+   "text": "I reached sixty days without a bet and Meera baked a cake."
+  },
+  {
+   "who": "therapist",
+   "text": "Mm-hm. Go on."
+  },
+  {
+   "who": "client",
+   "text": "Some days are better than others, and I try to remind myself of that when things get heavy. I keep coming back to it."
+  },
+  {
+   "who": "therapist",
+   "text": "Tell me more about that."
+  },
+  {
+   "who": "client",
+   "text": "Meera manages all the money, I get twenty pounds a week pocket money, and it is fine."
+  },
+  {
+   "who": "therapist",
+   "text": "I see. Can you say a bit more?"
+  },
+  {
+   "who": "client",
+   "text": "I am not sure where to begin, there are so many things going round in my head at the moment. That is how it was."
+  },
+  {
+   "who": "therapist",
+   "text": "Tell me more about that."
+  },
+  {
+   "who": "client",
+   "text": "The train was late again this morning, so I almost did not make it on time today."
+  },
+  {
+   "who": "therapist",
+   "text": "How did that feel for you?"
+  },
+  {
+   "who": "client",
+   "text": "I told my mother about the gambling and she said she knew the signs because of my father."
+  },
+  {
+   "who": "therapist",
+   "text": "What went through your mind then?"
+  },
+  {
+   "who": "client",
+   "text": "I made myself a cup of tea this morning and just stood by the window for a while. I think so, yes."
+  },
+  {
+   "who": "therapist",
+   "text": "Tell me more about that."
+  },
+  {
+   "who": "client",
+   "text": "The journey here took a while, but at least I had time to gather my thoughts."
+  },
+  {
+   "who": "therapist",
+   "text": "Let us stop here for today."
+  },
+  {
+   "who": "client",
+   "text": "Thank you, see you next week."
+  }
+ ],
+ "expected": {
+  "facts": [
+   {
+    "id": "s10.f1",
+    "heading": "Told his mother",
+    "said": "I told my mother about the gambling and she said she knew the signs because of my father.",
+    "repeat_of": null
+   },
+   {
+    "id": "s10.f2",
+    "heading": "Wife manages money",
+    "said": "Meera manages all the money, I get twenty pounds a week pocket money, and it is fine.",
+    "repeat_of": "s06.f3"
+   },
+   {
+    "id": "s10.f3",
+    "heading": "Sixty days free",
+    "said": "I reached sixty days without a bet and Meera baked a cake.",
+    "repeat_of": null
+   },
+   {
+    "id": "s10.f4",
+    "heading": "Arjun's party paid",
+    "said": "We held a small party for Arjun in the garden, cheaper but he loved it.",
+    "repeat_of": "s02.f3"
+   }
+  ]
+ }
+}

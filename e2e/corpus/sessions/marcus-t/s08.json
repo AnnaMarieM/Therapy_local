@@ -1,0 +1,140 @@
+{
+ "client": "marcus-t",
+ "session": "s08",
+ "lang": "en",
+ "date": "2026-02-27",
+ "turns": [
+  {
+   "who": "therapist",
+   "text": "Hello, come in. How have you been since last time?"
+  },
+  {
+   "who": "client",
+   "text": "I had a long day yesterday and I was so tired in the evening that I just sat in front of the television."
+  },
+  {
+   "who": "therapist",
+   "text": "Mm-hm. Go on."
+  },
+  {
+   "who": "client",
+   "text": "I made a vegetable soup from scratch, Denise's recipe, and it tasted almost right."
+  },
+  {
+   "who": "therapist",
+   "text": "What went through your mind then?"
+  },
+  {
+   "who": "client",
+   "text": "It has been a grey week, and the weather does not help my mood much, to be honest. Yes, it was like that."
+  },
+  {
+   "who": "therapist",
+   "text": "Tell me more about that."
+  },
+  {
+   "who": "client",
+   "text": "I wrote a few notes before coming here, but now I cannot remember half of what I wanted to say."
+  },
+  {
+   "who": "therapist",
+   "text": "Take your time."
+  },
+  {
+   "who": "client",
+   "text": "Joy helped me write a formal complaint to the hospital about the missed diagnosis."
+  },
+  {
+   "who": "therapist",
+   "text": "Take your time."
+  },
+  {
+   "who": "client",
+   "text": "The train was late again this morning, so I almost did not make it on time today. That is how it was."
+  },
+  {
+   "who": "therapist",
+   "text": "Mm-hm. Go on."
+  },
+  {
+   "who": "client",
+   "text": "I made myself a cup of tea this morning and just stood by the window for a while."
+  },
+  {
+   "who": "therapist",
+   "text": "What went through your mind then?"
+  },
+  {
+   "who": "client",
+   "text": "Walter and I now walk along the canal every Thursday morning."
+  },
+  {
+   "who": "therapist",
+   "text": "Tell me more about that."
+  },
+  {
+   "who": "client",
+   "text": "I am not sure where to begin, there are so many things going round in my head at the moment. I do not know, it is hard to explain."
+  },
+  {
+   "who": "therapist",
+   "text": "Tell me more about that."
+  },
+  {
+   "who": "client",
+   "text": "Some days are better than others, and I try to remind myself of that when things get heavy."
+  },
+  {
+   "who": "therapist",
+   "text": "What happened next?"
+  },
+  {
+   "who": "client",
+   "text": "At the food bank I met a woman named Gloria who also lost her husband to cancer."
+  },
+  {
+   "who": "therapist",
+   "text": "How did that feel for you?"
+  },
+  {
+   "who": "client",
+   "text": "The journey here took a while, but at least I had time to gather my thoughts. I think so, yes."
+  },
+  {
+   "who": "therapist",
+   "text": "We are nearly out of time. Is there anything you want to add?"
+  },
+  {
+   "who": "client",
+   "text": "No, I think that is everything. Thank you."
+  }
+ ],
+ "expected": {
+  "facts": [
+   {
+    "id": "s08.f1",
+    "heading": "Complaint to hospital",
+    "said": "Joy helped me write a formal complaint to the hospital about the missed diagnosis.",
+    "repeat_of": null
+   },
+   {
+    "id": "s08.f2",
+    "heading": "Got new friend at food bank",
+    "said": "At the food bank I met a woman named Gloria who also lost her husband to cancer.",
+    "repeat_of": null
+   },
+   {
+    "id": "s08.f3",
+    "heading": "Walking with Walter weekly",
+    "said": "Walter and I now walk along the canal every Thursday morning.",
+    "repeat_of": "s03.f2"
+   },
+   {
+    "id": "s08.f4",
+    "heading": "Cooking again",
+    "said": "I made a vegetable soup from scratch, Denise's recipe, and it tasted almost right.",
+    "repeat_of": "s01.f4"
+   }
+  ]
+ }
+}

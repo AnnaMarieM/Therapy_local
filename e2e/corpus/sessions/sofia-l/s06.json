@@ -1,0 +1,132 @@
+{
+ "client": "sofia-l",
+ "session": "s06",
+ "lang": "en",
+ "date": "2026-02-10",
+ "turns": [
+  {
+   "who": "therapist",
+   "text": "Good to see you again. Where would you like to start today?"
+  },
+  {
+   "who": "client",
+   "text": "It has been a grey week, and the weather does not help my mood much, to be honest."
+  },
+  {
+   "who": "therapist",
+   "text": "How did that feel for you?"
+  },
+  {
+   "who": "client",
+   "text": "I phoned my mother and told her about the eating disorder service, and she said she loves me."
+  },
+  {
+   "who": "therapist",
+   "text": "Mm-hm. Go on."
+  },
+  {
+   "who": "client",
+   "text": "The journey here took a while, but at least I had time to gather my thoughts. It is not easy to talk about."
+  },
+  {
+   "who": "therapist",
+   "text": "How did that feel for you?"
+  },
+  {
+   "who": "client",
+   "text": "I walked past the dance studio and felt a sharp longing to go back."
+  },
+  {
+   "who": "therapist",
+   "text": "Take your time."
+  },
+  {
+   "who": "client",
+   "text": "I wrote a few notes before coming here, but now I cannot remember half of what I wanted to say. I keep coming back to it."
+  },
+  {
+   "who": "therapist",
+   "text": "Take your time."
+  },
+  {
+   "who": "client",
+   "text": "I had a long day yesterday and I was so tired in the evening that I just sat in front of the television."
+  },
+  {
+   "who": "therapist",
+   "text": "How did that feel for you?"
+  },
+  {
+   "who": "client",
+   "text": "I got a sixty-eight percent on the property law exam, which is a two-one, and I did not fall apart."
+  },
+  {
+   "who": "therapist",
+   "text": "Take your time."
+  },
+  {
+   "who": "client",
+   "text": "It is strange to sit here and say all of this out loud, but it does help a little. That is how it was."
+  },
+  {
+   "who": "therapist",
+   "text": "What happened next?"
+  },
+  {
+   "who": "client",
+   "text": "I ate a bowl of porridge every morning this week, which feels terrifying."
+  },
+  {
+   "who": "therapist",
+   "text": "I see. Can you say a bit more?"
+  },
+  {
+   "who": "client",
+   "text": "The train was late again this morning, so I almost did not make it on time today. That is how it was."
+  },
+  {
+   "who": "therapist",
+   "text": "Mm-hm. Go on."
+  },
+  {
+   "who": "client",
+   "text": "Some days are better than others, and I try to remind myself of that when things get heavy."
+  },
+  {
+   "who": "therapist",
+   "text": "Let us stop here for today."
+  },
+  {
+   "who": "client",
+   "text": "No, I think that is everything. Thank you."
+  }
+ ],
+ "expected": {
+  "facts": [
+   {
+    "id": "s06.f1",
+    "heading": "Started eating breakfast",
+    "said": "I ate a bowl of porridge every morning this week, which feels terrifying.",
+    "repeat_of": null
+   },
+   {
+    "id": "s06.f2",
+    "heading": "Told her mother",
+    "said": "I phoned my mother and told her about the eating disorder service, and she said she loves me.",
+    "repeat_of": null
+   },
+   {
+    "id": "s06.f3",
+    "heading": "Missing ballet",
+    "said": "I walked past the dance studio and felt a sharp longing to go back.",
+    "repeat_of": "s02.f4"
+   },
+   {
+    "id": "s06.f4",
+    "heading": "Exam result better than expected",
+    "said": "I got a sixty-eight percent on the property law exam, which is a two-one, and I did not fall apart.",
+    "repeat_of": null
+   }
+  ]
+ }
+}

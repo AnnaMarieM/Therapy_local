@@ -1,0 +1,132 @@
+{
+ "client": "emma-k",
+ "session": "s08",
+ "lang": "en",
+ "date": "2026-02-26",
+ "turns": [
+  {
+   "who": "therapist",
+   "text": "Good to see you again. Where would you like to start today?"
+  },
+  {
+   "who": "client",
+   "text": "I am not sure where to begin, there are so many things going round in my head at the moment."
+  },
+  {
+   "who": "therapist",
+   "text": "Take your time."
+  },
+  {
+   "who": "client",
+   "text": "The money worry is still there, we may need to cut our car insurance and the gym."
+  },
+  {
+   "who": "therapist",
+   "text": "Mm-hm. Go on."
+  },
+  {
+   "who": "client",
+   "text": "It is strange to sit here and say all of this out loud, but it does help a little. I think so, yes."
+  },
+  {
+   "who": "therapist",
+   "text": "I see. Can you say a bit more?"
+  },
+  {
+   "who": "client",
+   "text": "The train was late again this morning, so I almost did not make it on time today."
+  },
+  {
+   "who": "therapist",
+   "text": "Tell me more about that."
+  },
+  {
+   "who": "client",
+   "text": "The headteacher agreed to extend my maternity leave until the January term."
+  },
+  {
+   "who": "therapist",
+   "text": "I see. Can you say a bit more?"
+  },
+  {
+   "who": "client",
+   "text": "The journey here took a while, but at least I had time to gather my thoughts. That is how it was."
+  },
+  {
+   "who": "therapist",
+   "text": "Mm-hm. Go on."
+  },
+  {
+   "who": "client",
+   "text": "Tom told me he is exhausted too and wants us to share the mornings more."
+  },
+  {
+   "who": "therapist",
+   "text": "What happened next?"
+  },
+  {
+   "who": "client",
+   "text": "I wrote a few notes before coming here, but now I cannot remember half of what I wanted to say. It is not easy to talk about."
+  },
+  {
+   "who": "therapist",
+   "text": "I see. Can you say a bit more?"
+  },
+  {
+   "who": "client",
+   "text": "I had a long day yesterday and I was so tired in the evening that I just sat in front of the television."
+  },
+  {
+   "who": "therapist",
+   "text": "How did that feel for you?"
+  },
+  {
+   "who": "client",
+   "text": "Sophie and I went for coffee after the group and her baby is the same age as Oliver."
+  },
+  {
+   "who": "therapist",
+   "text": "Tell me more about that."
+  },
+  {
+   "who": "client",
+   "text": "It has been a grey week, and the weather does not help my mood much, to be honest. I think so, yes."
+  },
+  {
+   "who": "therapist",
+   "text": "Let us stop here for today."
+  },
+  {
+   "who": "client",
+   "text": "No, I think that is everything. Thank you."
+  }
+ ],
+ "expected": {
+  "facts": [
+   {
+    "id": "s08.f1",
+    "heading": "Friendship with Sophie",
+    "said": "Sophie and I went for coffee after the group and her baby is the same age as Oliver.",
+    "repeat_of": null
+   },
+   {
+    "id": "s08.f2",
+    "heading": "School agreed to extension",
+    "said": "The headteacher agreed to extend my maternity leave until the January term.",
+    "repeat_of": null
+   },
+   {
+    "id": "s08.f3",
+    "heading": "Money still tight",
+    "said": "The money worry is still there, we may need to cut our car insurance and the gym.",
+    "repeat_of": "s05.f4"
+   },
+   {
+    "id": "s08.f4",
+    "heading": "Tom's own exhaustion",
+    "said": "Tom told me he is exhausted too and wants us to share the mornings more.",
+    "repeat_of": null
+   }
+  ]
+ }
+}

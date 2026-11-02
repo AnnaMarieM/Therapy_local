@@ -1,0 +1,70 @@
+client: marie-d | Marie D. | cs
+
+s01 2026-01-13
+ f1 | Strach z ztráty paměti | Je mi sedmdesát čtyři let a bojím se, že mám začínající demenci, protože zapomínám jména a ztrácím věci.
+ f2 | Syn Jakub v Německu | Můj syn Jakub žije v Drážďanech a vídáme se jen dvakrát do roka.
+ f3 | Vdova | Manžel Josef zemřel před čtyřmi lety a od té doby žiji v Plzni sama.
+ f4 | Cukrovka | Mám cukrovku druhého typu a píchám si inzulín dvakrát denně.
+
+s02 2026-01-20
+ f1 | Zapomněla klíče | Včera jsem zapomněla klíče v zámku zvenku a sousedka Věra mi je přinesla.
+ f2 = s01.f2 | Samota a syn | Jakub mi volá jen v neděli a vždycky spěchá.
+ f3 | Pád na schodech | Minulý týden jsem upadla na schodech do sklepa a naštěstí jsem si jen narazila koleno.
+ f4 | Chodí na kroužek | Chodím jednou týdně na kroužek pletení v klubu seniorů, tam si povídáme.
+
+s03 2026-01-27
+ f1 | Vyšetření u neurologa | Praktická lékařka mě objednala k neurologovi, termín mám za měsíc.
+ f2 = s01.f4 | Hladina cukru | Cukr mi minulý týden vyskočil na jedenáct, protože jsem zapomněla večerní inzulín.
+ f3 | Vnučka Kateřina | Mám vnučku Kateřinu, které je patnáct, a ta mi o prázdninách posílala fotky z Drážďan.
+ f4 | Dcera sousedky pomáhá | Dcera sousedky Věry mi koupila pomůcku na léky, krabičku s přihrádkami na dny v týdnu.
+
+s04 2026-02-03
+ f1 | Léky v krabičce | Krabička na léky mi pomáhá, od pondělí jsem nezapomněla žádnou dávku.
+ f2 = s02.f1 | Ztráta věcí | Hodinu jsem hledala brýle a byly mi na hlavě.
+ f3 | Vzpomínky na manžela | Včera jsem našla Josefovu fotku z Šumavy z roku osmdesát pět a plakala jsem.
+ f4 | Strach z domova důchodců | Nejvíc se bojím, že mě Jakub dá do domova důchodců, až zapomenu úplně všechno.
+
+s05 2026-02-10
+ f1 | Zavolala Jakubovi | Řekla jsem Jakubovi, že se bojím, a on mi slíbil, že přijede.
+ f2 = s02.f4 | Kroužek pletení | Na kroužku pletení jsme upletly čepice pro dětské oddělení nemocnice.
+ f3 | Jakub přijede v březnu | Jakub přijede devátého března, zůstane týden a půjde se mnou k neurologovi.
+ f4 = s03.f3 | Fotky od vnučky | Kateřina mi poslala fotku z lyžování a napsala, že mi upletla ponožky.
+
+s06 2026-02-17
+ f1 | Neurolog předběžně | Neurolog mi udělal krátký test paměti a řekl, že je to na hranici normy.
+ f2 | MR mozku | Objednal mě na magnetickou rezonanci mozku do nemocnice na Lochotíně.
+ f3 = s02.f3 | Další pád | Dnes jsem klopýtla o koberec v předsíni a rozbila jsem hrnek, naštěstí jsem se nezranila.
+ f4 = s04.f3 | Smutek po Josefovi | Čtvrtého března by Josef slavil sedmdesátiny, to bude těžký den.
+
+s07 2026-02-24
+ f1 | Odstranila koberec | Koberec z předsíně jsem vyhodila a sousedka Věra mi pomohla přilepit protiskluzové pásky na schody.
+ f2 = s01.f3 | Žije sama | Večer je ticho, zapnu rádio, aby tam někdo mluvil.
+ f3 | Nová kamarádka v klubu | V klubu jsem se seznámila s paní Boženou, která taky přišla o manžela, chodíme spolu na kávu.
+ f4 | Vyšetření na MR proběhlo | Magnetická rezonance proběhla dobře, bylo to jen hlučné a dlouhé.
+
+s08 2026-03-03
+ f1 | Výsledek MR | Výsledek rezonance je dobrý, žádné závažné změny, jen lehké stařecké změny.
+ f2 = s01.f1 | Úleva | Strašně se mi ulevilo, že to nejspíš není demence, ale přirozené stárnutí.
+ f3 | Příprava na Jakubův příjezd | Napekla jsem buchty a připravila Jakubovi pokoj, aby tu byl jako doma.
+ f4 = s04.f4 | Rozhovor o budoucnosti | Chci s Jakubem mluvit o tom, že chci zůstat doma, dokud to půjde.
+
+s09 2026-03-10
+ f1 | Jakub přijel | Jakub přijel včera a hned mě objal, byl hodně unavený z cesty.
+ f2 | Společně u neurologa | Šli jsme spolu k neurologovi a Jakub se ptal na všechno, co mě trápí.
+ f3 = s04.f4 | Slíbil, že mě nedá do domova | Jakub mi řekl, že mě do domova nikdy nedá, a že spolu najdeme jiné řešení, třeba pečovatelku.
+ f4 | Návrh na telefon | Jakub mi koupil tablet, abychom si mohli volat s obrazem každý den.
+
+s10 2026-03-17
+ f1 | Pečovatelka dvakrát týdně | Domluvili jsme pečovatelku, která bude chodit dvakrát týdně na nákup a úklid.
+ f2 = s03.f2 | Cukr v normě | Cukr mám už týden v normě, hlídám si ho podle zápisníku.
+ f3 | Jakub odjel | Jakub odjel zpátky do Drážďan, ale poprvé mi nebylo smutno, protože se vidíme každý večer na tabletu.
+ f4 = s07.f3 | Kamarádka Božena | S Boženou jsme se domluvily, že pojedeme na zájezd do Karlových Varů.
+
+q | strach z demence | s01.f1 s04.f2 s08.f1
+q | vztah se synem | s01.f2 s02.f2 s05.f1 s09.f3 s09.f4
+q | pády | s02.f3 s06.f3 s07.f1
+q | zdravotní vyšetření | s03.f1 s06.f1 s06.f2 s08.f1
+q | cukrovka a léky | s01.f4 s03.f2 s04.f1
+q | sociální kontakty | s02.f4 s07.f3 s10.f4
+neg | pracovní stres
+neg | problémy s manželem

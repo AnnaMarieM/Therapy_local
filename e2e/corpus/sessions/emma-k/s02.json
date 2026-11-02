@@ -1,0 +1,140 @@
+{
+ "client": "emma-k",
+ "session": "s02",
+ "lang": "en",
+ "date": "2026-01-15",
+ "turns": [
+  {
+   "who": "therapist",
+   "text": "Hello, come in. How have you been since last time?"
+  },
+  {
+   "who": "client",
+   "text": "The journey here took a while, but at least I had time to gather my thoughts."
+  },
+  {
+   "who": "therapist",
+   "text": "What happened next?"
+  },
+  {
+   "who": "client",
+   "text": "I have not been out of the flat for anything except the clinic in nine days."
+  },
+  {
+   "who": "therapist",
+   "text": "Tell me more about that."
+  },
+  {
+   "who": "client",
+   "text": "I made myself a cup of tea this morning and just stood by the window for a while. It is not easy to talk about."
+  },
+  {
+   "who": "therapist",
+   "text": "What happened next?"
+  },
+  {
+   "who": "client",
+   "text": "I wrote a few notes before coming here, but now I cannot remember half of what I wanted to say."
+  },
+  {
+   "who": "therapist",
+   "text": "What went through your mind then?"
+  },
+  {
+   "who": "client",
+   "text": "I still check Oliver's breathing at night, last night it was five times."
+  },
+  {
+   "who": "therapist",
+   "text": "How did that feel for you?"
+  },
+  {
+   "who": "client",
+   "text": "It is strange to sit here and say all of this out loud, but it does help a little. That is how it was."
+  },
+  {
+   "who": "therapist",
+   "text": "Tell me more about that."
+  },
+  {
+   "who": "client",
+   "text": "The health visitor, Priya, was kind and told me many mothers feel exactly like this."
+  },
+  {
+   "who": "therapist",
+   "text": "What happened next?"
+  },
+  {
+   "who": "client",
+   "text": "I had a long day yesterday and I was so tired in the evening that I just sat in front of the television. Yes, it was like that."
+  },
+  {
+   "who": "therapist",
+   "text": "Take your time."
+  },
+  {
+   "who": "client",
+   "text": "Some days are better than others, and I try to remind myself of that when things get heavy."
+  },
+  {
+   "who": "therapist",
+   "text": "I see. Can you say a bit more?"
+  },
+  {
+   "who": "client",
+   "text": "I stopped breastfeeding last week and I feel like a failure because of it."
+  },
+  {
+   "who": "therapist",
+   "text": "How did that feel for you?"
+  },
+  {
+   "who": "client",
+   "text": "The train was late again this morning, so I almost did not make it on time today. Yes, it was like that."
+  },
+  {
+   "who": "therapist",
+   "text": "How did that feel for you?"
+  },
+  {
+   "who": "client",
+   "text": "I am not sure where to begin, there are so many things going round in my head at the moment."
+  },
+  {
+   "who": "therapist",
+   "text": "Let us stop here for today."
+  },
+  {
+   "who": "client",
+   "text": "No, I think that is everything. Thank you."
+  }
+ ],
+ "expected": {
+  "facts": [
+   {
+    "id": "s02.f1",
+    "heading": "Stopped breastfeeding",
+    "said": "I stopped breastfeeding last week and I feel like a failure because of it.",
+    "repeat_of": null
+   },
+   {
+    "id": "s02.f2",
+    "heading": "Health visitor Priya",
+    "said": "The health visitor, Priya, was kind and told me many mothers feel exactly like this.",
+    "repeat_of": null
+   },
+   {
+    "id": "s02.f3",
+    "heading": "Still checking breathing",
+    "said": "I still check Oliver's breathing at night, last night it was five times.",
+    "repeat_of": "s01.f2"
+   },
+   {
+    "id": "s02.f4",
+    "heading": "Avoids leaving house",
+    "said": "I have not been out of the flat for anything except the clinic in nine days.",
+    "repeat_of": null
+   }
+  ]
+ }
+}

@@ -1,0 +1,728 @@
+{
+ "clients": [
+  {
+   "id": "daniel-r",
+   "name": "Daniel R.",
+   "lang": "en",
+   "sessions": [
+    "s01",
+    "s02",
+    "s03",
+    "s04",
+    "s05",
+    "s06",
+    "s07",
+    "s08",
+    "s09",
+    "s10"
+   ],
+   "queries": [
+    {
+     "q": "what is wrong with the father's health",
+     "expect": [
+      "s01.f2",
+      "s07.f1"
+     ]
+    },
+    {
+     "q": "who helps with caring for his father",
+     "expect": [
+      "s01.f4",
+      "s05.f4",
+      "s10.f1"
+     ]
+    },
+    {
+     "q": "work stress and the boss",
+     "expect": [
+      "s02.f2",
+      "s04.f3",
+      "s06.f2"
+     ]
+    },
+    {
+     "q": "medication",
+     "expect": [
+      "s05.f2",
+      "s06.f1"
+     ]
+    },
+    {
+     "q": "running and exercise",
+     "expect": [
+      "s02.f1",
+      "s06.f4",
+      "s08.f4",
+      "s10.f3"
+     ]
+    },
+    {
+     "q": "feelings about nursing home",
+     "expect": [
+      "s08.f3",
+      "s09.f3",
+      "s09.f4"
+     ]
+    }
+   ],
+   "negatives": [
+    "trouble with children at school",
+    "cat died"
+   ]
+  },
+  {
+   "id": "emma-k",
+   "name": "Emma K.",
+   "lang": "en",
+   "sessions": [
+    "s01",
+    "s02",
+    "s03",
+    "s04",
+    "s05",
+    "s06",
+    "s07",
+    "s08",
+    "s09",
+    "s10"
+   ],
+   "queries": [
+    {
+     "q": "scary thoughts about baby",
+     "expect": [
+      "s03.f1",
+      "s05.f3"
+     ]
+    },
+    {
+     "q": "support from her mother",
+     "expect": [
+      "s01.f4",
+      "s04.f3",
+      "s05.f1"
+     ]
+    },
+    {
+     "q": "treatment she received",
+     "expect": [
+      "s04.f2",
+      "s06.f1",
+      "s06.f2",
+      "s09.f1"
+     ]
+    },
+    {
+     "q": "husband's job",
+     "expect": [
+      "s01.f3",
+      "s06.f3"
+     ]
+    },
+    {
+     "q": "breastfeeding",
+     "expect": [
+      "s02.f1",
+      "s09.f2"
+     ]
+    },
+    {
+     "q": "return to teaching",
+     "expect": [
+      "s03.f2",
+      "s05.f2",
+      "s08.f2"
+     ]
+    }
+   ],
+   "negatives": [
+    "gambling problem",
+    "brother in prison"
+   ]
+  },
+  {
+   "id": "jana-n",
+   "name": "Jana N.",
+   "lang": "cs",
+   "sessions": [
+    "s01",
+    "s02",
+    "s03",
+    "s04",
+    "s05",
+    "s06",
+    "s07",
+    "s08",
+    "s09",
+    "s10"
+   ],
+   "queries": [
+    {
+     "q": "proč se rozvádí",
+     "expect": [
+      "s01.f1",
+      "s02.f1"
+     ]
+    },
+    {
+     "q": "jak reagovaly děti",
+     "expect": [
+      "s03.f1",
+      "s03.f2",
+      "s05.f1",
+      "s07.f3"
+     ]
+    },
+    {
+     "q": "péče o děti",
+     "expect": [
+      "s04.f2",
+      "s06.f2",
+      "s07.f1"
+     ]
+    },
+    {
+     "q": "peníze a bydlení",
+     "expect": [
+      "s02.f3",
+      "s04.f3",
+      "s07.f2",
+      "s08.f1",
+      "s09.f1"
+     ]
+    },
+    {
+     "q": "spánek",
+     "expect": [
+      "s01.f4",
+      "s03.f3",
+      "s10.f1"
+     ]
+    },
+    {
+     "q": "pomoc od okolí",
+     "expect": [
+      "s02.f4",
+      "s05.f4",
+      "s06.f3"
+     ]
+    }
+   ],
+   "negatives": [
+    "problém s alkoholem",
+    "úmrtí v rodině"
+   ]
+  },
+  {
+   "id": "lucie-s",
+   "name": "Lucie S.",
+   "lang": "cs",
+   "sessions": [
+    "s01",
+    "s02",
+    "s03",
+    "s04",
+    "s05",
+    "s06",
+    "s07",
+    "s08",
+    "s09",
+    "s10"
+   ],
+   "queries": [
+    {
+     "q": "úmrtí v rodině",
+     "expect": [
+      "s01.f1",
+      "s03.f1",
+      "s08.f2"
+     ]
+    },
+    {
+     "q": "vztah s bratrem",
+     "expect": [
+      "s01.f2",
+      "s04.f3",
+      "s05.f1",
+      "s09.f2"
+     ]
+    },
+    {
+     "q": "dům po mamince",
+     "expect": [
+      "s01.f4",
+      "s02.f2",
+      "s06.f3",
+      "s09.f4"
+     ]
+    },
+    {
+     "q": "terapie",
+     "expect": [
+      "s05.f4",
+      "s06.f1",
+      "s07.f1",
+      "s07.f4"
+     ]
+    },
+    {
+     "q": "stravování a váha",
+     "expect": [
+      "s03.f4",
+      "s07.f2",
+      "s10.f4"
+     ]
+    },
+    {
+     "q": "partner",
+     "expect": [
+      "s02.f4",
+      "s06.f4",
+      "s08.f3"
+     ]
+    }
+   ],
+   "negatives": [
+    "strach z létání",
+    "problémy s hazardem"
+   ]
+  },
+  {
+   "id": "marcus-t",
+   "name": "Marcus T.",
+   "lang": "en",
+   "sessions": [
+    "s01",
+    "s02",
+    "s03",
+    "s04",
+    "s05",
+    "s06",
+    "s07",
+    "s08",
+    "s09",
+    "s10"
+   ],
+   "queries": [
+    {
+     "q": "how his wife died",
+     "expect": [
+      "s01.f2",
+      "s09.f4"
+     ]
+    },
+    {
+     "q": "the dog",
+     "expect": [
+      "s02.f1",
+      "s04.f2",
+      "s09.f2",
+      "s10.f1"
+     ]
+    },
+    {
+     "q": "communication with daughter",
+     "expect": [
+      "s01.f3",
+      "s05.f1",
+      "s05.f2",
+      "s10.f3"
+     ]
+    },
+    {
+     "q": "alcohol",
+     "expect": [
+      "s04.f1",
+      "s05.f3",
+      "s10.f4"
+     ]
+    },
+    {
+     "q": "complaint about the hospital",
+     "expect": [
+      "s03.f4",
+      "s08.f1",
+      "s09.f1"
+     ]
+    },
+    {
+     "q": "social activity and friends",
+     "expect": [
+      "s02.f4",
+      "s03.f2",
+      "s07.f3",
+      "s08.f2"
+     ]
+    }
+   ],
+   "negatives": [
+    "problems with his boss",
+    "wants to have a baby"
+   ]
+  },
+  {
+   "id": "marie-d",
+   "name": "Marie D.",
+   "lang": "cs",
+   "sessions": [
+    "s01",
+    "s02",
+    "s03",
+    "s04",
+    "s05",
+    "s06",
+    "s07",
+    "s08",
+    "s09",
+    "s10"
+   ],
+   "queries": [
+    {
+     "q": "strach z demence",
+     "expect": [
+      "s01.f1",
+      "s04.f2",
+      "s08.f1"
+     ]
+    },
+    {
+     "q": "vztah se synem",
+     "expect": [
+      "s01.f2",
+      "s02.f2",
+      "s05.f1",
+      "s09.f3",
+      "s09.f4"
+     ]
+    },
+    {
+     "q": "pády",
+     "expect": [
+      "s02.f3",
+      "s06.f3",
+      "s07.f1"
+     ]
+    },
+    {
+     "q": "zdravotní vyšetření",
+     "expect": [
+      "s03.f1",
+      "s06.f1",
+      "s06.f2",
+      "s08.f1"
+     ]
+    },
+    {
+     "q": "cukrovka a léky",
+     "expect": [
+      "s01.f4",
+      "s03.f2",
+      "s04.f1"
+     ]
+    },
+    {
+     "q": "sociální kontakty",
+     "expect": [
+      "s02.f4",
+      "s07.f3",
+      "s10.f4"
+     ]
+    }
+   ],
+   "negatives": [
+    "pracovní stres",
+    "problémy s manželem"
+   ]
+  },
+  {
+   "id": "petr-h",
+   "name": "Petr H.",
+   "lang": "cs",
+   "sessions": [
+    "s01",
+    "s02",
+    "s03",
+    "s04",
+    "s05",
+    "s06",
+    "s07",
+    "s08",
+    "s09",
+    "s10"
+   ],
+   "queries": [
+    {
+     "q": "záchvaty úzkosti",
+     "expect": [
+      "s01.f2",
+      "s02.f2",
+      "s03.f1"
+     ]
+    },
+    {
+     "q": "otec a alkohol",
+     "expect": [
+      "s01.f3",
+      "s03.f2",
+      "s05.f4",
+      "s06.f4"
+     ]
+    },
+    {
+     "q": "problémy s nadřízeným",
+     "expect": [
+      "s02.f1",
+      "s04.f3",
+      "s06.f3",
+      "s07.f3"
+     ]
+    },
+    {
+     "q": "léky a léčba",
+     "expect": [
+      "s07.f1",
+      "s08.f1",
+      "s09.f3"
+     ]
+    },
+    {
+     "q": "partnerka",
+     "expect": [
+      "s01.f4",
+      "s05.f1",
+      "s07.f2",
+      "s10.f2"
+     ]
+    },
+    {
+     "q": "změna zaměstnání",
+     "expect": [
+      "s07.f4",
+      "s08.f3",
+      "s09.f1",
+      "s10.f1"
+     ]
+    }
+   ],
+   "negatives": [
+    "problémy s dětmi ve škole",
+    "trápí ho chronická bolest zad"
+   ]
+  },
+  {
+   "id": "raj-p",
+   "name": "Raj P.",
+   "lang": "en",
+   "sessions": [
+    "s01",
+    "s02",
+    "s03",
+    "s04",
+    "s05",
+    "s06",
+    "s07",
+    "s08",
+    "s09",
+    "s10"
+   ],
+   "queries": [
+    {
+     "q": "how much money was lost",
+     "expect": [
+      "s01.f1",
+      "s05.f4"
+     ]
+    },
+    {
+     "q": "relationship with wife",
+     "expect": [
+      "s02.f2",
+      "s04.f1",
+      "s04.f2",
+      "s08.f3"
+     ]
+    },
+    {
+     "q": "suicidal thoughts",
+     "expect": [
+      "s01.f4",
+      "s04.f4"
+     ]
+    },
+    {
+     "q": "recovery support",
+     "expect": [
+      "s03.f1",
+      "s05.f1",
+      "s07.f1",
+      "s09.f3"
+     ]
+    },
+    {
+     "q": "debt solutions",
+     "expect": [
+      "s06.f1",
+      "s07.f2",
+      "s06.f3"
+     ]
+    },
+    {
+     "q": "his father",
+     "expect": [
+      "s02.f4",
+      "s07.f3"
+     ]
+    }
+   ],
+   "negatives": [
+    "problems with eating",
+    "the death of a pet"
+   ]
+  },
+  {
+   "id": "sofia-l",
+   "name": "Sofia L.",
+   "lang": "en",
+   "sessions": [
+    "s01",
+    "s02",
+    "s03",
+    "s04",
+    "s05",
+    "s06",
+    "s07",
+    "s08",
+    "s09",
+    "s10"
+   ],
+   "queries": [
+    {
+     "q": "physical health consequences",
+     "expect": [
+      "s03.f1",
+      "s03.f2",
+      "s05.f4"
+     ]
+    },
+    {
+     "q": "relationship with her father",
+     "expect": [
+      "s02.f2",
+      "s03.f4",
+      "s09.f1",
+      "s10.f1"
+     ]
+    },
+    {
+     "q": "professional help",
+     "expect": [
+      "s04.f1",
+      "s05.f1",
+      "s07.f3",
+      "s10.f3"
+     ]
+    },
+    {
+     "q": "studies and exams",
+     "expect": [
+      "s01.f2",
+      "s04.f4",
+      "s05.f3",
+      "s06.f4"
+     ]
+    },
+    {
+     "q": "support from flatmate",
+     "expect": [
+      "s01.f4",
+      "s03.f3",
+      "s07.f4"
+     ]
+    },
+    {
+     "q": "past relationship",
+     "expect": [
+      "s08.f1",
+      "s08.f2"
+     ]
+    }
+   ],
+   "negatives": [
+    "workplace bullying",
+    "fear of flying"
+   ]
+  },
+  {
+   "id": "tomas-b",
+   "name": "Tomáš B.",
+   "lang": "cs",
+   "sessions": [
+    "s01",
+    "s02",
+    "s03",
+    "s04",
+    "s05",
+    "s06",
+    "s07",
+    "s08",
+    "s09",
+    "s10"
+   ],
+   "queries": [
+    {
+     "q": "rituály a kontrolování",
+     "expect": [
+      "s01.f1",
+      "s02.f3",
+      "s03.f3",
+      "s08.f1"
+     ]
+    },
+    {
+     "q": "léčba OCD",
+     "expect": [
+      "s03.f2",
+      "s04.f1",
+      "s04.f2",
+      "s05.f1"
+     ]
+    },
+    {
+     "q": "těhotná manželka",
+     "expect": [
+      "s01.f4",
+      "s04.f4",
+      "s05.f4",
+      "s09.f3"
+     ]
+    },
+    {
+     "q": "problémy v práci",
+     "expect": [
+      "s02.f1",
+      "s04.f3",
+      "s06.f3",
+      "s08.f3"
+     ]
+    },
+    {
+     "q": "strach z ublížení dítěti",
+     "expect": [
+      "s01.f4",
+      "s06.f4",
+      "s07.f1"
+     ]
+    },
+    {
+     "q": "rodinná anamnéza",
+     "expect": [
+      "s07.f2"
+     ]
+    }
+   ],
+   "negatives": [
+    "problémy s alkoholem",
+    "smrt rodiče"
+   ]
+  }
+ ]
+}

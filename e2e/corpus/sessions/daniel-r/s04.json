@@ -1,0 +1,124 @@
+{
+ "client": "daniel-r",
+ "session": "s04",
+ "lang": "en",
+ "date": "2026-01-28",
+ "turns": [
+  {
+   "who": "therapist",
+   "text": "Hello, come in. How have you been since last time?"
+  },
+  {
+   "who": "client",
+   "text": "It is strange to sit here and say all of this out loud, but it does help a little."
+  },
+  {
+   "who": "therapist",
+   "text": "Tell me more about that."
+  },
+  {
+   "who": "client",
+   "text": "I decided to only drink wine at the weekend, it has been five days without any."
+  },
+  {
+   "who": "therapist",
+   "text": "I see. Can you say a bit more?"
+  },
+  {
+   "who": "client",
+   "text": "I had a long day yesterday and I was so tired in the evening that I just sat in front of the television. I think so, yes."
+  },
+  {
+   "who": "therapist",
+   "text": "Take your time."
+  },
+  {
+   "who": "client",
+   "text": "I downloaded a meditation app and I do ten minutes before bed, though I often skip it."
+  },
+  {
+   "who": "therapist",
+   "text": "Tell me more about that."
+  },
+  {
+   "who": "client",
+   "text": "It has been a grey week, and the weather does not help my mood much, to be honest. It is not easy to talk about."
+  },
+  {
+   "who": "therapist",
+   "text": "What went through your mind then?"
+  },
+  {
+   "who": "client",
+   "text": "I keep thinking about my grandfather who worked in the mines in Yorkshire and never complained about anything."
+  },
+  {
+   "who": "therapist",
+   "text": "And how was that for you?"
+  },
+  {
+   "who": "client",
+   "text": "I wrote a few notes before coming here, but now I cannot remember half of what I wanted to say. I think so, yes."
+  },
+  {
+   "who": "therapist",
+   "text": "Take your time."
+  },
+  {
+   "who": "client",
+   "text": "Peterson wrote to me at midnight again and wanted the shipping report by seven."
+  },
+  {
+   "who": "therapist",
+   "text": "Take your time."
+  },
+  {
+   "who": "client",
+   "text": "Some days are better than others, and I try to remind myself of that when things get heavy. It is not easy to talk about."
+  },
+  {
+   "who": "therapist",
+   "text": "What went through your mind then?"
+  },
+  {
+   "who": "client",
+   "text": "I made myself a cup of tea this morning and just stood by the window for a while."
+  },
+  {
+   "who": "therapist",
+   "text": "We are nearly out of time. Is there anything you want to add?"
+  },
+  {
+   "who": "client",
+   "text": "No, I think that is everything. Thank you."
+  }
+ ],
+ "expected": {
+  "facts": [
+   {
+    "id": "s04.f1",
+    "heading": "Cut wine to weekends",
+    "said": "I decided to only drink wine at the weekend, it has been five days without any.",
+    "repeat_of": null
+   },
+   {
+    "id": "s04.f2",
+    "heading": "Started meditation app",
+    "said": "I downloaded a meditation app and I do ten minutes before bed, though I often skip it.",
+    "repeat_of": null
+   },
+   {
+    "id": "s04.f3",
+    "heading": "Peterson's night emails",
+    "said": "Peterson wrote to me at midnight again and wanted the shipping report by seven.",
+    "repeat_of": "s02.f2"
+   },
+   {
+    "id": "s04.f4",
+    "heading": "Grandfather was a miner",
+    "said": "I keep thinking about my grandfather who worked in the mines in Yorkshire and never complained about anything.",
+    "repeat_of": null
+   }
+  ]
+ }
+}

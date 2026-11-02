@@ -1,0 +1,124 @@
+{
+ "client": "petr-h",
+ "session": "s03",
+ "lang": "cs",
+ "date": "2026-01-22",
+ "turns": [
+  {
+   "who": "therapist",
+   "text": "Rád vás zase vidím. Kde byste dnes chtěla začít?"
+  },
+  {
+   "who": "client",
+   "text": "Něco mám poznamenané na papíře, ale teď si polovinu z toho nepamatuju."
+  },
+  {
+   "who": "therapist",
+   "text": "A co se stalo potom?"
+  },
+  {
+   "who": "client",
+   "text": "Praktický lékař mi udělal krev a EKG, srdce je v pořádku a řekl mi, že jde o úzkost."
+  },
+  {
+   "who": "therapist",
+   "text": "Rozumím. Můžete to trochu rozvést?"
+  },
+  {
+   "who": "client",
+   "text": "Cesta sem trvá dlouho, ale aspoň je čas si trochu srovnat myšlenky. Tak to prostě je."
+  },
+  {
+   "who": "therapist",
+   "text": "Jaké to pro vás bylo?"
+  },
+  {
+   "who": "client",
+   "text": "Bojím se, že skončím jako táta, že se z toho taky napiju."
+  },
+  {
+   "who": "therapist",
+   "text": "Hm. Pokračujte."
+  },
+  {
+   "who": "client",
+   "text": "Dnes ráno mi ujel autobus, takže to bylo na poslední chvíli. Asi ano."
+  },
+  {
+   "who": "therapist",
+   "text": "Jaké to pro vás bylo?"
+  },
+  {
+   "who": "client",
+   "text": "Po práci vypiju tři čtyři piva, aby mi přestaly běhat myšlenky."
+  },
+  {
+   "who": "therapist",
+   "text": "Hm. Pokračujte."
+  },
+  {
+   "who": "client",
+   "text": "Byl to šedivý týden a to počasí mi na náladě moc nepřidává, po pravdě řečeno. Ano, přesně tak to bylo."
+  },
+  {
+   "who": "therapist",
+   "text": "Jaké to pro vás bylo?"
+  },
+  {
+   "who": "client",
+   "text": "Je zvláštní sedět tady a říkat to všechno nahlas, ale trochu to pomáhá."
+  },
+  {
+   "who": "therapist",
+   "text": "Jaké to pro vás bylo?"
+  },
+  {
+   "who": "client",
+   "text": "Klára chce, abychom odjeli na víkend do Krkonoš, ale já mám pocit, že nemůžu odejít z práce."
+  },
+  {
+   "who": "therapist",
+   "text": "Jaké to pro vás bylo?"
+  },
+  {
+   "who": "client",
+   "text": "Nevím, kde začít, v hlavě mi teď běží spousta věcí najednou. Asi ano."
+  },
+  {
+   "who": "therapist",
+   "text": "Za chvíli nám končí čas. Chcete ještě něco dodat?"
+  },
+  {
+   "who": "client",
+   "text": "Děkuji, uvidíme se příští týden."
+  }
+ ],
+ "expected": {
+  "facts": [
+   {
+    "id": "s03.f1",
+    "heading": "Praktický lékař",
+    "said": "Praktický lékař mi udělal krev a EKG, srdce je v pořádku a řekl mi, že jde o úzkost.",
+    "repeat_of": null
+   },
+   {
+    "id": "s03.f2",
+    "heading": "Strach z otcova osudu",
+    "said": "Bojím se, že skončím jako táta, že se z toho taky napiju.",
+    "repeat_of": "s01.f3"
+   },
+   {
+    "id": "s03.f3",
+    "heading": "Pije pivo po práci",
+    "said": "Po práci vypiju tři čtyři piva, aby mi přestaly běhat myšlenky.",
+    "repeat_of": null
+   },
+   {
+    "id": "s03.f4",
+    "heading": "Klára chce, abych zvolnil",
+    "said": "Klára chce, abychom odjeli na víkend do Krkonoš, ale já mám pocit, že nemůžu odejít z práce.",
+    "repeat_of": null
+   }
+  ]
+ }
+}

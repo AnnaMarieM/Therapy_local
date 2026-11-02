@@ -1,0 +1,132 @@
+{
+ "client": "petr-h",
+ "session": "s08",
+ "lang": "cs",
+ "date": "2026-02-26",
+ "turns": [
+  {
+   "who": "therapist",
+   "text": "Dobrý den, pojďte dál. Jak se vám vedlo od minula?"
+  },
+  {
+   "who": "client",
+   "text": "Byl to šedivý týden a to počasí mi na náladě moc nepřidává, po pravdě řečeno."
+  },
+  {
+   "who": "therapist",
+   "text": "A co se stalo potom?"
+  },
+  {
+   "who": "client",
+   "text": "Zdá se mi o otci, jak sedí v hospodě a nedívá se na mě."
+  },
+  {
+   "who": "therapist",
+   "text": "Řekněte mi o tom víc."
+  },
+  {
+   "who": "client",
+   "text": "Je zvláštní sedět tady a říkat to všechno nahlas, ale trochu to pomáhá. Asi ano."
+  },
+  {
+   "who": "therapist",
+   "text": "Rozumím. Můžete to trochu rozvést?"
+  },
+  {
+   "who": "client",
+   "text": "Něco mám poznamenané na papíře, ale teď si polovinu z toho nepamatuju."
+  },
+  {
+   "who": "therapist",
+   "text": "Řekněte mi o tom víc."
+  },
+  {
+   "who": "client",
+   "text": "První týden po escitalopramu mi bylo špatně od žaludku a špatně jsem spal."
+  },
+  {
+   "who": "therapist",
+   "text": "Nespěchejte."
+  },
+  {
+   "who": "client",
+   "text": "Cesta sem trvá dlouho, ale aspoň je čas si trochu srovnat myšlenky. Není snadné o tom mluvit."
+  },
+  {
+   "who": "therapist",
+   "text": "Řekněte mi o tom víc."
+  },
+  {
+   "who": "client",
+   "text": "Nevím, kde začít, v hlavě mi teď běží spousta věcí najednou."
+  },
+  {
+   "who": "therapist",
+   "text": "A jak vám z toho bylo?"
+  },
+  {
+   "who": "client",
+   "text": "Personalistka paní Dvořáková mi řekla, že na Ondřeje už byly stížnosti od dalších lidí."
+  },
+  {
+   "who": "therapist",
+   "text": "Nespěchejte."
+  },
+  {
+   "who": "client",
+   "text": "Včerejšek byl dlouhý den a večer už mi nezbyly žádné síly, byla jen televize a gauč. Není snadné o tom mluvit."
+  },
+  {
+   "who": "therapist",
+   "text": "Rozumím. Můžete to trochu rozvést?"
+  },
+  {
+   "who": "client",
+   "text": "Mám pozvání na pohovor do firmy v Brně na čtvrtého března."
+  },
+  {
+   "who": "therapist",
+   "text": "Řekněte mi o tom víc."
+  },
+  {
+   "who": "client",
+   "text": "Některé dny jsou lepší než jiné a snažím se si to připomínat, když je těžko. Nevím, těžko se to vysvětluje."
+  },
+  {
+   "who": "therapist",
+   "text": "Pro dnešek tady skončíme."
+  },
+  {
+   "who": "client",
+   "text": "Děkuji, uvidíme se příští týden."
+  }
+ ],
+ "expected": {
+  "facts": [
+   {
+    "id": "s08.f1",
+    "heading": "Nevolnost po léku",
+    "said": "První týden po escitalopramu mi bylo špatně od žaludku a špatně jsem spal.",
+    "repeat_of": null
+   },
+   {
+    "id": "s08.f2",
+    "heading": "Personalistka stála při mně",
+    "said": "Personalistka paní Dvořáková mi řekla, že na Ondřeje už byly stížnosti od dalších lidí.",
+    "repeat_of": "s07.f3"
+   },
+   {
+    "id": "s08.f3",
+    "heading": "Pohovor v Brně",
+    "said": "Mám pozvání na pohovor do firmy v Brně na čtvrtého března.",
+    "repeat_of": null
+   },
+   {
+    "id": "s08.f4",
+    "heading": "Sny o otci",
+    "said": "Zdá se mi o otci, jak sedí v hospodě a nedívá se na mě.",
+    "repeat_of": "s05.f4"
+   }
+  ]
+ }
+}

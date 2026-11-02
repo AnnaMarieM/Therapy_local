@@ -1,7 +1,13 @@
 package com.therapylocal.app.memory
 
 import android.content.Context
+import com.therapylocal.app.audio.ChunkRecorder
+import com.therapylocal.app.audio.TestAudio
+import com.therapylocal.app.data.ChunkRow
 import com.therapylocal.app.data.MindStore
+import com.therapylocal.app.data.PendingAudio
+import com.therapylocal.app.log.LogCtx
+import kotlinx.coroutines.runBlocking
 import com.therapylocal.app.data.SegmentRow
 import com.therapylocal.app.facts.TranscriptWindows
 import com.therapylocal.app.jobs.JobGraph
@@ -15,6 +21,9 @@ import java.io.File
  * pushed to its in/ folder:
  *   {"resetProfiles": false, "stripLabels": false, "sessions": [{"file": "<client>_<n>.md", "date": "yyyy-MM-dd"}]}
  * Each becomes a session whose segments are the transcript's non-blank lines, queued from the window job on. out/DONE marks the end of the run.
+ * A file ending in .wav (16 kHz mono, in in/) is a recorded session instead: it goes through the real chunker, transcribe and everything after.
+ * Optional "settings" ({"language": "cs", "whisper_size": "base", "engine": "whisper"}) are written to the app's settings first, and
+ * "queries" ([{"client": "...", "q": "..."}]) are answered after the run. Both transcripts and answers land in out/results.json ([DevResults]).
  * A leftover job.json is never read by the app itself, so it cannot reset clients or re-run old sessions.
  */
 object DevHarness {
@@ -26,14 +35,21 @@ object DevHarness {
         val job = File(root, "job.json").takeIf { it.exists() }?.let { JSONObject(it.readText()) } ?: JSONObject()
         val listed = (job.optJSONArray("sessions") ?: JSONArray()).let { a -> (0 until a.length()).map { a.getJSONObject(it).let { s -> s.getString("file") to s.optString("date", "") } } }
         val sessions = listed.sortedWith(compareBy({ it.first.substringBefore('_') }, { it.second }))
+        job.optJSONObject("settings")?.let { st ->
+            context.getSharedPreferences("settings", Context.MODE_PRIVATE).edit().apply { st.keys().forEach { putString(it, st.getString(it)) } }.apply()
+        }
         val store = MindStore.get(context)
         val queue = Jobs.queue(context)
         if (job.optBoolean("resetProfiles")) sessions.map { it.first.substringBefore('_') }.distinct().forEach { store.deleteClient(it) }
         for ((file, date) in sessions) {
             val client = file.substringBefore('_')
-            val sid = file.removeSuffix(".md")
+            val sid = file.removeSuffix(".md").removeSuffix(".wav")
             if (store.clients().none { it.id == client }) store.createClient(client, client.replaceFirstChar { it.uppercase() })
             store.createSession(sid, client, startedAt(date))
+            if (file.endsWith(".wav")) {
+                if (store.segments(sid).isEmpty() && store.recordings().none { it.sessionId == sid }) seedAudio(context, store, queue, sid, File(root, "in/$file"))
+                continue
+            }
             if (store.segments(sid).isEmpty()) {
                 val raw = File(root, "in/$file").readText()
                 val text = if (job.optBoolean("stripLabels")) TranscriptWindows.stripSpeakerLabels(raw) else raw
@@ -43,8 +59,25 @@ object DevHarness {
         }
     }
 
+    /** Replays the WAV through the real chunker at 60x, saves the chunks like a recording would, and queues it from transcribe on. */
+    private fun seedAudio(context: Context, store: MindStore, queue: com.therapylocal.app.jobs.JobQueue, sid: String, wav: File) {
+        val rid = store.createRecording(sid, "whisper", "")
+        val rec = ChunkRecorder.recording(LogCtx(rid))
+        rec.startFromPcm(TestAudio.load(wav), speed = 60f)
+        runBlocking {
+            for (chunk in rec.chunks) {
+                store.putChunk(ChunkRow(rid, chunk.idx, chunk.startMs, chunk.endMs, chunk.overlapMs, null))
+                PendingAudio.save(context, rid, chunk)
+            }
+        }
+        rec.stop()
+        JobGraph.enqueueRecording(queue, sid, rid)
+    }
+
     fun markDone(context: Context) {
-        File(MemoryFiles.devRoot(context), "out").apply { mkdirs() }.resolve("DONE").writeText("ok")
+        val out = File(MemoryFiles.devRoot(context), "out").apply { mkdirs() }
+        runCatching { DevResults.write(context, out) }.onFailure { out.resolve("ERROR").writeText(it.stackTraceToString()) }
+        out.resolve("DONE").writeText("ok")
     }
 
     /** The date at midnight, or now when it is missing. */
