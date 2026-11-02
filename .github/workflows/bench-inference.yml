@@ -1,7 +1,10 @@
 name: Bench inference (Gemma 4, Czech)
 
-# Manual only: CPU inference speed per GitHub-hosted runner plus Czech quality of Gemma 4 E2B / E4B.
+# Manual (or push to the feature branch): CPU inference speed per GitHub-hosted runner plus Czech quality of Gemma 4 E2B / E4B.
 on:
+  push:
+    branches: [feature/gemma-e2b-czech]
+    paths: ["bench/**", ".github/workflows/bench-inference.yml"]
   workflow_dispatch:
     inputs:
       llama_build:
@@ -40,8 +43,8 @@ jobs:
         shell: bash
         run: |
           args=(--label "${{ matrix.label }}" --model "${{ matrix.model }}" --quant "${{ matrix.quant }}"
-                --llama-build "${{ inputs.llama_build }}" --llama-asset "${{ matrix.asset }}"
-                --belebele-n "${{ inputs.belebele_n }}" --out out)
+                --llama-build "${{ inputs.llama_build || 'b11960' }}" --llama-asset "${{ matrix.asset }}"
+                --belebele-n "${{ inputs.belebele_n || '100' }}" --out out)
           if [ "${{ matrix.quality }}" = "true" ]; then args+=(--quality); fi
           python bench/bench.py "${args[@]}"
       - uses: actions/upload-artifact@v4
