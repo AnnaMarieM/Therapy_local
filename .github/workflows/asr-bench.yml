@@ -41,11 +41,18 @@ jobs:
       fail-fast: false       # one model failing must not hide the others
       matrix:
         include:
-          - { id: whisper-small,    engine: whisper,  name: small,    repo: sherpa-onnx-whisper-small,    files: "small-encoder.int8.onnx small-decoder.int8.onnx small-tokens.txt" }
-          - { id: whisper-medium,   engine: whisper,  name: medium,   repo: sherpa-onnx-whisper-medium,   files: "medium-encoder.int8.onnx medium-decoder.int8.onnx medium-tokens.txt" }
-          - { id: whisper-turbo,    engine: whisper,  name: turbo,    repo: sherpa-onnx-whisper-turbo,    files: "turbo-encoder.int8.onnx turbo-decoder.int8.onnx turbo-tokens.txt" }
-          - { id: whisper-large-v3, engine: whisper,  name: large-v3, repo: sherpa-onnx-whisper-large-v3, files: "large-v3-encoder.int8.onnx large-v3-decoder.int8.onnx large-v3-tokens.txt" }
-          - { id: parakeet-v3,      engine: parakeet, name: "",       repo: sherpa-onnx-nemo-parakeet-tdt-0.6b-v3-int8, files: "encoder.int8.onnx decoder.int8.onnx joiner.int8.onnx tokens.txt" }
+          - { id: whisper-base, engine: whisper, name: base, repo: csukuangfj/sherpa-onnx-whisper-base, files: "base-encoder.int8.onnx base-decoder.int8.onnx base-tokens.txt" }
+          - { id: whisper-small, engine: whisper, name: small, repo: csukuangfj/sherpa-onnx-whisper-small, files: "small-encoder.int8.onnx small-decoder.int8.onnx small-tokens.txt" }
+          - { id: whisper-medium, engine: whisper, name: medium, repo: csukuangfj/sherpa-onnx-whisper-medium, files: "medium-encoder.int8.onnx medium-decoder.int8.onnx medium-tokens.txt" }
+          - { id: whisper-turbo, engine: whisper, name: turbo, repo: csukuangfj/sherpa-onnx-whisper-turbo, files: "turbo-encoder.int8.onnx turbo-decoder.int8.onnx turbo-tokens.txt" }
+          - { id: whisper-large-v2, engine: whisper, name: large-v2, repo: csukuangfj/sherpa-onnx-whisper-large-v2, files: "large-v2-encoder.int8.onnx large-v2-decoder.int8.onnx large-v2-tokens.txt" }
+          - { id: whisper-large-v3, engine: whisper, name: large-v3, repo: csukuangfj/sherpa-onnx-whisper-large-v3, files: "large-v3-encoder.int8.onnx large-v3-decoder.int8.onnx large-v3-tokens.txt" }
+          - { id: parakeet-tdt-0.6b-v3, engine: parakeet, name: parakeet-tdt-0.6b-v3, repo: csukuangfj/sherpa-onnx-nemo-parakeet-tdt-0.6b-v3-int8, files: "encoder.int8.onnx decoder.int8.onnx joiner.int8.onnx tokens.txt" }
+          - { id: canary-1b-v2, engine: canary, name: canary-1b-v2, repo: fussraider/canary-1b-v2-sherpa-onnx-int8, files: "encoder.int8.onnx decoder.int8.onnx tokens.txt" }
+          - { id: qwen3-asr-0.6b, engine: qwen3, name: qwen3-asr-0.6b, repo: csukuangfj2/sherpa-onnx-qwen3-asr-0.6B-int8-2026-03-25, files: "conv_frontend.onnx encoder.int8.onnx decoder.int8.onnx tokenizer/merges.txt tokenizer/tokenizer_config.json tokenizer/vocab.json" }
+          - { id: qwen3-asr-1.7b, engine: qwen3, name: qwen3-asr-1.7b, repo: solavr/sherpa-onnx-qwen3-asr-1.7B-int8, files: "conv_frontend.onnx encoder.int8.onnx decoder.int8.onnx decoder.int8.onnx.data tokenizer/merges.txt tokenizer/tokenizer_config.json tokenizer/vocab.json" }
+          - { id: omnilingual-300m, engine: omnilingual, name: omnilingual-300m, repo: csukuangfj/sherpa-onnx-omnilingual-asr-1600-languages-300M-ctc-int8-2025-11-12, files: "model.int8.onnx tokens.txt" }
+          - { id: omnilingual-1b, engine: omnilingual, name: omnilingual-1b, repo: csukuangfj/sherpa-onnx-omnilingual-asr-1600-languages-1B-ctc-int8-2025-11-12, files: "model.int8.onnx tokens.txt" }
     steps:
       - uses: actions/checkout@v4
 

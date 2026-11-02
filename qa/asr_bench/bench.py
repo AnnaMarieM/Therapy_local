@@ -2,7 +2,7 @@
 """Word error rate and speed of one speech model on a folder of clips, using the same sherpa-onnx runtime as the app.
 
   bench.py --engine whisper --model-dir DIR --name small --language cs --clips CLIPS --out result.json
-  bench.py --engine parakeet --model-dir DIR --clips CLIPS --out result.json
+  bench.py --engine parakeet|canary|qwen3|omnilingual --name LABEL --model-dir DIR --clips CLIPS --out result.json
 
 CLIPS holds NAME.wav (16 kHz mono PCM16) with NAME.txt, the reference. Clips are cut like the app does (20 s windows, 15 s apart).
 """
@@ -53,6 +53,20 @@ def build(args):
             encoder=f"{d}/{n}-encoder.int8.onnx", decoder=f"{d}/{n}-decoder.int8.onnx", tokens=f"{d}/{n}-tokens.txt",
             language="" if n.endswith(".en") else args.language, task="transcribe", num_threads=args.threads, provider="cpu",
         )
+    if args.engine == "canary":   # Canary-1B-v2: 25 European languages; source and target language the same means plain transcription
+        return sherpa_onnx.OfflineRecognizer.from_nemo_canary(
+            encoder=f"{d}/encoder.int8.onnx", decoder=f"{d}/decoder.int8.onnx", tokens=f"{d}/tokens.txt",
+            src_lang=args.language, tgt_lang=args.language, num_threads=args.threads, provider="cpu",
+        )
+    if args.engine == "qwen3":
+        return sherpa_onnx.OfflineRecognizer.from_qwen3_asr(
+            conv_frontend=f"{d}/conv_frontend.onnx", encoder=f"{d}/encoder.int8.onnx", decoder=f"{d}/decoder.int8.onnx",
+            tokenizer=f"{d}/tokenizer", num_threads=args.threads, provider="cpu",
+        )
+    if args.engine == "omnilingual":   # CTC over 1600 languages, no language setting
+        return sherpa_onnx.OfflineRecognizer.from_omnilingual_asr_ctc(
+            model=f"{d}/model.int8.onnx", tokens=f"{d}/tokens.txt", num_threads=args.threads, provider="cpu",
+        )
     return sherpa_onnx.OfflineRecognizer.from_transducer(
         encoder=f"{d}/encoder.int8.onnx", decoder=f"{d}/decoder.int8.onnx", joiner=f"{d}/joiner.int8.onnx", tokens=f"{d}/tokens.txt",
         model_type="nemo_transducer", num_threads=args.threads, provider="cpu", feature_dim=128,
@@ -61,7 +75,7 @@ def build(args):
 
 def main():
     a = argparse.ArgumentParser()
-    a.add_argument("--engine", choices=["whisper", "parakeet"], required=True)
+    a.add_argument("--engine", choices=["whisper", "parakeet", "canary", "qwen3", "omnilingual"], required=True)
     a.add_argument("--model-dir", required=True)
     a.add_argument("--name", default="")
     a.add_argument("--language", default="cs")
@@ -96,7 +110,7 @@ def main():
         total += n
         clips.append({"clip": os.path.basename(f), "wer": round(100 * e / max(n, 1), 1), "ref": ref, "hyp": hyp})
     label = args.name or "parakeet-tdt-0.6b-v3"
-    result = {"model": label if args.engine == "parakeet" else f"whisper-{label}", "engine": args.engine, "language": args.language,
+    result = {"model": f"whisper-{label}" if args.engine == "whisper" else label, "engine": args.engine, "language": args.language,
               "wer": round(100 * errors / max(total, 1), 2), "words": total, "clips": len(files),
               "rtf": round(decode / max(audio, 1e-9), 3), "audio_sec": round(audio, 1), "details": clips}
     os.makedirs(os.path.dirname(os.path.abspath(args.out)), exist_ok=True)
