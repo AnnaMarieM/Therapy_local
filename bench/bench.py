@@ -19,6 +19,10 @@ except ImportError:
     psutil = None
 
 
+for _s in (sys.stdout, sys.stderr):
+    _s.reconfigure(encoding="utf-8", errors="replace")
+
+
 def log(*a):
     print(*a, flush=True)
 
