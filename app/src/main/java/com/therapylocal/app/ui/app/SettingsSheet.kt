@@ -5,6 +5,13 @@ import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
 import androidx.compose.foundation.background
+import com.therapylocal.app.i18n.LocaleStore
+import com.therapylocal.app.i18n.Languages
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.Role
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -40,6 +47,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
@@ -50,6 +59,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.therapylocal.app.BuildConfig
+import com.therapylocal.app.R
 import com.therapylocal.app.config.LiveCueSettings
 import com.therapylocal.app.config.liveCueSettings
 import com.therapylocal.app.config.saveLiveCueSettings
@@ -108,20 +118,25 @@ fun SettingsSheet(
     Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().axisDrag(sheetDrag(sheet, bar, onBack = onClose))) {
         LazyColumn(Modifier.weight(1f), state = list, contentPadding = PaddingValues(start = 26.dp, end = 26.dp, top = 24.dp, bottom = hintsClearance())) {
             item {
-                Label("MindVault")
+                Label(stringResource(R.string.app_name))
                 Spacer(Modifier.height(14.dp))
-                Text("Settings", style = Type.Hero, color = Palette.Ink)
+                Text(stringResource(R.string.settings_title), style = Type.Hero, color = Palette.Ink)
             }
 
-            item { Group("Privacy") }
+            item { Group(stringResource(R.string.settings_group_language)) }
+            item { LanguageChoice(activity) }
+
+            item { Group(stringResource(R.string.settings_group_privacy)) }
             item {
                 Toggle(
-                    "Unlock with fingerprint",
-                    when (availability) {
-                        BiometricAvailability.Available -> "Instead of typing the password. The password always works."
-                        BiometricAvailability.NotEnrolled -> "Add a fingerprint or face in the phone's settings first."
-                        BiometricAvailability.Unsupported -> "This phone has no suitable sensor."
-                    },
+                    stringResource(R.string.settings_biometric_title),
+                    stringResource(
+                        when (availability) {
+                            BiometricAvailability.Available -> R.string.settings_biometric_body_available
+                            BiometricAvailability.NotEnrolled -> R.string.settings_biometric_body_not_enrolled
+                            BiometricAvailability.Unsupported -> R.string.settings_biometric_body_unsupported
+                        },
+                    ),
                     checked = bio,
                     enabled = availability == BiometricAvailability.Available || bio,
                 ) { on ->
@@ -129,37 +144,37 @@ fun SettingsSheet(
                     else if (activity != null) {
                         try {
                             authenticateWithBiometric(
-                                activity, "Unlock with fingerprint", "Confirm to turn it on", "Cancel", Vault.biometricEnrollCipher(),
+                                activity, ctx.getString(R.string.settings_biometric_title), ctx.getString(R.string.settings_biometric_confirm), ctx.getString(R.string.settings_biometric_cancel), Vault.biometricEnrollCipher(),
                                 onSuccess = { c -> scope.launch { withContext(Dispatchers.Default) { Vault.completeBiometricEnroll(ctx, c) }; bio = true } },
                                 onError = { if (it.isNotEmpty()) notice.show(it) },
                             )
                         } catch (e: Exception) {
-                            notice.show(e.message ?: "It could not be turned on.")
+                            notice.show(e.message ?: ctx.getString(R.string.settings_biometric_failed))
                         }
                     }
                 }
             }
-            item { Row2("Lock now", "Closes MindVault. The password or a fingerprint opens it again.", "Lock", onLock) }
+            item { Row2(stringResource(R.string.settings_lock_title), stringResource(R.string.settings_lock_body, stringResource(R.string.app_name)), stringResource(R.string.settings_lock_action), onLock) }
 
-            item { Group("Notifications") }
+            item { Group(stringResource(R.string.settings_group_notifications)) }
             item {
-                if (notifications) Row2("Allowed", "You are told when a session has been processed.", null) {}
-                else Row2("Off", "You will not be told when a session has been processed.", "Turn on") { openAppSettings(ctx) }
+                if (notifications) Row2(stringResource(R.string.settings_notifications_allowed), stringResource(R.string.settings_notifications_allowed_body), null) {}
+                else Row2(stringResource(R.string.settings_notifications_off), stringResource(R.string.settings_notifications_off_body), stringResource(R.string.settings_notifications_turn_on)) { openAppSettings(ctx) }
             }
 
-            item { Group("Processing") }
+            item { Group(stringResource(R.string.settings_group_processing)) }
             item {
                 when (setup.state) {
-                    SetupState.Ready -> Row2("Ready", "Everything runs on this phone.", null) {}
-                    SetupState.Failed -> Row2("Setup paused", setup.message ?: "Check the connection and try again.", "Try again") { ModelSetup.retry(ctx) }
+                    SetupState.Ready -> Row2(stringResource(R.string.settings_processing_ready), stringResource(R.string.settings_processing_ready_body), null) {}
+                    SetupState.Failed -> Row2(stringResource(R.string.settings_processing_paused), setup.message ?: stringResource(R.string.settings_processing_paused_body), stringResource(R.string.settings_processing_try_again)) { ModelSetup.retry(ctx) }
                     else -> {
-                        val eta = setup.etaSeconds?.let { " · ${ModelSetup.formatEta(it)} left" } ?: ""
+                        val eta = setup.etaSeconds?.let { stringResource(R.string.settings_processing_eta_left, ModelSetup.formatEta(ctx, it)) } ?: ""
                         Column(Modifier.padding(vertical = 16.dp)) {
-                            Text("Getting ready", style = Type.Title.copy(fontSize = 22.sp), color = Palette.Ink)
+                            Text(stringResource(R.string.settings_processing_getting_ready), style = Type.Title.copy(fontSize = 22.sp), color = Palette.Ink)
                             Spacer(Modifier.height(4.dp))
                             Text(
-                                if (setup.totalBytes > 0) "${ModelSetup.formatBytes(setup.doneBytes)} of ${ModelSetup.formatBytes(setup.totalBytes)}$eta. Sessions you record meanwhile are processed when this finishes."
-                                else "Checking what is needed.",
+                                if (setup.totalBytes > 0) stringResource(R.string.settings_processing_downloading, ModelSetup.formatBytes(ctx, setup.doneBytes), ModelSetup.formatBytes(ctx, setup.totalBytes), eta)
+                                else stringResource(R.string.settings_processing_checking),
                                 style = Type.BodySmall, color = Palette.InkSoft,
                             )
                             Spacer(Modifier.height(12.dp))
@@ -170,33 +185,52 @@ fun SettingsSheet(
                 }
             }
             if (failedSessions > 0) item {
-                Row2("${failedSessions} ${if (failedSessions == 1) "session" else "sessions"} could not be processed", "Try them again; nothing was lost.", "Retry", onRetryFailed)
+                Row2(pluralStringResource(R.plurals.settings_failed_sessions, failedSessions, failedSessions), stringResource(R.string.settings_failed_body), stringResource(R.string.settings_failed_retry), onRetryFailed)
             }
 
-            item { Group("Live cues") }
+            item { Group(stringResource(R.string.settings_group_live_cues)) }
             item { CueKnobs() }
-            item { Group("Memory model") }
+            item { Group(stringResource(R.string.settings_group_memory_model)) }
             item { ModelChoice(notice) }
 
             if (onDeveloper != null) {
-                item { Group("Developer") }
-                item { Row2("Developer tools", "Logs, raw chunks and diagnostics.", "Open", onDeveloper) }
+                item { Group(stringResource(R.string.settings_group_developer)) }
+                item { Row2(stringResource(R.string.settings_developer_title), stringResource(R.string.settings_developer_body), stringResource(R.string.settings_developer_open), onDeveloper) }
             }
 
-            item { Group("About") }
+            item { Group(stringResource(R.string.settings_group_about)) }
             item {
                 Text(
-                    "MindVault ${BuildConfig.VERSION_NAME}. Type set in Fraunces, Geist and Geist Mono, under the SIL Open Font License.",
+                    stringResource(R.string.settings_about_text, stringResource(R.string.app_name), BuildConfig.VERSION_NAME),
                     style = Type.BodySmall, color = Palette.InkFaint, modifier = Modifier.padding(vertical = 16.dp),
                 )
             }
         }
-        SwipeHints(bar, back = Way("go back") { haptics.confirm(); onClose() }, forward = null, modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 10.dp))
+        SwipeHints(bar, back = Way(stringResource(R.string.settings_go_back)) { haptics.confirm(); onClose() }, forward = null, modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 10.dp))
     }
 }
 
 private fun openAppSettings(ctx: Context) {
     ctx.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", ctx.packageName, null)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+}
+
+@Composable
+private fun LanguageChoice(activity: androidx.fragment.app.FragmentActivity?) {
+    val selected = LocaleStore.current(LocalContext.current).tag
+    Languages.all.forEach { language ->
+        val on = language.tag == selected
+        Row(
+            Modifier.fillMaxWidth()
+                .pressable({ if (!on && activity != null) LocaleStore.choose(activity, language.tag) }, role = Role.RadioButton)
+                .semantics { this.selected = on }
+                .padding(vertical = 14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(language.nativeName, style = Type.Title.copy(fontSize = 22.sp, lineHeight = 27.sp), color = if (on) Palette.Ink else Palette.InkSoft, modifier = Modifier.weight(1f))
+            Box(Modifier.size(12.dp).clip(CircleShape).background(if (on) Palette.Ink else Palette.Paper).border(1.dp, if (on) Palette.Ink else Palette.Hairline, CircleShape))
+        }
+        Hairline()
+    }
 }
 
 @Composable
@@ -253,17 +287,17 @@ private fun CueKnobs() {
     var k by remember { mutableStateOf(prefs.liveCueSettings()) }
     val save = { prefs.saveLiveCueSettings(k) }
     Column(Modifier.padding(vertical = 10.dp)) {
-        Text("How cues are picked. Changes apply from the next session.", style = Type.BodySmall, color = Palette.InkSoft)
-        Knob("Listens back", "${k.lookbackS} s", k.lookbackS.toFloat(), LiveCueSettings.LOOKBACK_S.first.toFloat()..LiveCueSettings.LOOKBACK_S.last.toFloat(), 0,
+        Text(stringResource(R.string.settings_cues_intro), style = Type.BodySmall, color = Palette.InkSoft)
+        Knob(stringResource(R.string.settings_cues_lookback), stringResource(R.string.settings_value_seconds, k.lookbackS), k.lookbackS.toFloat(), LiveCueSettings.LOOKBACK_S.first.toFloat()..LiveCueSettings.LOOKBACK_S.last.toFloat(), 0,
             { k = LiveCueSettings.of(k.intervalMs, it.roundToInt(), k.smoothing, k.scoreFloor) }, save)
-        Knob("Checks every", String.format(Locale.US, "%.1f s", k.intervalMs / 1000f), k.intervalMs.toFloat(), LiveCueSettings.INTERVAL_MS.first.toFloat()..LiveCueSettings.INTERVAL_MS.last.toFloat(),
+        Knob(stringResource(R.string.settings_cues_interval), stringResource(R.string.settings_value_seconds_decimal, k.intervalMs / 1000f), k.intervalMs.toFloat(), LiveCueSettings.INTERVAL_MS.first.toFloat()..LiveCueSettings.INTERVAL_MS.last.toFloat(),
             ((LiveCueSettings.INTERVAL_MS.last - LiveCueSettings.INTERVAL_MS.first) / 500 - 1).toInt(),
             { k = LiveCueSettings.of(it.roundToLong(), k.lookbackS, k.smoothing, k.scoreFloor) }, save)
-        Knob("Weight of the newest check", String.format(Locale.US, "%.2f", k.smoothing), k.smoothing, LiveCueSettings.SMOOTHING, 18,
+        Knob(stringResource(R.string.settings_cues_smoothing), stringResource(R.string.settings_value_decimal, k.smoothing), k.smoothing, LiveCueSettings.SMOOTHING, 18,
             { k = LiveCueSettings.of(k.intervalMs, k.lookbackS, it, k.scoreFloor) }, save)
-        Knob("Minimum relevance", String.format(Locale.US, "%.2f", k.scoreFloor), k.scoreFloor, LiveCueSettings.SCORE_FLOOR, 19,
+        Knob(stringResource(R.string.settings_cues_floor), stringResource(R.string.settings_value_decimal, k.scoreFloor), k.scoreFloor, LiveCueSettings.SCORE_FLOOR, 19,
             { k = LiveCueSettings.of(k.intervalMs, k.lookbackS, k.smoothing, it) }, save)
-        TextAction("Reset to defaults", { k = LiveCueSettings.DEFAULT; save() }, color = Palette.InkSoft)
+        TextAction(stringResource(R.string.settings_cues_reset), { k = LiveCueSettings.DEFAULT; save() }, color = Palette.InkSoft)
     }
     Hairline()
 }
@@ -293,7 +327,7 @@ private fun ModelChoice(notice: NoticeState) {
     var confirm by remember { mutableStateOf<GemmaVariant?>(null) }
     var confirmRemove by remember { mutableStateOf(false) }
     Column(Modifier.padding(vertical = 10.dp)) {
-        Text("The model that reads sessions. Suggested for this phone: ${suggested.title}.", style = Type.BodySmall, color = Palette.InkSoft)
+        Text(stringResource(R.string.settings_model_intro, suggested.title), style = Type.BodySmall, color = Palette.InkSoft)
         GemmaVariant.entries.forEach { v ->
             val spec = ModelRegistry.gemma(v)
             Row(
@@ -301,22 +335,22 @@ private fun ModelChoice(notice: NoticeState) {
                     .padding(vertical = 14.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Box(Modifier.width(22.dp)) { if (v == variant) Label("●", color = Palette.Ink) else Label("○", color = Palette.InkFaint) }
+                Box(Modifier.width(22.dp)) { if (v == variant) Label("â—", color = Palette.Ink) else Label("â—‹", color = Palette.InkFaint) }
                 Text(v.title, style = Type.Body, color = Palette.Ink, modifier = Modifier.weight(1f))
-                Label(ModelSetup.formatBytes(spec.totalBytes))
+                Label(ModelSetup.formatBytes(ctx, spec.totalBytes))
             }
         }
-        if (unused != null) TextAction("Remove the unused one (${unused.title}, ${ModelSetup.formatBytes(unused.totalBytes)})", { confirmRemove = true }, color = Palette.InkSoft)
+        if (unused != null) TextAction(stringResource(R.string.settings_model_remove_unused, unused.title, ModelSetup.formatBytes(ctx, unused.totalBytes)), { confirmRemove = true }, color = Palette.InkSoft)
     }
     Hairline()
     if (confirmRemove && unused != null) ConfirmDialog(
-        "Remove ${unused.title}?", "${ModelSetup.formatBytes(unused.totalBytes)} is freed. Choosing it again downloads it again.", "Remove",
-        onConfirm = { ModelSetup.removeUnusedGemma(ctx); confirmRemove = false; tick++; notice.show("${unused.title} removed") }, onDismiss = { confirmRemove = false },
+        stringResource(R.string.settings_model_remove_title, unused.title), stringResource(R.string.settings_model_remove_body, ModelSetup.formatBytes(ctx, unused.totalBytes)), stringResource(R.string.settings_model_remove_confirm),
+        onConfirm = { ModelSetup.removeUnusedGemma(ctx); confirmRemove = false; tick++; notice.show(ctx.getString(R.string.settings_model_removed, unused.title)) }, onDismiss = { confirmRemove = false },
     )
     confirm?.let { v ->
         val spec = ModelRegistry.gemma(v)
         ConfirmDialog(
-            "Download ${v.title}?", "${ModelSetup.formatBytes(spec.missingBytes(ctx))} is downloaded. Sessions wait for it, then are processed with it.", "Download",
+            stringResource(R.string.settings_model_download_title, v.title), stringResource(R.string.settings_model_download_body, ModelSetup.formatBytes(ctx, spec.missingBytes(ctx))), stringResource(R.string.settings_model_download_confirm),
             onConfirm = { ModelSetup.selectGemma(ctx, v); confirm = null; tick++ }, onDismiss = { confirm = null }, destructive = false,
         )
     }
@@ -327,32 +361,33 @@ private fun ModelChoice(notice: NoticeState) {
  */
 @Composable
 fun AddClientSheet(sheet: SheetState, onCancel: () -> Unit, onAdd: (String) -> Unit) {
+    val ctx = LocalContext.current
     val haptics = rememberHaptics()
     val bar = rememberChoiceState()
     var first by remember { mutableStateOf("") }
     var last by remember { mutableStateOf("") }
     val name = displayName(first, last)
-    val error = ClientInput.validate(name)
+    val error = ClientInput.validate(ctx, name)
     val focus = remember { FocusRequester() }
     androidx.compose.runtime.LaunchedEffect(Unit) { kotlinx.coroutines.delay(320); runCatching { focus.requestFocus() } }
     val add = { if (error == null) onAdd(name) else haptics.reject() }
 
     Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().imePadding().axisDrag(sheetDrag(sheet, bar, onBack = onCancel, onForward = { add() }, canForward = { error == null }))) {
         Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(start = 26.dp, end = 26.dp, top = 24.dp, bottom = hintsClearance())) {
-            Label("New client")
+            Label(stringResource(R.string.settings_addclient_label))
             Spacer(Modifier.height(14.dp))
-            Text(if (name.isBlank()) "Who is it?" else name, style = Type.Hero, color = if (name.isBlank()) Palette.InkFaint else Palette.Ink, maxLines = 2)
+            Text(if (name.isBlank()) stringResource(R.string.settings_addclient_who) else name, style = Type.Hero, color = if (name.isBlank()) Palette.InkFaint else Palette.Ink, maxLines = 2)
             Spacer(Modifier.height(36.dp))
-            PaperField(first, { first = it }, "First name", imeAction = ImeAction.Next, modifier = Modifier.focusRequester(focus), capitalization = KeyboardCapitalization.Words)
+            PaperField(first, { first = it }, stringResource(R.string.settings_addclient_first_name), imeAction = ImeAction.Next, modifier = Modifier.focusRequester(focus), capitalization = KeyboardCapitalization.Words)
             Spacer(Modifier.height(22.dp))
-            PaperField(last, { last = it }, "Surname · only the initial is kept", onIme = add, capitalization = KeyboardCapitalization.Words)
+            PaperField(last, { last = it }, stringResource(R.string.settings_addclient_surname), onIme = add, capitalization = KeyboardCapitalization.Words)
             Spacer(Modifier.height(14.dp))
-            Text("Keep names minimal. Everything else MindVault learns comes from the sessions.", style = Type.BodySmall, color = Palette.InkFaint)
+            Text(stringResource(R.string.settings_addclient_note, stringResource(R.string.app_name)), style = Type.BodySmall, color = Palette.InkFaint)
         }
         SwipeHints(
             bar,
-            back = Way("go back") { onCancel() },
-            forward = Way(if (error == null) "add $name" else "add", enabled = error == null) { add() },
+            back = Way(stringResource(R.string.settings_go_back)) { onCancel() },
+            forward = Way(if (error == null) stringResource(R.string.settings_addclient_add_named, name) else stringResource(R.string.settings_addclient_add), enabled = error == null) { add() },
             modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 10.dp),
         )
     }

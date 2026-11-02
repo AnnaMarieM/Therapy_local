@@ -1,5 +1,7 @@
 package com.therapylocal.app.ui.data
 
+import android.content.Context
+import com.therapylocal.app.R
 import java.text.Normalizer
 
 /** Pure helpers for creating a client: turning a display name into a memory client id, and checking the form. */
@@ -19,9 +21,9 @@ object ClientInput {
         return "$base$n"
     }
 
-    /** Null if the input is acceptable, else a short message. */
-    fun validate(name: String): String? {
-        if (slug(name).isEmpty()) return "Enter a name"
-        return null
-    }
+    /** Null if the input is acceptable, else a short localized message. */
+    fun validate(ctx: Context, name: String): String? =
+        if (!isValid(name)) ctx.getString(R.string.input_enter_name) else null
+
+    fun isValid(name: String): Boolean = slug(name).isNotEmpty()
 }

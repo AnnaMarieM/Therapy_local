@@ -6,6 +6,7 @@ import com.therapylocal.app.jobs.JobGraph
 import com.therapylocal.app.jobs.JobPhase
 import com.therapylocal.app.jobs.QueueSnapshot
 import com.therapylocal.app.jobs.StepProgress
+import com.therapylocal.app.testsupport.EnglishTexts
 import com.therapylocal.app.ui.logic.SessionLogic
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -104,7 +105,7 @@ class SessionLogicTest {
         Job(nextId++, kind, session, session.substringBefore('_'), day, recordingId, "$session.md", status, 0, 3, null, nextId, dependsOn)
 
     private fun banner(vararg jobs: Job, progress: StepProgress? = null, pending: Triple<String, String, String>? = null) =
-        SessionLogic.processingByClient(QueueSnapshot.of(jobs.toList(), progress, false), pending)
+        SessionLogic.processingByClient(EnglishTexts, QueueSnapshot.of(jobs.toList(), progress, false), pending)
 
     @Test
     fun processingOnlySessionsWithWorkLeftAndNoFailureAppear() {

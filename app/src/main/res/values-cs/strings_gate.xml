@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="gate_language_kicker">Jazyk</string>
+    <string name="gate_language_title">Vyberte\nsvůj jazyk.</string>
+    <string name="gate_language_body">Později ho můžete změnit v Nastavení.</string>
+    <string name="gate_continue">Pokračovat</string>
+    <string name="gate_back">Zpět</string>
+    <string name="gate_release_back">Pusťte pro návrat</string>
+    <string name="gate_release_continue">Pusťte pro pokračování</string>
+    <string name="gate_set_password">Nastavit heslo</string>
+
+    <string name="gate_page1_title">Tichá paměť\npro vaše sezení.</string>
+    <string name="gate_page1_body">Poslouchá, zatímco pracujete, zapamatuje si, na čem záleží, a vrátí vám to ve chvíli, kdy se to hodí. Nic víc.</string>
+    <string name="gate_page2_kicker">Soukromé</string>
+    <string name="gate_page2_title">Všechno zůstává\nv tomto telefonu.</string>
+    <string name="gate_page2_body">Nahrávky, přepisy i to, co se %1$s dozví, jsou zašifrované heslem, které znáte jen vy. Nic se nikam neodesílá.</string>
+    <string name="gate_page3_kicker">Po sezení</string>
+    <string name="gate_page3_title">Poslouchá,\npak si pamatuje.</string>
+    <string name="gate_page3_body">Po skončení sezení ho telefon na pozadí přepíše a poznamená si důležité věci. Až bude hotovo, dáme vám vědět.</string>
+    <string name="gate_page4_kicker">Během sezení</string>
+    <string name="gate_page4_title">Dřívější sezení,\nkdyž na nich záleží.</string>
+    <string name="gate_page4_body">Zatímco mluvíte, na obrazovce se nenápadně objeví, co klient říkal dříve. Stačí mrknout, nebo to ignorovat.</string>
+
+    <string name="gate_perm_kicker">Dvě oprávnění</string>
+    <string name="gate_perm_title">Co potřebuje\na proč.</string>
+    <string name="gate_perm_mic">Mikrofon</string>
+    <string name="gate_perm_mic_why">Pro nahrávání sezení a hlasové vyhledávání. Zvuk nikdy neopustí telefon.</string>
+    <string name="gate_perm_notif">Oznámení</string>
+    <string name="gate_perm_notif_why">Aby vám dala vědět, že je sezení zpracované, a ukázala, že probíhá nahrávání.</string>
+    <string name="gate_allowed">Povoleno</string>
+    <string name="gate_allow">Povolit</string>
+
+    <string name="gate_pw_kicker">Vaše heslo</string>
+    <string name="gate_pw_title">Otevřít ho\nmůžete jen vy.</string>
+    <string name="gate_pw_body">Šifruje všechno v tomto telefonu. Pokud ho zapomenete, nelze ho obnovit, proto zvolte takové, které si zapamatujete.</string>
+    <string name="gate_pw_confirm_hint">Totéž znovu</string>
+    <string name="gate_pw_mismatch">Hesla se neshodují</string>
+    <string name="gate_securing">Zabezpečuji…</string>
+    <string name="gate_create">Vytvořit</string>
+    <string name="gate_release_create">Pusťte pro vytvoření</string>
+    <string name="gate_setup_failed">Nastavení se nezdařilo. Zkuste to prosím znovu.</string>
+    <plurals name="gate_pw_min">
+        <item quantity="one">Alespoň %1$d znak</item>
+        <item quantity="few">Alespoň %1$d znaky</item>
+        <item quantity="many">Alespoň %1$d znaku</item>
+        <item quantity="other">Alespoň %1$d znaků</item>
+    </plurals>
+    <plurals name="gate_pw_hint">
+        <item quantity="one">Heslo · alespoň %1$d znak</item>
+        <item quantity="few">Heslo · alespoň %1$d znaky</item>
+        <item quantity="many">Heslo · alespoň %1$d znaku</item>
+        <item quantity="other">Heslo · alespoň %1$d znaků</item>
+    </plurals>
+
+    <string name="gate_bio_kicker">Odemykání</string>
+    <string name="gate_bio_title_on">Otevřete jej\ndotykem.</string>
+    <string name="gate_bio_title_off">Otisk prstu\nsnad později.</string>
+    <string name="gate_bio_body_on">Místo psaní hesla použijte otisk prstu nebo obličej. Heslo funguje vždy.</string>
+    <string name="gate_bio_body_off">V tomto telefonu není nastaven otisk prstu ani obličej. Přidejte ho v nastavení telefonu a pak jej zapněte v nastavení aplikace %1$s.</string>
+    <string name="gate_bio_not_now">Teď ne</string>
+    <string name="gate_bio_skip">Přeskočit</string>
+    <string name="gate_bio_turn_on">Zapnout</string>
+    <string name="gate_release_skip">Pusťte pro přeskočení</string>
+    <string name="gate_bio_enroll_title">Odemknout otiskem prstu</string>
+    <string name="gate_bio_enroll_subtitle">Potvrďte zapnutí</string>
+    <string name="gate_bio_enroll_failed">Nepodařilo se to zapnout.</string>
+
+    <string name="gate_locked_kicker">Zamčeno</string>
+    <string name="gate_password_hint">Heslo</string>
+    <string name="gate_opening">Otevírám…</string>
+    <string name="gate_forgot">Zapomenuté heslo</string>
+    <string name="gate_forgot_body">Nelze ho obnovit. Můžete aplikaci %1$s vymazat a začít znovu; všichni klienti, nahrávky a poznatky v tomto telefonu budou smazáni.</string>
+    <string name="gate_erase_start">Vymazat a začít znovu…</string>
+    <string name="gate_never_mind">Zrušit</string>
+    <string name="gate_fingerprint">Otisk prstu</string>
+    <string name="gate_release_fingerprint">Pusťte pro otisk prstu</string>
+    <string name="gate_unlock">Odemknout</string>
+    <string name="gate_release_unlock">Pusťte pro odemknutí</string>
+    <string name="gate_wrong_password">To není správné heslo</string>
+    <string name="gate_unlock_failed">Odemknutí se nezdařilo. Zkuste to prosím znovu.</string>
+    <string name="gate_bio_reset">Odemykání otiskem prstu bylo zrušeno, protože se změnila biometrika telefonu. Použijte heslo a pak ho znovu zapněte v Nastavení.</string>
+    <string name="gate_bio_unlock_title">Odemknout aplikaci %1$s</string>
+    <string name="gate_bio_unlock_subtitle">Potvrďte, že jste to vy</string>
+    <string name="gate_bio_use_password">Použít heslo</string>
+    <string name="gate_bio_failed">To se nepovedlo. Použijte heslo.</string>
+    <string name="gate_erase_title">Vymazat všechno?</string>
+    <string name="gate_erase_text">Všichni klienti, nahrávky, přepisy i poznatky v tomto telefonu budou trvale smazány. Nelze to vzít zpět.</string>
+    <string name="gate_erase_confirm">Vymazat všechno</string>
+    <string name="gate_erase_failed">Vymazání se nezdařilo. Zkuste to prosím znovu.</string>
+</resources>
