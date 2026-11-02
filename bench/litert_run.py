@@ -11,7 +11,8 @@ out = Path(sys.argv[1] if len(sys.argv) > 1 else "out")
 out.mkdir(parents=True, exist_ok=True)
 cases = json.loads((ROOT / "bench" / "data" / "cases_cs.json").read_text(encoding="utf-8"))
 REPO, FILE = "litert-community/gemma-4-E2B-it-litert-lm", "gemma-4-E2B-it.litertlm"
-model = out / FILE
+import tempfile
+model = Path(tempfile.mkdtemp()) / FILE  # kept out of `out` so the artifact stays small
 
 t0 = time.perf_counter()
 urllib.request.urlretrieve(f"https://huggingface.co/{REPO}/resolve/main/{FILE}", model)

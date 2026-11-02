@@ -4,7 +4,7 @@ name: Bench experiments (parallel)
 on:
   push:
     branches: [feature/gemma-e2b-czech]
-    paths: [".github/workflows/bench-experiments.yml", "bench/prompts/**", "bench/litert_run.py"]
+    paths: [".github/workflows/bench-experiments.yml", "bench/prompts/**"]
   workflow_dispatch:
 
 jobs:
@@ -64,24 +64,5 @@ jobs:
         if: always()
         with:
           name: exp-${{ matrix.name }}
-          path: out
-          retention-days: 30
-
-  litert:
-    name: litert-lm real runtime (cpu)
-    runs-on: ubuntu-latest
-    timeout-minutes: 120
-    continue-on-error: true
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - run: python -m pip install litert-lm
-      - run: python bench/litert_run.py out
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: exp-litert
           path: out
           retention-days: 30
