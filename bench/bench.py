@@ -13,6 +13,28 @@ PROMPTS = ROOT / "demo" / "prompts"
 EXE = ".exe" if os.name == "nt" else ""
 PORT = 8089
 
+# key -> (HF repo, GGUF file). e2b/e4b are the ggml-org Q4_0/Q8_0 builds (file depends on --quant); the rest are Q4_K_M.
+MODELS = {
+    "gemma4-e2b": ("unsloth/gemma-4-E2B-it-GGUF", "gemma-4-E2B-it-Q4_K_M.gguf"),
+    "gemma4-e4b": ("unsloth/gemma-4-E4B-it-GGUF", "gemma-4-E4B-it-Q4_K_M.gguf"),
+    "qwen3.5-0.8b": ("unsloth/Qwen3.5-0.8B-GGUF", "Qwen3.5-0.8B-Q4_K_M.gguf"),
+    "qwen3.5-2b": ("unsloth/Qwen3.5-2B-GGUF", "Qwen3.5-2B-Q4_K_M.gguf"),
+    "qwen3.5-4b": ("unsloth/Qwen3.5-4B-GGUF", "Qwen3.5-4B-Q4_K_M.gguf"),
+    "qwen3-4b-2507": ("unsloth/Qwen3-4B-Instruct-2507-GGUF", "Qwen3-4B-Instruct-2507-Q4_K_M.gguf"),
+    "ministral3-3b": ("mistralai/Ministral-3-3B-Instruct-2512-GGUF", "Ministral-3-3B-Instruct-2512-Q4_K_M.gguf"),
+    "phi4-mini": ("unsloth/Phi-4-mini-instruct-GGUF", "Phi-4-mini-instruct-Q4_K_M.gguf"),
+    "granite4-micro": ("unsloth/granite-4.0-micro-GGUF", "granite-4.0-micro-Q4_K_M.gguf"),
+    "llama3.2-3b": ("unsloth/Llama-3.2-3B-Instruct-GGUF", "Llama-3.2-3B-Instruct-Q4_K_M.gguf"),
+    "eurollm-1.7b": ("mradermacher/EuroLLM-1.7B-Instruct-GGUF", "EuroLLM-1.7B-Instruct.Q4_K_M.gguf"),
+}
+
+
+def model_source(key, quant):
+    if key in ("e2b", "e4b"):
+        M = key.upper()
+        return f"ggml-org/gemma-4-{M}-it-GGUF", f"gemma-4-{M}-it-{quant}.gguf"
+    return MODELS[key]
+
 try:
     import psutil
 except ImportError:
@@ -291,7 +313,7 @@ def eval_writing(srv, cases, out):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--label", required=True)
-    ap.add_argument("--model", choices=["e2b", "e4b"], required=True)
+    ap.add_argument("--model", choices=["e2b", "e4b", *MODELS], required=True)
     ap.add_argument("--quant", default="Q4_0")
     ap.add_argument("--llama-build", required=True)
     ap.add_argument("--llama-asset", required=True)
@@ -305,14 +327,14 @@ def main():
     out.mkdir(parents=True, exist_ok=True)
     work = out / "work"
     work.mkdir(exist_ok=True)
-    M = a.model.upper()
     res = {"label": a.label, "model": a.model, "quant": a.quant, "llama_build": a.llama_build, "threads": a.threads,
            "machine": {"platform": platform.platform(), "machine": platform.machine(), "cpus": os.cpu_count(),
                        "ram_gb": round(psutil.virtual_memory().total / 2**30, 1) if psutil else None}}
 
     bindir, res["llama_download"] = fetch_llama(a.llama_build, a.llama_asset, work)
-    url = f"https://huggingface.co/ggml-org/gemma-4-{M}-it-GGUF/resolve/main/gemma-4-{M}-it-{a.quant}.gguf"
-    model = work / f"gemma-4-{M}-it-{a.quant}.gguf"
+    repo, fname = model_source(a.model, a.quant)
+    url = f"https://huggingface.co/{repo}/resolve/main/{fname}"
+    model = work / fname
     secs, size = download(url, model)
     res["model_download"] = {"url": url, "seconds": round(secs, 1), "bytes": size, "mb_per_s": round(size / 2**20 / secs, 1)}
     log("model download", res["model_download"])

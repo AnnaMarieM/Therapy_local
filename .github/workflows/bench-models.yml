@@ -1,0 +1,51 @@
+name: Bench models (Czech alternatives)
+
+# Same speed + Czech quality harness as bench-inference, across candidate small models (all Q4_K_M GGUF).
+on:
+  push:
+    branches: [feature/gemma-e2b-czech]
+    paths: ["bench/**", ".github/workflows/bench-models.yml"]
+  workflow_dispatch:
+
+jobs:
+  bench:
+    name: ${{ matrix.runner }} / ${{ matrix.model }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 150
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [ubuntu-latest, ubuntu-24.04-arm]
+        model: [gemma4-e2b, gemma4-e4b, qwen3.5-0.8b, qwen3.5-2b, qwen3.5-4b, qwen3-4b-2507, ministral3-3b, phi4-mini, granite4-micro, llama3.2-3b, eurollm-1.7b]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install psutil
+      - name: Benchmark
+        run: |
+          asset=ubuntu-x64; label=ubuntu-x64
+          if [ "${{ matrix.runner }}" = "ubuntu-24.04-arm" ]; then asset=ubuntu-arm64; label=ubuntu-arm64; fi
+          args=(--label "$label" --model "${{ matrix.model }}" --quant Q4_K_M --llama-build b11960 --llama-asset "$asset" --belebele-n 100 --out out)
+          if [ "${{ matrix.runner }}" = "ubuntu-latest" ]; then args+=(--quality); fi
+          python bench/bench.py "${args[@]}"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: bench-${{ matrix.runner }}-${{ matrix.model }}
+          path: out
+          retention-days: 30
+
+  summary:
+    needs: bench
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: results
+          pattern: bench-*
+      - name: Aggregate
+        run: python bench/aggregate.py results | tee -a "$GITHUB_STEP_SUMMARY"

@@ -4,7 +4,7 @@ name: Bench inference (Gemma 4, Czech)
 on:
   push:
     branches: [feature/gemma-e2b-czech]
-    paths: ["bench/**", ".github/workflows/bench-inference.yml"]
+    paths: [".github/workflows/bench-inference.yml"]
   workflow_dispatch:
     inputs:
       llama_build:
