@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Recording notification -->
+    <string name="notif_recording_channel">Recording</string>
+    <string name="notif_recording_title">Recording</string>
+    <string name="notif_recording_title_paused">Session paused</string>
+    <string name="notif_recording_title_who">%1$s · Recording</string>
+    <string name="notif_recording_title_paused_who">%1$s · Paused</string>
+    <string name="notif_recording_public">Recording session</string>
+    <string name="notif_recording_title_time">%1$s · %2$s</string>
+    <string name="notif_recording_text">Audio stays on this phone</string>
+    <string name="notif_recording_text_paused">Tap to continue</string>
+    <string name="notif_recording_chip_paused">Paused %1$s</string>
+
+    <!-- Processing notification -->
+    <string name="notif_processing_channel">Session processing</string>
+    <string name="notif_processing_public">Processing sessions</string>
+    <string name="notif_processing_stop">Stop</string>
+
+    <string name="processing_stopping_title">Stopping…</string>
+    <string name="processing_stopping_text">Finishing the current step, then stopping</string>
+    <string name="processing_preparing_text">Loading the on-device models…</string>
+    <string name="processing_retry_text">Something went wrong, retrying (attempt %1$d of %2$d)</string>
+    <string name="processing_title_processing">Processing session</string>
+    <string name="processing_title_processing_of">Processing session %1$d of %2$d</string>
+    <string name="processing_title_transcribing">Transcribing session</string>
+    <string name="processing_title_transcribing_of">Transcribing session %1$d of %2$d</string>
+    <string name="processing_title_analysing">Analysing session</string>
+    <string name="processing_title_analysing_of">Analysing session %1$d of %2$d</string>
+    <string name="processing_detail_starting">Getting ready…</string>
+    <string name="processing_detail_transcribing">Converting audio to text</string>
+    <string name="processing_detail_transcribing_part">Converting audio to text · part %1$d of %2$d</string>
+    <string name="processing_detail_reading">Finding key points in the transcript</string>
+    <string name="processing_detail_reading_section">Finding key points in the transcript · section %1$d of %2$d</string>
+    <string name="processing_detail_checking">Comparing new findings with the profile</string>
+    <string name="processing_detail_checking_item">Comparing new findings with the profile · item %1$d of %2$d</string>
+    <string name="processing_failed_text">%1$d of %2$d done · open the app to retry</string>
+    <string name="processing_stopped_title">Processing stopped</string>
+    <string name="processing_stopped_text">%1$d of %2$d done · open the app to resume</string>
+    <string name="processing_done_title">Sessions processed</string>
+    <plurals name="processing_preparing_title">
+        <item quantity="one">Preparing to process %d session</item>
+        <item quantity="other">Preparing to process %d sessions</item>
+    </plurals>
+    <plurals name="processing_failed_title">
+        <item quantity="one">%d session could not be processed</item>
+        <item quantity="other">%d sessions could not be processed</item>
+    </plurals>
+    <plurals name="processing_done_text">
+        <item quantity="one">%d session done</item>
+        <item quantity="other">%d sessions done</item>
+    </plurals>
+
+    <!-- Model setup (download) -->
+    <string name="notif_setup_channel">Setup</string>
+    <string name="notif_setup_title">Setting up MindVault</string>
+    <string name="notif_setup_ready_title">MindVault is ready</string>
+    <string name="notif_setup_ready_text">Recorded sessions will now be processed automatically.</string>
+    <string name="notif_setup_paused_title">Setup paused</string>
+    <string name="notif_setup_free_space">Free up %1$s of storage to finish setting up.</string>
+    <string name="notif_setup_sizes">%1$s of %2$s</string>
+    <string name="notif_setup_sizes_eta">%1$s · %2$s left</string>
+    <string name="setup_checking_files">Checking files…</string>
+    <string name="setup_failed_generic">Setup could not finish</string>
+    <string name="setup_waiting_network">Waiting for internet connection</string>
+    <string name="setup_eta_less_than_minute">less than a minute</string>
+    <string name="setup_eta_minutes">about %1$d min</string>
+    <string name="setup_eta_hours">about %1$d h</string>
+    <string name="setup_eta_hours_minutes">about %1$d h %2$d min</string>
+
+    <!-- Messages from the view model and the session controller -->
+    <string name="vm_vault_locked">The vault is locked.</string>
+    <string name="vm_record_no_space">Not enough free storage to record. Free some space and try again.</string>
+    <string name="vm_mic_open_failed">The microphone could not be opened. %1$s</string>
+    <string name="vm_mic_open_failed_short">The microphone could not be opened.</string>
+    <string name="vm_chunk_save_failed">Part of the recording could not be saved.</string>
+    <string name="vm_search_after_setup">Transcripts can be searched once setup finishes.</string>
+    <string name="vm_search_too_short">Too short: hold the button while you speak.</string>
+    <string name="vm_search_failed">Search failed. Please try again.</string>
+
+    <!-- Biometric prompt -->
+    <string name="auth_no_key">Biometric authentication returned no key.</string>
+</resources>

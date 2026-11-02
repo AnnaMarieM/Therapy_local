@@ -1,5 +1,6 @@
 package com.therapylocal.app.memory
 
+import com.therapylocal.app.R
 import com.therapylocal.app.perf.PerfStats
 import android.app.ActivityManager
 import android.app.Notification
@@ -29,6 +30,8 @@ import com.therapylocal.app.vault.Vault
  * only when the app is not on screen (success, which times out) or when something needs attention (failure or stop).
  */
 class MemoryService : Service() {
+    override fun attachBaseContext(base: android.content.Context) = super.attachBaseContext(com.therapylocal.app.i18n.LocaleStore.wrap(base))
+
     private var worker: Thread? = null
     private var wakeLock: PowerManager.WakeLock? = null
 
@@ -45,7 +48,7 @@ class MemoryService : Service() {
         }
         val debugJob = intent?.getBooleanExtra(EXTRA_DEBUG_JOB, false) == true
         val nm = getSystemService(NotificationManager::class.java)
-        nm.createNotificationChannel(NotificationChannel(CHANNEL, "Session processing", NotificationManager.IMPORTANCE_LOW))
+        nm.createNotificationChannel(NotificationChannel(CHANNEL, getString(R.string.notif_processing_channel), NotificationManager.IMPORTANCE_LOW))
         // Every startForegroundService needs a startForeground; while a run is going that shows the current step, not a fresh "Starting".
         if (worker?.isAlive != true) runSessions.clear()
         trackRun()
@@ -114,27 +117,28 @@ class MemoryService : Service() {
 
     private fun postResult() {
         val notice = ProcessingNotice.finished(Jobs.snapshot.value, runSessions.toSet()) ?: return
-        val success = notice.title == ProcessingNotice.TITLE_DONE
+        val success = notice.success
         // On success the app on screen already shows the result; a notification is only useful when the user is elsewhere.
         if (success && isAppInForeground()) return
-        val b = base(notice.title, notice.text)
+        val title = notice.title.get(resources)
+        val b = base(title, notice.text.get(resources))
             .setAutoCancel(true)
             .setCategory(if (success) Notification.CATEGORY_STATUS else Notification.CATEGORY_ERROR)
         if (success) b.setTimeoutAfter(RESULT_TIMEOUT_MS)
-        notify(RESULT_ID, b.setPublicVersion(publicVersion(notice.title)).build())
+        notify(RESULT_ID, b.setPublicVersion(publicVersion(title)).build())
     }
 
     private fun buildRunning(): Notification {
         val s = Jobs.snapshot.value
         val n = ProcessingNotice.running(s, runSessions.toSet())
-        val b = base(n.title, n.text)
+        val b = base(n.title.get(resources), n.text.get(resources))
             .setOngoing(true)
             .setCategory(Notification.CATEGORY_PROGRESS)
-            .setPublicVersion(publicVersion("Processing sessions"))
+            .setPublicVersion(publicVersion(getString(R.string.notif_processing_public)))
         if (n.progressMax > 0) b.setProgress(n.progressMax, n.progress, n.indeterminate)
         if (!s.stopping) {
             val stop = PendingIntent.getService(this, 0, Intent(this, MemoryService::class.java).setAction(ACTION_STOP), PendingIntent.FLAG_IMMUTABLE)
-            b.addAction(Notification.Action.Builder(null, "Stop", stop).build())
+            b.addAction(Notification.Action.Builder(null, getString(R.string.notif_processing_stop), stop).build())
         }
         return b.build()
     }

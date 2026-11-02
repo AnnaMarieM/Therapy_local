@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- settings -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_group_privacy">Privacy</string>
+    <string name="settings_group_notifications">Notifications</string>
+    <string name="settings_group_processing">Processing</string>
+    <string name="settings_group_live_cues">Live cues</string>
+    <string name="settings_group_memory_model">Memory model</string>
+    <string name="settings_group_developer">Developer</string>
+    <string name="settings_group_about">About</string>
+    <string name="settings_biometric_title">Unlock with fingerprint</string>
+    <string name="settings_biometric_body_available">Instead of typing the password. The password always works.</string>
+    <string name="settings_biometric_body_not_enrolled">Add a fingerprint or face in the phone\'s settings first.</string>
+    <string name="settings_biometric_body_unsupported">This phone has no suitable sensor.</string>
+    <string name="settings_biometric_confirm">Confirm to turn it on</string>
+    <string name="settings_biometric_cancel">Cancel</string>
+    <string name="settings_biometric_failed">It could not be turned on.</string>
+    <string name="settings_lock_title">Lock now</string>
+    <string name="settings_lock_body">Closes MindVault. The password or a fingerprint opens it again.</string>
+    <string name="settings_lock_action">Lock</string>
+    <string name="settings_notifications_allowed">Allowed</string>
+    <string name="settings_notifications_allowed_body">You are told when a session has been processed.</string>
+    <string name="settings_notifications_off">Off</string>
+    <string name="settings_notifications_off_body">You will not be told when a session has been processed.</string>
+    <string name="settings_notifications_turn_on">Turn on</string>
+    <string name="settings_processing_ready">Ready</string>
+    <string name="settings_processing_ready_body">Everything runs on this phone.</string>
+    <string name="settings_processing_paused">Setup paused</string>
+    <string name="settings_processing_paused_body">Check the connection and try again.</string>
+    <string name="settings_processing_try_again">Try again</string>
+    <string name="settings_processing_getting_ready">Getting ready</string>
+    <string name="settings_processing_eta_left">" · %1$s left"</string>
+    <string name="settings_processing_downloading">%1$s of %2$s%3$s. Sessions you record meanwhile are processed when this finishes.</string>
+    <string name="settings_processing_checking">Checking what is needed.</string>
+    <plurals name="settings_failed_sessions">
+        <item quantity="one">%1$d session could not be processed</item>
+        <item quantity="other">%1$d sessions could not be processed</item>
+    </plurals>
+    <string name="settings_failed_body">Try them again; nothing was lost.</string>
+    <string name="settings_failed_retry">Retry</string>
+    <string name="settings_cues_intro">How cues are picked. Changes apply from the next session.</string>
+    <string name="settings_cues_lookback">Listens back</string>
+    <string name="settings_cues_interval">Checks every</string>
+    <string name="settings_cues_smoothing">Weight of the newest check</string>
+    <string name="settings_cues_floor">Minimum relevance</string>
+    <string name="settings_cues_reset">Reset to defaults</string>
+    <string name="settings_value_seconds">%1$d s</string>
+    <string name="settings_value_seconds_decimal">%1$.1f s</string>
+    <string name="settings_value_decimal">%1$.2f</string>
+    <string name="settings_model_intro">The model that reads sessions. Suggested for this phone: %1$s.</string>
+    <string name="settings_model_remove_unused">Remove the unused one (%1$s, %2$s)</string>
+    <string name="settings_model_remove_title">Remove %1$s?</string>
+    <string name="settings_model_remove_body">%1$s is freed. Choosing it again downloads it again.</string>
+    <string name="settings_model_remove_confirm">Remove</string>
+    <string name="settings_model_removed">%1$s removed</string>
+    <string name="settings_model_download_title">Download %1$s?</string>
+    <string name="settings_model_download_body">%1$s is downloaded. Sessions wait for it, then are processed with it.</string>
+    <string name="settings_model_download_confirm">Download</string>
+    <string name="settings_developer_title">Developer tools</string>
+    <string name="settings_developer_body">Logs, raw chunks and diagnostics.</string>
+    <string name="settings_developer_open">Open</string>
+    <string name="settings_about_text">MindVault %1$s. Type set in Fraunces, Geist and Geist Mono, under the SIL Open Font License.</string>
+    <string name="settings_go_back">go back</string>
+    <string name="settings_addclient_label">New client</string>
+    <string name="settings_addclient_who">Who is it?</string>
+    <string name="settings_addclient_first_name">First name</string>
+    <string name="settings_addclient_surname">Surname · only the initial is kept</string>
+    <string name="settings_addclient_note">Keep names minimal. Everything else MindVault learns comes from the sessions.</string>
+    <string name="settings_addclient_add_named">add %1$s</string>
+    <string name="settings_addclient_add">add</string>
+    <!-- mindvault -->
+    <string name="mindvault_mic_needed">Recording needs the microphone. Allow it in the phone\'s settings.</string>
+    <string name="mindvault_trying_again">Trying again</string>
+    <string name="mindvault_today">Today</string>
+    <string name="mindvault_status_paused">Session paused</string>
+    <string name="mindvault_status_recording">Recording now</string>
+    <string name="mindvault_status_processing">Processing · %1$s</string>
+    <string name="mindvault_status_failed">A session could not be processed · Retry</string>
+    <string name="mindvault_status_no_sessions">No sessions yet</string>
+    <plurals name="mindvault_status_sessions">
+        <item quantity="one">%1$d session · last %2$s</item>
+        <item quantity="other">%1$d sessions · last %2$s</item>
+    </plurals>
+    <string name="mindvault_setup_paused">Setup paused · Try again</string>
+    <string name="mindvault_setup_getting_ready">Getting ready</string>
+    <string name="mindvault_setup_getting_ready_bytes">Getting ready · %1$s of %2$s</string>
+    <string name="mindvault_setup_downloading">Downloading · %1$s of %2$s · %3$s</string>
+    <string name="mindvault_still_saving">The last session is still being saved. One moment.</string>
+    <string name="mindvault_client_recording">%1$s is being recorded. Finish the session first.</string>
+    <string name="mindvault_client_deleted">%1$s deleted</string>
+    <string name="mindvault_saved_to">Saved to %1$s\'s record</string>
+    <string name="mindvault_discard">Discard</string>
+    <string name="mindvault_save">Save</string>
+    <string name="mindvault_too_short">Under 10 seconds, so not saved</string>
+    <string name="mindvault_voice_off_recording">Voice search is off while a session records</string>
+    <string name="mindvault_voice_off_setup">Voice search works once setup has finished</string>
+    <string name="mindvault_session_deleted">Session deleted</string>
+    <string name="mindvault_client_add_failed">That client could not be added</string>
+    <string name="mindvault_client_added">%1$s added</string>
+    <string name="mindvault_lock_title">Lock MindVault?</string>
+    <string name="mindvault_lock_body">A session is being processed. It pauses now and carries on after you unlock.</string>
+    <string name="mindvault_lock_confirm">Lock</string>
+    <string name="mindvault_discard_title">Discard this session?</string>
+    <string name="mindvault_discard_body">Its recording is deleted from the phone and it will not be processed. This cannot be undone.</string>
+    <string name="mindvault_session_discarded">Session discarded</string>
+    <string name="mindvault_quick_title">That was quick.</string>
+    <string name="mindvault_quick_body">Do you want to save this session?</string>
+    <!-- sessionlogic -->
+    <string name="sessionlogic_stage_waiting">Waiting</string>
+    <string name="sessionlogic_stage_queued_next">Queued · next</string>
+    <string name="sessionlogic_stage_queued_ahead">Queued · %1$d ahead</string>
+    <string name="sessionlogic_stage_finalizing">Finalizing recording...</string>
+    <string name="sessionlogic_stage_transcribing">Transcribing audio</string>
+    <string name="sessionlogic_stage_reading">Reading %1$d/%2$d</string>
+    <string name="sessionlogic_stage_checking">Checking %1$d/%2$d</string>
+    <string name="sessionlogic_stage_extracting">Extracting facts</string>
+    <string name="sessionlogic_waits_retry">%1$s · waits for a job to be retried</string>
+    <string name="sessionlogic_starts_next">%1$s · starts next</string>
+    <plurals name="sessionlogic_starts_after">
+        <item quantity="one">%1$s · starts after %2$d session</item>
+        <item quantity="other">%1$s · starts after %2$d sessions</item>
+    </plurals>
+    <string name="sessionlogic_interview_time">%1$d min of interview · %2$s to process once started</string>
+    <string name="sessionlogic_no_history">Time left: after %1$d sessions are measured (%2$d so far)</string>
+    <string name="sessionlogic_live_speed">Reading %1$s tokens/s · writing %2$s tokens/s</string>
+    <string name="sessionlogic_tokens_left">About %1$s tokens left to read</string>
+    <string name="sessionlogic_usually">Usually %1$s tokens read and %2$s written per interview minute</string>
+    <!-- progress -->
+    <string name="progress_step">Step %1$d/%2$d</string>
+    <plurals name="progress_count_chunks">
+        <item quantity="one">%1$d/%2$d chunk</item>
+        <item quantity="other">%1$d/%2$d chunks</item>
+    </plurals>
+    <plurals name="progress_count_passages">
+        <item quantity="one">%1$d/%2$d passage</item>
+        <item quantity="other">%1$d/%2$d passages</item>
+    </plurals>
+    <plurals name="progress_count_facts">
+        <item quantity="one">%1$d/%2$d fact</item>
+        <item quantity="other">%1$d/%2$d facts</item>
+    </plurals>
+    <plurals name="progress_count_steps">
+        <item quantity="one">%1$d/%2$d step</item>
+        <item quantity="other">%1$d/%2$d steps</item>
+    </plurals>
+    <string name="progress_measuring">measuring…</string>
+    <string name="progress_left">%1$s left</string>
+    <string name="progress_about_seconds">about %1$d s</string>
+    <string name="progress_about_minutes">about %1$d min</string>
+    <string name="progress_about_hours">about %1$d h %2$d min</string>
+    <string name="progress_count_thousands">%1$dk</string>
+    <!-- reel -->
+    <string name="reel_greeting_morning">Good morning</string>
+    <string name="reel_greeting_afternoon">Good afternoon</string>
+    <string name="reel_greeting_evening">Good evening</string>
+</resources>

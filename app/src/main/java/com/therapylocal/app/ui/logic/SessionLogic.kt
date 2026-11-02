@@ -1,5 +1,6 @@
 package com.therapylocal.app.ui.logic
 
+import com.therapylocal.app.R
 import com.therapylocal.app.data.Job
 import com.therapylocal.app.jobs.JobGraph
 import com.therapylocal.app.jobs.JobPhase
@@ -8,7 +9,7 @@ import com.therapylocal.app.jobs.SessionProgress
 import com.therapylocal.app.jobs.StepProgress
 import com.therapylocal.app.ui.models.ProcessingSessionInfo
 
-/** Pure session/UI rules pulled out of composables so they can be unit tested. No Android imports. */
+/** Pure session/UI rules pulled out of composables so they can be unit tested. Text goes through [UiText]. */
 object SessionLogic {
     /** Digits are always ASCII (padStart, never locale-formatted). */
     private fun two(n: Long) = n.toString().padStart(2, '0')
@@ -44,7 +45,7 @@ object SessionLogic {
      * Per-client "processing" banner info: sessions with work still to do and nothing failed (a later session of the same client replaces an
      * earlier one), plus the not-yet-enqueued session ([pending] = client, sessionId, date) if that client has none.
      */
-    fun processingByClient(queue: QueueSnapshot, pending: Triple<String, String, String>?, evidence: Evidence = Evidence()): Map<String, ProcessingSessionInfo> {
+    fun processingByClient(t: UiText, queue: QueueSnapshot, pending: Triple<String, String, String>?, evidence: Evidence = Evidence()): Map<String, ProcessingSessionInfo> {
         val map = mutableMapOf<String, ProcessingSessionInfo>()
         val open = queue.sessions.filter { !it.finished && it.failed == 0 }
         val runningNow = open.count { it.running }
@@ -53,12 +54,12 @@ object SessionLogic {
             // Its place in line (the one being processed counts as ahead): evidence that it is queued, not stuck.
             val ahead = if (s.running || s.blocked > 0) 0 else runningNow + waiting++
             val stageText = when {
-                s.running -> runningStage(queue.running, queue.progress)
-                s.blocked > 0 -> "Waiting"
-                ahead == 0 -> "Queued · next"
-                else -> "Queued · $ahead ahead"
+                s.running -> runningStage(t, queue.running, queue.progress)
+                s.blocked > 0 -> t.str(R.string.sessionlogic_stage_waiting)
+                ahead == 0 -> t.str(R.string.sessionlogic_stage_queued_next)
+                else -> t.str(R.string.sessionlogic_stage_queued_ahead, ahead)
             }
-            val details = evidenceLines(s, ahead, queue.progress, evidence)
+            val details = evidenceLines(t, s, ahead, queue.progress, evidence)
             map[s.clientId] = ProcessingSessionInfo(
                 sessionId = s.sessionId,
                 date = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(java.util.Date(s.startedAt)),
@@ -71,8 +72,8 @@ object SessionLogic {
             if (!map.containsKey(client)) {
                 map[client] = ProcessingSessionInfo(
                     sessionId = sid,
-                    date = date.ifEmpty { "Today" },
-                    stage = "Finalizing recording...",
+                    date = date.ifEmpty { t.str(R.string.mindvault_today) },
+                    stage = t.str(R.string.sessionlogic_stage_finalizing),
                     isPendingEnqueue = true
                 )
             }
@@ -84,19 +85,20 @@ object SessionLogic {
      * The evidence for one session, each line only what was measured: where it is, how fast the model is going, how much is left to read,
      * and how long it should take, padded. Where nothing has been measured yet, it says what will be shown and when.
      */
-    fun evidenceLines(s: SessionProgress, ahead: Int, p: StepProgress?, e: Evidence): List<String> {
-        val step = "Step ${(s.done + 1).coerceAtMost(s.total)}/${s.total}"
+    fun evidenceLines(t: UiText, s: SessionProgress, ahead: Int, p: StepProgress?, e: Evidence): List<String> {
+        val stepNo = (s.done + 1).coerceAtMost(s.total)
+        val step = t.str(R.string.progress_step, stepNo, s.total)
         val audioMin = e.audioMs[s.sessionId]?.takeIf { it > 0 }?.let { it / 60_000.0 }
         val whole = e.perMinute?.let { m -> audioMin?.let { (it * m.processingMs * Progress.PADDING).toLong() } }
-        val noHistory = "Time left: after ${com.therapylocal.app.perf.PerfStats.MIN_SESSIONS} sessions are measured (${e.measured} so far)"
+        val noHistory = t.str(R.string.sessionlogic_no_history, com.therapylocal.app.perf.PerfStats.MIN_SESSIONS, e.measured)
         if (!s.running) {
             val first = when {
-                s.blocked > 0 -> "$step · waits for a job to be retried"
-                ahead == 0 -> "$step · starts next"
-                else -> "$step · starts after ${if (ahead == 1) "1 session" else "$ahead sessions"}"
+                s.blocked > 0 -> t.str(R.string.sessionlogic_waits_retry, step)
+                ahead == 0 -> t.str(R.string.sessionlogic_starts_next, step)
+                else -> t.plural(R.plurals.sessionlogic_starts_after, ahead, step, ahead)
             }
             val second = when {
-                whole != null -> "${audioMin!!.let { kotlin.math.ceil(it).toInt() }} min of interview · ${Progress.left(whole).removeSuffix(" left")} to process once started"
+                whole != null -> t.str(R.string.sessionlogic_interview_time, kotlin.math.ceil(audioMin!!).toInt(), Progress.span(t, whole))
                 e.perMinute == null -> noHistory
                 else -> null
             }
@@ -107,22 +109,22 @@ object SessionLogic {
         val done = p?.step ?: 0
         // While reading, time left comes from how long a passage has taken on this phone; otherwise from this step's own pace.
         val readingLeft = e.perPassage?.takeIf { phase == JobPhase.Reading && steps > 0 }?.let { (ms, _) -> ((steps - done).coerceAtLeast(0) * ms * Progress.PADDING).toLong() }
-        val lines = mutableListOf(Progress.detail(s.done + 1, s.total, phase, done, steps, readingLeft ?: e.stepLeftMs))
-        e.live?.let { lines += "Reading ${Progress.count(it.prefillTokS)} tokens/s · writing ${Progress.count(it.decodeTokS)} tokens/s" }
+        val lines = mutableListOf(Progress.detail(t, s.done + 1, s.total, phase, done, steps, readingLeft ?: e.stepLeftMs))
+        e.live?.let { lines += t.str(R.string.sessionlogic_live_speed, Progress.count(t, it.prefillTokS), Progress.count(t, it.decodeTokS)) }
         e.perPassage?.takeIf { phase == JobPhase.Reading && steps > done }?.let { (_, tokens) ->
-            lines += "About ${Progress.count((steps - done) * tokens.toDouble())} tokens left to read"
+            lines += t.str(R.string.sessionlogic_tokens_left, Progress.count(t, (steps - done) * tokens.toDouble()))
         }
         lines += when {
-            e.perMinute != null -> "Usually ${Progress.count(e.perMinute.promptTokens)} tokens read and ${Progress.count(e.perMinute.decodeTokens)} written per interview minute"
+            e.perMinute != null -> t.str(R.string.sessionlogic_usually, Progress.count(t, e.perMinute.promptTokens), Progress.count(t, e.perMinute.decodeTokens))
             else -> noHistory
         }
         return lines
     }
 
-    private fun runningStage(job: Job?, p: StepProgress?): String = when (p?.phase) {
-        JobPhase.Transcribing -> "Transcribing audio"
-        JobPhase.Reading -> "Reading ${p.step}/${p.steps}"
-        JobPhase.Checking -> "Checking ${p.step}/${p.steps}"
-        else -> if (job?.kind == JobGraph.TRANSCRIBE) "Transcribing audio" else "Extracting facts"
+    private fun runningStage(t: UiText, job: Job?, p: StepProgress?): String = when (p?.phase) {
+        JobPhase.Transcribing -> t.str(R.string.sessionlogic_stage_transcribing)
+        JobPhase.Reading -> t.str(R.string.sessionlogic_stage_reading, p.step, p.steps)
+        JobPhase.Checking -> t.str(R.string.sessionlogic_stage_checking, p.step, p.steps)
+        else -> if (job?.kind == JobGraph.TRANSCRIBE) t.str(R.string.sessionlogic_stage_transcribing) else t.str(R.string.sessionlogic_stage_extracting)
     }
 }

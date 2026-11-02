@@ -123,25 +123,24 @@ class ClientInputTest {
 
     @Test
     fun validateChecksName() {
-        assertNull(ClientInput.validate("Marta"))
-        assertNotNull(ClientInput.validate("  "))
+        assertTrue(ClientInput.isValid("Marta"))
+        assertFalse(ClientInput.isValid("  "))
     }
 
     @Test
     fun validateWhitespaceEmojiAndPunctuationOnlyAreRejected() {
-        assertNotNull(ClientInput.validate(""))
-        assertNotNull(ClientInput.validate("\t \n"))
-        assertNotNull(ClientInput.validate("..."))
-        assertNotNull(ClientInput.validate("😀"))
-        assertNotNull(ClientInput.validate("山田"))
-        assertEquals("Enter a name", ClientInput.validate(""))
+        assertFalse(ClientInput.isValid(""))
+        assertFalse(ClientInput.isValid("\t \n"))
+        assertFalse(ClientInput.isValid("..."))
+        assertFalse(ClientInput.isValid("😀"))
+        assertFalse(ClientInput.isValid("山田"))
     }
 
     @Test
     fun validateAcceptsNamesWithAtLeastOneAsciiLetterOrDigit() {
-        assertNull(ClientInput.validate("  a  "))
-        assertNull(ClientInput.validate("7"))
-        assertNull(ClientInput.validate("É"))          // decomposes to E
-        assertNull(ClientInput.validate("😀 x"))
+        assertTrue(ClientInput.isValid("  a  "))
+        assertTrue(ClientInput.isValid("7"))
+        assertTrue(ClientInput.isValid("É"))          // decomposes to E
+        assertTrue(ClientInput.isValid("😀 x"))
     }
 }

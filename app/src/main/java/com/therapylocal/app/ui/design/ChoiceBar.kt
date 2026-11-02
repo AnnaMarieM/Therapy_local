@@ -48,7 +48,9 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Constraints
+import com.therapylocal.app.R
 import androidx.compose.ui.unit.dp
 import com.therapylocal.app.ui.motion.BoundsRef
 import com.therapylocal.app.ui.motion.GestureMath
@@ -155,8 +157,9 @@ data class Choice(
 )
 
 /** The left side of every screen that has somewhere to go back to. */
-fun backChoice(label: String = "Back", enabled: Boolean = true, onClick: () -> Unit) =
-    Choice(label, "Release to go back", Palette.Tonal, Palette.Ink, enabled = enabled, onClick = onClick)
+@Composable
+fun backChoice(label: String = stringResource(R.string.choice_back), enabled: Boolean = true, onClick: () -> Unit) =
+    Choice(label, stringResource(R.string.choice_release_back), Palette.Tonal, Palette.Ink, enabled = enabled, onClick = onClick)
 
 /**
  * The bar. [center] (the hold-to-finish button while recording) sits between the two and never stretches. Either side may be missing (home
@@ -362,8 +365,8 @@ fun SwipeHints(
         val lines = @Composable { m: Modifier ->
             androidx.compose.foundation.layout.Column(m) {
                 // A hidden line is not an invisible button: it only takes taps while it shows.
-                if (back != null) HintLine(back, Side.Left, "Swipe from left to right to ${back.verb}", live, state, seen, { grab.value }, { fly.value }, haptics, null)
-                if (forward != null) HintLine(forward, Side.Right, "Swipe from right to left to ${forward.verb}", live, state, seen, { grab.value }, { fly.value }, haptics, forwardRef)
+                if (back != null) HintLine(back, Side.Left, stringResource(R.string.choice_swipe_back_hint, back.verb), live, state, seen, { grab.value }, { fly.value }, haptics, null)
+                if (forward != null) HintLine(forward, Side.Right, stringResource(R.string.choice_swipe_forward_hint, forward.verb), live, state, seen, { grab.value }, { fly.value }, haptics, forwardRef)
             }
         }
         if (center != null) {
@@ -413,7 +416,7 @@ private fun androidx.compose.foundation.layout.ColumnScope.HintLine(
     val armed = state.armed == side
     // Which way the finger goes: +1 to the right (back), -1 to the left (in).
     val dir = if (side == Side.Left) 1f else -1f
-    val armedText = "Release to ${way.verb}"
+    val armedText = stringResource(R.string.choice_release, way.verb)
     val distance = 140.dp
     Row(
         Modifier.align(if (side == Side.Left) Alignment.Start else Alignment.End)

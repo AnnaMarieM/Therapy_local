@@ -61,7 +61,9 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.therapylocal.app.R
 import com.therapylocal.app.ui.design.Motion
 import com.therapylocal.app.ui.design.Palette
 import com.therapylocal.app.ui.design.Type
@@ -138,6 +140,10 @@ fun PaperField(
 ) {
     var visible by remember { mutableStateOf(false) }
     var focused by remember { mutableStateOf(false) }
+    val hideLabel = stringResource(R.string.paper_hide)
+    val showLabel = stringResource(R.string.paper_show)
+    val hidePw = stringResource(R.string.paper_hide_password)
+    val showPw = stringResource(R.string.paper_show_password)
     Column(modifier) {
         Label(label, color = if (error) Palette.Rec else Palette.InkSoft)
         Spacer(Modifier.height(6.dp))
@@ -157,8 +163,8 @@ fun PaperField(
                     .semantics { contentDescription = label },
             )
             if (secret) {
-                Box(Modifier.size(48.dp).pressable({ visible = !visible }, label = if (visible) "Hide" else "Show"), contentAlignment = Alignment.Center) {
-                    Icon(if (visible) Icons.Rounded.VisibilityOff else Icons.Rounded.Visibility, contentDescription = if (visible) "Hide password" else "Show password", tint = Palette.InkSoft)
+                Box(Modifier.size(48.dp).pressable({ visible = !visible }, label = if (visible) hideLabel else showLabel), contentAlignment = Alignment.Center) {
+                    Icon(if (visible) Icons.Rounded.VisibilityOff else Icons.Rounded.Visibility, contentDescription = if (visible) hidePw else showPw, tint = Palette.InkSoft)
                 }
             }
         }
@@ -173,7 +179,7 @@ fun PaperField(
 
 /** A destructive or important confirmation, in paper colours. [confirm] is the verb ("Delete"), never "OK"; so is [dismiss] when it is more than a way out. */
 @Composable
-fun ConfirmDialog(title: String, text: String, confirm: String, onConfirm: () -> Unit, onDismiss: () -> Unit, destructive: Boolean = true, dismiss: String = "Cancel") {
+fun ConfirmDialog(title: String, text: String, confirm: String, onConfirm: () -> Unit, onDismiss: () -> Unit, destructive: Boolean = true, dismiss: String? = null) {
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = Palette.Paper,
@@ -181,7 +187,7 @@ fun ConfirmDialog(title: String, text: String, confirm: String, onConfirm: () ->
         title = { Text(title, style = Type.Title, color = Palette.Ink) },
         text = { Text(text, style = Type.BodySmall, color = Palette.InkSoft) },
         confirmButton = { TextAction(confirm, { onConfirm() }, color = if (destructive) Palette.Rec else Palette.Ink) },
-        dismissButton = { TextAction(dismiss, onDismiss, color = Palette.InkSoft) },
+        dismissButton = { TextAction(dismiss ?: stringResource(R.string.paper_cancel), onDismiss, color = Palette.InkSoft) },
     )
 }
 

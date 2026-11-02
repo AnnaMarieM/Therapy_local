@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="gate_language_kicker">Language</string>
+    <string name="gate_language_title">Choose your\nlanguage.</string>
+    <string name="gate_language_body">You can change it later in Settings.</string>
+    <string name="gate_continue">Continue</string>
+    <string name="gate_back">Back</string>
+    <string name="gate_release_back">Release to go back</string>
+    <string name="gate_release_continue">Release to continue</string>
+    <string name="gate_set_password">Set a password</string>
+
+    <string name="gate_page1_kicker">MindVault</string>
+    <string name="gate_page1_title">A quiet memory\nfor your sessions.</string>
+    <string name="gate_page1_body">It listens while you work, remembers what matters, and hands it back when it is useful. Nothing else.</string>
+    <string name="gate_page2_kicker">Private</string>
+    <string name="gate_page2_title">Everything stays\non this phone.</string>
+    <string name="gate_page2_body">Recordings, transcripts and what MindVault learns are encrypted with a password only you know. Nothing is sent anywhere.</string>
+    <string name="gate_page3_kicker">After a session</string>
+    <string name="gate_page3_title">It listens,\nthen remembers.</string>
+    <string name="gate_page3_body">When a session ends, the phone writes it down and notes the important things, in the background. You are told when it is done.</string>
+    <string name="gate_page4_kicker">During a session</string>
+    <string name="gate_page4_title">Earlier sessions,\nwhen they matter.</string>
+    <string name="gate_page4_body">While you talk, things the client said before come up quietly on the screen. Glance, or ignore them.</string>
+
+    <string name="gate_perm_kicker">Two permissions</string>
+    <string name="gate_perm_title">What it needs,\nand why.</string>
+    <string name="gate_perm_mic">Microphone</string>
+    <string name="gate_perm_mic_why">To record sessions and to search by voice. Audio never leaves the phone.</string>
+    <string name="gate_perm_notif">Notifications</string>
+    <string name="gate_perm_notif_why">To tell you when a session has been processed, and to show that a recording is running.</string>
+    <string name="gate_allowed">Allowed</string>
+    <string name="gate_allow">Allow</string>
+
+    <string name="gate_pw_kicker">Your password</string>
+    <string name="gate_pw_title">Only you\ncan open it.</string>
+    <string name="gate_pw_body">It encrypts everything on this phone. It cannot be recovered if you forget it, so choose one you will remember.</string>
+    <string name="gate_pw_confirm_hint">The same again</string>
+    <string name="gate_pw_mismatch">The two do not match</string>
+    <string name="gate_securing">Securing…</string>
+    <string name="gate_create">Create</string>
+    <string name="gate_release_create">Release to create</string>
+    <string name="gate_setup_failed">Setup failed. Please try again.</string>
+    <plurals name="gate_pw_min">
+        <item quantity="one">At least %1$d character</item>
+        <item quantity="other">At least %1$d characters</item>
+    </plurals>
+    <plurals name="gate_pw_hint">
+        <item quantity="one">Password · at least %1$d character</item>
+        <item quantity="other">Password · at least %1$d characters</item>
+    </plurals>
+
+    <string name="gate_bio_kicker">Unlocking</string>
+    <string name="gate_bio_title_on">Open it with\na touch.</string>
+    <string name="gate_bio_title_off">Fingerprint\nlater, maybe.</string>
+    <string name="gate_bio_body_on">Use your fingerprint or face instead of typing the password each time. The password always works too.</string>
+    <string name="gate_bio_body_off">No fingerprint or face is set up on this phone. Add one in the phone\'s settings, then turn it on in MindVault\'s settings.</string>
+    <string name="gate_bio_not_now">Not now</string>
+    <string name="gate_bio_skip">Skip</string>
+    <string name="gate_bio_turn_on">Turn on</string>
+    <string name="gate_release_skip">Release to skip</string>
+    <string name="gate_bio_enroll_title">Unlock with fingerprint</string>
+    <string name="gate_bio_enroll_subtitle">Confirm to turn it on</string>
+    <string name="gate_bio_enroll_failed">It could not be turned on.</string>
+
+    <string name="gate_locked_kicker">Locked</string>
+    <string name="gate_password_hint">Password</string>
+    <string name="gate_opening">Opening…</string>
+    <string name="gate_forgot">Forgot password</string>
+    <string name="gate_forgot_body">It cannot be recovered. You can erase MindVault and start again; every client, recording and fact on this phone is deleted.</string>
+    <string name="gate_erase_start">Erase and start again…</string>
+    <string name="gate_never_mind">Never mind</string>
+    <string name="gate_fingerprint">Fingerprint</string>
+    <string name="gate_release_fingerprint">Release for fingerprint</string>
+    <string name="gate_unlock">Unlock</string>
+    <string name="gate_release_unlock">Release to unlock</string>
+    <string name="gate_wrong_password">That is not the password</string>
+    <string name="gate_unlock_failed">Could not unlock. Please try again.</string>
+    <string name="gate_bio_reset">Fingerprint unlock was reset because the phone\'s biometrics changed. Use your password, then turn it on again in Settings.</string>
+    <string name="gate_bio_unlock_title">Unlock MindVault</string>
+    <string name="gate_bio_unlock_subtitle">Confirm it\'s you</string>
+    <string name="gate_bio_use_password">Use password</string>
+    <string name="gate_bio_failed">That did not work. Use your password.</string>
+    <string name="gate_erase_title">Erase everything?</string>
+    <string name="gate_erase_text">Every client, recording, transcript and fact on this phone is permanently deleted. This cannot be undone.</string>
+    <string name="gate_erase_confirm">Erase everything</string>
+    <string name="gate_erase_failed">Could not erase. Please try again.</string>
+</resources>
