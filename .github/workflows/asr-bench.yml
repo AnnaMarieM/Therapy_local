@@ -76,7 +76,7 @@ jobs:
         run: |
           mkdir -p models/${{ matrix.id }}
           for f in ${{ matrix.files }}; do
-            qa/fetch.sh "https://huggingface.co/csukuangfj/${{ matrix.repo }}/resolve/main/$f" "models/${{ matrix.id }}/$f"
+            qa/fetch.sh "https://huggingface.co/${{ matrix.repo }}/resolve/main/$f" "models/${{ matrix.id }}/$f"
           done
           ls -la models/${{ matrix.id }}
 
