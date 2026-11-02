@@ -1,0 +1,87 @@
+name: Bench experiments (parallel)
+
+# Quantization sweep, Czech prompt variants, temperature sweep and the real LiteRT runtime, all in parallel on ubuntu x64.
+on:
+  push:
+    branches: [feature/gemma-e2b-czech]
+    paths: [".github/workflows/bench-experiments.yml", "bench/prompts/**", "bench/litert_run.py"]
+  workflow_dispatch:
+
+jobs:
+  exp:
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 170
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: g2-ggml-Q4_0, model: e2b, args: "--quant Q4_0 --write-temps 0.7 --seeds 1,2,3" }
+          - { name: g2-ggml-Q8_0, model: e2b, args: "--quant Q8_0 --write-temps 0.7 --seeds 1,2,3" }
+          - { name: g2-unsloth-Q4_K_M, model: e2b, args: "--repo unsloth/gemma-4-E2B-it-GGUF --file gemma-4-E2B-it-Q4_K_M.gguf --write-temps 0.7 --seeds 1,2,3" }
+          - { name: g2-unsloth-Q5_K_M, model: e2b, args: "--repo unsloth/gemma-4-E2B-it-GGUF --file gemma-4-E2B-it-Q5_K_M.gguf --write-temps 0.7 --seeds 1,2,3" }
+          - { name: g2-unsloth-Q6_K, model: e2b, args: "--repo unsloth/gemma-4-E2B-it-GGUF --file gemma-4-E2B-it-Q6_K.gguf --write-temps 0.7 --seeds 1,2,3" }
+          - { name: g2-unsloth-Q8_0, model: e2b, args: "--repo unsloth/gemma-4-E2B-it-GGUF --file gemma-4-E2B-it-Q8_0.gguf --write-temps 0.7 --seeds 1,2,3" }
+          - { name: g2-unsloth-IQ4_XS, model: e2b, args: "--repo unsloth/gemma-4-E2B-it-GGUF --file gemma-4-E2B-it-IQ4_XS.gguf --write-temps 0.7 --seeds 1,2,3" }
+          - { name: g2-unsloth-UD-Q4_K_XL, model: e2b, args: "--repo unsloth/gemma-4-E2B-it-GGUF --file gemma-4-E2B-it-UD-Q4_K_XL.gguf --write-temps 0.7 --seeds 1,2,3" }
+          - { name: g4-ggml-Q4_0, model: e4b, args: "--quant Q4_0 --write-temps 0.7 --seeds 1,2,3" }
+          - { name: g4-unsloth-Q4_K_M, model: e4b, args: "--repo unsloth/gemma-4-E4B-it-GGUF --file gemma-4-E4B-it-Q4_K_M.gguf --write-temps 0.7 --seeds 1,2,3" }
+          - { name: g4-unsloth-Q5_K_M, model: e4b, args: "--repo unsloth/gemma-4-E4B-it-GGUF --file gemma-4-E4B-it-Q5_K_M.gguf --write-temps 0.7 --seeds 1,2,3" }
+          - { name: g4-unsloth-Q8_0, model: e4b, args: "--repo unsloth/gemma-4-E4B-it-GGUF --file gemma-4-E4B-it-Q8_0.gguf --write-temps 0.7 --seeds 1,2,3" }
+          - { name: g4-unsloth-UD-Q4_K_XL, model: e4b, args: "--repo unsloth/gemma-4-E4B-it-GGUF --file gemma-4-E4B-it-UD-Q4_K_XL.gguf --write-temps 0.7 --seeds 1,2,3" }
+          - { name: prompt-gemma4-e2b-orig, model: gemma4-e2b, args: "--write-temps 0.7 --seeds 1,2,3" }
+          - { name: prompt-gemma4-e2b-cs-rule, model: gemma4-e2b, args: "--prompts-dir bench/prompts/cs-rule --write-temps 0.7 --seeds 1,2,3" }
+          - { name: prompt-gemma4-e2b-cs-full, model: gemma4-e2b, args: "--prompts-dir bench/prompts/cs-full --write-temps 0.7 --seeds 1,2,3" }
+          - { name: prompt-gemma4-e4b-orig, model: gemma4-e4b, args: "--write-temps 0.7 --seeds 1,2,3" }
+          - { name: prompt-gemma4-e4b-cs-rule, model: gemma4-e4b, args: "--prompts-dir bench/prompts/cs-rule --write-temps 0.7 --seeds 1,2,3" }
+          - { name: prompt-gemma4-e4b-cs-full, model: gemma4-e4b, args: "--prompts-dir bench/prompts/cs-full --write-temps 0.7 --seeds 1,2,3" }
+          - { name: prompt-qwen3-4b-2507-orig, model: qwen3-4b-2507, args: "--write-temps 0.7 --seeds 1,2,3" }
+          - { name: prompt-qwen3-4b-2507-cs-rule, model: qwen3-4b-2507, args: "--prompts-dir bench/prompts/cs-rule --write-temps 0.7 --seeds 1,2,3" }
+          - { name: prompt-qwen3-4b-2507-cs-full, model: qwen3-4b-2507, args: "--prompts-dir bench/prompts/cs-full --write-temps 0.7 --seeds 1,2,3" }
+          - { name: prompt-qwen3.5-4b-orig, model: qwen3.5-4b, args: "--write-temps 0.7 --seeds 1,2,3" }
+          - { name: prompt-qwen3.5-4b-cs-rule, model: qwen3.5-4b, args: "--prompts-dir bench/prompts/cs-rule --write-temps 0.7 --seeds 1,2,3" }
+          - { name: prompt-qwen3.5-4b-cs-full, model: qwen3.5-4b, args: "--prompts-dir bench/prompts/cs-full --write-temps 0.7 --seeds 1,2,3" }
+          - { name: prompt-qwen3.5-2b-orig, model: qwen3.5-2b, args: "--write-temps 0.7 --seeds 1,2,3" }
+          - { name: prompt-qwen3.5-2b-cs-rule, model: qwen3.5-2b, args: "--prompts-dir bench/prompts/cs-rule --write-temps 0.7 --seeds 1,2,3" }
+          - { name: prompt-qwen3.5-2b-cs-full, model: qwen3.5-2b, args: "--prompts-dir bench/prompts/cs-full --write-temps 0.7 --seeds 1,2,3" }
+          - { name: temp-gemma4-e2b, model: gemma4-e2b, args: "--write-temps 0.2,0.4,0.7,1.0 --seeds 1,2" }
+          - { name: temp-gemma4-e4b, model: gemma4-e4b, args: "--write-temps 0.2,0.4,0.7,1.0 --seeds 1,2" }
+          - { name: temp-qwen3-4b-2507, model: qwen3-4b-2507, args: "--write-temps 0.2,0.4,0.7,1.0 --seeds 1,2" }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install psutil
+      - run: sudo apt-get update -qq && sudo apt-get install -y -qq hunspell hunspell-cs
+      - name: Experiment
+        env:
+          ARGS: ${{ matrix.args }}
+        run: |
+          python bench/bench.py --label ubuntu-x64 --name "${{ matrix.name }}" --model "${{ matrix.model }}" --quant Q4_K_M \
+            --llama-build b11960 --llama-asset ubuntu-x64 --belebele-n 100 --quality --out out $ARGS
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: exp-${{ matrix.name }}
+          path: out
+          retention-days: 30
+
+  litert:
+    name: litert-lm real runtime (cpu)
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install litert-lm
+      - run: python bench/litert_run.py out
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: exp-litert
+          path: out
+          retention-days: 30

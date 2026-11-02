@@ -9,7 +9,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA = Path(__file__).resolve().parent / "data" / "cases_cs.json"
-PROMPTS = ROOT / "demo" / "prompts"
+PROMPTS = ROOT / "demo" / "prompts"  # overridden by --prompts-dir
 EXE = ".exe" if os.name == "nt" else ""
 PORT = 8089
 
@@ -145,10 +145,10 @@ class Server:
             except Exception:
                 pass
 
-    def chat(self, system, user, max_tokens, temperature=0.1, top_k=20):
+    def chat(self, system, user, max_tokens, temperature=0.1, top_k=20, seed=1, extra=None):
         body = {"messages": ([{"role": "system", "content": system}] if system else []) + [{"role": "user", "content": user}],
-                "max_tokens": max_tokens, "temperature": temperature, "top_k": top_k, "top_p": 0.9, "seed": 1,
-                "chat_template_kwargs": {"enable_thinking": False}}
+                "max_tokens": max_tokens, "temperature": temperature, "top_k": top_k, "top_p": 0.9, "seed": seed,
+                "chat_template_kwargs": {"enable_thinking": False}, **(extra or {})}
         req = urllib.request.Request(f"http://127.0.0.1:{PORT}/v1/chat/completions", json.dumps(body).encode(), {"Content-Type": "application/json"})
         t0 = time.perf_counter()
         with urllib.request.urlopen(req, timeout=1800) as r:
@@ -191,6 +191,32 @@ def czech_stats(text):
         "non_latin_letters": non_latin, "compress_ratio": round(comp, 3),
         "looping": len(text) > 300 and comp < 0.2,
     }
+
+
+EN_FACT = {"the", "and", "she", "her", "his", "he", "is", "was", "of", "with", "that", "from", "they", "their", "has", "have", "had", "after", "about", "which", "this", "not", "been", "but", "for", "who", "are"}
+
+
+def english_share(texts):
+    """Share of texts that read as English (unambiguous English function words)."""
+    if not texts:
+        return None
+    n = 0
+    for t in texts:
+        w = re.findall(r"[^\W\d_]+", t.lower())
+        n += (sum(x in EN_FACT for x in w) / max(1, len(w))) >= 0.08
+    return round(n / len(texts), 3)
+
+
+def unknown_rate(text):
+    """Share of words the Czech hunspell dictionary rejects (proxy for invented/garbled words); None if hunspell is missing."""
+    words = re.findall(r"[^\W\d_]+", text)
+    if not words or not shutil.which("hunspell"):
+        return None
+    try:
+        p = subprocess.run(["hunspell", "-d", "cs_CZ", "-i", "UTF-8", "-l"], input=" ".join(words), capture_output=True, text=True, encoding="utf-8", timeout=60)
+    except Exception:
+        return None
+    return round(len([l for l in p.stdout.splitlines() if l.strip()]) / len(words), 4) if p.returncode == 0 else None
 
 
 def app_norm(s):  # exactly FactParser.norm: drops every non a-z0-9 char, including all Czech letters
@@ -265,10 +291,13 @@ def eval_extraction(srv, cases, out):
         joined = " ".join(f["heading"] + " " + f["content"] for f in facts).lower()
         hits = [g for g in t["gold"] if g.lower() in joined or g.lower() in " ".join(f["evidence"] for f in facts).lower()]
         stats = czech_stats(joined) if joined else {}
+        stats["en_share"] = english_share([f["content"] for f in facts])
+        stats["unk"] = unknown_rate(" ".join(f["content"] for f in facts))
         per.append({"id": t["id"], "facts": len(facts), "unparsable_lines": bad, "finish": res["finish"], "gen_n": res["gen_n"], "gen_tok_s": res["gen_tok_s"],
                     "evidence_verbatim_unicode": f"{verb_uni}/{len(facts)}", "evidence_passes_app_filter": f"{verb_app}/{len(facts)}",
                     "gold_recall": round(len(hits) / len(t["gold"]), 2), "gold_missed": [g for g in t["gold"] if g not in hits],
-                    "content_english_ratio": stats.get("english_word_ratio"), "content_diacritic_ratio": stats.get("diacritic_ratio")})
+                    "facts_in_english_share": stats.get("en_share"), "content_unknown_word_rate": stats.get("unk"),
+                    "content_diacritic_ratio": stats.get("diacritic_ratio")})
         raw[t["id"]] = res["text"]
     (out / "extraction_outputs.json").write_text(json.dumps(raw, ensure_ascii=False, indent=1), encoding="utf-8")
     return per
@@ -296,14 +325,17 @@ def eval_review(srv, cases, out):
     return {"n": n, "json_parsed": parsed, "correct_verdict": ok}
 
 
-def eval_writing(srv, cases, out):
+def eval_writing(srv, cases, out, temps, seeds):
     per, raw = [], []
-    for i, p in enumerate(cases["writing_prompts"]):
-        res = srv.chat(None, p, 600, temperature=0.7, top_k=40)
-        s = czech_stats(res["text"])
-        s.update({"prompt": i, "finish": res["finish"], "gen_n": res["gen_n"], "gen_tok_s": res["gen_tok_s"]})
-        per.append(s)
-        raw.append({"prompt": p, "reply": res["text"]})
+    for temp in temps:
+        for seed in seeds:
+            for i, p in enumerate(cases["writing_prompts"]):
+                res = srv.chat(None, p, 500, temperature=temp, top_k=40, seed=seed)
+                s = czech_stats(res["text"])
+                s.update({"prompt": i, "temp": temp, "seed": seed, "finish": res["finish"], "gen_n": res["gen_n"], "gen_tok_s": res["gen_tok_s"],
+                          "unknown_word_rate": unknown_rate(res["text"])})
+                per.append(s)
+                raw.append({"temp": temp, "seed": seed, "prompt": p, "reply": res["text"]})
     (out / "writing_outputs.json").write_text(json.dumps(raw, ensure_ascii=False, indent=1), encoding="utf-8")
     return per
 
@@ -314,6 +346,12 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--label", required=True)
     ap.add_argument("--model", choices=["e2b", "e4b", *MODELS], required=True)
+    ap.add_argument("--name", default="")
+    ap.add_argument("--repo", default="", help="override HF repo of the GGUF")
+    ap.add_argument("--file", default="", help="override GGUF file name")
+    ap.add_argument("--prompts-dir", default="")
+    ap.add_argument("--write-temps", default="0.7")
+    ap.add_argument("--seeds", default="1")
     ap.add_argument("--quant", default="Q4_0")
     ap.add_argument("--llama-build", required=True)
     ap.add_argument("--llama-asset", required=True)
@@ -323,16 +361,21 @@ def main():
     ap.add_argument("--out", default="out")
     a = ap.parse_args()
 
+    global PROMPTS
+    if a.prompts_dir:
+        PROMPTS = ROOT / a.prompts_dir
     out = Path(a.out)
     out.mkdir(parents=True, exist_ok=True)
     work = out / "work"
     work.mkdir(exist_ok=True)
-    res = {"label": a.label, "model": a.model, "quant": a.quant, "llama_build": a.llama_build, "threads": a.threads,
+    res = {"name": a.name or a.model, "prompts": str(PROMPTS.relative_to(ROOT)), "write_temps": a.write_temps, "seeds": a.seeds,
+           "label": a.label, "model": a.model, "quant": a.quant, "llama_build": a.llama_build, "threads": a.threads,
            "machine": {"platform": platform.platform(), "machine": platform.machine(), "cpus": os.cpu_count(),
                        "ram_gb": round(psutil.virtual_memory().total / 2**30, 1) if psutil else None}}
 
     bindir, res["llama_download"] = fetch_llama(a.llama_build, a.llama_asset, work)
     repo, fname = model_source(a.model, a.quant)
+    repo, fname = (a.repo or repo), (a.file or fname)
     url = f"https://huggingface.co/{repo}/resolve/main/{fname}"
     model = work / fname
     secs, size = download(url, model)
@@ -355,7 +398,7 @@ def main():
             log("belebele", res["belebele"])
             res["extraction"] = eval_extraction(srv, cases, out)
             res["review"] = eval_review(srv, cases, out)
-            res["writing"] = eval_writing(srv, cases, out)
+            res["writing"] = eval_writing(srv, cases, out, [float(x) for x in a.write_temps.split(",")], [int(x) for x in a.seeds.split(",")])
         srv.sample()
         res["peak_rss_mb"] = round(srv.peak_rss / 2**20) if srv.peak_rss else None
     except Exception as e:

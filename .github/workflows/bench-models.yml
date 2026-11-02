@@ -4,7 +4,7 @@ name: Bench models (Czech alternatives)
 on:
   push:
     branches: [feature/gemma-e2b-czech]
-    paths: ["bench/**", ".github/workflows/bench-models.yml"]
+    paths: [".github/workflows/bench-models.yml"]
   workflow_dispatch:
 
 jobs:
