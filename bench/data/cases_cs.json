@@ -1,0 +1,70 @@
+{
+  "transcripts": [
+    {
+      "id": "petra",
+      "client": "Petra",
+      "date": "2026-09-14",
+      "gold": ["Brno", "sestr", "Lucie", "spát", "kávu", "výpověď", "30. září"],
+      "text": "Terapeut: Dobrý den, Petro, jak se vám od minula dařilo?\nPetra: Dobrý den. Upřímně, týden byl těžký. Moje sestra Lucie se přestěhovala do Brna a já mám pocit, že jsme si s ní teď strašně vzdálené.\nTerapeut: Co to pro vás znamená?\nPetra: Vídaly jsme se skoro každý den. Teď si voláme jednou týdně, a to ještě málokdy.\nTerapeut: A jak spíte?\nPetra: Špatně. Usínám až po půlnoci a v pět ráno se budím. Pila jsem proto víc kávy, tři až čtyři hrnky denně.\nTerapeut: Změnilo se něco v práci?\nPetra: Ano, v pátek mi šéf řekl, že dostanu výpověď. Poslední den budu mít 30. září. Bojím se, jak zaplatím nájem, platím osm tisíc měsíčně.\nTerapeut: Co vám v takových chvílích pomáhá?\nPetra: Chodím na dlouhé procházky podél řeky. Vždycky mi to trochu uleví. Chci si také začít psát deník, ale zatím jsem to nezkusila."
+    },
+    {
+      "id": "jan",
+      "client": "Jan",
+      "date": "2026-10-02",
+      "gold": ["Martin", "alkohol", "pivo", "Praze", "otec", "tabletky", "maraton"],
+      "text": "Terapeut: Vítejte, Jane. O čem byste dnes chtěl mluvit?\nJan: Pořád myslím na to, co se stalo s otcem. Zemřel před dvěma lety a já jsem nikdy pořádně nesmutnil.\nTerapeut: Jak to ovlivňuje váš život?\nJan: Večer si dám tři až čtyři piva, abych vůbec usnul. Vím, že to není dobré. Můj kamarád Martin mi řekl, že bych měl zajít k doktorovi.\nTerapeut: Byl jste u lékaře?\nJan: Zatím ne. Předepsal mi ale praktik tabletky na spaní, od ledna je beru po večerech, ale moc nepomáhají.\nTerapeut: Máte něco, co vám dělá radost?\nJan: Běhání. Loni jsem zaběhl půlmaraton v Praze a chtěl bych příští rok zvládnout celý maraton. Poslední měsíc ale vůbec neběhám, nemám sílu.\nTerapeut: Byly někdy chvíle, kdy jste přemýšlel o ublížení sobě?\nJan: Ne, tohle ne. Jen jsem unavený."
+    },
+    {
+      "id": "marie",
+      "client": "Marie",
+      "date": "2026-10-20",
+      "gold": ["Tomáš", "syn", "škol", "rozvod", "babičk", "úzkost", "pondělí"],
+      "text": "Terapeut: Maruško, vítám vás. Jak se máte?\nMarie: Tak napůl. Můj syn Tomáš má problémy ve škole, učitelka mi volala už potřetí tento měsíc. Říká, že se v hodinách vůbec nesoustředí.\nTerapeut: Co si myslíte, že za tím je?\nMarie: Rozvod. S manželem jsme se rozešli v březnu a Tomáš žije většinou u mě, o víkendech je u táty. Myslím, že mu to ublížilo.\nTerapeut: A vy sama?\nMarie: Mám často úzkost, hlavně v neděli večer, když vím, že pondělí je před námi. Srdce mi buší a nemůžu dýchat.\nTerapeut: Máte nějakou oporu?\nMarie: Moje babička bydlí o dvě ulice dál a chodím k ní na oběd. Je to jediné místo, kde se uklidním. Také jsem zkusila dechová cvičení z aplikace, trochu pomáhají.\nTerapeut: Co byste si přála?\nMarie: Aby Tomáš zase chodil do školy rád. A abych nepanikařila pokaždé, když zazvoní telefon."
+    }
+  ],
+  "review_cases": [
+    {
+      "known": ["Sestra se odstěhovala: Petřina sestra Lucie se přestěhovala do Brna.", "Špatný spánek: Petra usíná po půlnoci a budí se v pět ráno."],
+      "fact": "Spánek: Petra špatně spí, budí se každé ráno v pět hodin.",
+      "duplicate": true,
+      "of": 2
+    },
+    {
+      "known": ["Sestra se odstěhovala: Petřina sestra Lucie se přestěhovala do Brna.", "Špatný spánek: Petra usíná po půlnoci a budí se v pět ráno."],
+      "fact": "Výpověď v práci: Petra dostane výpověď, poslední den bude 30. září.",
+      "duplicate": false,
+      "of": 0
+    },
+    {
+      "known": ["Pije pivo: Jan pije večer tři až čtyři piva, aby usnul.", "Běhání: Jan loni zaběhl půlmaraton v Praze."],
+      "fact": "Alkohol večer: Jan si večer dává pivo, aby mohl usnout.",
+      "duplicate": true,
+      "of": 1
+    },
+    {
+      "known": ["Pije pivo: Jan pije večer tři až čtyři piva, aby usnul.", "Běhání: Jan loni zaběhl půlmaraton v Praze."],
+      "fact": "Cíl maraton: Jan chce příští rok zaběhnout celý maraton.",
+      "duplicate": false,
+      "of": 0
+    },
+    {
+      "known": ["Problémy ve škole: Syn Tomáš se ve škole nesoustředí.", "Rozvod: Marie se rozešla s manželem v březnu."],
+      "fact": "Učitelka volá: Učitelka volala Marii už potřetí tento měsíc kvůli Tomášovi.",
+      "duplicate": false,
+      "of": 0
+    },
+    {
+      "known": ["Problémy ve škole: Syn Tomáš se ve škole nesoustředí.", "Rozvod: Marie se rozešla s manželem v březnu."],
+      "fact": "Rozchod s manželem: Marie a její manžel se rozešli v březnu.",
+      "duplicate": true,
+      "of": 2
+    }
+  ],
+  "writing_prompts": [
+    "Napiš česky krátké, laskavé shrnutí (4 až 5 vět) terapeutické schůzky, ve které klientka mluvila o stěhování sestry, nespavosti a ztrátě zaměstnání. Nepoužívej odborné diagnózy.",
+    "Napiš česky e-mail (asi 120 slov) klientovi, který se omluvil z terapie, a nabídni mu dva náhradní termíny. Buď zdvořilý a vyslov oslovení vhodným pádem: pan Novák.",
+    "Vysvětli česky jednoduchými slovy, co je dechové cvičení 4-7-8 a jak ho vyzkoušet. Použij číslovaný seznam o pěti krocích.",
+    "Přeložil jsem větu 'I have been feeling anxious on Sunday evenings' do češtiny. Napiš tři různé správné české překlady a u každého jednou větou vysvětli rozdíl v odstínu významu.",
+    "Napiš česky odstavec (asi 100 slov) o tom, proč je pravidelný spánek důležitý pro duševní zdraví. Vyhni se anglicismům a dbej na správné skloňování a diakritiku."
+  ]
+}

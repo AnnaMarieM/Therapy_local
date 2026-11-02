@@ -1,0 +1,65 @@
+name: Bench inference (Gemma 4, Czech)
+
+# Manual only: CPU inference speed per GitHub-hosted runner plus Czech quality of Gemma 4 E2B / E4B.
+on:
+  workflow_dispatch:
+    inputs:
+      llama_build:
+        description: llama.cpp release build tag
+        default: b11960
+      belebele_n:
+        description: Belebele Czech questions to sample
+        default: "100"
+
+jobs:
+  bench:
+    name: ${{ matrix.label }} / ${{ matrix.model }} ${{ matrix.quant }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 150
+    strategy:
+      fail-fast: false
+      matrix:
+        model: [e2b, e4b]
+        quant: [Q4_0]
+        runner: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, macos-15-intel, windows-latest, windows-11-arm]
+        include:
+          - { runner: ubuntu-latest, asset: ubuntu-x64, label: ubuntu-x64, quality: true }
+          - { runner: ubuntu-24.04-arm, asset: ubuntu-arm64, label: ubuntu-arm64, quality: false }
+          - { runner: macos-latest, asset: macos-arm64, label: macos-arm64-m1, quality: false }
+          - { runner: macos-15-intel, asset: macos-x64, label: macos-intel, quality: false }
+          - { runner: windows-latest, asset: win-cpu-x64, label: windows-x64, quality: false }
+          - { runner: windows-11-arm, asset: win-cpu-arm64, label: windows-arm64, quality: false }
+          - { runner: ubuntu-latest, asset: ubuntu-x64, label: ubuntu-x64, quality: false, model: e2b, quant: Q8_0 }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install psutil
+      - name: Benchmark
+        shell: bash
+        run: |
+          args=(--label "${{ matrix.label }}" --model "${{ matrix.model }}" --quant "${{ matrix.quant }}"
+                --llama-build "${{ inputs.llama_build }}" --llama-asset "${{ matrix.asset }}"
+                --belebele-n "${{ inputs.belebele_n }}" --out out)
+          if [ "${{ matrix.quality }}" = "true" ]; then args+=(--quality); fi
+          python bench/bench.py "${args[@]}"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: bench-${{ matrix.label }}-${{ matrix.model }}-${{ matrix.quant }}
+          path: out
+          retention-days: 30
+
+  summary:
+    needs: bench
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: results
+          pattern: bench-*
+      - name: Aggregate
+        run: python bench/aggregate.py results | tee -a "$GITHUB_STEP_SUMMARY"
