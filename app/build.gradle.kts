@@ -86,6 +86,8 @@ android {
     buildTypes.configureEach {
         // Transcript text in logs. Keep false: this is a therapy app. See docs/LOGGING.md.
         buildConfigField("boolean", "LOG_TEXT", "false")
+        // A decrypted wav of each retained recording, for debugging with adb (see DebugAudio). Never in a release.
+        buildConfigField("boolean", "EXPORT_AUDIO", if (name == "debug" || name == "qa") "true" else "false")
         if (name != "qa") {
             buildConfigField("boolean", "BIOMETRIC", "true")
             buildConfigField("boolean", "SECURE_WINDOW", "true")

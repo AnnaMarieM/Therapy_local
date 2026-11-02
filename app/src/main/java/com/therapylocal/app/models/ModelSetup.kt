@@ -44,9 +44,10 @@ object ModelSetup {
     fun required(context: Context): List<ModelSpec> {
         val prefs = prefs(context)
         val engine = prefs.getString("engine", "whisper") ?: "whisper"
-        val size = prefs.getString("whisper_size", "base") ?: "base"
+        val size = prefs.getString("whisper_size", ModelRegistry.DEFAULT_WHISPER_SIZE) ?: ModelRegistry.DEFAULT_WHISPER_SIZE
         val gemma = gemma(context)
-        return listOf(ModelRegistry.EMBED, if (engine == "gemma") gemma else ModelRegistry.whisperFor(size), gemma).distinct()
+        val speech = if (engine == "gemma") listOf(gemma) else Languages.inUse(context).map { ModelRegistry.whisperFor(size, it) }
+        return (listOf(ModelRegistry.EMBED) + speech + gemma).distinct()
     }
 
     fun gemmaVariant(context: Context): GemmaVariant = ModelChoice.resolve(prefs(context).getString(ModelChoice.PREF, null))
@@ -118,7 +119,8 @@ object ModelSetup {
         AppLog.i(TAG, "setup_needed", LogCtx.NONE, "missing_mb" to (missing shr 20))
         val request = OneTimeWorkRequestBuilder<ModelDownloadWorker>()
             .setConstraints(Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build())
-            .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 10, TimeUnit.SECONDS)
+            // The downloader retries a dropped connection itself; this is only the last resort, so keep it short and linear (exponential grows to hours).
+            .setBackoffCriteria(BackoffPolicy.LINEAR, 30, TimeUnit.SECONDS)
             .build()
         WorkManager.getInstance(context).enqueueUniqueWork(WORK_NAME, policy, request)
     }

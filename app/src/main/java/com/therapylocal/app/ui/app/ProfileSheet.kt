@@ -47,6 +47,7 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import com.therapylocal.app.models.Language
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.SolidColor
@@ -130,6 +131,7 @@ fun ProfileSheet(
     requestMic: () -> Unit,
     onClose: () -> Unit,
     onRecord: (BoundsRef) -> Unit,
+    onLanguage: (Language) -> Unit = {},
     onDeleteClient: () -> Unit,
     onDeleteSession: (SessionItem) -> Unit,
     titleRef: BoundsRef? = null,
@@ -196,6 +198,11 @@ fun ProfileSheet(
                     items(patient.sessions, key = { "s${it.id}" }) { s ->
                         val ref = remember { BoundsRef() }
                         SessionRow(s, processing = s.id == processingSession, ref = ref, onOpen = { openLayer(Layer.Transcript("Session", s.id, s.date), ref) }, onDelete = { haptics.arm(); confirmSession = s })
+                    }
+                    item {
+                        Section("Speaks")
+                        LanguagePicker(patient.language, onLanguage)
+                        Text("New recordings are written down in this language.", style = Type.BodySmall, color = Palette.InkSoft, modifier = Modifier.padding(top = 8.dp))
                     }
                     item {
                         Spacer(Modifier.height(30.dp))

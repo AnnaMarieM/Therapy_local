@@ -26,3 +26,7 @@ dist/
 /orchestration/
 /.opencode/
 /.cortex/
+
+# Local speech test audio, including any real session recordings pulled for debugging: never commit.
+qa/eval-audio/
+qa/eval-private/

@@ -18,6 +18,7 @@ import com.therapylocal.app.log.AppLog
 import com.therapylocal.app.log.LogCtx
 import com.therapylocal.app.memory.LiveCues
 import com.therapylocal.app.memory.MemoryFiles
+import com.therapylocal.app.models.ModelRegistry
 import com.therapylocal.app.models.ModelSetup
 import com.therapylocal.app.models.SetupState
 import com.therapylocal.app.session.SessionController
@@ -44,8 +45,7 @@ data class UiState(
     val phase: Phase = Phase.Preparing,
     val prepareMsg: String = "Starting",
     val engine: String = "whisper", // "gemma" or "whisper": which engine transcribes recordings (in the background, after they stop)
-    val whisperSize: String = "base",
-    val language: String = "auto", // Whisper language: "auto" or a code such as "en"
+    val whisperSize: String = ModelRegistry.DEFAULT_WHISPER_SIZE,
     val backendOverride: String = "auto", // debug: auto, npu, gpu, cpu
     val embedBackend: String = "-",
     val recording: Boolean = false,
@@ -66,9 +66,8 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     private val _state = MutableStateFlow(
         UiState(
             engine = prefs.getString("engine", "whisper")!!,
-            whisperSize = prefs.getString("whisper_size", "base")!!,
-            language = prefs.getString("language", "auto")!!,
-            backendOverride = prefs.getString("backend_override", "auto")!!,
+            whisperSize = prefs.getString("whisper_size", ModelRegistry.DEFAULT_WHISPER_SIZE)!!,
+                backendOverride = prefs.getString("backend_override", "auto")!!,
             testFiles = if (BuildConfig.DEBUG) TestAudio.list(app) else emptyList(),
         ),
     )
@@ -106,7 +105,6 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     fun setEngine(engine: String) = change(reload = false) { prefs.edit().putString("engine", engine).apply(); it.copy(engine = engine) }
     fun setWhisperSize(size: String) = change(reload = false) { prefs.edit().putString("whisper_size", size).apply(); it.copy(whisperSize = size) }
-    fun setLanguage(lang: String) = change(reload = false) { prefs.edit().putString("language", lang).apply(); it.copy(language = lang) }
 
     /** Debug: force a backend to compare NPU, GPU and CPU honestly. Reloads both engines. */
     fun setBackendOverride(o: String) = change(reload = true) {
@@ -120,7 +118,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         if (_state.value.recording) return
         _state.update(f)
         val s = _state.value
-        AppLog.i(TAG, "settings_changed", LogCtx.NONE, "engine" to s.engine, "whisper_size" to s.whisperSize, "language" to s.language, "backend_override" to s.backendOverride)
+        AppLog.i(TAG, "settings_changed", LogCtx.NONE, "engine" to s.engine, "whisper_size" to s.whisperSize, "backend_override" to s.backendOverride)
         if (reload) embedder.close()
         prepare()
     }
@@ -298,6 +296,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch(Dispatchers.IO) {
             val removed = store.recordings().count { store.deleteRecording(it.id) }
             File(MemoryFiles.secureRoot(ctx), "audio").deleteRecursively()
+            PendingAudio.deleteAllRetained(ctx)
             AppLog.i(TAG, "delete_all_verified", LogCtx.NONE, "removed_recordings" to removed, "remaining_recordings" to store.recordings().size, "audio_files_on_disk" to (File(MemoryFiles.secureRoot(ctx), "audio").walkTopDown().count { it.isFile }))
             _state.update { it.copy(selected = null) }
             refreshRecordings()

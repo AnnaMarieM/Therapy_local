@@ -54,6 +54,8 @@ import com.therapylocal.app.config.LiveCueSettings
 import com.therapylocal.app.config.liveCueSettings
 import com.therapylocal.app.config.saveLiveCueSettings
 import com.therapylocal.app.models.GemmaVariant
+import com.therapylocal.app.models.Language
+import com.therapylocal.app.models.Languages
 import com.therapylocal.app.models.ModelRegistry
 import com.therapylocal.app.models.ModelSetup
 import com.therapylocal.app.models.SetupState
@@ -173,6 +175,8 @@ fun SettingsSheet(
                 Row2("${failedSessions} ${if (failedSessions == 1) "session" else "sessions"} could not be processed", "Try them again; nothing was lost.", "Retry", onRetryFailed)
             }
 
+            item { Group("Default language") }
+            item { DefaultLanguage() }
             item { Group("Live cues") }
             item { CueKnobs() }
             item { Group("Memory model") }
@@ -283,6 +287,17 @@ private fun Knob(title: String, value: String, position: Float, range: ClosedFlo
     }
 }
 
+/** The language new clients start with. A client's own language is set in the client's profile. */
+@Composable
+private fun DefaultLanguage() {
+    val ctx = LocalContext.current
+    var language by remember { mutableStateOf(Languages.default(ctx)) }
+    Column(Modifier.padding(top = 10.dp)) {
+        Text("New clients start with this language. Existing clients keep theirs.", style = Type.BodySmall, color = Palette.InkSoft)
+        LanguagePicker(language, { Languages.setDefault(ctx, it); language = it })
+    }
+}
+
 @Composable
 private fun ModelChoice(notice: NoticeState) {
     val ctx = LocalContext.current
@@ -326,16 +341,18 @@ private fun ModelChoice(notice: NoticeState) {
  * Adding a client: a first name and, if you like, a surname, kept as an initial ("George M."). Only what is needed to recognise them.
  */
 @Composable
-fun AddClientSheet(sheet: SheetState, onCancel: () -> Unit, onAdd: (String) -> Unit) {
+fun AddClientSheet(sheet: SheetState, onCancel: () -> Unit, onAdd: (String, Language) -> Unit) {
+    val ctx = LocalContext.current
     val haptics = rememberHaptics()
     val bar = rememberChoiceState()
     var first by remember { mutableStateOf("") }
     var last by remember { mutableStateOf("") }
+    var language by remember { mutableStateOf(Languages.default(ctx)) }
     val name = displayName(first, last)
     val error = ClientInput.validate(name)
     val focus = remember { FocusRequester() }
     androidx.compose.runtime.LaunchedEffect(Unit) { kotlinx.coroutines.delay(320); runCatching { focus.requestFocus() } }
-    val add = { if (error == null) onAdd(name) else haptics.reject() }
+    val add = { if (error == null) onAdd(name, language) else haptics.reject() }
 
     Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().imePadding().axisDrag(sheetDrag(sheet, bar, onBack = onCancel, onForward = { add() }, canForward = { error == null }))) {
         Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(start = 26.dp, end = 26.dp, top = 24.dp, bottom = hintsClearance())) {
@@ -346,6 +363,9 @@ fun AddClientSheet(sheet: SheetState, onCancel: () -> Unit, onAdd: (String) -> U
             PaperField(first, { first = it }, "First name", imeAction = ImeAction.Next, modifier = Modifier.focusRequester(focus), capitalization = KeyboardCapitalization.Words)
             Spacer(Modifier.height(22.dp))
             PaperField(last, { last = it }, "Surname · only the initial is kept", onIme = add, capitalization = KeyboardCapitalization.Words)
+            Spacer(Modifier.height(30.dp))
+            Label("Speaks")
+            LanguagePicker(language, { language = it })
             Spacer(Modifier.height(14.dp))
             Text("Keep names minimal. Everything else MindVault learns comes from the sessions.", style = Type.BodySmall, color = Palette.InkFaint)
         }
