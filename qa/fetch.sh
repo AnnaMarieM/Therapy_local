@@ -17,6 +17,8 @@ while [[ -z "$WANT" ]]; do
     WANT="$(awk 'tolower($1)=="content-length:"{n=$2} END{print n}' <<<"$head")"
     [[ "$WANT" =~ ^[0-9]+$ && "$WANT" -gt 0 ]] && break
   fi
+  # A missing or forbidden file will not appear by waiting; a rate limit (429), a server error or no answer at all will.
+  case "$code" in 400|401|403|404|410) echo "fetch: HTTP $code is permanent, not retrying: $URL" >&2; exit 2;; esac
   WANT=""; fails=$((fails+1)); echo "fetch: size lookup failed (HTTP ${code:-none}, attempt $fails): $URL" >&2
   [[ "$fails" -gt 40 ]] && { echo "fetch: giving up on $URL" >&2; exit 1; }
   pause $fails
