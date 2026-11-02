@@ -11,7 +11,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.therapylocal.app.jobs.PipelineHarness
 import com.therapylocal.app.jobs.Said
-import com.therapylocal.app.models.Language
+import com.therapylocal.app.models.SpeechLanguage
 import com.therapylocal.app.models.ModelSetup
 import com.therapylocal.app.ui.app.AddClientSheet
 import com.therapylocal.app.ui.app.LanguagePicker
@@ -133,43 +133,43 @@ class ClientLanguageTest {
     @Test
     fun theAddClientFormStartsWithTheDefaultLanguageAndReturnsTheChosenOne() {
         prefs.edit().putString("default_language", "cs").commit()
-        var added: Pair<String, Language>? = null
+        var added: Pair<String, SpeechLanguage>? = null
         compose.setContent { PaperTheme { AddClientSheet(rememberSheetState(), onCancel = {}, onAdd = { n, l -> added = n to l }) } }
         compose.onNode(hasContentDescription("First name")).performTextInput("tom")
 
         compose.onNode(hasText("English")).performClick()
         compose.onNode(hasContentDescription("Swipe from right to left to add Tom") and hasClickAction()).performClick()
-        compose.runOnIdle { assertEquals("Tom" to Language.English, added) }
+        compose.runOnIdle { assertEquals("Tom" to SpeechLanguage.English, added) }
     }
 
     @Test
     fun theAddClientFormAddsInTheDefaultLanguageWhenLeftAlone() {
         prefs.edit().putString("default_language", "cs").commit()
-        var added: Pair<String, Language>? = null
+        var added: Pair<String, SpeechLanguage>? = null
         compose.setContent { PaperTheme { AddClientSheet(rememberSheetState(), onCancel = {}, onAdd = { n, l -> added = n to l }) } }
         compose.onNode(hasContentDescription("First name")).performTextInput("jana")
         compose.onNode(hasContentDescription("Swipe from right to left to add Jana") and hasClickAction()).performClick()
-        compose.runOnIdle { assertEquals("Jana" to Language.Czech, added) }
+        compose.runOnIdle { assertEquals("Jana" to SpeechLanguage.Czech, added) }
     }
 
     @Test
     fun thePickerReportsATapOnAnotherLanguageOnly() {
-        val picked = ArrayList<Language>()
-        compose.setContent { PaperTheme { LanguagePicker(Language.English, { picked += it }) } }
+        val picked = ArrayList<SpeechLanguage>()
+        compose.setContent { PaperTheme { LanguagePicker(SpeechLanguage.English, { picked += it }) } }
         compose.onNode(hasText("English")).performClick()
         compose.onNode(hasText("Čeština")).performClick()
-        compose.runOnIdle { assertEquals(listOf(Language.Czech), picked) }
+        compose.runOnIdle { assertEquals(listOf(SpeechLanguage.Czech), picked) }
     }
 
     @Test
     fun theRepositoryStoresAndChangesTheLanguageOfAClient() {
         val h = harness("lang-repo.db")
         val repo = ClientRepository(context) { h.store }
-        // Not through Languages.markInUse, which would start a model download on the device.
+        // Not through SpeechLanguages.markInUse, which would start a model download on the device.
         h.store.createClient("jana", "Jana", "cs")
-        assertEquals(Language.Czech, repo.patient("jana").language)
+        assertEquals(SpeechLanguage.Czech, repo.patient("jana").language)
         h.store.setClientLanguage("jana", "en")
-        assertEquals(Language.English, repo.patients().single().language)
+        assertEquals(SpeechLanguage.English, repo.patients().single().language)
     }
 
     private companion object {

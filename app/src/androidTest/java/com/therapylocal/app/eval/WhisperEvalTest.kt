@@ -7,7 +7,7 @@ import androidx.test.platform.app.InstrumentationRegistry
 import com.therapylocal.app.asr.SherpaParakeetAsr
 import com.therapylocal.app.asr.SherpaWhisperAsr
 import com.therapylocal.app.log.LogCtx
-import com.therapylocal.app.models.Language
+import com.therapylocal.app.models.SpeechLanguage
 import com.therapylocal.app.models.ModelRegistry
 import kotlinx.coroutines.runBlocking
 import org.junit.Assume.assumeTrue
@@ -40,8 +40,8 @@ class WhisperEvalTest {
         val verbose = args.getString("verbose") == "1"
         val out = StringBuilder()
 
-        for (size in sizes) for (provider in providers) for (lang in listOf(Language.Czech, Language.English)) {
-            val group = wavs.filter { it.name.startsWith(if (lang == Language.Czech) "cs_" else "en_") }
+        for (size in sizes) for (provider in providers) for (lang in listOf(SpeechLanguage.Czech, SpeechLanguage.English)) {
+            val group = wavs.filter { it.name.startsWith(if (lang == SpeechLanguage.Czech) "cs_" else "en_") }
             if (group.isEmpty()) continue
             val parakeet = size == "parakeet"
             val spec = if (parakeet) ModelRegistry.PARAKEET_V3 else ModelRegistry.whisperFor(size, lang)

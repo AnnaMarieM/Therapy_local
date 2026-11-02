@@ -11,15 +11,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.therapylocal.app.models.Language
+import com.therapylocal.app.models.SpeechLanguage
 import com.therapylocal.app.ui.design.Palette
 import com.therapylocal.app.ui.design.Type
 
 /** One language to pick from the supported ones, as a list of radio rows. */
 @Composable
-fun LanguagePicker(selected: Language, onSelect: (Language) -> Unit, modifier: Modifier = Modifier) {
+fun LanguagePicker(selected: SpeechLanguage, onSelect: (SpeechLanguage) -> Unit, modifier: Modifier = Modifier) {
     Column(modifier) {
-        Language.entries.forEach { l ->
+        SpeechLanguage.entries.forEach { l ->
             Row(
                 Modifier.fillMaxWidth().pressable({ if (l != selected) onSelect(l) }, label = l.title, depth = 0.015f).padding(vertical = 14.dp),
                 verticalAlignment = Alignment.CenterVertically,

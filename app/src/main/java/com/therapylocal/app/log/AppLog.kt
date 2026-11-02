@@ -62,6 +62,31 @@ object AppLog {
         executor.execute { openWriter() }
     }
 
+    /** Writes any uncaught exception, with its full stack trace, to the log file before the process dies, then lets Android handle it as usual. */
+    fun installCrashHandler() {
+        val previous = Thread.getDefaultUncaughtExceptionHandler()
+        Thread.setDefaultUncaughtExceptionHandler { thread, t ->
+            try {
+                val trace = Log.getStackTraceString(t)
+                val head = "ts=${timeFormat.get()!!.format(Date())} lvl=E tag=CRASH sid=$sessionId evt=uncaught thread=${format(thread.name)} err=${format(t.javaClass.name)}"
+                Log.println(Log.ERROR, LOGCAT_TAG, head + "\n" + trace)
+                if (dir != null) {
+                    executor.submit {
+                        try {
+                            val w = writer ?: openWriter()
+                            w?.write(head + "\n" + trace + "\n")
+                            w?.flush()
+                        } catch (_: Throwable) {
+                        }
+                    }.get(2, java.util.concurrent.TimeUnit.SECONDS)
+                }
+            } catch (_: Throwable) {
+                // the crash handler must never hide the original crash
+            }
+            previous?.uncaughtException(thread, t)
+        }
+    }
+
     fun logDir(): File? = dir
     fun logFile(): File? = dir?.resolve("tl.log")
 

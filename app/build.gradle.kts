@@ -7,6 +7,9 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose")
 }
 
+// The one place the app's name lives: the launcher label, notifications and every screen read it as @string/app_name.
+val appName = "MindVault"
+
 android {
     namespace = "com.therapylocal.app"
     compileSdk = 34
@@ -17,6 +20,7 @@ android {
         targetSdk = 34
         versionCode = 1
         versionName = "0.1.0"
+        resValue("string", "app_name", appName)
         ndk { abiFilters += "arm64-v8a" }
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

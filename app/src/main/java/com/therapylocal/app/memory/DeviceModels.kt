@@ -11,7 +11,7 @@ import com.therapylocal.app.jobs.Llm
 import com.therapylocal.app.jobs.ModelPool
 import com.therapylocal.app.log.AppLog
 import com.therapylocal.app.log.LogCtx
-import com.therapylocal.app.models.Language
+import com.therapylocal.app.models.SpeechLanguage
 import com.therapylocal.app.models.ModelRegistry
 import com.therapylocal.app.models.ModelSetup
 import kotlinx.coroutines.runBlocking
@@ -32,7 +32,7 @@ object DeviceModels {
             (llm() as? MemoryLlm)?.speech()?.let { return it }
             AppLog.w(TAG, "gemma_asr_unavailable", LogCtx.NONE, "fallback" to "whisper")
         }
-        val whisper = SherpaWhisperAsr(context, prefs.getString("whisper_size", ModelRegistry.DEFAULT_WHISPER_SIZE) ?: ModelRegistry.DEFAULT_WHISPER_SIZE, Language.of(language))
+        val whisper = SherpaWhisperAsr(context, prefs.getString("whisper_size", ModelRegistry.DEFAULT_WHISPER_SIZE) ?: ModelRegistry.DEFAULT_WHISPER_SIZE, SpeechLanguage.of(language))
         try {
             runBlocking { whisper.load() }
         } catch (t: Throwable) {

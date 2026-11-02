@@ -8,8 +8,8 @@ import com.therapylocal.app.log.AppLog
 import com.therapylocal.app.log.LogCtx
 import com.therapylocal.app.data.PendingAudio
 import com.therapylocal.app.jobs.Jobs
-import com.therapylocal.app.models.Language
-import com.therapylocal.app.models.Languages
+import com.therapylocal.app.models.SpeechLanguage
+import com.therapylocal.app.models.SpeechLanguages
 import com.therapylocal.app.models.ModelSetup
 import com.therapylocal.app.ui.logic.SessionLogic
 import com.therapylocal.app.ui.models.FactItem
@@ -31,17 +31,17 @@ class ClientRepository(context: Context, private val open: (Context) -> MindStor
     fun clients(): List<String> = store.clients().map { it.id }
 
     /** Creates a client from the add-patient form and returns its UI patient. The id is a free slug of the name. */
-    fun createClient(name: String, language: Language = Languages.default(appContext)): Patient {
+    fun createClient(name: String, language: SpeechLanguage = SpeechLanguages.default(appContext)): Patient {
         val id = ClientInput.uniqueId(ClientInput.slug(name), clients().toSet())
         store.createClient(id, name.trim(), language.code)
-        Languages.markInUse(appContext, language)
+        SpeechLanguages.markInUse(appContext, language)
         return patient(id)
     }
 
     /** Changes the language the client's next recordings are transcribed in; transcripts already made are kept. */
-    fun setLanguage(id: String, language: Language) {
+    fun setLanguage(id: String, language: SpeechLanguage) {
         store.setClientLanguage(id, language.code)
-        Languages.markInUse(appContext, language)
+        SpeechLanguages.markInUse(appContext, language)
     }
 
     /** Deletes the client and all its stored data (audio not processed yet included), and drops it from the pipeline queue state. */
@@ -76,11 +76,11 @@ class ClientRepository(context: Context, private val open: (Context) -> MindStor
     fun sourceChunk(session: String, segIdx: Int): String? = store.segmentsAround(session, segIdx, 0).firstOrNull()?.text
 
     /** All clients as UI patients. */
-    fun patients(): List<Patient> = store.clients().map { patient(it.id, it.name, Language.of(it.language)) }
+    fun patients(): List<Patient> = store.clients().map { patient(it.id, it.name, SpeechLanguage.of(it.language)) }
 
-    fun patient(client: String): Patient = store.clients().firstOrNull { it.id == client }.let { patient(client, it?.name, Language.of(it?.language)) }
+    fun patient(client: String): Patient = store.clients().firstOrNull { it.id == client }.let { patient(client, it?.name, SpeechLanguage.of(it?.language)) }
 
-    private fun patient(client: String, name: String?, language: Language): Patient {
+    private fun patient(client: String, name: String?, language: SpeechLanguage): Patient {
         val sessions = store.sessions(client)
         val dates = sessions.associate { it.id to date(it.startedAt) }
         val rows = store.facts(client)

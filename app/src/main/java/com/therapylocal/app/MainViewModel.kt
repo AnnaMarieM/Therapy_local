@@ -4,6 +4,7 @@ import android.app.Application
 import android.content.Context
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.therapylocal.app.R
 import com.therapylocal.app.audio.ChunkRecorder
 import com.therapylocal.app.audio.TestAudio
 import com.therapylocal.app.config.BackendPolicy
@@ -194,7 +195,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         searchJob = viewModelScope.launch(Dispatchers.IO) {
             showSearch {
                 val vec = if (_state.value.phase == Phase.Ready) embedder.embedText(query, query = true, LogCtx.NONE) else null
-                SearchState(hits = clients.search(client, vec, query), info = if (vec == null) "Transcripts can be searched once setup finishes." else null)
+                SearchState(hits = clients.search(client, vec, query), info = if (vec == null) ctx.getString(R.string.vm_search_after_setup) else null)
             }
         }
     }
@@ -211,7 +212,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             rec.start()
         } catch (t: Throwable) {
             AppLog.e(TAG, "voice_search_start_failed", LogCtx.NONE, t)
-            _search.value = SearchState(info = "The microphone could not be opened.")
+            _search.value = SearchState(info = ctx.getString(R.string.vm_mic_open_failed_short))
             return false
         }
         voiceRecorder = rec
@@ -222,7 +223,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             val clip = rec.chunks.receiveCatching().getOrNull()
             stopVoiceSearch()
             if (clip == null) {
-                _search.value = SearchState(info = "Too short: hold the button while you speak.")
+                _search.value = SearchState(info = ctx.getString(R.string.vm_search_too_short))
                 return@launch
             }
             showSearch {
@@ -241,7 +242,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             throw e
         } catch (t: Throwable) {
             AppLog.e(TAG, "search_failed", LogCtx.NONE, t)
-            SearchState(info = "Search failed. Please try again.")
+            SearchState(info = ctx.getString(R.string.vm_search_failed))
         }
     }
 

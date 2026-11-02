@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Recording notification -->
+    <string name="notif_recording_channel">Nahrávání</string>
+    <string name="notif_recording_title">Nahrávání</string>
+    <string name="notif_recording_title_paused">Sezení pozastaveno</string>
+    <string name="notif_recording_title_who">%1$s · Nahrávání</string>
+    <string name="notif_recording_title_paused_who">%1$s · Pozastaveno</string>
+    <string name="notif_recording_public">Nahrávání sezení</string>
+    <string name="notif_recording_title_time">%1$s · %2$s</string>
+    <string name="notif_recording_text">Zvuk zůstává v tomto telefonu</string>
+    <string name="notif_recording_text_paused">Klepnutím pokračujte</string>
+    <string name="notif_recording_chip_paused">Pozastaveno %1$s</string>
+
+    <!-- Processing notification -->
+    <string name="notif_processing_channel">Zpracování sezení</string>
+    <string name="notif_processing_public">Zpracování sezení</string>
+    <string name="notif_processing_stop">Zastavit</string>
+
+    <string name="processing_stopping_title">Zastavování…</string>
+    <string name="processing_stopping_text">Dokončuje se aktuální krok, poté se zpracování zastaví</string>
+    <string name="processing_preparing_text">Načítání modelů v zařízení…</string>
+    <string name="processing_retry_text">Něco se pokazilo, zkouším to znovu (pokus %1$d z %2$d)</string>
+    <string name="processing_title_processing">Zpracování sezení</string>
+    <string name="processing_title_processing_of">Zpracování sezení %1$d z %2$d</string>
+    <string name="processing_title_transcribing">Přepis sezení</string>
+    <string name="processing_title_transcribing_of">Přepis sezení %1$d z %2$d</string>
+    <string name="processing_title_analysing">Analýza sezení</string>
+    <string name="processing_title_analysing_of">Analýza sezení %1$d z %2$d</string>
+    <string name="processing_detail_starting">Příprava…</string>
+    <string name="processing_detail_transcribing">Převod zvuku na text</string>
+    <string name="processing_detail_transcribing_part">Převod zvuku na text · část %1$d z %2$d</string>
+    <string name="processing_detail_reading">Hledání hlavních bodů v přepisu</string>
+    <string name="processing_detail_reading_section">Hledání hlavních bodů v přepisu · oddíl %1$d z %2$d</string>
+    <string name="processing_detail_checking">Porovnávání nových zjištění s profilem</string>
+    <string name="processing_detail_checking_item">Porovnávání nových zjištění s profilem · položka %1$d z %2$d</string>
+    <string name="processing_failed_text">Hotovo %1$d z %2$d · pro opakování otevřete aplikaci</string>
+    <string name="processing_stopped_title">Zpracování zastaveno</string>
+    <string name="processing_stopped_text">Hotovo %1$d z %2$d · pro pokračování otevřete aplikaci</string>
+    <string name="processing_done_title">Sezení zpracována</string>
+    <plurals name="processing_preparing_title">
+        <item quantity="one">Příprava ke zpracování: %d sezení</item>
+        <item quantity="few">Příprava ke zpracování: %d sezení</item>
+        <item quantity="many">Příprava ke zpracování: %d sezení</item>
+        <item quantity="other">Příprava ke zpracování: %d sezení</item>
+    </plurals>
+    <plurals name="processing_failed_title">
+        <item quantity="one">Sezení se nepodařilo zpracovat: %d</item>
+        <item quantity="few">Sezení se nepodařilo zpracovat: %d</item>
+        <item quantity="many">Sezení se nepodařilo zpracovat: %d</item>
+        <item quantity="other">Sezení se nepodařilo zpracovat: %d</item>
+    </plurals>
+    <plurals name="processing_done_text">
+        <item quantity="one">Hotovo: %d sezení</item>
+        <item quantity="few">Hotovo: %d sezení</item>
+        <item quantity="many">Hotovo: %d sezení</item>
+        <item quantity="other">Hotovo: %d sezení</item>
+    </plurals>
+
+    <!-- Model setup (download) -->
+    <string name="notif_setup_channel">Nastavení</string>
+    <string name="notif_setup_title">Nastavování aplikace %1$s</string>
+    <string name="notif_setup_ready_title">Aplikace %1$s je připravena</string>
+    <string name="notif_setup_ready_text">Nahraná sezení se nyní budou zpracovávat automaticky.</string>
+    <string name="notif_setup_paused_title">Nastavení pozastaveno</string>
+    <string name="notif_setup_free_space">Uvolněte %1$s úložiště, aby se nastavení mohlo dokončit.</string>
+    <string name="notif_setup_sizes">%1$s z %2$s</string>
+    <string name="notif_setup_sizes_eta">%1$s · zbývá %2$s</string>
+    <string name="setup_checking_files">Kontrola souborů…</string>
+    <string name="setup_failed_generic">Nastavení se nepodařilo dokončit</string>
+    <string name="setup_waiting_network">Čekání na připojení k internetu</string>
+    <string name="setup_eta_less_than_minute">méně než minuta</string>
+    <string name="setup_eta_minutes">asi %1$d min</string>
+    <string name="setup_eta_hours">asi %1$d h</string>
+    <string name="setup_eta_hours_minutes">asi %1$d h %2$d min</string>
+
+    <!-- Messages from the view model and the session controller -->
+    <string name="vm_vault_locked">Trezor je zamčený.</string>
+    <string name="vm_record_no_space">Pro nahrávání není dost volného místa. Uvolněte úložiště a zkuste to znovu.</string>
+    <string name="vm_mic_open_failed">Mikrofon se nepodařilo otevřít. %1$s</string>
+    <string name="vm_mic_open_failed_short">Mikrofon se nepodařilo otevřít.</string>
+    <string name="vm_chunk_save_failed">Část nahrávky se nepodařilo uložit.</string>
+    <string name="vm_search_after_setup">V přepisech lze vyhledávat po dokončení nastavení.</string>
+    <string name="vm_search_too_short">Příliš krátké: tlačítko držte, dokud mluvíte.</string>
+    <string name="vm_search_failed">Hledání se nezdařilo. Zkuste to prosím znovu.</string>
+
+    <!-- Biometric prompt -->
+    <string name="auth_no_key">Biometrické ověření nevrátilo žádný klíč.</string>
+</resources>

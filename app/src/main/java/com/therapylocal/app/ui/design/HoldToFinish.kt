@@ -28,7 +28,9 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.onClick
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.therapylocal.app.R
 import kotlinx.coroutines.launch
 
 /**
@@ -38,6 +40,9 @@ import kotlinx.coroutines.launch
  */
 @Composable
 fun HoldToFinish(onComplete: () -> Unit, onTooShort: () -> Unit, modifier: Modifier = Modifier, holdMs: Int = 700) {
+    val desc = stringResource(R.string.hold_desc)
+    val clickLabel = stringResource(R.string.hold_click_label)
+    val finishLabel = stringResource(R.string.hold_action_finish)
     val haptics = rememberHaptics()
     val scope = rememberCoroutineScope()
     val fill = remember { Animatable(0f) }
@@ -49,9 +54,9 @@ fun HoldToFinish(onComplete: () -> Unit, onTooShort: () -> Unit, modifier: Modif
             .clip(CircleShape)
             .background(Palette.Tonal)
             .semantics {
-                contentDescription = "Hold to finish the session"
-                onClick(label = "Hold to finish") { onTooShort(); true }
-                customActions = listOf(CustomAccessibilityAction("Finish session") { onComplete(); true })
+                contentDescription = desc
+                onClick(label = clickLabel) { onTooShort(); true }
+                customActions = listOf(CustomAccessibilityAction(finishLabel) { onComplete(); true })
             }
             .pointerInput(Unit) {
                 detectTapGestures(onPress = {

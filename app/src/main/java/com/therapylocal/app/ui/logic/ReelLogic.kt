@@ -1,5 +1,9 @@
 package com.therapylocal.app.ui.logic
 
+import androidx.annotation.StringRes
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
+import com.therapylocal.app.R
 import com.therapylocal.app.memory.Cue
 import java.text.Collator
 import java.util.Locale
@@ -114,9 +118,14 @@ const val HERO_MIN_SHRINK = 0.6f
 /** The share of full size a selected name of [chars] characters is set at, so it stays on one line as long as it reasonably can. */
 fun heroShrink(chars: Int): Float = if (chars <= HERO_FULL_CHARS) 1f else (HERO_FULL_CHARS.toFloat() / chars).coerceAtLeast(HERO_MIN_SHRINK)
 
-/** A time-of-day greeting from the hour (0..23). */
-fun greeting(hour: Int): String = when (hour) {
-    in 5..11 -> "Good morning"
-    in 12..17 -> "Good afternoon"
-    else -> "Good evening"
+/** The string resource of a time-of-day greeting from the hour (0..23). */
+@StringRes
+fun greetingRes(hour: Int): Int = when (hour) {
+    in 5..11 -> R.string.reel_greeting_morning
+    in 12..17 -> R.string.reel_greeting_afternoon
+    else -> R.string.reel_greeting_evening
 }
+
+/** A time-of-day greeting from the hour (0..23), in the active language. */
+@Composable
+fun greeting(hour: Int): String = stringResource(greetingRes(hour))

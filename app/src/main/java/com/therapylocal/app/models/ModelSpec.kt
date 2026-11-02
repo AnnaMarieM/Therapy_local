@@ -151,11 +151,11 @@ object ModelRegistry {
     fun byId(id: String): ModelSpec = ALL.first { it.id == id }
 
     /** The Whisper build for a client's language: English has its own English-only build, every other language uses the multilingual one. */
-    fun whisperFor(size: String, language: Language): ModelSpec = when (size) {
+    fun whisperFor(size: String, language: SpeechLanguage): ModelSpec = when (size) {
         "medium" -> WHISPER_MEDIUM
         "turbo" -> WHISPER_TURBO
         "large-v3" -> WHISPER_LARGE_V3
-        else -> if (language == Language.English) when (size) {
+        else -> if (language == SpeechLanguage.English) when (size) {
             "tiny" -> WHISPER_TINY_EN
             "small" -> WHISPER_SMALL_EN
             else -> WHISPER_BASE_EN

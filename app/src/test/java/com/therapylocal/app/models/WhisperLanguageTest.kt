@@ -8,23 +8,23 @@ import org.junit.Test
 class WhisperLanguageTest {
     @Test
     fun englishUsesTheEnglishOnlyBuildAndCzechTheMultilingualOne() {
-        assertEquals("whisper-base.en", ModelRegistry.whisperFor("base", Language.English).id)
-        assertEquals("whisper-base", ModelRegistry.whisperFor("base", Language.Czech).id)
-        assertEquals("whisper-small.en", ModelRegistry.whisperFor("small", Language.English).id)
-        assertEquals("whisper-tiny", ModelRegistry.whisperFor("tiny", Language.Czech).id)
+        assertEquals("whisper-base.en", ModelRegistry.whisperFor("base", SpeechLanguage.English).id)
+        assertEquals("whisper-base", ModelRegistry.whisperFor("base", SpeechLanguage.Czech).id)
+        assertEquals("whisper-small.en", ModelRegistry.whisperFor("small", SpeechLanguage.English).id)
+        assertEquals("whisper-tiny", ModelRegistry.whisperFor("tiny", SpeechLanguage.Czech).id)
     }
 
     @Test
     fun theBigBuildsServeEveryLanguage() {
         for (size in listOf("medium", "turbo", "large-v3")) {
-            assertEquals("whisper-$size", ModelRegistry.whisperFor(size, Language.Czech).id)
-            assertEquals("whisper-$size", ModelRegistry.whisperFor(size, Language.English).id)
+            assertEquals("whisper-$size", ModelRegistry.whisperFor(size, SpeechLanguage.Czech).id)
+            assertEquals("whisper-$size", ModelRegistry.whisperFor(size, SpeechLanguage.English).id)
         }
     }
 
     @Test
     fun anUnknownSizeFallsBackToBase() {
-        assertEquals("whisper-base", ModelRegistry.whisperFor("huge", Language.Czech).id)
+        assertEquals("whisper-base", ModelRegistry.whisperFor("huge", SpeechLanguage.Czech).id)
     }
 
     @Test
@@ -41,9 +41,9 @@ class WhisperLanguageTest {
 
     @Test
     fun aCodeThatIsNotSupportedIsEnglish() {
-        assertEquals(Language.Czech, Language.of("cs"))
-        assertEquals(Language.English, Language.of("sk"))
-        assertEquals(Language.English, Language.of(null))
-        assertNotEquals(Language.of("cs"), Language.of("en"))
+        assertEquals(SpeechLanguage.Czech, SpeechLanguage.of("cs"))
+        assertEquals(SpeechLanguage.English, SpeechLanguage.of("sk"))
+        assertEquals(SpeechLanguage.English, SpeechLanguage.of(null))
+        assertNotEquals(SpeechLanguage.of("cs"), SpeechLanguage.of("en"))
     }
 }

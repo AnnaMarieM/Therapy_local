@@ -9,6 +9,7 @@ import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
+import com.therapylocal.app.R
 import com.therapylocal.app.log.AppLog
 import com.therapylocal.app.log.LogCtx
 import kotlinx.coroutines.CoroutineScope
@@ -46,7 +47,7 @@ object ModelSetup {
         val engine = prefs.getString("engine", "whisper") ?: "whisper"
         val size = prefs.getString("whisper_size", ModelRegistry.DEFAULT_WHISPER_SIZE) ?: ModelRegistry.DEFAULT_WHISPER_SIZE
         val gemma = gemma(context)
-        val speech = if (engine == "gemma") listOf(gemma) else Languages.inUse(context).map { ModelRegistry.whisperFor(size, it) }
+        val speech = if (engine == "gemma") listOf(gemma) else SpeechLanguages.inUse(context).map { ModelRegistry.whisperFor(size, it) }
         return (listOf(ModelRegistry.EMBED) + speech + gemma).distinct()
     }
 
@@ -143,36 +144,39 @@ object ModelSetup {
                             val verifying = p.getString(ModelDownloadWorker.KEY_PHASE) == ModelDownloadWorker.PHASE_VERIFYING
                             SetupProgress(
                                 SetupState.Downloading, p.getLong(ModelDownloadWorker.KEY_DONE, 0), total,
-                                if (eta >= 0 && !verifying) eta else null, if (verifying) "Checking files…" else null,
+                                if (eta >= 0 && !verifying) eta else null, if (verifying) context.getString(R.string.setup_checking_files) else null,
                             ).also { last = it }
                         }
                     }
                     WorkInfo.State.SUCCEEDED -> SetupProgress(SetupState.Ready, totalBytes(context), totalBytes(context)).also { last = it }
                     WorkInfo.State.FAILED -> SetupProgress(
                         SetupState.Failed, last.doneBytes, last.totalBytes,
-                        message = info.outputData.getString(ModelDownloadWorker.KEY_ERROR) ?: "Setup could not finish",
+                        message = info.outputData.getString(ModelDownloadWorker.KEY_ERROR) ?: context.getString(R.string.setup_failed_generic),
                     )
                     WorkInfo.State.ENQUEUED, WorkInfo.State.BLOCKED ->
-                        last.copy(state = SetupState.Downloading, etaSeconds = null, message = if (last.doneBytes == 0L) "Waiting for internet connection" else last.message)
+                        last.copy(state = SetupState.Downloading, etaSeconds = null, message = if (last.doneBytes == 0L) context.getString(R.string.setup_waiting_network) else last.message)
                     WorkInfo.State.CANCELLED -> _progress.value
                 }
             }
         }
     }
 
-    /** "850 MB" below 1 GB, otherwise "1.2 GB" (1024-based). */
-    fun formatBytes(bytes: Long): String =
-        if (bytes < 1L shl 30) "${bytes shr 20} MB" else String.format(Locale.US, "%.1f GB", bytes / (1024.0 * 1024 * 1024))
+    /** "850 MB" below 1 GB, otherwise "1.2 GB" (1024-based); the decimal mark follows [locale]. */
+    fun formatBytes(bytes: Long, locale: Locale = Locale.getDefault()): String =
+        if (bytes < 1L shl 30) String.format(locale, "%d MB", bytes shr 20) else String.format(locale, "%.1f GB", bytes / (1024.0 * 1024 * 1024))
 
-    fun formatEta(seconds: Long): String {
+    fun formatBytes(context: Context, bytes: Long): String = formatBytes(bytes, context.resources.configuration.locales[0])
+
+    /** "about 5 min", "about 1 h 20 min", "less than a minute", in the app's language. */
+    fun formatEta(context: Context, seconds: Long): String {
         val min = (seconds + 59) / 60
         return when {
-            seconds < 60 -> "less than a minute"
-            min < 60 -> "about $min min"
+            seconds < 60 -> context.getString(R.string.setup_eta_less_than_minute)
+            min < 60 -> context.getString(R.string.setup_eta_minutes, min)
             else -> {
                 val h = min / 60
                 val m = min % 60
-                if (m == 0L) "about $h h" else "about $h h $m min"
+                if (m == 0L) context.getString(R.string.setup_eta_hours, h) else context.getString(R.string.setup_eta_hours_minutes, h, m)
             }
         }
     }

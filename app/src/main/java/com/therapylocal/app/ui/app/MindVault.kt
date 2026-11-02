@@ -31,13 +31,16 @@ import com.therapylocal.app.ui.design.LocalIdle
 import com.therapylocal.app.ui.design.rememberIdleState
 import com.therapylocal.app.ui.design.watchIdle
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.therapylocal.app.MainViewModel
+import com.therapylocal.app.R
 import com.therapylocal.app.Phase
 import com.therapylocal.app.jobs.Jobs
 import com.therapylocal.app.memory.MemoryService
@@ -53,6 +56,7 @@ import com.therapylocal.app.ui.design.paper
 import com.therapylocal.app.ui.design.rememberChoiceState
 import com.therapylocal.app.ui.design.rememberHaptics
 import com.therapylocal.app.ui.logic.SessionLogic
+import com.therapylocal.app.ui.logic.uiText
 import com.therapylocal.app.data.MindStore
 import androidx.compose.runtime.produceState
 import com.therapylocal.app.perf.PerfStats
@@ -92,6 +96,8 @@ fun MindVault(viewModel: () -> MainViewModel, openSession: Int, onDeveloper: (()
 @Composable
 private fun Main(viewModel: MainViewModel, openSessionRequest: Int, onDeveloper: (() -> Unit)?) {
     val ctx = LocalContext.current
+    val config = LocalConfiguration.current
+    val t = remember(ctx, config) { ctx.uiText() }
     val activity = remember(ctx) { ctx.findFragmentActivity() }
     val scope = rememberCoroutineScope()
     val haptics = rememberHaptics()
@@ -137,7 +143,7 @@ private fun Main(viewModel: MainViewModel, openSessionRequest: Int, onDeveloper:
     var afterMic by remember { mutableStateOf<(() -> Unit)?>(null) }
     val askMic = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { ok ->
         if (ok) afterMic?.invoke()
-        else notice.show("Recording needs the microphone. Allow it in the phone's settings.")
+        else notice.show(t.str(R.string.mindvault_mic_needed))
         afterMic = null
     }
     val withMic = { run: () -> Unit -> if (micGranted()) run() else { afterMic = run; askMic.launch(Manifest.permission.RECORD_AUDIO) } }
@@ -147,9 +153,9 @@ private fun Main(viewModel: MainViewModel, openSessionRequest: Int, onDeveloper:
     val failedTotal = failedByClient.values.sum()
     val retryFailed = {
         scope.launch(Dispatchers.IO) { Jobs.queue(ctx).retryFailed(); MemoryService.resumePending(ctx) }
-        notice.show("Trying again")
+        notice.show(t.str(R.string.mindvault_trying_again))
     }
-    val finishing = if (session.phase == SessionPhase.Finishing) Triple(session.client, session.sessionId, "Today") else null
+    val finishing = if (session.phase == SessionPhase.Finishing) Triple(session.client, session.sessionId, t.str(R.string.mindvault_today)) else null
     // Time left is measured, never guessed: how fast the running step has gone so far (and the download, from its bytes).
     val stepMeter = remember { RateMeter() }
     val downloadMeter = remember { RateMeter() }
@@ -174,30 +180,33 @@ private fun Main(viewModel: MainViewModel, openSessionRequest: Int, onDeveloper:
         measured = remember(perfVersion, llmModel) { PerfStats.sessionsMeasured(llmModel) },
         audioMs = audioMs,
     )
-    val processing = remember(queue, finishing, evidence) { SessionLogic.processingByClient(queue, finishing, evidence) }
+    val processing = remember(queue, finishing, evidence, t) { SessionLogic.processingByClient(t, queue, finishing, evidence) }
     LaunchedEffect(queue.jobs.count { it.status == com.therapylocal.app.data.JobStatus.Done }, session.ended) { clientsVm.refresh() }
 
     val statusOf = { p: Patient ->
         when {
-            session.active && session.client == p.id -> ClientStatus(if (session.phase == SessionPhase.Paused) "Session paused" else "Recording now", Palette.Rec, busy = session.phase == SessionPhase.Recording)
-            processing[p.id] != null -> processing.getValue(p.id).let { ClientStatus("Processing · ${it.stage}", busy = true, details = it.details) }
-            (failedByClient[p.id] ?: 0) > 0 -> ClientStatus("A session could not be processed · Retry", Palette.Rec, onTap = retryFailed)
-            p.sessionCount == 0 -> ClientStatus("No sessions yet")
-            else -> ClientStatus("${p.sessionCount} ${if (p.sessionCount == 1) "session" else "sessions"} · last ${p.lastSession}")
+            session.active && session.client == p.id -> ClientStatus(t.str(if (session.phase == SessionPhase.Paused) R.string.mindvault_status_paused else R.string.mindvault_status_recording), Palette.Rec, busy = session.phase == SessionPhase.Recording)
+            processing[p.id] != null -> processing.getValue(p.id).let { ClientStatus(t.str(R.string.mindvault_status_processing, it.stage), busy = true, details = it.details) }
+            (failedByClient[p.id] ?: 0) > 0 -> ClientStatus(t.str(R.string.mindvault_status_failed), Palette.Rec, onTap = retryFailed)
+            p.sessionCount == 0 -> ClientStatus(t.str(R.string.mindvault_status_no_sessions))
+            else -> ClientStatus(t.plural(R.plurals.mindvault_status_sessions, p.sessionCount, p.sessionCount, p.lastSession))
         }
     }
     val setupLine = when (setup.state) {
         SetupState.Ready -> null
-        SetupState.Failed -> ClientStatus("Setup paused · Try again", Palette.Rec) { ModelSetup.retry(ctx) }
+        SetupState.Failed -> ClientStatus(t.str(R.string.mindvault_setup_paused), Palette.Rec) { ModelSetup.retry(ctx) }
         SetupState.Downloading -> ClientStatus(
-            if (setup.totalBytes > 0) "Getting ready · ${ModelSetup.formatBytes(setup.doneBytes)} of ${ModelSetup.formatBytes(setup.totalBytes)}" else setup.message ?: "Getting ready",
+            if (setup.totalBytes > 0) t.str(R.string.mindvault_setup_getting_ready_bytes, ModelSetup.formatBytes(ctx, setup.doneBytes), ModelSetup.formatBytes(ctx, setup.totalBytes))
+            else setup.message ?: t.str(R.string.mindvault_setup_getting_ready),
             busy = true,
             details = if (setup.totalBytes > 0) listOf(
-                "Downloading · ${ModelSetup.formatBytes(setup.doneBytes)} of ${ModelSetup.formatBytes(setup.totalBytes)} · " +
-                    (downloadMeter.leftMs()?.let(Progress::left) ?: "measuring…"),
+                t.str(
+                    R.string.mindvault_setup_downloading, ModelSetup.formatBytes(ctx, setup.doneBytes), ModelSetup.formatBytes(ctx, setup.totalBytes),
+                    downloadMeter.leftMs()?.let { Progress.left(t, it) } ?: t.str(R.string.progress_measuring),
+                ),
             ) else emptyList(),
         )
-        SetupState.Checking -> ClientStatus("Getting ready", busy = true)
+        SetupState.Checking -> ClientStatus(t.str(R.string.mindvault_setup_getting_ready), busy = true)
     }
     val clientName = { id: String -> clients.firstOrNull { it.id == id }?.name ?: id.replaceFirstChar { it.uppercase() } }
     val elapsed = { SessionController.state.value.clock.elapsedMs(SystemClock.elapsedRealtime()) }
@@ -219,7 +228,7 @@ private fun Main(viewModel: MainViewModel, openSessionRequest: Int, onDeveloper:
         withMic {
             if (session.active) openSessionPage()
             else if (SessionController.start(p.id, cues = vm.phase == Phase.Ready, name = p.name)) openSessionPage()
-            else notice.show("The last session is still being saved. One moment.")
+            else notice.show(t.str(R.string.mindvault_still_saving))
         }
     }
     val openSession = { openSessionPage() }
@@ -234,11 +243,11 @@ private fun Main(viewModel: MainViewModel, openSessionRequest: Int, onDeveloper:
     }
     val addClient = { haptics.confirm(); addSheet.open() }
     val deleteClient = { p: Patient ->
-        if (session.active && session.client == p.id) notice.show("${p.name} is being recorded. Finish the session first.")
+        if (session.active && session.client == p.id) notice.show(t.str(R.string.mindvault_client_recording, p.name))
         else {
             if (profileId == p.id) profileSheet.close()
             clientsVm.delete(p.id)
-            notice.show("${p.name} deleted")
+            notice.show(t.str(R.string.mindvault_client_deleted, p.name))
         }
     }
     // A sideways drag on home brings the next page in under the finger; let go unarmed and it goes back.
@@ -253,7 +262,7 @@ private fun Main(viewModel: MainViewModel, openSessionRequest: Int, onDeveloper:
     val lock: () -> Unit = { if (queue.running != null) confirmLock = true else activity?.let(Vault::lock) }
     val showSaved = { e: EndedSession ->
         haptics.confirm()
-        notice.show("Saved to ${clientName(e.client)}'s record", "Discard" to { confirmDiscard = true }, durationMs = 8_000)
+        notice.show(t.str(R.string.mindvault_saved_to, clientName(e.client)), t.str(R.string.mindvault_discard) to { confirmDiscard = true }, durationMs = 8_000)
     }
     val discard = { e: EndedSession, message: String ->
         scope.launch {
@@ -271,7 +280,7 @@ private fun Main(viewModel: MainViewModel, openSessionRequest: Int, onDeveloper:
     LaunchedEffect(session.ended) {
         val e = session.ended ?: return@LaunchedEffect
         when (SessionLogic.endOutcome(e.durationMs)) {
-            SessionLogic.EndOutcome.Discard -> discard(e, "Under 10 seconds, so not saved")
+            SessionLogic.EndOutcome.Discard -> discard(e, t.str(R.string.mindvault_too_short))
             SessionLogic.EndOutcome.Ask -> confirmShort = true
             SessionLogic.EndOutcome.Save -> showSaved(e)
         }
@@ -320,8 +329,8 @@ private fun Main(viewModel: MainViewModel, openSessionRequest: Int, onDeveloper:
                 search = SearchActions(
                     state = search,
                     voiceDisabled = when {
-                        session.active -> "Voice search is off while a session records"
-                        vm.phase != Phase.Ready -> "Voice search works once setup has finished"
+                        session.active -> t.str(R.string.mindvault_voice_off_recording)
+                        vm.phase != Phase.Ready -> t.str(R.string.mindvault_voice_off_setup)
                         else -> null
                     },
                     text = { q -> viewModel.searchText(p.id, q) },
@@ -339,7 +348,7 @@ private fun Main(viewModel: MainViewModel, openSessionRequest: Int, onDeveloper:
                     scope.launch {
                         withContext(Dispatchers.IO) { clientsVm.repo.deleteSession(p.id, s.id) }
                         clientsVm.refresh()
-                        notice.show("Session deleted")
+                        notice.show(t.str(R.string.mindvault_session_deleted))
                     }
                 },
                 titleRef = titleRef,
@@ -355,12 +364,12 @@ private fun Main(viewModel: MainViewModel, openSessionRequest: Int, onDeveloper:
             AddClientSheet(addSheet, onCancel = { addSheet.close() }, onAdd = { name, language ->
                 scope.launch {
                     val p = withContext(Dispatchers.IO) { runCatching { clientsVm.repo.createClient(name, language) }.getOrNull() }
-                    if (p == null) { notice.show("That client could not be added"); return@launch }
+                    if (p == null) { notice.show(t.str(R.string.mindvault_client_add_failed)); return@launch }
                     haptics.confirm()
                     clientsVm.refresh()
                     focus = p.id
                     addSheet.close()
-                    notice.show("${p.name} added")
+                    notice.show(t.str(R.string.mindvault_client_added, p.name))
                 }
             })
         }
@@ -409,16 +418,16 @@ private fun Main(viewModel: MainViewModel, openSessionRequest: Int, onDeveloper:
     }
 
     if (confirmLock) ConfirmDialog(
-        "Lock MindVault?", "A session is being processed. It pauses now and carries on after you unlock.", "Lock",
+        stringResource(R.string.mindvault_lock_title, stringResource(R.string.app_name)), stringResource(R.string.mindvault_lock_body), stringResource(R.string.mindvault_lock_confirm),
         onConfirm = { confirmLock = false; activity?.let(Vault::lock) }, onDismiss = { confirmLock = false }, destructive = false,
     )
     if (confirmDiscard) {
         val e = session.ended
         ConfirmDialog(
-            "Discard this session?", "Its recording is deleted from the phone and it will not be processed. This cannot be undone.", "Discard",
+            stringResource(R.string.mindvault_discard_title), stringResource(R.string.mindvault_discard_body), stringResource(R.string.mindvault_discard),
             onConfirm = {
                 confirmDiscard = false
-                if (e != null) discard(e, "Session discarded")
+                if (e != null) discard(e, t.str(R.string.mindvault_session_discarded))
             },
             onDismiss = { confirmDiscard = false },
         )
@@ -427,13 +436,13 @@ private fun Main(viewModel: MainViewModel, openSessionRequest: Int, onDeveloper:
     if (confirmShort) {
         val e = session.ended
         ConfirmDialog(
-            "That was quick.", "Do you want to save this session?", "Discard",
+            stringResource(R.string.mindvault_quick_title), stringResource(R.string.mindvault_quick_body), stringResource(R.string.mindvault_discard),
             onConfirm = {
                 confirmShort = false
-                if (e != null) discard(e, "Session discarded")
+                if (e != null) discard(e, t.str(R.string.mindvault_session_discarded))
             },
             onDismiss = { confirmShort = false; e?.let(showSaved) },
-            dismiss = "Save",
+            dismiss = stringResource(R.string.mindvault_save),
         )
     }
 }

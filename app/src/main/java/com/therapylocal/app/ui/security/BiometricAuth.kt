@@ -2,6 +2,7 @@ package com.therapylocal.app.ui.security
 
 import android.content.Context
 import android.content.ContextWrapper
+import com.therapylocal.app.R
 import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_STRONG
 import androidx.biometric.BiometricPrompt
 import androidx.core.content.ContextCompat
@@ -20,7 +21,7 @@ fun authenticateWithBiometric(
 ) {
     val callback = object : BiometricPrompt.AuthenticationCallback() {
         override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
-            result.cryptoObject?.cipher?.let(onSuccess) ?: onError("Biometric authentication returned no key.")
+            result.cryptoObject?.cipher?.let(onSuccess) ?: onError(activity.getString(R.string.auth_no_key))
         }
 
         override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {

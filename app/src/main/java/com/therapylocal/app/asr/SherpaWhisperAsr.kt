@@ -9,7 +9,7 @@ import com.k2fsa.sherpa.onnx.OfflineRecognizerConfig
 import com.k2fsa.sherpa.onnx.OfflineWhisperModelConfig
 import com.therapylocal.app.log.AppLog
 import com.therapylocal.app.log.LogCtx
-import com.therapylocal.app.models.Language
+import com.therapylocal.app.models.SpeechLanguage
 import com.therapylocal.app.models.ModelRegistry
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
@@ -17,7 +17,7 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 
 /** Whisper (tiny, base or small, int8) for one language on sherpa-onnx. [provider] is the ONNX Runtime execution provider: "cpu" or "nnapi". */
-class SherpaWhisperAsr(private val context: Context, size: String, private val language: Language, private val provider: String = "cpu") : AsrEngine {
+class SherpaWhisperAsr(private val context: Context, size: String, private val language: SpeechLanguage, private val provider: String = "cpu") : AsrEngine {
     private val spec = ModelRegistry.whisperFor(size, language)
     private val prefix = spec.id.removePrefix("whisper-")
     override val engineName = "whisper"

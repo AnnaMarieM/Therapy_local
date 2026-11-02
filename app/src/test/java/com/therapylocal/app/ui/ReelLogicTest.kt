@@ -1,9 +1,11 @@
 package com.therapylocal.app.ui
 
+import com.therapylocal.app.R
 import com.therapylocal.app.memory.Cue
+import com.therapylocal.app.testsupport.EnglishTexts
 import com.therapylocal.app.ui.logic.CueView
 import com.therapylocal.app.ui.logic.ReelIndex
-import com.therapylocal.app.ui.logic.greeting
+import com.therapylocal.app.ui.logic.greetingRes
 import com.therapylocal.app.ui.logic.heroShrink
 import com.therapylocal.app.ui.logic.railLetterAt
 import com.therapylocal.app.ui.logic.railLetterY
@@ -153,9 +155,12 @@ class ReelLogicTest {
 
     @Test
     fun greetingFollowsTheClock() {
-        assertEquals("Good morning", greeting(5))
-        assertEquals("Good afternoon", greeting(12))
-        assertEquals("Good evening", greeting(18))
-        assertEquals("Good evening", greeting(2))
+        assertEquals(R.string.reel_greeting_morning, greetingRes(5))
+        assertEquals(R.string.reel_greeting_morning, greetingRes(11))
+        assertEquals(R.string.reel_greeting_afternoon, greetingRes(12))
+        assertEquals(R.string.reel_greeting_afternoon, greetingRes(17))
+        assertEquals(R.string.reel_greeting_evening, greetingRes(18))
+        assertEquals(R.string.reel_greeting_evening, greetingRes(2))
+        assertEquals("Good afternoon", EnglishTexts.str(greetingRes(12)))
     }
 }

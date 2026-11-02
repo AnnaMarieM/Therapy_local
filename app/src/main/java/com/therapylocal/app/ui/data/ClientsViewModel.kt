@@ -5,7 +5,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.therapylocal.app.data.JobStatus
 import com.therapylocal.app.jobs.Jobs
-import com.therapylocal.app.models.Language
+import com.therapylocal.app.models.SpeechLanguage
 import com.therapylocal.app.ui.models.Patient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -40,7 +40,7 @@ class ClientsViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     /** Creates the client in the memory store and returns it (with its real id). */
-    fun create(name: String, language: Language): Patient {
+    fun create(name: String, language: SpeechLanguage): Patient {
         val p = repo.createClient(name, language)
         _patients.value = listOf(p) + _patients.value.filter { it.id != p.id }
         return p

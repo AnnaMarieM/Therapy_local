@@ -1,5 +1,6 @@
 package com.therapylocal.app.ui.logic
 
+import com.therapylocal.app.R
 import com.therapylocal.app.jobs.JobPhase
 import kotlin.math.ceil
 
@@ -12,43 +13,52 @@ object Progress {
     /** Estimates are stretched by this: finishing early is a pleasant surprise, finishing late is a broken promise. */
     const val PADDING = 1.2
 
-    /** What one step of a phase is called, so the numbers have a unit. */
-    fun unit(phase: JobPhase, n: Int): String = when (phase) {
-        JobPhase.Transcribing -> if (n == 1) "chunk" else "chunks"
-        JobPhase.Reading -> if (n == 1) "passage" else "passages"
-        JobPhase.Checking -> if (n == 1) "fact" else "facts"
-        JobPhase.None -> if (n == 1) "step" else "steps"
-    }
+    /** "3/12 chunks": how far within a phase, in the plural form that fits [steps]. */
+    fun stepCount(t: UiText, phase: JobPhase, step: Int, steps: Int): String = t.plural(
+        when (phase) {
+            JobPhase.Transcribing -> R.plurals.progress_count_chunks
+            JobPhase.Reading -> R.plurals.progress_count_passages
+            JobPhase.Checking -> R.plurals.progress_count_facts
+            JobPhase.None -> R.plurals.progress_count_steps
+        },
+        steps, step, steps,
+    )
 
-    /** "about 40 s left", "about 3 min left", "about 1 h 10 min left"; always rounded up, so it never promises less than measured. */
-    fun left(ms: Long): String {
+    /** "about 40 s", "about 3 min", "about 1 h 10 min"; always rounded up, so it never promises less than measured. */
+    fun span(t: UiText, ms: Long): String {
         val s = ceil(ms.coerceAtLeast(0) / 1000.0).toLong()
         return when {
-            s < 60 -> "about ${(ceil(s / 5.0) * 5).toLong().coerceAtLeast(5)} s left"
-            s < 3600 -> "about ${ceil(s / 60.0).toLong()} min left"
+            s < 60 -> t.str(R.string.progress_about_seconds, (ceil(s / 5.0) * 5).toLong().coerceAtLeast(5))
+            s < 3600 -> t.str(R.string.progress_about_minutes, ceil(s / 60.0).toLong())
             else -> {
                 val m = ceil(s / 60.0).toLong()
-                "about ${m / 60} h ${m % 60} min left"
+                t.str(R.string.progress_about_hours, m / 60, m % 60)
             }
         }
     }
 
+    /** [span] as time still to come: "about 3 min left". */
+    fun left(t: UiText, ms: Long): String = t.str(R.string.progress_left, span(t, ms))
+
     /** A count to read at a glance: "14", "1,240", "12k". */
-    fun count(x: Double): String {
+    fun count(t: UiText, x: Double): String {
         val n = x.coerceAtLeast(0.0)
         return when {
-            n < 10 -> "%.1f".format(java.util.Locale.US, n).removeSuffix(".0")
-            n < 10_000 -> "%,d".format(java.util.Locale.US, Math.round(n))
-            else -> "${Math.round(n / 1000)}k"
+            n < 10 -> {
+                val tenths = Math.round(n * 10)
+                if (tenths % 10 == 0L) (tenths / 10).toString() else String.format(t.locale, "%.1f", tenths / 10.0)
+            }
+            n < 10_000 -> String.format(t.locale, "%,d", Math.round(n))
+            else -> t.str(R.string.progress_count_thousands, Math.round(n / 1000))
         }
     }
 
     /** The detailed line: which job of the session ("Step 2/5"), how far within it, and the measured time left for it. */
-    fun detail(jobIndex: Int, jobs: Int, phase: JobPhase, step: Int, steps: Int, leftMs: Long?): String = buildList {
-        if (jobs > 0) add("Step ${jobIndex.coerceIn(1, jobs)}/$jobs")
-        if (steps > 0) add("${step.coerceIn(0, steps)}/$steps ${unit(phase, steps)}")
-        add(if (leftMs == null) "measuring…" else left(leftMs))
-    }.joinToString(" · ")
+    fun detail(t: UiText, jobIndex: Int, jobs: Int, phase: JobPhase, step: Int, steps: Int, leftMs: Long?): String = buildList {
+        if (jobs > 0) add(t.str(R.string.progress_step, jobIndex.coerceIn(1, jobs), jobs))
+        if (steps > 0) add(stepCount(t, phase, step.coerceIn(0, steps), steps))
+        add(if (leftMs == null) t.str(R.string.progress_measuring) else left(t, leftMs))
+    }.joinToString(" \u00b7 ")
 }
 
 /** What has been measured on this phone, for the evidence lines of a session being processed or waiting. */

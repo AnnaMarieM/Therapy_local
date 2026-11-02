@@ -1,6 +1,6 @@
 package com.therapylocal.app.ui.models
 
-import com.therapylocal.app.models.Language
+import com.therapylocal.app.models.SpeechLanguage
 import java.util.UUID
 
 /** A fact as the profile lists it. [mentionCount] counts the later sessions it came up in again. */
@@ -53,7 +53,7 @@ data class Patient(
     val sessions: List<SessionItem> = emptyList(),
     val facts: List<FactItem> = emptyList(),
     /** What the client speaks in sessions; picks the speech recogniser. */
-    val language: Language = Language.English,
+    val language: SpeechLanguage = SpeechLanguage.English,
 )
 
 data class ProcessingSessionInfo(

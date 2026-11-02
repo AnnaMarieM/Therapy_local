@@ -35,12 +35,14 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.therapylocal.app.R
 import com.therapylocal.app.memory.Cue
 import com.therapylocal.app.session.SessionPhase
 import com.therapylocal.app.session.SessionState
@@ -90,6 +92,7 @@ fun SessionSheet(
 ) {
     val bar = rememberChoiceState()
     val haptics = rememberHaptics()
+    val holdToast = stringResource(R.string.session_hold_toast)
     val paused = session.phase == SessionPhase.Paused
     var view by remember { mutableStateOf(CueView.EMPTY) }
     LaunchedEffect(cues) {
@@ -108,7 +111,7 @@ fun SessionSheet(
             Spacer(Modifier.width(10.dp))
             Clock(elapsed, paused)
             Spacer(Modifier.width(10.dp))
-            Label(if (paused) "Paused · $clientName" else clientName, Modifier.weight(1f))
+            Label(if (paused) stringResource(R.string.session_paused_with, clientName) else clientName, Modifier.weight(1f))
         }
 
         // ---- the cue ----
@@ -116,12 +119,12 @@ fun SessionSheet(
             val main = view.main
             when {
                 session.error != null -> Quiet(session.error, color = Palette.Rec)
-                paused -> Quiet("Paused. Nothing is being recorded.")
+                paused -> Quiet(stringResource(R.string.session_paused_msg))
                 main == null -> Quiet(
                     when {
-                        cuesError != null -> "Cues paused: $cuesError"
-                        !session.cuesOn -> "Recording. Cues from earlier sessions start once setup has finished."
-                        else -> "Listening"
+                        cuesError != null -> stringResource(R.string.session_cues_paused, cuesError)
+                        !session.cuesOn -> stringResource(R.string.session_recording_wait)
+                        else -> stringResource(R.string.session_listening)
                     },
                     pulse = session.cuesOn && cuesError == null,
                 )
@@ -136,16 +139,16 @@ fun SessionSheet(
         // there is no way further in.
         SwipeHints(
             bar,
-            back = Way("go back · it keeps recording") { onMinimise() },
+            back = Way(stringResource(R.string.session_way_back)) { onMinimise() },
             forward = null,
             modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 10.dp),
             center = {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    TextAction(if (paused) "Resume" else "Pause", { if (paused) onResume() else onPause() }, color = if (paused) Palette.Rec else Palette.InkSoft)
+                    TextAction(stringResource(if (paused) R.string.session_resume else R.string.session_pause), { if (paused) onResume() else onPause() }, color = if (paused) Palette.Rec else Palette.InkSoft)
                     Spacer(Modifier.width(22.dp))
-                    HoldToFinish(onComplete = onFinish, onTooShort = { onHint("Hold the square to finish") })
+                    HoldToFinish(onComplete = onFinish, onTooShort = { onHint(holdToast) })
                     Spacer(Modifier.width(22.dp))
-                    Label("Hold ■ to finish", color = Palette.InkFaint)
+                    Label(stringResource(R.string.session_hold_label), color = Palette.InkFaint)
                 }
             },
         )
@@ -193,7 +196,7 @@ private fun CueStage(cue: Cue, also: List<Cue>, repo: ClientRepository, onPick: 
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.graphicsLayer { alpha = rest.value }) {
             PulseDot(Palette.Rev, size = 8, still = true)
             Spacer(Modifier.width(10.dp))
-            Label(sessionDate(cue.session)?.let { "From $it" } ?: "From an earlier session")
+            Label(sessionDate(cue.session)?.let { stringResource(R.string.session_from_date, it) } ?: stringResource(R.string.session_from_earlier))
         }
         Spacer(Modifier.height(18.dp))
         FlowRow(Modifier.semantics { liveRegion = LiveRegionMode.Polite }) {
@@ -213,21 +216,21 @@ private fun CueStage(cue: Cue, also: List<Cue>, repo: ClientRepository, onPick: 
         Spacer(Modifier.height(16.dp))
         Column(Modifier.graphicsLayer { alpha = rest.value; translationY = (1f - rest.value) * 8.dp.toPx() }) {
             Text(cue.text, style = Type.Body, color = Palette.InkSoft)
-            if (!showSource) TextAction("What was said", { showSource = true }, color = Palette.Ink)
+            if (!showSource) TextAction(stringResource(R.string.session_what_said), { showSource = true }, color = Palette.Ink)
             else {
                 Spacer(Modifier.height(12.dp))
                 Text(
-                    source?.let { if (it.isEmpty()) "The passage is not stored." else "“$it”" } ?: "…",
+                    source?.let { if (it.isEmpty()) stringResource(R.string.session_no_passage) else "“$it”" } ?: "…",
                     style = Type.Lead.copy(fontStyle = FontStyle.Italic), color = Palette.InkSoft,
                 )
             }
             if (also.isNotEmpty()) {
                 Spacer(Modifier.height(28.dp))
-                Label("Also", color = Palette.InkFaint)
+                Label(stringResource(R.string.session_also), color = Palette.InkFaint)
                 also.forEach { c ->
                     Text(
                         c.heading, style = Type.Title.copy(fontSize = 20.sp, lineHeight = 25.sp), color = Palette.InkSoft,
-                        modifier = Modifier.fillMaxWidth().pressable({ onPick(c) }, label = "Show ${c.heading}", depth = 0.015f).padding(vertical = 10.dp),
+                        modifier = Modifier.fillMaxWidth().pressable({ onPick(c) }, label = stringResource(R.string.session_show, c.heading), depth = 0.015f).padding(vertical = 10.dp),
                     )
                 }
             }
