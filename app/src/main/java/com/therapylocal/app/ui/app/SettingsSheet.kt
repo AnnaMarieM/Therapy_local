@@ -118,7 +118,7 @@ fun SettingsSheet(
     Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().axisDrag(sheetDrag(sheet, bar, onBack = onClose))) {
         LazyColumn(Modifier.weight(1f), state = list, contentPadding = PaddingValues(start = 26.dp, end = 26.dp, top = 24.dp, bottom = hintsClearance())) {
             item {
-                Label("MindVault")
+                Label(stringResource(R.string.app_name))
                 Spacer(Modifier.height(14.dp))
                 Text(stringResource(R.string.settings_title), style = Type.Hero, color = Palette.Ink)
             }
@@ -154,7 +154,7 @@ fun SettingsSheet(
                     }
                 }
             }
-            item { Row2(stringResource(R.string.settings_lock_title), stringResource(R.string.settings_lock_body), stringResource(R.string.settings_lock_action), onLock) }
+            item { Row2(stringResource(R.string.settings_lock_title), stringResource(R.string.settings_lock_body, stringResource(R.string.app_name)), stringResource(R.string.settings_lock_action), onLock) }
 
             item { Group(stringResource(R.string.settings_group_notifications)) }
             item {
@@ -201,7 +201,7 @@ fun SettingsSheet(
             item { Group(stringResource(R.string.settings_group_about)) }
             item {
                 Text(
-                    stringResource(R.string.settings_about_text, BuildConfig.VERSION_NAME),
+                    stringResource(R.string.settings_about_text, stringResource(R.string.app_name), BuildConfig.VERSION_NAME),
                     style = Type.BodySmall, color = Palette.InkFaint, modifier = Modifier.padding(vertical = 16.dp),
                 )
             }
@@ -382,7 +382,7 @@ fun AddClientSheet(sheet: SheetState, onCancel: () -> Unit, onAdd: (String) -> U
             Spacer(Modifier.height(22.dp))
             PaperField(last, { last = it }, stringResource(R.string.settings_addclient_surname), onIme = add, capitalization = KeyboardCapitalization.Words)
             Spacer(Modifier.height(14.dp))
-            Text(stringResource(R.string.settings_addclient_note), style = Type.BodySmall, color = Palette.InkFaint)
+            Text(stringResource(R.string.settings_addclient_note, stringResource(R.string.app_name)), style = Type.BodySmall, color = Palette.InkFaint)
         }
         SwipeHints(
             bar,

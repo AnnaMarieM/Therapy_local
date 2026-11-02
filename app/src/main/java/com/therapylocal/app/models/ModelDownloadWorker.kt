@@ -98,7 +98,7 @@ class ModelDownloadWorker(private val context: Context, params: WorkerParameters
             NOTIFICATION_DONE_ID,
             NotificationCompat.Builder(context, CHANNEL_ID)
                 .setSmallIcon(android.R.drawable.stat_sys_download_done)
-                .setContentTitle(context.getString(R.string.notif_setup_ready_title))
+                .setContentTitle(context.getString(R.string.notif_setup_ready_title, context.getString(R.string.app_name)))
                 .setContentText(context.getString(R.string.notif_setup_ready_text))
                 .setContentIntent(contentIntent())
                 .setAutoCancel(true)
@@ -224,7 +224,7 @@ class ModelDownloadWorker(private val context: Context, params: WorkerParameters
         }
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(android.R.drawable.stat_sys_download)
-            .setContentTitle(context.getString(R.string.notif_setup_title))
+            .setContentTitle(context.getString(R.string.notif_setup_title, context.getString(R.string.app_name)))
             .setContentText(text)
             .setProgress(100, pct, false)
             .setContentIntent(contentIntent())

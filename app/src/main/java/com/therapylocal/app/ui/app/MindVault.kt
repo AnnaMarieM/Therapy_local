@@ -417,7 +417,7 @@ private fun Main(viewModel: MainViewModel, openSessionRequest: Int, onDeveloper:
     }
 
     if (confirmLock) ConfirmDialog(
-        stringResource(R.string.mindvault_lock_title), stringResource(R.string.mindvault_lock_body), stringResource(R.string.mindvault_lock_confirm),
+        stringResource(R.string.mindvault_lock_title, stringResource(R.string.app_name)), stringResource(R.string.mindvault_lock_body), stringResource(R.string.mindvault_lock_confirm),
         onConfirm = { confirmLock = false; activity?.let(Vault::lock) }, onDismiss = { confirmLock = false }, destructive = false,
     )
     if (confirmDiscard) {

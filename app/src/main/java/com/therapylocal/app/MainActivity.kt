@@ -109,7 +109,7 @@ class MainActivity : FragmentActivity() {
                             ) {
                                 Text("Diagnostics & Raw ML", fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
                                 Button(onClick = { showDebugScreen = false }) {
-                                    Text("Back to MindVault")
+                                    Text("Back to ${androidx.compose.ui.res.stringResource(R.string.app_name)}")
                                 }
                             }
                             Box(modifier = Modifier.weight(1f)) {

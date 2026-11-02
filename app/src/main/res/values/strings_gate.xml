@@ -9,12 +9,11 @@
     <string name="gate_release_continue">Release to continue</string>
     <string name="gate_set_password">Set a password</string>
 
-    <string name="gate_page1_kicker">MindVault</string>
     <string name="gate_page1_title">A quiet memory\nfor your sessions.</string>
     <string name="gate_page1_body">It listens while you work, remembers what matters, and hands it back when it is useful. Nothing else.</string>
     <string name="gate_page2_kicker">Private</string>
     <string name="gate_page2_title">Everything stays\non this phone.</string>
-    <string name="gate_page2_body">Recordings, transcripts and what MindVault learns are encrypted with a password only you know. Nothing is sent anywhere.</string>
+    <string name="gate_page2_body">Recordings, transcripts and what %1$s learns are encrypted with a password only you know. Nothing is sent anywhere.</string>
     <string name="gate_page3_kicker">After a session</string>
     <string name="gate_page3_title">It listens,\nthen remembers.</string>
     <string name="gate_page3_body">When a session ends, the phone writes it down and notes the important things, in the background. You are told when it is done.</string>
@@ -53,7 +52,7 @@
     <string name="gate_bio_title_on">Open it with\na touch.</string>
     <string name="gate_bio_title_off">Fingerprint\nlater, maybe.</string>
     <string name="gate_bio_body_on">Use your fingerprint or face instead of typing the password each time. The password always works too.</string>
-    <string name="gate_bio_body_off">No fingerprint or face is set up on this phone. Add one in the phone\'s settings, then turn it on in MindVault\'s settings.</string>
+    <string name="gate_bio_body_off">No fingerprint or face is set up on this phone. Add one in the phone\'s settings, then turn it on in %1$s\'s settings.</string>
     <string name="gate_bio_not_now">Not now</string>
     <string name="gate_bio_skip">Skip</string>
     <string name="gate_bio_turn_on">Turn on</string>
@@ -66,7 +65,7 @@
     <string name="gate_password_hint">Password</string>
     <string name="gate_opening">Opening…</string>
     <string name="gate_forgot">Forgot password</string>
-    <string name="gate_forgot_body">It cannot be recovered. You can erase MindVault and start again; every client, recording and fact on this phone is deleted.</string>
+    <string name="gate_forgot_body">It cannot be recovered. You can erase %1$s and start again; every client, recording and fact on this phone is deleted.</string>
     <string name="gate_erase_start">Erase and start again…</string>
     <string name="gate_never_mind">Never mind</string>
     <string name="gate_fingerprint">Fingerprint</string>
@@ -76,7 +75,7 @@
     <string name="gate_wrong_password">That is not the password</string>
     <string name="gate_unlock_failed">Could not unlock. Please try again.</string>
     <string name="gate_bio_reset">Fingerprint unlock was reset because the phone\'s biometrics changed. Use your password, then turn it on again in Settings.</string>
-    <string name="gate_bio_unlock_title">Unlock MindVault</string>
+    <string name="gate_bio_unlock_title">Unlock %1$s</string>
     <string name="gate_bio_unlock_subtitle">Confirm it\'s you</string>
     <string name="gate_bio_use_password">Use password</string>
     <string name="gate_bio_failed">That did not work. Use your password.</string>

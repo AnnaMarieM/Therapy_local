@@ -17,7 +17,7 @@
     <string name="settings_biometric_cancel">Cancel</string>
     <string name="settings_biometric_failed">It could not be turned on.</string>
     <string name="settings_lock_title">Lock now</string>
-    <string name="settings_lock_body">Closes MindVault. The password or a fingerprint opens it again.</string>
+    <string name="settings_lock_body">Closes %1$s. The password or a fingerprint opens it again.</string>
     <string name="settings_lock_action">Lock</string>
     <string name="settings_notifications_allowed">Allowed</string>
     <string name="settings_notifications_allowed_body">You are told when a session has been processed.</string>
@@ -60,13 +60,13 @@
     <string name="settings_developer_title">Developer tools</string>
     <string name="settings_developer_body">Logs, raw chunks and diagnostics.</string>
     <string name="settings_developer_open">Open</string>
-    <string name="settings_about_text">MindVault %1$s. Type set in Fraunces, Geist and Geist Mono, under the SIL Open Font License.</string>
+    <string name="settings_about_text">%1$s %2$s. Type set in Fraunces, Geist and Geist Mono, under the SIL Open Font License.</string>
     <string name="settings_go_back">go back</string>
     <string name="settings_addclient_label">New client</string>
     <string name="settings_addclient_who">Who is it?</string>
     <string name="settings_addclient_first_name">First name</string>
     <string name="settings_addclient_surname">Surname · only the initial is kept</string>
-    <string name="settings_addclient_note">Keep names minimal. Everything else MindVault learns comes from the sessions.</string>
+    <string name="settings_addclient_note">Keep names minimal. Everything else %1$s learns comes from the sessions.</string>
     <string name="settings_addclient_add_named">add %1$s</string>
     <string name="settings_addclient_add">add</string>
     <!-- mindvault -->
@@ -98,7 +98,7 @@
     <string name="mindvault_session_deleted">Session deleted</string>
     <string name="mindvault_client_add_failed">That client could not be added</string>
     <string name="mindvault_client_added">%1$s added</string>
-    <string name="mindvault_lock_title">Lock MindVault?</string>
+    <string name="mindvault_lock_title">Lock %1$s?</string>
     <string name="mindvault_lock_body">A session is being processed. It pauses now and carries on after you unlock.</string>
     <string name="mindvault_lock_confirm">Lock</string>
     <string name="mindvault_discard_title">Discard this session?</string>

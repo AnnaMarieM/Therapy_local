@@ -129,7 +129,7 @@ enum class GateStep { Language, Welcome, Password, Biometric, Unlock }
 private data class Page(@StringRes val kicker: Int, @StringRes val title: Int, @StringRes val body: Int)
 
 private val PAGES = listOf(
-    Page(R.string.gate_page1_kicker, R.string.gate_page1_title, R.string.gate_page1_body),
+    Page(R.string.app_name, R.string.gate_page1_title, R.string.gate_page1_body),
     Page(R.string.gate_page2_kicker, R.string.gate_page2_title, R.string.gate_page2_body),
     Page(R.string.gate_page3_kicker, R.string.gate_page3_title, R.string.gate_page3_body),
     Page(R.string.gate_page4_kicker, R.string.gate_page4_title, R.string.gate_page4_body),
@@ -234,7 +234,7 @@ private fun WelcomePage(p: Page) {
         Spacer(Modifier.height(18.dp))
         Text(stringResource(p.title), style = Type.Hero.copy(fontSize = Type.Hero.fontSize * 0.78f, lineHeight = Type.Hero.lineHeight * 0.8f), color = Palette.Ink)
         Spacer(Modifier.height(22.dp))
-        Text(stringResource(p.body), style = Type.Body, color = Palette.InkSoft, modifier = Modifier.width(340.dp))
+        Text(stringResource(p.body, stringResource(R.string.app_name)), style = Type.Body, color = Palette.InkSoft, modifier = Modifier.width(340.dp))
         Spacer(Modifier.height(80.dp))
     }
 }
@@ -383,7 +383,7 @@ private fun OfferBiometric(onDone: () -> Unit) {
             Text(stringResource(if (available) R.string.gate_bio_title_on else R.string.gate_bio_title_off), style = Type.Hero.copy(fontSize = Type.Hero.fontSize * 0.78f, lineHeight = Type.Hero.lineHeight * 0.8f), color = Palette.Ink)
             Spacer(Modifier.height(14.dp))
             Text(
-                stringResource(if (available) R.string.gate_bio_body_on else R.string.gate_bio_body_off),
+                stringResource(if (available) R.string.gate_bio_body_on else R.string.gate_bio_body_off, stringResource(R.string.app_name)),
                 style = Type.Body, color = Palette.InkSoft,
             )
             Spacer(Modifier.height(12.dp))
@@ -443,7 +443,7 @@ private fun Unlock(onOpen: () -> Unit, onErased: () -> Unit) {
             val cipher = Vault.biometricUnlockCipher(ctx)
             if (cipher == null) { error = ctx.getString(R.string.gate_bio_reset); return@withBiometric }
             authenticateWithBiometric(
-                a, ctx.getString(R.string.gate_bio_unlock_title), ctx.getString(R.string.gate_bio_unlock_subtitle), ctx.getString(R.string.gate_bio_use_password), cipher,
+                a, ctx.getString(R.string.gate_bio_unlock_title, ctx.getString(R.string.app_name)), ctx.getString(R.string.gate_bio_unlock_subtitle), ctx.getString(R.string.gate_bio_use_password), cipher,
                 onSuccess = { c ->
                     busy = true
                     scope.launch {
@@ -470,7 +470,7 @@ private fun Unlock(onOpen: () -> Unit, onErased: () -> Unit) {
             Spacer(Modifier.height(60.dp))
             Label(stringResource(R.string.gate_locked_kicker))
             Spacer(Modifier.height(18.dp))
-            Text("MindVault", style = Type.Hero, color = Palette.Ink)
+            Text(stringResource(R.string.app_name), style = Type.Hero, color = Palette.Ink)
             Spacer(Modifier.height(40.dp))
             Box(Modifier.offset { IntOffset(shake.value.roundToInt(), 0) }) {
                 PaperField(password, { password = it; error = null }, stringResource(R.string.gate_password_hint), secret = true, enabled = !busy, error = error != null, onIme = withPassword)
@@ -481,7 +481,7 @@ private fun Unlock(onOpen: () -> Unit, onErased: () -> Unit) {
             if (!forgot) {
                 TextAction(stringResource(R.string.gate_forgot), { forgot = true }, color = Palette.InkSoft)
             } else {
-                Text(stringResource(R.string.gate_forgot_body), style = Type.BodySmall, color = Palette.InkSoft)
+                Text(stringResource(R.string.gate_forgot_body, stringResource(R.string.app_name)), style = Type.BodySmall, color = Palette.InkSoft)
                 Row {
                     TextAction(stringResource(R.string.gate_erase_start), { confirmErase = true }, color = Palette.Rec)
                     Spacer(Modifier.width(18.dp))

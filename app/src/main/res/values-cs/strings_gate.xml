@@ -9,12 +9,11 @@
     <string name="gate_release_continue">Pusťte pro pokračování</string>
     <string name="gate_set_password">Nastavit heslo</string>
 
-    <string name="gate_page1_kicker">MindVault</string>
     <string name="gate_page1_title">Tichá paměť\npro vaše sezení.</string>
     <string name="gate_page1_body">Poslouchá, zatímco pracujete, zapamatuje si, na čem záleží, a vrátí vám to ve chvíli, kdy se to hodí. Nic víc.</string>
     <string name="gate_page2_kicker">Soukromé</string>
     <string name="gate_page2_title">Všechno zůstává\nv tomto telefonu.</string>
-    <string name="gate_page2_body">Nahrávky, přepisy i to, co se MindVault dozví, jsou zašifrované heslem, které znáte jen vy. Nic se nikam neodesílá.</string>
+    <string name="gate_page2_body">Nahrávky, přepisy i to, co se %1$s dozví, jsou zašifrované heslem, které znáte jen vy. Nic se nikam neodesílá.</string>
     <string name="gate_page3_kicker">Po sezení</string>
     <string name="gate_page3_title">Poslouchá,\npak si pamatuje.</string>
     <string name="gate_page3_body">Po skončení sezení ho telefon na pozadí přepíše a poznamená si důležité věci. Až bude hotovo, dáme vám vědět.</string>
@@ -57,7 +56,7 @@
     <string name="gate_bio_title_on">Otevřete jej\ndotykem.</string>
     <string name="gate_bio_title_off">Otisk prstu\nsnad později.</string>
     <string name="gate_bio_body_on">Místo psaní hesla použijte otisk prstu nebo obličej. Heslo funguje vždy.</string>
-    <string name="gate_bio_body_off">V tomto telefonu není nastaven otisk prstu ani obličej. Přidejte ho v nastavení telefonu a pak jej zapněte v nastavení MindVaultu.</string>
+    <string name="gate_bio_body_off">V tomto telefonu není nastaven otisk prstu ani obličej. Přidejte ho v nastavení telefonu a pak jej zapněte v nastavení aplikace %1$s.</string>
     <string name="gate_bio_not_now">Teď ne</string>
     <string name="gate_bio_skip">Přeskočit</string>
     <string name="gate_bio_turn_on">Zapnout</string>
@@ -70,7 +69,7 @@
     <string name="gate_password_hint">Heslo</string>
     <string name="gate_opening">Otevírám…</string>
     <string name="gate_forgot">Zapomenuté heslo</string>
-    <string name="gate_forgot_body">Nelze ho obnovit. Můžete MindVault vymazat a začít znovu; všichni klienti, nahrávky a poznatky v tomto telefonu budou smazáni.</string>
+    <string name="gate_forgot_body">Nelze ho obnovit. Můžete aplikaci %1$s vymazat a začít znovu; všichni klienti, nahrávky a poznatky v tomto telefonu budou smazáni.</string>
     <string name="gate_erase_start">Vymazat a začít znovu…</string>
     <string name="gate_never_mind">Zrušit</string>
     <string name="gate_fingerprint">Otisk prstu</string>
@@ -80,7 +79,7 @@
     <string name="gate_wrong_password">To není správné heslo</string>
     <string name="gate_unlock_failed">Odemknutí se nezdařilo. Zkuste to prosím znovu.</string>
     <string name="gate_bio_reset">Odemykání otiskem prstu bylo zrušeno, protože se změnila biometrika telefonu. Použijte heslo a pak ho znovu zapněte v Nastavení.</string>
-    <string name="gate_bio_unlock_title">Odemknout MindVault</string>
+    <string name="gate_bio_unlock_title">Odemknout aplikaci %1$s</string>
     <string name="gate_bio_unlock_subtitle">Potvrďte, že jste to vy</string>
     <string name="gate_bio_use_password">Použít heslo</string>
     <string name="gate_bio_failed">To se nepovedlo. Použijte heslo.</string>

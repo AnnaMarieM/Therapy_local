@@ -16,7 +16,7 @@
     <string name="settings_biometric_cancel">Zrušit</string>
     <string name="settings_biometric_failed">Nepodařilo se to zapnout.</string>
     <string name="settings_lock_title">Zamknout hned</string>
-    <string name="settings_lock_body">Zavře MindVault. Znovu ho otevře heslo nebo otisk prstu.</string>
+    <string name="settings_lock_body">Zavře aplikaci %1$s. Znovu ji otevře heslo nebo otisk prstu.</string>
     <string name="settings_lock_action">Zamknout</string>
     <string name="settings_notifications_allowed">Povoleno</string>
     <string name="settings_notifications_allowed_body">Dostanete oznámení, až bude sezení zpracováno.</string>
@@ -61,13 +61,13 @@
     <string name="settings_developer_title">Nástroje pro vývojáře</string>
     <string name="settings_developer_body">Protokoly, surové úseky a diagnostika.</string>
     <string name="settings_developer_open">Otevřít</string>
-    <string name="settings_about_text">MindVault %1$s. Písmo Fraunces, Geist a Geist Mono pod licencí SIL Open Font License.</string>
+    <string name="settings_about_text">%1$s %2$s. Písmo Fraunces, Geist a Geist Mono pod licencí SIL Open Font License.</string>
     <string name="settings_go_back">vrátit se</string>
     <string name="settings_addclient_label">Nový klient</string>
     <string name="settings_addclient_who">Kdo je to?</string>
     <string name="settings_addclient_first_name">Křestní jméno</string>
     <string name="settings_addclient_surname">Příjmení · uloží se jen iniciála</string>
-    <string name="settings_addclient_note">Jména držte co nejstručnější. Vše ostatní se MindVault dozví ze sezení.</string>
+    <string name="settings_addclient_note">Jména držte co nejstručnější. Vše ostatní se %1$s dozví ze sezení.</string>
     <string name="settings_addclient_add_named">přidat %1$s</string>
     <string name="settings_addclient_add">přidat</string>
     <string name="mindvault_mic_needed">Nahrávání potřebuje mikrofon. Povolte ho v nastavení telefonu.</string>
@@ -100,7 +100,7 @@
     <string name="mindvault_session_deleted">Sezení smazáno</string>
     <string name="mindvault_client_add_failed">Klienta se nepodařilo přidat</string>
     <string name="mindvault_client_added">Klient %1$s přidán</string>
-    <string name="mindvault_lock_title">Zamknout MindVault?</string>
+    <string name="mindvault_lock_title">Zamknout aplikaci %1$s?</string>
     <string name="mindvault_lock_body">Právě se zpracovává sezení. Nyní se pozastaví a po odemknutí bude pokračovat.</string>
     <string name="mindvault_lock_confirm">Zamknout</string>
     <string name="mindvault_discard_title">Zahodit toto sezení?</string>
