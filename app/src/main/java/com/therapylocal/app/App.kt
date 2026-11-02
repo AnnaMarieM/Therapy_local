@@ -11,8 +11,9 @@ class App : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        System.loadLibrary("sqlcipher") // before anything opens a database
         AppLog.init(this)
+        AppLog.installCrashHandler()
+        System.loadLibrary("sqlcipher") // before anything opens a database
         DeviceFacts.logStartup(this)
     }
 }
