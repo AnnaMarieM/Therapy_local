@@ -1,0 +1,30 @@
+name: Bench LiteRT-LM (the app's real runtime)
+
+on:
+  push:
+    branches: [feature/gemma-e2b-czech]
+    paths: [".github/workflows/bench-litert.yml", "bench/litert_run.py"]
+  workflow_dispatch:
+
+jobs:
+  litert:
+    name: litert-lm ${{ matrix.variant }} (cpu)
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        variant: [E2B, E4B]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install litert-lm
+      - run: python bench/litert_run.py out ${{ matrix.variant }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: litert-${{ matrix.variant }}
+          path: out
+          retention-days: 30
