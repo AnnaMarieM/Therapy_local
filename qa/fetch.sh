@@ -1,19 +1,36 @@
 #!/usr/bin/env bash
-# qa/fetch.sh URL OUT [expected-bytes]   download that survives a connection that keeps dropping.
+# qa/fetch.sh URL OUT [expected-bytes]   download that survives a connection that keeps dropping, and a server that rate-limits.
 # Resumes from what is on disk (-C -), treats a connection that is up but crawling (< 16 KB/s for 30 s) as dead and reconnects, retries
-# forever with a short pause, and only stops when OUT has the expected size (or, without one, when the server says it is complete).
+# with a growing pause, and stops only when OUT has exactly the expected size. HTTP errors (429, 5xx...) are failures, never content.
 set -uo pipefail
 URL="$1"; OUT="$2"; WANT="${3:-}"
 mkdir -p "$(dirname "$OUT")"
-if [[ -z "$WANT" ]]; then WANT="$(curl -sIL --connect-timeout 15 --max-time 30 "$URL" | tr -d '\r' | awk 'tolower($1)=="content-length:"{n=$2} END{print n}')"; fi
+
+pause() { sleep $(( $1 > 6 ? 45 : 2 << $1 )); }
+
+# The size comes from the server, but only from a successful answer: an error page has a length too.
+fails=0
+while [[ -z "$WANT" ]]; do
+  head="$(curl -sIL --connect-timeout 15 --max-time 30 "$URL" | tr -d '\r')"
+  code="$(awk '/^HTTP/{c=$2} END{print c}' <<<"$head")"
+  if [[ "$code" =~ ^2 ]]; then
+    WANT="$(awk 'tolower($1)=="content-length:"{n=$2} END{print n}' <<<"$head")"
+    [[ "$WANT" =~ ^[0-9]+$ && "$WANT" -gt 0 ]] && break
+  fi
+  WANT=""; fails=$((fails+1)); echo "fetch: size lookup failed (HTTP ${code:-none}, attempt $fails): $URL" >&2
+  [[ "$fails" -gt 40 ]] && { echo "fetch: giving up on $URL" >&2; exit 1; }
+  pause $fails
+done
+
 fails=0
 while :; do
   have=$(stat -c %s "$OUT" 2>/dev/null || echo 0)
-  if [[ -n "$WANT" && "$have" -eq "$WANT" ]]; then exit 0; fi
-  if [[ -n "$WANT" && "$have" -gt "$WANT" ]]; then rm -f "$OUT"; have=0; fi
-  curl -sL -C - --connect-timeout 15 --speed-limit 16384 --speed-time 30 -o "$OUT" "$URL"; rc=$?
+  if [[ "$have" -eq "$WANT" ]]; then exit 0; fi
+  if [[ "$have" -gt "$WANT" ]]; then echo "fetch: $OUT is longer than expected, starting over" >&2; rm -f "$OUT"; have=0; fi
+  curl -sL --fail -C - --connect-timeout 15 --speed-limit 16384 --speed-time 30 -o "$OUT" "$URL"; rc=$?
   now=$(stat -c %s "$OUT" 2>/dev/null || echo 0)
   if [[ "$now" -gt "$have" ]]; then fails=0; else fails=$((fails+1)); fi
-  [[ -z "$WANT" && $rc -eq 0 ]] && exit 0
-  sleep $(( fails > 5 ? 30 : 1 << fails ))
+  [[ "$rc" -ne 0 && "$now" -ne "$WANT" ]] && echo "fetch: curl exit $rc at $now/$WANT bytes (failures without progress: $fails)" >&2
+  if [[ "$fails" -gt 40 ]]; then echo "fetch: giving up on $URL" >&2; exit 1; fi
+  [[ "$now" -ne "$WANT" ]] && pause $fails
 done
