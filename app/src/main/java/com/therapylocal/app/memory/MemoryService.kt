@@ -14,8 +14,10 @@ import android.content.pm.ServiceInfo
 import android.os.IBinder
 import android.os.PowerManager
 import com.therapylocal.app.data.MindStore
+import com.therapylocal.app.embed.Engines
 import com.therapylocal.app.facts.PromptLanguage
 import com.therapylocal.app.i18n.LocaleStore
+import kotlinx.coroutines.runBlocking
 import com.therapylocal.app.data.DebugAudio
 import com.therapylocal.app.data.PendingAudio
 import com.therapylocal.app.jobs.JobRunner
@@ -83,6 +85,8 @@ class MemoryService : Service() {
                     promptLanguage = { clientLanguage -> PromptLanguage.choose(LocaleStore.current(app).tag, clientLanguage) },
                 )
                 PerfStats.init(app)
+                // The live-cue embedder (GPU, with its audio encoder) must not stay loaded beside the LLM and the speech model.
+                runBlocking { Engines.suspend() }
                 val pool = DeviceModels.pool(app, contextNeeded = pipeline::requiredContext)
                 val store = MindStore.get(app)
                 val runner = JobRunner(
@@ -100,6 +104,7 @@ class MemoryService : Service() {
                 // Stack traces can quote patient text (e.g. JSON parse errors), so they are only written for the developer harness, never in app mode.
                 if (debugJob) java.io.File(MemoryFiles.devRoot(app), "out/ERROR").apply { parentFile?.mkdirs() }.writeText(t.stackTraceToString())
             } finally {
+                Engines.resume()
                 // Join the watcher first, or its last tick can re-post an ongoing "processing" notification after the run has ended.
                 watcher.interrupt()
                 try { watcher.join(3000) } catch (_: InterruptedException) {}

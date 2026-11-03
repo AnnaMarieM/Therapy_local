@@ -51,6 +51,14 @@ class MemoryLlm(private val context: Context, private val maxTokens: Int, privat
         audio = withAudio && runCatching { ModelInfo.from(file.path).use { it.inputModalities().audio } }.getOrDefault(false)
         val failures = ArrayList<String>()
         for (name in order) {
+            if (name.uppercase() != "CPU") {
+                val (available, low) = LlmMemory.available(context)
+                if (!LlmMemory.gpuFits(spec.totalBytes, available, low)) {
+                    AppLog.w(TAG, "backend_skipped_low_memory", LogCtx.NONE, "backend_try" to name, "available_mb" to (available shr 20), "needed_mb" to (LlmMemory.gpuNeeds(spec.totalBytes) shr 20), "low_memory" to low)
+                    failures += "$name: not enough free memory"
+                    continue
+                }
+            }
             val be: Backend = when (name.uppercase()) {
                 "NPU" -> {
                     if (!NpuRuntime.available(context)) {

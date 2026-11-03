@@ -147,6 +147,8 @@ class LiveCues(
     }
 
     private suspend fun tick(client: String, gen: Int, s: LiveCueSettings, sinceMs: Long, smoothed: HashMap<Long, Float>) {
+        // Sessions are being processed: the embedder is unloaded so it does not share memory with the LLM. No cues until that run ends.
+        if (!embedder.usable) return
         // A model that reports a smaller context than asked for still gets a clip it can embed whole.
         val pcm = snapshot(minOf(s.lookbackS, embedder.maxAudioSeconds) * ChunkConfig.SAMPLE_RATE) ?: return
         val rms = Pcm.rms(pcm)

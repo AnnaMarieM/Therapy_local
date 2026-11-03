@@ -60,8 +60,21 @@ class Embedder(
     private var engine: EmbeddingEngine? = null
     private val lock = Mutex()
 
-    suspend fun load() = lock.withLock {
-        if (engine != null) return@withLock
+    /**
+     * True while the embedder is held back so it does not sit in memory beside the LLM (see [Engines.suspend]). An embedder that is not
+     * suspended but has been closed reloads itself on first use.
+     */
+    @Volatile
+    var suspended = false
+        private set
+
+    /** Whether [embedText] and [embedAudio] can run now. */
+    val usable: Boolean get() = !suspended
+
+    suspend fun load() = lock.withLock { loadLocked() }
+
+    private suspend fun loadLocked() {
+        if (engine != null) return
         withContext(Dispatchers.Default) {
             val file = ModelRegistry.EMBED.file(context, ModelRegistry.EMBED.files.first())
             AppLog.span(TAG, "embed_load", LogCtx.NONE, "model" to EmbeddingConfig.MODEL_ID, "model_mb" to (file.length() shr 20), "dim" to dim) { span ->
@@ -146,12 +159,16 @@ class Embedder(
     /** Embeds the AUDIO of one chunk directly. No transcript is involved. */
     suspend fun embedAudio(pcm: ShortArray, ctx: LogCtx, role: String = "document"): FloatArray = lock.withLock {
         check(!textOnly) { "Loaded without the audio encoder" }
+        check(!suspended) { "Embedder suspended while sessions are processed" }
+        if (engine == null) loadLocked()
         val e = checkNotNull(engine) { "Embedder not loaded" }
         withContext(Dispatchers.Default) { runAudio(e, pcm, ctx, role) }
     }
 
     /** Embeds text as a query ("task: search query | text: ...") or as a document. */
     suspend fun embedText(text: String, query: Boolean, ctx: LogCtx): FloatArray = lock.withLock {
+        check(!suspended) { "Embedder suspended while sessions are processed" }
+        if (engine == null) loadLocked()
         val e = checkNotNull(engine) { "Embedder not loaded" }
         withContext(Dispatchers.Default) { runText(e, text, query, ctx) }
     }
@@ -208,6 +225,17 @@ class Embedder(
         runCatching { engine?.close() }
         engine = null
         backend = "none"
+    }
+
+    /** Unloads the engine and refuses work until [resume]: the LLM that processes sessions must not share memory with it. */
+    suspend fun suspend() = lock.withLock {
+        suspended = true
+        close()
+    }
+
+    /** Allows work again; the engine loads on its next use. */
+    fun resume() {
+        suspended = false
     }
 
     companion object {
