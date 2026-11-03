@@ -54,6 +54,9 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontStyle
@@ -61,6 +64,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import com.therapylocal.app.R
 import com.therapylocal.app.SearchState
 import com.therapylocal.app.ui.data.ClientRepository
 import com.therapylocal.app.ui.design.Choice
@@ -97,6 +101,15 @@ import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.derivedStateOf
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+
+/** A stored yyyy-MM-dd date shown in the active language; anything unparseable is shown as stored. */
+@Composable
+internal fun localDate(raw: String): String {
+    val locale = LocalConfiguration.current.locales[0]
+    return remember(raw, locale) {
+        runCatching { java.time.LocalDate.parse(raw).format(java.time.format.DateTimeFormatter.ofLocalizedDate(java.time.format.FormatStyle.MEDIUM).withLocale(locale)) }.getOrDefault(raw)
+    }
+}
 
 /** Search wiring from the view model, so the profile stays a plain composable. */
 class SearchActions(
@@ -139,6 +152,8 @@ fun ProfileSheet(
     val haptics = rememberHaptics()
     val list = rememberLazyListState()
     val layer = rememberSheetState()
+    val sessionTitle = stringResource(R.string.profile_session_title)
+    val fromTranscript = stringResource(R.string.profile_from_transcript)
     var open by remember { mutableStateOf<Layer?>(null) }
     var confirmClient by remember { mutableStateOf(false) }
     var confirmSession by remember { mutableStateOf<SessionItem?>(null) }
@@ -161,7 +176,7 @@ fun ProfileSheet(
         ) {
             LazyColumn(Modifier.weight(1f), state = list, contentPadding = PaddingValues(start = 26.dp, end = 26.dp, top = 24.dp, bottom = hintsClearance())) {
                 item {
-                    Label("Client · ${patient.sessionCount} ${if (patient.sessionCount == 1) "session" else "sessions"}")
+                    Label(pluralStringResource(R.plurals.profile_client_sessions, patient.sessionCount, patient.sessionCount))
                     Spacer(Modifier.height(14.dp))
                     // The name is the one thing that does not fade: it travels here from the reel (drawn by TravellingName meanwhile).
                     NameTitle(
@@ -178,35 +193,35 @@ fun ProfileSheet(
                 }
                 val hits = search.state.hits
                 if (hits != null) {
-                    if (hits.isEmpty()) item { Label("Nothing found", Modifier.padding(vertical = 18.dp)) }
+                    if (hits.isEmpty()) item { Label(stringResource(R.string.profile_nothing_found), Modifier.padding(vertical = 18.dp)) }
                     items(hits, key = { "${it.sessionId}:${it.segFrom}:${it.title}" }) { hit ->
                         val ref = remember { BoundsRef() }
-                        HitRow(hit, ref) { openLayer(Layer.Transcript(hit.title ?: "From the transcript", hit.sessionId, hit.date, hit.segFrom, hit.segTo, hit.highlight), ref) }
+                        HitRow(hit, ref) { openLayer(Layer.Transcript(hit.title ?: fromTranscript, hit.sessionId, hit.date, hit.segFrom, hit.segTo, hit.highlight), ref) }
                     }
                 } else {
-                    if (patient.facts.isNotEmpty()) item { Section("What you know") }
+                    if (patient.facts.isNotEmpty()) item { Section(stringResource(R.string.profile_section_know)) }
                     items(patient.facts, key = { "f${it.id}" }) { f ->
                         val ref = remember { BoundsRef() }
                         FactRow(f, ref) { openLayer(Layer.Fact(f), ref) }
                     }
-                    item { Section("Sessions") }
+                    item { Section(stringResource(R.string.profile_section_sessions)) }
                     if (patient.sessions.isEmpty()) item {
-                        Text(if (processingSession != null) "The first session is being processed." else "No sessions yet. Record one and it appears here, with what was said.", style = Type.BodySmall, color = Palette.InkSoft, modifier = Modifier.padding(vertical = 12.dp))
+                        Text(stringResource(if (processingSession != null) R.string.profile_first_processing else R.string.profile_no_sessions), style = Type.BodySmall, color = Palette.InkSoft, modifier = Modifier.padding(vertical = 12.dp))
                     }
                     items(patient.sessions, key = { "s${it.id}" }) { s ->
                         val ref = remember { BoundsRef() }
-                        SessionRow(s, processing = s.id == processingSession, ref = ref, onOpen = { openLayer(Layer.Transcript("Session", s.id, s.date), ref) }, onDelete = { haptics.arm(); confirmSession = s })
+                        SessionRow(s, processing = s.id == processingSession, ref = ref, onOpen = { openLayer(Layer.Transcript(sessionTitle, s.id, s.date), ref) }, onDelete = { haptics.arm(); confirmSession = s })
                     }
                     item {
                         Spacer(Modifier.height(30.dp))
-                        TextAction("Delete client…", { confirmClient = true }, color = Palette.Rec)
+                        TextAction(stringResource(R.string.profile_delete_client_action), { confirmClient = true }, color = Palette.Rec)
                     }
                 }
             }
             SwipeHints(
                 bar,
-                back = Way("go back") { onClose() },
-                forward = Way(if (sessionActive) "open the session" else "record") { onRecord(recordRef) },
+                back = Way(stringResource(R.string.profile_way_back)) { onClose() },
+                forward = Way(stringResource(if (sessionActive) R.string.profile_way_open_session else R.string.profile_way_record)) { onRecord(recordRef) },
                 forwardRef = recordRef,
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 10.dp),
             )
@@ -222,14 +237,14 @@ fun ProfileSheet(
     }
 
     if (confirmClient) ConfirmDialog(
-        "Delete ${patient.name}?", "Their profile, every session, transcript and fact is removed from this phone. This cannot be undone.", "Delete",
+        stringResource(R.string.profile_delete_client_title, patient.name), stringResource(R.string.profile_delete_client_text), stringResource(R.string.profile_delete_confirm),
         onConfirm = { confirmClient = false; onDeleteClient() }, onDismiss = { confirmClient = false },
     )
     confirmSession?.let { s ->
         ConfirmDialog(
-            "Delete the session of ${s.date}?",
-            "Its recording and transcript are removed. Facts first heard in it move to the next session where they came up; facts heard only there are removed.",
-            "Delete",
+            stringResource(R.string.profile_delete_session_title, localDate(s.date)),
+            stringResource(R.string.profile_delete_session_text),
+            stringResource(R.string.profile_delete_confirm),
             onConfirm = { confirmSession = null; onDeleteSession(s) }, onDismiss = { confirmSession = null },
         )
     }
@@ -291,13 +306,13 @@ private fun Section(title: String) {
 
 @Composable
 private fun FactRow(f: FactItem, ref: BoundsRef, onOpen: () -> Unit) {
-    Column(Modifier.fillMaxWidth().trackBounds(ref).pressable(onOpen, label = "Open ${f.heading}", depth = 0.015f).padding(vertical = 16.dp)) {
+    Column(Modifier.fillMaxWidth().trackBounds(ref).pressable(onOpen, label = stringResource(R.string.profile_fact_open, f.heading), depth = 0.015f).padding(vertical = 16.dp)) {
         Text(f.heading, style = Type.Title.copy(fontSize = 22.sp, lineHeight = 27.sp), color = Palette.Ink)
         Spacer(Modifier.height(4.dp))
         Text(f.content, style = Type.BodySmall, color = Palette.InkSoft, maxLines = 3)
         if (f.mentionCount > 0) {
             Spacer(Modifier.height(8.dp))
-            Label("Came up ${f.mentionCount + 1} times", color = Palette.InkFaint)
+            Label(pluralStringResource(R.plurals.profile_came_up, f.mentionCount + 1, f.mentionCount + 1), color = Palette.InkFaint)
         }
     }
     Hairline()
@@ -310,6 +325,8 @@ private fun SessionRow(s: SessionItem, processing: Boolean, ref: BoundsRef, onOp
     val interaction = remember { MutableInteractionSource() }
     val pressed by interaction.collectIsPressedAsState()
     val press = remember { Animatable(0f) }
+    val dateText = localDate(s.date)
+    val sessionDesc = stringResource(R.string.profile_session_desc, dateText)
     LaunchedEffect(pressed) { press.animateTo(if (pressed) 1f else 0f, Motion.Pull) }
     Row(
         Modifier.fillMaxWidth().trackBounds(ref)
@@ -317,16 +334,16 @@ private fun SessionRow(s: SessionItem, processing: Boolean, ref: BoundsRef, onOp
             // Tap opens the transcript, long press offers to delete; TalkBack gets both as actions.
             .combinedClickable(
                 interactionSource = interaction, indication = null,
-                onClickLabel = "Open the transcript", onLongClickLabel = "Delete the session",
+                onClickLabel = stringResource(R.string.profile_open_transcript), onLongClickLabel = stringResource(R.string.profile_delete_session_action),
                 onLongClick = onDelete, onClick = { haptics.press(); onOpen() },
             )
-            .semantics { contentDescription = "Session of ${s.date}" }
+            .semantics { contentDescription = sessionDesc }
             .padding(vertical = 18.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(s.date, style = Type.Title.copy(fontSize = 22.sp), color = Palette.Ink, modifier = Modifier.weight(1f))
-        if (processing) { PulseDot(Palette.Ink, size = 6); Spacer(Modifier.width(8.dp)); Label("Processing") }
-        else Label(if (s.duration == "-") "Not written down yet" else s.duration)
+        Text(dateText, style = Type.Title.copy(fontSize = 22.sp), color = Palette.Ink, modifier = Modifier.weight(1f))
+        if (processing) { PulseDot(Palette.Ink, size = 6); Spacer(Modifier.width(8.dp)); Label(stringResource(R.string.profile_processing)) }
+        else Label(if (s.duration == "-") stringResource(R.string.profile_not_written) else s.duration)
     }
     Hairline()
 }
@@ -335,8 +352,8 @@ private fun SessionRow(s: SessionItem, processing: Boolean, ref: BoundsRef, onOp
 private fun HitRow(hit: SearchHit, ref: BoundsRef, onOpen: () -> Unit) {
     Column(Modifier.fillMaxWidth().trackBounds(ref).pressable(onOpen, depth = 0.015f).padding(vertical = 16.dp)) {
         Row {
-            Label(hit.title ?: "From the transcript", color = if (hit.title != null) Palette.Ink else Palette.Rev, modifier = Modifier.weight(1f))
-            Label(hit.date)
+            Label(hit.title ?: stringResource(R.string.profile_from_transcript), color = if (hit.title != null) Palette.Ink else Palette.Rev, modifier = Modifier.weight(1f))
+            Label(localDate(hit.date))
         }
         Spacer(Modifier.height(6.dp))
         Text(hit.snippet, style = Type.BodySmall, color = Palette.InkSoft)
@@ -348,6 +365,8 @@ private fun HitRow(hit: SearchHit, ref: BoundsRef, onOpen: () -> Unit) {
 @Composable
 private fun SearchBox(s: SearchActions, requestMic: () -> Unit) {
     val ctx = LocalContext.current
+    val voiceDesc = stringResource(R.string.profile_voice_desc)
+    val searchDesc = stringResource(R.string.profile_search_hint)
     val haptics = rememberHaptics()
     var query by rememberSaveable { mutableStateOf("") }
     val hold = remember { Animatable(0f) }
@@ -357,16 +376,16 @@ private fun SearchBox(s: SearchActions, requestMic: () -> Unit) {
             Icon(Icons.Rounded.Search, contentDescription = null, tint = Palette.InkSoft, modifier = Modifier.size(22.dp))
             Spacer(Modifier.width(12.dp))
             Box(Modifier.weight(1f).padding(vertical = 12.dp)) {
-                if (query.isEmpty()) Text(if (s.state.listening) "Listening…" else "Search what was said", style = Type.Body, color = Palette.InkFaint)
+                if (query.isEmpty()) Text(stringResource(if (s.state.listening) R.string.profile_search_listening else R.string.profile_search_hint), style = Type.Body, color = Palette.InkFaint)
                 BasicTextField(
                     query, { query = it }, singleLine = true, textStyle = Type.Body.copy(color = Palette.Ink), cursorBrush = SolidColor(Palette.Ink),
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search), keyboardActions = KeyboardActions(onSearch = { s.text(query) }),
-                    modifier = Modifier.fillMaxWidth().semantics { contentDescription = "Search what was said" },
+                    modifier = Modifier.fillMaxWidth().semantics { contentDescription = searchDesc },
                 )
             }
             if (query.isNotEmpty() || s.state.hits != null) {
-                Box(Modifier.size(44.dp).clip(CircleShape).pressable({ query = ""; s.clear() }, label = "Clear search"), contentAlignment = Alignment.Center) {
-                    Icon(Icons.Rounded.Close, contentDescription = "Clear search", tint = Palette.InkSoft)
+                Box(Modifier.size(44.dp).clip(CircleShape).pressable({ query = ""; s.clear() }, label = stringResource(R.string.profile_clear_search)), contentAlignment = Alignment.Center) {
+                    Icon(Icons.Rounded.Close, contentDescription = stringResource(R.string.profile_clear_search), tint = Palette.InkSoft)
                 }
             }
             // Hold to speak a question; letting go searches.
@@ -375,7 +394,7 @@ private fun SearchBox(s: SearchActions, requestMic: () -> Unit) {
                 Modifier.size(48.dp)
                     .graphicsLayer { val k = 1f + 0.18f * hold.value; scaleX = k; scaleY = k; alpha = if (disabled) 0.4f else 1f }
                     .clip(CircleShape).background(if (s.state.listening) Palette.Rec else Palette.Tonal)
-                    .semantics { contentDescription = "Hold to search by voice" }
+                    .semantics { contentDescription = voiceDesc }
                     .pointerInput(disabled) {
                         detectTapGestures(onPress = {
                             if (disabled) return@detectTapGestures
@@ -391,8 +410,8 @@ private fun SearchBox(s: SearchActions, requestMic: () -> Unit) {
         }
         Hairline()
         val note = when {
-            s.state.listening -> "Listening · let go to search"
-            s.state.searching -> "Searching…"
+            s.state.listening -> stringResource(R.string.profile_note_listening)
+            s.state.searching -> stringResource(R.string.profile_note_searching)
             s.voiceDisabled != null && s.state.hits == null -> s.voiceDisabled
             else -> s.state.info
         }
@@ -415,20 +434,20 @@ private fun LayerFrame(sheet: SheetState, kicker: String, title: String, content
             }
             content()
         }
-        SwipeHints(bar, back = Way("go back") { haptics.confirm(); sheet.close() }, forward = null, modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 10.dp))
+        SwipeHints(bar, back = Way(stringResource(R.string.profile_way_back)) { haptics.confirm(); sheet.close() }, forward = null, modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 10.dp))
     }
 }
 
 @Composable
 private fun FactLayer(f: FactItem, repo: ClientRepository, sheet: SheetState) {
     val occ by produceState<List<FactOccurrence>?>(null, f.id) { value = withContext(Dispatchers.IO) { runCatching { repo.occurrences(f.id) }.getOrDefault(emptyList()) } }
-    LayerFrame(sheet, "What you know", f.heading) {
+    LayerFrame(sheet, stringResource(R.string.profile_section_know), f.heading) {
         item { Text(f.content, style = Type.Body, color = Palette.Ink); Spacer(Modifier.height(10.dp)) }
         val list = occ
-        if (list == null) item { Label("Finding where it was said…", Modifier.padding(vertical = 16.dp)) }
-        else if (list.isEmpty()) item { Label("The passage it came from is not stored", Modifier.padding(vertical = 16.dp)) }
+        if (list == null) item { Label(stringResource(R.string.profile_finding), Modifier.padding(vertical = 16.dp)) }
+        else if (list.isEmpty()) item { Label(stringResource(R.string.profile_no_passage), Modifier.padding(vertical = 16.dp)) }
         else list.forEach { o ->
-            item { Section("${o.date} · ${if (o.first) "First heard" else "Came up again"}") }
+            item { Section(stringResource(if (o.first) R.string.profile_occ_first else R.string.profile_occ_again, localDate(o.date))) }
             items(o.lines, key = { "${o.sessionId}:${it.idx}" }) { l -> Line(l, l.idx == o.segIdx) }
         }
     }
@@ -441,11 +460,11 @@ private fun TranscriptLayer(t: Layer.Transcript, repo: ClientRepository, sheet: 
             runCatching { if (t.from != null && t.to != null) repo.transcript(t.sessionId, t.from, t.to) else repo.transcript(t.sessionId) }.getOrDefault(emptyList())
         }
     }
-    LayerFrame(sheet, t.date, t.title) {
+    LayerFrame(sheet, localDate(t.date), t.title) {
         val l = lines
         when {
-            l == null -> item { Label("Opening…") }
-            l.isEmpty() -> item { Text("This session has not been written down yet. It appears here once it is processed.", style = Type.BodySmall, color = Palette.InkSoft) }
+            l == null -> item { Label(stringResource(R.string.profile_opening)) }
+            l.isEmpty() -> item { Text(stringResource(R.string.profile_transcript_empty), style = Type.BodySmall, color = Palette.InkSoft) }
             else -> items(l, key = { it.idx }) { line -> Line(line, line.idx == t.highlight) }
         }
     }

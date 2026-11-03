@@ -10,6 +10,7 @@ import androidx.work.CoroutineWorker
 import androidx.work.Data
 import androidx.work.ForegroundInfo
 import androidx.work.WorkerParameters
+import com.therapylocal.app.R
 import com.therapylocal.app.log.AppLog
 import com.therapylocal.app.log.LogCtx
 import kotlinx.coroutines.Dispatchers
@@ -52,7 +53,7 @@ class ModelDownloadWorker(private val context: Context, params: WorkerParameters
             val need = missing + FREE_SPACE_MARGIN - free
             AppLog.e(TAG, "setup_failed", ctx, null, "reason" to "no_space", "need_mb" to (missing shr 20), "free_mb" to (free shr 20))
             notifyPaused(need)
-            return@withContext Result.failure(error("Free up ${ModelSetup.formatBytes(need)} of storage to finish setting up."))
+            return@withContext Result.failure(error(context.getString(R.string.notif_setup_free_space, ModelSetup.formatBytes(context, need))))
         }
 
         startedAt = System.currentTimeMillis()
@@ -92,13 +93,13 @@ class ModelDownloadWorker(private val context: Context, params: WorkerParameters
     private fun finish(): Result {
         AppLog.i(TAG, "setup_done", LogCtx.NONE)
         val nm = context.getSystemService(NotificationManager::class.java)
-        nm.createNotificationChannel(NotificationChannel(CHANNEL_ID, "Setup", NotificationManager.IMPORTANCE_LOW))
+        nm.createNotificationChannel(NotificationChannel(CHANNEL_ID, context.getString(R.string.notif_setup_channel), NotificationManager.IMPORTANCE_LOW))
         nm.notify(
             NOTIFICATION_DONE_ID,
             NotificationCompat.Builder(context, CHANNEL_ID)
                 .setSmallIcon(android.R.drawable.stat_sys_download_done)
-                .setContentTitle("MindVault is ready")
-                .setContentText("Recorded sessions will now be processed automatically.")
+                .setContentTitle(context.getString(R.string.notif_setup_ready_title, context.getString(R.string.app_name)))
+                .setContentText(context.getString(R.string.notif_setup_ready_text))
                 .setContentIntent(contentIntent())
                 .setAutoCancel(true)
                 .build(),
@@ -109,13 +110,13 @@ class ModelDownloadWorker(private val context: Context, params: WorkerParameters
 
     private fun notifyPaused(need: Long) {
         val nm = context.getSystemService(NotificationManager::class.java)
-        nm.createNotificationChannel(NotificationChannel(CHANNEL_ID, "Setup", NotificationManager.IMPORTANCE_LOW))
+        nm.createNotificationChannel(NotificationChannel(CHANNEL_ID, context.getString(R.string.notif_setup_channel), NotificationManager.IMPORTANCE_LOW))
         nm.notify(
             NOTIFICATION_DONE_ID,
             NotificationCompat.Builder(context, CHANNEL_ID)
                 .setSmallIcon(android.R.drawable.stat_sys_warning)
-                .setContentTitle("Setup paused")
-                .setContentText("Free up ${ModelSetup.formatBytes(need)} of storage to finish setting up.")
+                .setContentTitle(context.getString(R.string.notif_setup_paused_title))
+                .setContentText(context.getString(R.string.notif_setup_free_space, ModelSetup.formatBytes(context, need)))
                 .setContentIntent(contentIntent())
                 .setAutoCancel(true)
                 .build(),
@@ -213,17 +214,17 @@ class ModelDownloadWorker(private val context: Context, params: WorkerParameters
 
     private fun foregroundInfo(done: Long, eta: Long?, verifying: Boolean): ForegroundInfo {
         val nm = context.getSystemService(NotificationManager::class.java)
-        nm.createNotificationChannel(NotificationChannel(CHANNEL_ID, "Setup", NotificationManager.IMPORTANCE_LOW))
+        nm.createNotificationChannel(NotificationChannel(CHANNEL_ID, context.getString(R.string.notif_setup_channel), NotificationManager.IMPORTANCE_LOW))
         val pct = if (total > 0) (done * 100 / total).toInt() else 0
-        val sizes = "${ModelSetup.formatBytes(done)} of ${ModelSetup.formatBytes(total)}"
+        val sizes = context.getString(R.string.notif_setup_sizes, ModelSetup.formatBytes(context, done), ModelSetup.formatBytes(context, total))
         val text = when {
-            verifying -> "Checking files…"
-            eta != null -> "$sizes · ${ModelSetup.formatEta(eta)} left"
+            verifying -> context.getString(R.string.setup_checking_files)
+            eta != null -> context.getString(R.string.notif_setup_sizes_eta, sizes, ModelSetup.formatEta(context, eta))
             else -> sizes
         }
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(android.R.drawable.stat_sys_download)
-            .setContentTitle("Setting up MindVault")
+            .setContentTitle(context.getString(R.string.notif_setup_title, context.getString(R.string.app_name)))
             .setContentText(text)
             .setProgress(100, pct, false)
             .setContentIntent(contentIntent())

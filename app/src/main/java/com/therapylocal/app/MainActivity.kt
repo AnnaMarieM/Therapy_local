@@ -1,6 +1,7 @@
 package com.therapylocal.app
 
 import android.Manifest
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
@@ -53,6 +54,7 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.therapylocal.app.config.ChunkConfig
+import com.therapylocal.app.i18n.LocaleStore
 import com.therapylocal.app.log.AppLog
 import com.therapylocal.app.models.ModelSetup
 import com.therapylocal.app.models.SetupState
@@ -65,6 +67,8 @@ import com.therapylocal.app.vault.Vault
 class MainActivity : FragmentActivity() {
     private val viewModel: MainViewModel by viewModels()
     private var memoryLabRequested = false
+
+    override fun attachBaseContext(newBase: Context) = super.attachBaseContext(LocaleStore.wrap(newBase))
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -105,7 +109,7 @@ class MainActivity : FragmentActivity() {
                             ) {
                                 Text("Diagnostics & Raw ML", fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
                                 Button(onClick = { showDebugScreen = false }) {
-                                    Text("Back to MindVault")
+                                    Text("Back to ${androidx.compose.ui.res.stringResource(R.string.app_name)}")
                                 }
                             }
                             Box(modifier = Modifier.weight(1f)) {
@@ -316,7 +320,7 @@ private fun PrepareDialog(s: UiState, onRetry: () -> Unit) {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.heightIn(max = 420.dp).verticalScroll(rememberScrollState())) {
                 when (progress.state) {
                     SetupState.Downloading -> {
-                        val eta = progress.etaSeconds?.let { " · ${ModelSetup.formatEta(it)}" } ?: ""
+                        val eta = progress.etaSeconds?.let { " · ${ModelSetup.formatEta(androidx.compose.ui.platform.LocalContext.current, it)}" } ?: ""
                         Text("Downloading ${ModelSetup.formatBytes(progress.doneBytes)} of ${ModelSetup.formatBytes(progress.totalBytes)}$eta", fontSize = 13.sp)
                         LinearProgressIndicator(progress = { progress.fraction }, modifier = Modifier.fillMaxWidth())
                     }

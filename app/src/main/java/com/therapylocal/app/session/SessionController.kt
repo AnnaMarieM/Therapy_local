@@ -3,6 +3,7 @@ package com.therapylocal.app.session
 import android.content.Context
 import android.os.SystemClock
 import android.os.storage.StorageManager
+import com.therapylocal.app.R
 import com.therapylocal.app.audio.ChunkRecorder
 import com.therapylocal.app.config.ChunkConfig
 import com.therapylocal.app.config.liveCueSettings
@@ -151,10 +152,10 @@ object SessionController {
 
     /** [owner] is (client, session), null for a debug recording. Runs under [ops]. */
     private suspend fun begin(owner: Pair<String, String>?, cues: Boolean, startSource: (ChunkRecorder) -> Unit) {
-        val st = store ?: return fail(null, null, "The vault is locked.")
+        val st = store ?: return fail(null, null, app.getString(R.string.vm_vault_locked))
         // The audio stays on the phone until it is processed; a recording that cannot be saved is better not started.
         if (withContext(Dispatchers.IO) { freeBytes() } < ChunkConfig.MIN_FREE_BYTES) {
-            return fail(null, null, "Not enough free storage to record. Free some space and try again.")
+            return fail(null, null, app.getString(R.string.vm_record_no_space))
         }
         val engine = app.getSharedPreferences("settings", Context.MODE_PRIVATE).getString("engine", "whisper")!!
         val createdSession = owner?.let { (client, session) -> withContext(Dispatchers.IO) { !st.sessionExists(session).also { st.createSession(session, client, _state.value.startedAt) } } } ?: false
@@ -180,7 +181,7 @@ object SessionController {
                 st.deleteRecording(rid)
                 if (createdSession) owner?.let { st.deleteSession(it.second) }
             }
-            return fail(rid, owner, "The microphone could not be opened. ${t.message ?: ""}".trim())
+            return fail(rid, owner, app.getString(R.string.vm_mic_open_failed, t.message ?: "").trim())
         }
         recorder = rec
         JobRunner.recordingActive = true
@@ -229,7 +230,7 @@ object SessionController {
                 saved++
             } catch (t: Throwable) {
                 AppLog.e(TAG, "chunk_save_failed", c.chunk(chunk.idx), t, "code" to "IO")
-                _state.update { it.copy(error = "Part of the recording could not be saved.") }
+                _state.update { it.copy(error = app.getString(R.string.vm_chunk_save_failed)) }
             }
         }
         AppLog.i(TAG, "recording_saved", c, "chunks" to saved)

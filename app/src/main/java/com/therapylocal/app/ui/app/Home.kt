@@ -53,6 +53,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.customActions
@@ -66,6 +67,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.therapylocal.app.R
 import com.therapylocal.app.session.SessionPhase
 import com.therapylocal.app.session.SessionState
 import com.therapylocal.app.ui.design.Choice
@@ -174,6 +176,7 @@ fun Home(
 ) {
     val haptics = rememberHaptics()
     val scope = rememberCoroutineScope()
+    val lettersDesc = stringResource(R.string.home_rail_desc)
     val reduced = LocalReducedMotion.current
     val index = remember(clients) { ReelIndex(clients.map { it.name }) }
     val ordered = remember(clients, index) { index.order.map { clients[it] } }
@@ -293,7 +296,7 @@ fun Home(
                 }
                 // Status under the selected name, only while the reel is still, so it never shows over a name going by or a neighbour's
                 // details. Keyed by the client: a new name gets its own line, not a crossfade from the last one.
-                val status = current?.let(statusOf) ?: if (ordered.isEmpty()) ClientStatus("Add your first client to begin") else ClientStatus("Add someone new")
+                val status = current?.let(statusOf) ?: if (ordered.isEmpty()) ClientStatus(stringResource(R.string.home_status_first_client)) else ClientStatus(stringResource(R.string.home_status_add_new))
                 key(current?.id) {
                     StatusLine(
                         status,
@@ -344,7 +347,7 @@ fun Home(
                             railLetter = -1
                             scope.launch { kotlinx.coroutines.delay(400); quiet = false }
                         }
-                    }.semantics { contentDescription = "Letters. Touch a letter to jump to it." },
+                    }.semantics { contentDescription = lettersDesc },
                 )
                 // The letter under the thumb, large, beside it: unmistakably a jump, not a scroll.
                 if (railActive && railLetter >= 0) {
@@ -365,14 +368,14 @@ fun Home(
                 Spacer(Modifier.height(6.dp))
                 when {
                     setupLine != null -> StatusLine(setupLine, Modifier)
-                    hint && count > 1 -> Label("Swipe up or down to browse", color = Palette.InkFaint)
+                    hint && count > 1 -> Label(stringResource(R.string.home_hint_browse), color = Palette.InkFaint)
                 }
             }
             Box(
                 Modifier.align(Alignment.TopEnd).statusBarsPadding().padding(top = 10.dp, end = 10.dp).size(52.dp)
-                    .trackBounds(refs.gear).clip(CircleShape).pressable(actions.openSettings, label = "Settings"),
+                    .trackBounds(refs.gear).clip(CircleShape).pressable(actions.openSettings, label = stringResource(R.string.home_settings)),
                 contentAlignment = Alignment.Center,
-            ) { Icon(Icons.Rounded.Tune, contentDescription = "Settings", tint = Palette.InkSoft) }
+            ) { Icon(Icons.Rounded.Tune, contentDescription = stringResource(R.string.home_settings), tint = Palette.InkSoft) }
 
             // ---- bottom: the way in (the running session's card floats above this, over every page) ----
             Column(Modifier.align(Alignment.BottomCenter).fillMaxWidth().navigationBarsPadding().padding(horizontal = 14.dp, vertical = 14.dp)) {
@@ -380,8 +383,8 @@ fun Home(
                 SwipeHints(
                     bar,
                     back = null,
-                    forward = if (isNew) Way("add a client") { actions.addClient() }
-                    else Way("open ${current?.let { splitName(it.name).first } ?: "the profile"}") { current?.let(actions.openProfile) },
+                    forward = if (isNew) Way(stringResource(R.string.home_way_add_client)) { actions.addClient() }
+                    else Way(current?.let { stringResource(R.string.home_way_open_named, splitName(it.name).first) } ?: stringResource(R.string.home_way_open_profile)) { current?.let(actions.openProfile) },
                     forwardRef = refs.right,
                     modifier = Modifier.fillMaxWidth(),
                 )
@@ -391,9 +394,9 @@ fun Home(
 
     confirmDelete?.let { c ->
         ConfirmDialog(
-            title = "Delete ${c.name}?",
-            text = "Their profile, every session, transcript and fact is removed from this phone. This cannot be undone.",
-            confirm = "Delete",
+            title = stringResource(R.string.home_delete_title, c.name),
+            text = stringResource(R.string.home_delete_text),
+            confirm = stringResource(R.string.home_delete_confirm),
             onConfirm = { confirmDelete = null; actions.deleteClient(c) },
             onDismiss = { confirmDelete = null },
         )
@@ -445,7 +448,9 @@ private fun ReelItem(
     onLongPress: (() -> Unit)?,
     nameRef: HomeRefs? = null,
 ) {
-    val (first, rest) = client?.let { splitName(it.name) } ?: ("New" to "client")
+    val newLabel = stringResource(R.string.home_new_client)
+    val deleteLabel = stringResource(R.string.home_delete_action)
+    val (first, rest) = splitName(client?.name ?: newLabel)
     val ink = if (client == null) Palette.InkSoft else Palette.Ink
     val heroSize = (heroSp * heroShrink(first.length + (rest?.let { it.length + 1 } ?: 0))).sp
     val tap by rememberUpdatedState(onTap)
@@ -456,8 +461,8 @@ private fun ReelItem(
         Modifier.fillMaxWidth().padding(start = 26.dp, end = 72.dp)
             .offset { IntOffset(0, (centerY + look().y).roundToInt()) }
             .semantics {
-                contentDescription = client?.name ?: "New client"
-                if (onLongPress != null) customActions = listOf(CustomAccessibilityAction("Delete client") { long?.invoke(); true })
+                contentDescription = client?.name ?: newLabel
+                if (onLongPress != null) customActions = listOf(CustomAccessibilityAction(deleteLabel) { long?.invoke(); true })
             },
     ) {
         // The large form for the centre, the small one for the neighbours; the reel crossfades between them. Both are one line, so a name
@@ -491,7 +496,7 @@ private fun ReelItem(
             Text(text, style = style, color = ink, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
         Text(
-            client?.name ?: "New client",
+            client?.name ?: newLabel,
             style = Type.Title,
             color = ink,
             maxLines = 1,
@@ -595,15 +600,17 @@ private fun Bubble(letter: String, first: String, modifier: Modifier) {
  */
 @Composable
 internal fun SessionPill(name: String?, paused: Boolean, elapsed: () -> Long, ref: BoundsRef, open: () -> Unit, modifier: Modifier = Modifier) {
+    val openLabel = stringResource(R.string.home_session_open)
+    val stateText = stringResource(if (paused) R.string.home_session_paused else R.string.home_session_recording)
     var now by remember { mutableStateOf(elapsed()) }
     LaunchedEffect(paused) { while (true) { now = elapsed(); kotlinx.coroutines.delay(250) } }
     val time = SessionLogic.formatMinSec(now / 1000)
     // Who it is, large: the one thing to see at a glance. What is happening, small, underneath.
     Row(
         modifier.trackBounds(ref).clip(RoundedCornerShape(24.dp)).background(Palette.Ink)
-            .pressable(open, label = "Open the session", depth = 0.015f)
+            .pressable(open, label = openLabel, depth = 0.015f)
             .padding(start = 20.dp, end = 12.dp, top = 14.dp, bottom = 14.dp)
-            .semantics(mergeDescendants = true) { stateDescription = if (paused) "Paused" else "Recording" },
+            .semantics(mergeDescendants = true) { stateDescription = stateText },
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Column(Modifier.weight(1f)) {
@@ -612,7 +619,7 @@ internal fun SessionPill(name: String?, paused: Boolean, elapsed: () -> Long, re
             Row(verticalAlignment = Alignment.CenterVertically) {
                 PulseDot(Palette.Rec, still = paused, size = 6)
                 Spacer(Modifier.width(8.dp))
-                Label(if (paused) "Session paused · $time" else "Session recording in progress · $time", color = Palette.Paper.copy(alpha = 0.75f))
+                Label(stringResource(if (paused) R.string.home_pill_paused else R.string.home_pill_recording, time), color = Palette.Paper.copy(alpha = 0.75f))
             }
         }
         Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, contentDescription = null, tint = Palette.Paper)

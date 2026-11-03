@@ -12,6 +12,7 @@ import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
 import android.os.SystemClock
+import com.therapylocal.app.R
 import com.therapylocal.app.log.AppLog
 import com.therapylocal.app.log.LogCtx
 import com.therapylocal.app.ui.logic.SessionLogic
@@ -32,6 +33,8 @@ import kotlinx.coroutines.launch
  * [SessionController] starts and stops it; it has no logic of its own.
  */
 class RecordingService : Service() {
+    override fun attachBaseContext(base: android.content.Context) = super.attachBaseContext(com.therapylocal.app.i18n.LocaleStore.wrap(base))
+
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private var watch: Job? = null
 
@@ -40,7 +43,7 @@ class RecordingService : Service() {
     override fun onCreate() {
         super.onCreate()
         getSystemService(NotificationManager::class.java)
-            .createNotificationChannel(NotificationChannel(CHANNEL, "Recording", NotificationManager.IMPORTANCE_LOW))
+            .createNotificationChannel(NotificationChannel(CHANNEL, getString(R.string.notif_recording_channel), NotificationManager.IMPORTANCE_LOW))
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -85,12 +88,15 @@ class RecordingService : Service() {
         val who = s.clientName.ifEmpty { s.client }
         // Unlocked: who, what, how long ("George M. · Recording · 04:12"). On the lock screen only that a session records: the name of a
         // client is not for whoever picks up the phone.
-        val title = if (who.isEmpty()) (if (paused) "Session paused" else "Recording") else "$who · ${if (paused) "Paused" else "Recording"}"
-        val publicTitle = if (paused) "Session paused" else "Recording session"
+        val title = when {
+            who.isEmpty() -> getString(if (paused) R.string.notif_recording_title_paused else R.string.notif_recording_title)
+            else -> getString(if (paused) R.string.notif_recording_title_paused_who else R.string.notif_recording_title_who, who)
+        }
+        val publicTitle = getString(if (paused) R.string.notif_recording_title_paused else R.string.notif_recording_public)
         val b = Notification.Builder(this, CHANNEL)
             .setSmallIcon(android.R.drawable.ic_btn_speak_now)
-            .setContentTitle("$title · $time")
-            .setContentText(if (paused) "Tap to continue" else "Audio stays on this phone")
+            .setContentTitle(getString(R.string.notif_recording_title_time, title, time))
+            .setContentText(getString(if (paused) R.string.notif_recording_text_paused else R.string.notif_recording_text))
             .setOngoing(true)
             .setOnlyAlertOnce(true)
             .setCategory(Notification.CATEGORY_SERVICE)
@@ -106,7 +112,7 @@ class RecordingService : Service() {
         if (Build.VERSION.SDK_INT >= 36) {
             b.addExtras(Bundle().apply {
                 putBoolean(EXTRA_REQUEST_PROMOTED_ONGOING, true)
-                putString(EXTRA_SHORT_CRITICAL_TEXT, if (paused) "Paused $time" else time)
+                putString(EXTRA_SHORT_CRITICAL_TEXT, if (paused) getString(R.string.notif_recording_chip_paused, time) else time)
             })
         }
         packageManager.getLaunchIntentForPackage(packageName)?.let {
