@@ -5,6 +5,9 @@ interface Llm : AutoCloseable {
     /** Model id, kept with what it produced (cache keys, fact provenance). */
     val model: String
 
+    /** Tokens of context the engine was loaded with: prompt and reply of one call must fit in it. */
+    val contextTokens: Int get() = Int.MAX_VALUE
+
     /** True if the audio encoder is loaded with the text model (only speech recognition needs it). */
     val hasAudio: Boolean get() = false
 

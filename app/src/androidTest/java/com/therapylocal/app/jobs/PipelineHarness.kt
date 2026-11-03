@@ -47,7 +47,7 @@ class PipelineHarness(private val context: Context, val name: String, private va
         }
     }
 
-    fun pool() = ModelPool({ FakeLlm(catalogue) }, { FakeEmbed }, { FakeAsr(spoken) }, { FakeLlm.MODEL })
+    fun pool() = ModelPool({ _, _ -> FakeLlm(catalogue) }, { FakeEmbed }, { FakeAsr(spoken) }, { FakeLlm.MODEL })
 
     /** A session with a stopped recording: one chunk per line, saved as pending audio with untranscribed chunk rows, and its jobs queued. */
     fun record(client: String, session: String, startedAt: Long, lines: List<String>): Long {

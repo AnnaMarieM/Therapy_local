@@ -16,6 +16,7 @@ import com.therapylocal.app.facts.FactParser
 import com.therapylocal.app.facts.FactSchemas
 import com.therapylocal.app.facts.Known
 import com.therapylocal.app.facts.Prompts
+import com.therapylocal.app.facts.PromptBudget
 import com.therapylocal.app.facts.TranscriptWindows
 import com.therapylocal.app.facts.Verdict
 import com.therapylocal.app.log.AppLog
@@ -90,6 +91,48 @@ class Pipeline(
         if (at >= 0) JobGraph.expand(queue, job, rows.size, sessions.getOrNull(at - 1), sessions.getOrNull(at + 1))
     }
 
+    private fun extractUser(job: Job, template: String, window: com.therapylocal.app.data.WindowRef, parts: Int): String {
+        val client = store.clients().firstOrNull { it.id == job.clientId }?.name ?: job.clientId
+        return Prompts.fill(
+            template,
+            mapOf("CLIENT" to client, "DATE" to date(job.sessionStartedAt), "PART" to "${window.idx}", "PARTS" to "$parts", "TEXT" to window.text),
+        )
+    }
+
+    /**
+     * The context the LLM needs for all work still open, counted before it is loaded ([PromptBudget]): the prompt of every window already cut
+     * (instructions, the window, the constrained-decoding schema of the last retry) plus the longest reply allowed. Sessions not cut into
+     * windows yet count as one full window of long words, and the duplicate review as ten known facts of maximal length. Never below the
+     * size the app always used; the model is reloaded with more when later work turns out to need more.
+     */
+    fun requiredContext(): Int {
+        val open = queue.openJobs()
+        var need = 0
+        val extractSystem = prompt(Prompts.EXTRACT_SYSTEM) + FactSchemas.EXTRACT_STRICT
+        val extractTemplate = prompt(Prompts.EXTRACT_USER)
+        val windowsOf = HashMap<String, List<com.therapylocal.app.data.WindowRef>>()
+        for (job in open) when (job.kind) {
+            JobGraph.EXTRACT -> {
+                val windows = windowsOf.getOrPut(job.sessionId) { store.windows(job.sessionId) }
+                val window = windows.firstOrNull { it.idx == job.ref.toIntOrNull() } ?: continue
+                need = maxOf(need, PromptBudget.required(extractSystem, extractUser(job, extractTemplate, window, windows.size), MemoryConfig.EXTRACT_MAX_OUTPUT_TOKENS))
+            }
+            JobGraph.WINDOW -> {
+                // A word is at most WORD_CHARS characters with its space, an accented one for the safe (high) token estimate.
+                val text = "ě".repeat(TranscriptWindows.wordsFor(MemoryConfig.WINDOW_TOKENS) * WORD_CHARS)
+                need = maxOf(need, PromptBudget.required(extractSystem, Prompts.fill(extractTemplate, mapOf("TEXT" to text, "CLIENT" to "x".repeat(40))), MemoryConfig.EXTRACT_MAX_OUTPUT_TOKENS))
+            }
+            JobGraph.COMMIT -> {
+                val known = "ě".repeat(MemoryConfig.NEIGHBOURS * REVIEW_FACT_CHARS)
+                val user = Prompts.fill(prompt(Prompts.REVIEW_USER), mapOf("KNOWN" to known, "FACT" to "ě".repeat(REVIEW_FACT_CHARS)))
+                need = maxOf(need, PromptBudget.required(prompt(Prompts.REVIEW_SYSTEM), user, MemoryConfig.REVIEW_MAX_OUTPUT_TOKENS))
+            }
+        }
+        val context = PromptBudget.contextFor(need, MemoryConfig.LLM_MAX_TOKENS)
+        if (need > PromptBudget.MAX_CONTEXT) AppLog.w(JobRunner.TAG, "context_capped", LogCtx.NONE, "needed" to need, "context" to context)
+        return context
+    }
+
     /** The facts of window [Job.ref], grounded in it and mapped to their segment, cached for [commit]. */
     private fun extract(job: Job, run: JobContext) {
         val idx = job.ref.toInt()
@@ -101,11 +144,7 @@ class Pipeline(
         // Prompt version | model | window text: a window cut or transcribed differently is read again.
         val key = "${Prompts.version(system, template)}|${run.pool.llmModel()}|${Prompts.hash(window.text)}"
         if (store.extractCache(job.sessionId, idx)?.first == key) return
-        val client = store.clients().firstOrNull { it.id == job.clientId }?.name ?: job.clientId
-        val user = Prompts.fill(
-            template,
-            mapOf("CLIENT" to client, "DATE" to date(job.sessionStartedAt), "PART" to "$idx", "PARTS" to "${windows.size}", "TEXT" to window.text),
-        )
+        val user = extractUser(job, template, window, windows.size)
         val segments = store.segments(job.sessionId).filter { it.idx in window.segFrom..window.segTo }
         val facts = extractFacts(run.pool.llm(), system, user, window.text).map { f -> f.copy(segIdx = FactParser.segmentOf(f.evidence, segments) ?: window.segFrom) }
         store.putExtractCache(job.sessionId, idx, key, JSONArray(facts.map { it.toJson() }).toString())
@@ -215,6 +254,14 @@ class Pipeline(
         val m = FloatArray(a.size) { a[it] + b[it] }
         val norm = sqrt(m.sumOf { (it * it).toDouble() }).toFloat().coerceAtLeast(1e-9f)
         FloatArray(m.size) { m[it] / norm }
+    }
+
+    private companion object {
+        /** Characters of a word with its space that the up-front count assumes for a transcript not cut into windows yet (Czech averages about 7). */
+        const val WORD_CHARS = 10
+
+        /** "K1: heading: content" of a known fact, at most: a heading of 60 and content of 300 are what the strict schema allows, plus room. */
+        const val REVIEW_FACT_CHARS = 480
     }
 
     private fun date(startedAt: Long): String = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(java.util.Date(startedAt))

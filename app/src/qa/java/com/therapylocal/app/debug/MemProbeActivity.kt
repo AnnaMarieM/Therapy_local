@@ -35,6 +35,8 @@ class MemProbeActivity : Activity() {
         val ctx = i.getIntExtra("ctx", MemoryConfig.LLM_MAX_TOKENS)
         val audio = i.getBooleanExtra("audio", false)
         val calls = i.getIntExtra("calls", 2)
+        val words = i.getIntExtra("words", 0)
+        val maxOut = i.getIntExtra("maxout", 400)
         val tag = i.getStringExtra("tag") ?: "${variant.key}_${order.joinToString("")}"
         val steps = JSONArray()
         val result = JSONObject().put("variant", variant.key).put("backend_order", order.joinToString(",")).put("ctx", ctx).put("audio", audio).put("steps", steps)
@@ -52,8 +54,9 @@ class MemProbeActivity : Activity() {
             snap("loaded", JSONObject().put("load_ms", (System.nanoTime() - l0) / 1_000_000).put("backend", llm.backend).put("has_audio", llm.hasAudio))
             repeat(calls) { n ->
                 val c0 = System.nanoTime()
-                val reply = llm.ask(SYSTEM, USER, null, 400, 0.1, 20)
-                snap("call_${n + 1}", JSONObject().put("call_ms", (System.nanoTime() - c0) / 1_000_000).put("reply_chars", reply.length))
+                val (system, user) = if (words > 0) realWindow(words) else SYSTEM to USER
+                val reply = llm.ask(system, user, null, maxOut, 0.1, 20)
+                snap("call_${n + 1}", JSONObject().put("call_ms", (System.nanoTime() - c0) / 1_000_000).put("reply_chars", reply.length).put("reply_lines", reply.lines().count { it.trim().startsWith("{") }).put("window_words", words))
             }
         } catch (t: Throwable) {
             Log.e(TAG, "probe failed", t)
@@ -66,6 +69,20 @@ class MemProbeActivity : Activity() {
         File(getExternalFilesDir(null), "out").apply { mkdirs() }.resolve("memprobe_$tag.json").writeText(result.toString(1))
         Log.i(TAG, "DONE tag=$tag")
         finish()
+    }
+
+    /** The app's own extraction prompts around about [words] words of the made-up Czech transcript, like one window of the pipeline. */
+    private fun realWindow(words: Int): Pair<String, String> {
+        val base = USER.substringAfter("Petra: ")
+        val text = StringBuilder()
+        while (text.split(Regex("\\s+")).size < words) text.append(base).append(' ')
+        val trimmed = text.split(Regex("\\s+")).take(words).joinToString(" ")
+        val system = com.therapylocal.app.memory.MemoryFiles.prompt(this, "extract.system.txt")
+        val user = com.therapylocal.app.facts.Prompts.fill(
+            com.therapylocal.app.memory.MemoryFiles.prompt(this, "extract.user.txt"),
+            mapOf("CLIENT" to "Petra", "DATE" to "2026-09-14", "PART" to "1", "PARTS" to "1", "TEXT" to trimmed),
+        )
+        return system to user
     }
 
     private fun snapshot(name: String, ms: Long): JSONObject {

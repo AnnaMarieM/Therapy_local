@@ -16,15 +16,19 @@ import kotlinx.coroutines.runBlocking
 
 /** The phone's models behind the pipeline's ports, for the runner's [ModelPool]. */
 object DeviceModels {
-    fun pool(context: Context): ModelPool = ModelPool(
-        loadLlm = { audio -> MemoryLlm(context, MemoryConfig.LLM_MAX_TOKENS, ModelSetup.gemma(context)).apply { load(MemoryConfig.LLM_BACKENDS, withAudio = audio) } },
+    /** [contextNeeded]: the context the open work needs, counted from its prompts before the LLM is loaded (see [com.therapylocal.app.jobs.Pipeline.requiredContext]). */
+    fun pool(context: Context, contextNeeded: () -> Int = { MemoryConfig.LLM_MAX_TOKENS }): ModelPool = ModelPool(
+        loadLlm = { audio, ctx -> MemoryLlm(context, ctx, ModelSetup.gemma(context)).apply { load(MemoryConfig.LLM_BACKENDS, withAudio = audio) } },
         loadEmbed = { embed(context) },
         loadAsr = { llm -> asr(context, llm) },
         llmModel = { ModelSetup.gemma(context).id },
+        asrOnLlm = { context.getSharedPreferences("settings", Context.MODE_PRIVATE).getString("engine", "whisper") == "gemma" },
+        contextNeeded = contextNeeded,
+        baseContext = MemoryConfig.LLM_MAX_TOKENS,
     )
 
     /** The engine chosen in the settings. Gemma runs on the LLM's engine; a Gemma build without audio input falls back to Whisper. */
-    private fun asr(context: Context, llm: () -> Llm): Asr {
+    private fun asr(context: Context, llm: () -> Llm?): Asr {
         val prefs = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
         if (prefs.getString("engine", "whisper") == "gemma") {
             (llm() as? MemoryLlm)?.speech()?.let { return it }

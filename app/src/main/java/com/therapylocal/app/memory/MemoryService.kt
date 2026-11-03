@@ -73,7 +73,7 @@ class MemoryService : Service() {
                 trackRun()
                 val pipeline = Pipeline(MindStore.get(app), queue, { MemoryFiles.prompt(app, it) }, { PendingAudio.indices(app, it) }, { r, i -> PendingAudio.load(app, r, i) }, { PendingAudio.delete(app, it) })
                 PerfStats.init(app)
-                val pool = DeviceModels.pool(app)
+                val pool = DeviceModels.pool(app, contextNeeded = pipeline::requiredContext)
                 val store = MindStore.get(app)
                 val runner = JobRunner(
                     queue, pipeline.handlers, pool,

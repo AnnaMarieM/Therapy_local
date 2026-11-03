@@ -37,6 +37,8 @@ class MemoryLlm(private val context: Context, private val maxTokens: Int, privat
 
     override val hasAudio: Boolean get() = audio
 
+    override val contextTokens: Int get() = maxTokens
+
     /**
      * [order] is tried in turn; each backend is validated with a small reply because GPU/NPU can fail only at the first inference.
      * Only the text model is loaded unless [withAudio] (speech recognition): the audio encoder and the image encoder cost memory for nothing in
