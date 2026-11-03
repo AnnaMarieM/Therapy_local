@@ -40,7 +40,12 @@ import kotlin.math.sqrt
  *
  * Backend order for the text encoder: NPU (only when the Qualcomm dispatch library is present, see [NpuRuntime]), GPU, CPU.
  */
-class Embedder(private val context: Context, private val forcedBackend: String? = null) {
+class Embedder(
+    private val context: Context,
+    private val forcedBackend: String? = null,
+    /** Load only the text encoder: the audio encoder is left out (the pipeline embeds text only). [embedAudio] then fails. */
+    private val textOnly: Boolean = false,
+) {
     var backend: String = "none"
         private set
     val dim = EmbeddingConfig.DIM
@@ -85,12 +90,12 @@ class Embedder(private val context: Context, private val forcedBackend: String? 
                 val failures = ArrayList<String>()
                 for ((name, make) in attempts) {
                     try {
-                        val e = AppLog.span(TAG, "embed_engine_init", LogCtx.NONE, "backend_try" to name, "audio_backend" to "CPU") {
+                        val e = AppLog.span(TAG, "embed_engine_init", LogCtx.NONE, "backend_try" to name, "audio_backend" to audioBackendName()) {
                             val created = EmbeddingEngine(
                                 EmbeddingEngineConfig(
                                     modelPath = file.path,
                                     backend = make(),
-                                    audioBackend = Backend.CPU(), // Gallery pins the audio encoder to CPU
+                                    audioBackend = if (textOnly) null else Backend.CPU(), // Gallery pins the audio encoder to CPU
                                     cacheDir = isolatedCacheDir().path,
                                     maxInputLength = maxTokens,
                                 ),
@@ -102,9 +107,9 @@ class Embedder(private val context: Context, private val forcedBackend: String? 
                         selfTest(e, name)
                         backend = name
                         span.put("backend", name)
-                        span.put("audio_backend", "CPU")
+                        span.put("audio_backend", audioBackendName())
                         span.put("fallbacks_failed", failures.size)
-                        AppLog.i(TAG, "backend_selected", LogCtx.NONE, "engine" to "embeddinggemma", "backend" to name, "audio_backend" to "CPU", "model_file" to file.name, "model_bytes" to file.length())
+                        AppLog.i(TAG, "backend_selected", LogCtx.NONE, "engine" to "embeddinggemma", "backend" to name, "audio_backend" to audioBackendName(), "model_file" to file.name, "model_bytes" to file.length())
                         return@span
                     } catch (t: Throwable) {
                         runCatching { engine?.close() }
@@ -129,15 +134,18 @@ class Embedder(private val context: Context, private val forcedBackend: String? 
                 "backends_audio" to info.supportedBackends(Modality.AUDIO).joinToString("/") { it.name },
                 "npu_brand" to info.npuBrand(Modality.TEXT).name, "bundle_soc" to info.socName(Modality.TEXT),
             )
-            check(m.audio) { "This EmbeddingGemma build has no audio encoder" }
+            check(textOnly || m.audio) { "This EmbeddingGemma build has no audio encoder" }
             val reported = info.maxContextTokens()
             if (reported in 1 until EmbeddingConfig.MAX_TOKENS) reported else EmbeddingConfig.MAX_TOKENS
         }
 
     private fun isolatedCacheDir(): File = File(context.cacheDir, "emb_t$maxTokens").apply { mkdirs() }
 
+    private fun audioBackendName() = if (textOnly) "none" else "CPU"
+
     /** Embeds the AUDIO of one chunk directly. No transcript is involved. */
     suspend fun embedAudio(pcm: ShortArray, ctx: LogCtx, role: String = "document"): FloatArray = lock.withLock {
+        check(!textOnly) { "Loaded without the audio encoder" }
         val e = checkNotNull(engine) { "Embedder not loaded" }
         withContext(Dispatchers.Default) { runAudio(e, pcm, ctx, role) }
     }
@@ -188,6 +196,7 @@ class Embedder(private val context: Context, private val forcedBackend: String? 
             span.put("sim_unrelated", dot(q, unrelated))
             check(q.size == dim) { "unexpected embedding size ${q.size}" }
             check(dot(q, related) > dot(q, unrelated)) { "text self-test failed" }
+            if (textOnly) return@span
             val tone = ShortArray(Pcm.SAMPLE_RATE) { (8000 * sin(2 * Math.PI * 440 * it / Pcm.SAMPLE_RATE)).toInt().toShort() }
             val a = runAudio(e, tone, LogCtx.NONE, "selftest")
             span.put("audio_dim", a.size)

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <!-- QA build only: loads a Gemma build and records exact memory use, see MemProbeActivity. -->
+        <activity android:name=".debug.MemProbeActivity" android:exported="true" />
+    </application>
+</manifest>

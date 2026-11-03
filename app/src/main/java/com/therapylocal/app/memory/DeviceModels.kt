@@ -17,7 +17,7 @@ import kotlinx.coroutines.runBlocking
 /** The phone's models behind the pipeline's ports, for the runner's [ModelPool]. */
 object DeviceModels {
     fun pool(context: Context): ModelPool = ModelPool(
-        loadLlm = { MemoryLlm(context, MemoryConfig.LLM_MAX_TOKENS, ModelSetup.gemma(context)).apply { load(MemoryConfig.LLM_BACKENDS) } },
+        loadLlm = { audio -> MemoryLlm(context, MemoryConfig.LLM_MAX_TOKENS, ModelSetup.gemma(context)).apply { load(MemoryConfig.LLM_BACKENDS, withAudio = audio) } },
         loadEmbed = { embed(context) },
         loadAsr = { llm -> asr(context, llm) },
         llmModel = { ModelSetup.gemma(context).id },
@@ -43,9 +43,9 @@ object DeviceModels {
         }
     }
 
-    /** On CPU: the LLM holds the GPU, and both on the GPU at once can run out of memory on phones. */
+    /** On CPU: the LLM holds the GPU, and both on the GPU at once can run out of memory on phones. Text only: the audio encoder stays unloaded. */
     private fun embed(context: Context): Embed {
-        val embedder = Embedder(context, forcedBackend = "CPU")
+        val embedder = Embedder(context, forcedBackend = "CPU", textOnly = true)
         runBlocking { embedder.load() }
         return object : Embed {
             override val model = EmbeddingConfig.MODEL_ID

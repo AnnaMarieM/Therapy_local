@@ -43,7 +43,7 @@ class JobRunner(
             while (!queue.stopRequested) {
                 val job = queue.claimNext { it in handlers && canRun(it) } ?: break
                 // Between jobs only, and after the claim checked that the chosen models are ready.
-                pool.refresh()
+                pool.refresh(job.kind)
                 run(job, context)
             }
         } finally {
