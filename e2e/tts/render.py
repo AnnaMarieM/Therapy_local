@@ -64,7 +64,7 @@ def render_script(path: Path, out_dir: Path, cache, force=False):
     wav_path = out_dir / s["client"] / f"{s['session']}.wav"
     meta_path = wav_path.with_suffix(".json")
     digest = script_hash(lang, turns)
-    if not force and meta_path.exists() and json.loads(meta_path.read_text())["hash"] == digest:
+    if not force and wav_path.exists() and meta_path.exists() and json.loads(meta_path.read_text())["hash"] == digest:
         return wav_path, False
     wav_path.parent.mkdir(parents=True, exist_ok=True)
     silence = b"\x00\x00" * int(SAMPLE_RATE * PAUSE_S)
