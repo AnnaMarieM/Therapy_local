@@ -66,6 +66,8 @@ import androidx.lifecycle.compose.LifecycleEventEffect
 import com.therapylocal.app.R
 import com.therapylocal.app.i18n.Languages
 import com.therapylocal.app.i18n.LocaleStore
+import com.therapylocal.app.models.SpeechLanguage
+import com.therapylocal.app.models.SpeechLanguages
 import com.therapylocal.app.ui.design.Choice
 import com.therapylocal.app.ui.design.ChoiceBar
 import com.therapylocal.app.ui.design.Motion
@@ -113,8 +115,9 @@ fun Gate(onOpen: () -> Unit) {
         ) { s ->
             when (s) {
                 GateStep.Language -> ChooseLanguage(onDone = { step = GateStep.Welcome })
-                GateStep.Welcome -> Welcome(onBack = { step = GateStep.Language }, onDone = { step = GateStep.Password })
-                GateStep.Password -> CreatePassword(onBack = { step = GateStep.Welcome }, onCreated = {
+                GateStep.Welcome -> Welcome(onBack = { step = GateStep.Language }, onDone = { step = GateStep.Speech })
+                GateStep.Speech -> SpeechLanguageStep(onBack = { step = GateStep.Welcome }, onDone = { step = GateStep.Password })
+                GateStep.Password -> CreatePassword(onBack = { step = GateStep.Speech }, onCreated = {
                     if (Vault.biometricAvailability(ctx) == BiometricAvailability.Unsupported) onOpen() else step = GateStep.Biometric
                 })
                 GateStep.Biometric -> OfferBiometric(onDone = onOpen)
@@ -124,7 +127,7 @@ fun Gate(onOpen: () -> Unit) {
     }
 }
 
-enum class GateStep { Language, Welcome, Password, Biometric, Unlock }
+enum class GateStep { Language, Welcome, Speech, Password, Biometric, Unlock }
 
 private data class Page(@StringRes val kicker: Int, @StringRes val title: Int, @StringRes val body: Int)
 
@@ -189,7 +192,6 @@ private fun Welcome(onBack: () -> Unit, onDone: () -> Unit) {
     val pager = rememberPagerState { count }
     val scope = rememberCoroutineScope()
     val bar = rememberChoiceState()
-    val last = pager.currentPage == count - 1
     val go: (Int) -> Unit = { p -> if (p >= count) onDone() else if (p >= 0) scope.launch { pager.animateScrollToPage(p) } else onBack() }
 
     // One rule everywhere: a swipe anywhere is the bar's (right to left continues, left to right goes back), so the last page continues
@@ -212,7 +214,42 @@ private fun Welcome(onBack: () -> Unit, onDone: () -> Unit) {
         ChoiceBar(
             bar,
             left = Choice(stringResource(R.string.gate_back), stringResource(R.string.gate_release_back), Palette.Tonal, Palette.Ink) { go(pager.currentPage - 1) },
-            right = Choice(stringResource(if (last) R.string.gate_set_password else R.string.gate_continue), stringResource(R.string.gate_release_continue), Palette.Ink, Palette.Paper) { go(pager.currentPage + 1) },
+            right = Choice(stringResource(R.string.gate_continue), stringResource(R.string.gate_release_continue), Palette.Ink, Palette.Paper) { go(pager.currentPage + 1) },
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 14.dp),
+        )
+    }
+}
+
+/** First run, after the welcome pages: the language new clients are assumed to speak. Each client can still have their own. */
+@Composable
+private fun SpeechLanguageStep(onBack: () -> Unit, onDone: () -> Unit) {
+    val ctx = LocalContext.current
+    val bar = rememberChoiceState()
+    var language by rememberSaveable { mutableStateOf(SpeechLanguages.default(ctx).code) }
+    val selected = SpeechLanguage.of(language)
+    val done = { SpeechLanguages.setDefault(ctx, selected); onDone() }
+    val drag = remember {
+        axisDragHandler(
+            accepts = { a, _, _ -> a == Axis.Horizontal },
+            onDrag = { _, total, _ -> bar.drag(total) { true } },
+            onEnd = { _, _, _ -> when (bar.release()) { Side.Left -> onBack(); Side.Right -> done(); null -> {} } },
+        )
+    }
+    Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().axisDrag(drag)) {
+        Column(Modifier.weight(1f).padding(horizontal = 26.dp), verticalArrangement = Arrangement.Center) {
+            Label(stringResource(R.string.speech_kicker))
+            Spacer(Modifier.height(18.dp))
+            Text(stringResource(R.string.speech_title), style = Type.Hero.copy(fontSize = Type.Hero.fontSize * 0.78f, lineHeight = Type.Hero.lineHeight * 0.8f), color = Palette.Ink)
+            Spacer(Modifier.height(22.dp))
+            Text(stringResource(R.string.speech_body), style = Type.Body, color = Palette.InkSoft, modifier = Modifier.width(340.dp))
+            Spacer(Modifier.height(28.dp))
+            LanguagePicker(selected, { language = it.code })
+            Spacer(Modifier.height(80.dp))
+        }
+        ChoiceBar(
+            bar,
+            left = Choice(stringResource(R.string.gate_back), stringResource(R.string.gate_release_back), Palette.Tonal, Palette.Ink) { onBack() },
+            right = Choice(stringResource(R.string.gate_set_password), stringResource(R.string.gate_release_continue), Palette.Ink, Palette.Paper) { done() },
             modifier = Modifier.padding(horizontal = 14.dp, vertical = 14.dp),
         )
     }

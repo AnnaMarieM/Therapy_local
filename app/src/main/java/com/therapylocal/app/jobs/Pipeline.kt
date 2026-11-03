@@ -38,7 +38,8 @@ class Pipeline(
     private val chunks: (Long) -> List<Int>,
     /** One saved chunk of a recording, null if it is missing; throws if it cannot be read. */
     private val chunk: (Long, Int) -> AudioChunk?,
-    private val deleteAudio: (Long) -> Unit,
+    /** Called by cleanup with the recording and its session once everything is stored: the app keeps the audio for a week, a test drops it. */
+    private val finishAudio: (Long, String) -> Unit,
 ) {
     val handlers: Map<String, JobHandler> = mapOf(
         JobGraph.TRANSCRIBE to JobHandler(::transcribe),
@@ -57,6 +58,7 @@ class Pipeline(
         val done = store.chunks(rid).filter { it.text != null }.map { it.idx }.toSet()
         val todo = chunks(rid).filter { it !in done }
         run.progress(JobPhase.Transcribing, 0, todo.size)
+        val language = store.clientLanguage(job.clientId)
         todo.forEachIndexed { i, idx ->
             run.checkStop()
             val c = try {
@@ -66,7 +68,7 @@ class Pipeline(
             } catch (_: GeneralSecurityException) {
                 null
             } ?: throw JobFailure("AUDIO")
-            store.putChunk(ChunkRow(rid, c.idx, c.startMs, c.endMs, c.overlapMs, run.pool.asr().transcribe(c.pcm)))
+            store.putChunk(ChunkRow(rid, c.idx, c.startMs, c.endMs, c.overlapMs, run.pool.asr(language).transcribe(c.pcm)))
             run.progress(JobPhase.Transcribing, i + 1, todo.size)
         }
         // A recording without chunks (gone, or too short to have any) leaves the segments as they are.
@@ -193,10 +195,10 @@ class Pipeline(
         return FactParser.verdict(reply, known.size)?.also { store.putReviewVerdict(session, key, it.encode()) }
     }
 
-    /** Only now, with everything stored, is the audio deleted. The recording's raw chunks go with it; the segments stay. */
+    /** Only now, with everything stored, is the audio let go (see [finishAudio]). The recording's raw chunks go with it; the segments stay. */
     private fun cleanup(job: Job, @Suppress("UNUSED_PARAMETER") run: JobContext) {
         val rid = job.recordingId ?: return
-        deleteAudio(rid)
+        finishAudio(rid, job.sessionId)
         store.deleteRecording(rid)
     }
 

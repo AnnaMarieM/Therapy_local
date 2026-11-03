@@ -29,9 +29,20 @@ class ModelPoolTest {
     private val pool = ModelPool(
         loadLlm = { FakeLlm(chosen).also { loaded += it } },
         loadEmbed = { error("not used") },
-        loadAsr = { llm -> llm(); FakeAsr() },
+        loadAsr = { llm, _ -> llm(); FakeAsr() },
         llmModel = { chosen },
     )
+
+    @Test
+    fun theSpeechRecogniserIsKeptPerLanguageAndSwappedWhenTheLanguageChanges() {
+        val english = pool.asr("en") as FakeAsr
+        assertSame(english, pool.asr("en"))
+
+        val czech = pool.asr("cs") as FakeAsr
+        assertTrue(english.closed)
+        assertFalse(czech.closed)
+        assertSame(czech, pool.asr("cs"))
+    }
 
     @Test
     fun theLlmIsKeptAcrossCallsWhileTheChoiceStands() {

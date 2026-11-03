@@ -36,7 +36,7 @@ class PipelineHarness(private val context: Context, val name: String, private va
         store, queue, PROMPTS::getValue,
         chunks = { rid -> audio[rid].orEmpty().map { it.idx } },
         chunk = { rid, idx -> audio[rid]?.firstOrNull { it.idx == idx } },
-        deleteAudio = { audio.remove(it) },
+        finishAudio = { rid, _ -> audio.remove(rid) },
     )
 
     val handlers: Map<String, JobHandler> = pipeline.handlers.mapValues { (kind, h) ->
@@ -47,11 +47,14 @@ class PipelineHarness(private val context: Context, val name: String, private va
         }
     }
 
-    fun pool() = ModelPool({ FakeLlm(catalogue) }, { FakeEmbed }, { FakeAsr(spoken) }, { FakeLlm.MODEL })
+    /** The language of every speech recogniser the pool loaded, in order. */
+    val asrLoads = ArrayList<String>()
+
+    fun pool() = ModelPool({ FakeLlm(catalogue) }, { FakeEmbed }, { _, language -> asrLoads += language; FakeAsr(spoken) }, { FakeLlm.MODEL })
 
     /** A session with a stopped recording: one chunk per line, saved as pending audio with untranscribed chunk rows, and its jobs queued. */
-    fun record(client: String, session: String, startedAt: Long, lines: List<String>): Long {
-        if (store.clients().none { it.id == client }) store.createClient(client, "Client $client")
+    fun record(client: String, session: String, startedAt: Long, lines: List<String>, language: String = "en"): Long {
+        if (store.clients().none { it.id == client }) store.createClient(client, "Client $client", language)
         store.createSession(session, client, startedAt)
         val rid = store.createRecording(session, "fake", "fake-asr", 10)
         audio[rid] = lines.mapIndexed { i, line ->

@@ -9,16 +9,19 @@ import com.k2fsa.sherpa.onnx.OfflineRecognizerConfig
 import com.k2fsa.sherpa.onnx.OfflineWhisperModelConfig
 import com.therapylocal.app.log.AppLog
 import com.therapylocal.app.log.LogCtx
+import com.therapylocal.app.models.SpeechLanguage
 import com.therapylocal.app.models.ModelRegistry
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 
-/** Whisper (tiny, base or small, int8) on sherpa-onnx with the ONNX Runtime CPU provider. */
-class SherpaWhisperAsr(private val context: Context, private val size: String, private val language: String = "auto") : AsrEngine {
+/** Whisper (tiny, base or small, int8) for one language on sherpa-onnx. [provider] is the ONNX Runtime execution provider: "cpu" or "nnapi". */
+class SherpaWhisperAsr(private val context: Context, size: String, private val language: SpeechLanguage, private val provider: String = "cpu") : AsrEngine {
+    private val spec = ModelRegistry.whisperFor(size, language)
+    private val prefix = spec.id.removePrefix("whisper-")
     override val engineName = "whisper"
-    override val modelName = "whisper-$size"
+    override val modelName = spec.id
     override var backend: String = "none"
         private set
 
@@ -28,29 +31,28 @@ class SherpaWhisperAsr(private val context: Context, private val size: String, p
     override suspend fun load() = lock.withLock {
         if (recognizer != null) return@withLock
         withContext(Dispatchers.Default) {
-            val spec = ModelRegistry.whisperFor(size)
             val bytes = spec.files.sumOf { spec.file(context, it).length() }
-            AppLog.span(TAG, "asr_load", LogCtx.NONE, "engine" to engineName, "model" to modelName, "model_mb" to (bytes shr 20), "provider" to "cpu", "threads" to THREADS, "language" to language) { span ->
+            AppLog.span(TAG, "asr_load", LogCtx.NONE, "engine" to engineName, "model" to modelName, "model_mb" to (bytes shr 20), "provider" to provider, "threads" to THREADS, "language" to language.code) { span ->
                 val whisper = OfflineWhisperModelConfig(
-                    encoder = spec.path(context, "$size-encoder.int8.onnx"),
-                    decoder = spec.path(context, "$size-decoder.int8.onnx"),
-                    language = if (language == "auto") "" else language, // empty means auto-detect, which can misfire on very short chunks
+                    encoder = spec.path(context, "$prefix-encoder.int8.onnx"),
+                    decoder = spec.path(context, "$prefix-decoder.int8.onnx"),
+                    language = if (spec.id.endsWith(".en")) "" else language.code, // an English-only build has no language to set; otherwise a fixed language avoids auto-detect misfiring on short chunks
                     task = "transcribe",
                 )
                 val config = OfflineRecognizerConfig(
                     featConfig = FeatureConfig(sampleRate = Pcm.SAMPLE_RATE, featureDim = 80),
                     modelConfig = OfflineModelConfig(
                         whisper = whisper,
-                        tokens = spec.path(context, "$size-tokens.txt"),
+                        tokens = spec.path(context, "$prefix-tokens.txt"),
                         numThreads = THREADS,
                         debug = false,
-                        provider = "cpu",
+                        provider = provider,
                         modelType = "whisper",
                     ),
                     decodingMethod = "greedy_search",
                 )
                 recognizer = OfflineRecognizer(config = config)
-                backend = "CPU"
+                backend = provider.uppercase()
                 span.put("backend", backend)
             }
         }

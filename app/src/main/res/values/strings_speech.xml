@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The language clients speak in sessions (picks the speech recogniser). Not the language of the app itself. -->
+    <string name="speech_kicker">Clients</string>
+    <string name="speech_title">What do your\nclients speak?</string>
+    <string name="speech_body">Sessions are written down in this language. It is only the starting point: each client can have their own.</string>
+    <string name="speech_speaks">Speaks</string>
+    <string name="speech_profile_note">New recordings are written down in this language.</string>
+    <string name="speech_default_group">Client language</string>
+    <string name="speech_default_body">New clients start with this language. Existing clients keep theirs.</string>
+</resources>

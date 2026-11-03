@@ -5,7 +5,7 @@ class ModelSwitched : Exception()
 
 /**
  * The models the handlers use, each loaded on first use and kept across jobs until [close] (the end of a drain), so a multi-GB model is not
- * reloaded per job. The loaders are given by the app (see [com.therapylocal.app.memory.DeviceModels]) or by a test. [loadAsr] gets the LLM,
+ * reloaded per job. The loaders are given by the app (see [com.therapylocal.app.memory.DeviceModels]) or by a test. [loadAsr] gets the LLM and the language,
  * so Gemma speech recognition can use the LLM's engine instead of loading the same Gemma file a second time.
  *
  * The Gemma build chosen in the settings is only picked up by [refresh], which [JobRunner] calls between jobs, so one job never mixes two
@@ -14,7 +14,7 @@ class ModelSwitched : Exception()
 class ModelPool(
     private val loadLlm: () -> Llm,
     private val loadEmbed: () -> Embed,
-    private val loadAsr: (llm: () -> Llm) -> Asr,
+    private val loadAsr: (llm: () -> Llm, language: String) -> Asr,
     /** The id of the LLM chosen in the settings, known without loading it. */
     llmModel: () -> String,
 ) : AutoCloseable {
@@ -22,6 +22,7 @@ class ModelPool(
     private var llm: Llm? = null
     private var embed: Embed? = null
     private var asr: Asr? = null
+    private var asrLanguage: String? = null
     private var current: String? = null
 
     /** The id of the LLM [llm] gives in this job (cache keys). */
@@ -41,7 +42,13 @@ class ModelPool(
 
     fun embed(): Embed = embed ?: loadEmbed().also { embed = it }
 
-    fun asr(): Asr = asr ?: loadAsr(::llm).also { asr = it }
+    /** The speech recogniser for [language] (a language code). Only one is held: asking for another unloads the current one. */
+    fun asr(language: String = "en"): Asr {
+        asr?.let { if (asrLanguage == language) return it }
+        asr?.close()
+        asr = null
+        return loadAsr(::llm, language).also { asr = it; asrLanguage = language }
+    }
 
     /** Between jobs: if another Gemma build was chosen, unload the old one, and the speech recogniser that may run on it. */
     fun refresh() {
@@ -53,6 +60,7 @@ class ModelPool(
         asr?.close()
         loaded.close()
         asr = null
+        asrLanguage = null
         llm = null
     }
 
@@ -62,6 +70,7 @@ class ModelPool(
         embed?.close()
         llm?.close()
         asr = null
+        asrLanguage = null
         embed = null
         llm = null
         current = null

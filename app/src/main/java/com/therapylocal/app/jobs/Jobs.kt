@@ -2,6 +2,7 @@ package com.therapylocal.app.jobs
 
 import android.content.Context
 import com.therapylocal.app.data.MindStore
+import com.therapylocal.app.data.PendingAudio
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -24,6 +25,7 @@ object Jobs {
         return synchronized(this) {
             queue?.takeIf { it.repo === store } ?: JobQueue(store, flow).also { q ->
                 q.recoverStale()
+                PendingAudio.sweepRetained(context)
                 JobGraph.recoverRecordings(q, store.recordings().mapNotNull { r -> r.sessionId?.let { r.id to it } })
                 queue = q
             }
