@@ -202,7 +202,7 @@ class ProfileUiTest {
     @Test
     fun addingAClientKeepsOnlyTheInitialOfTheSurname() {
         var added: String? = null
-        compose.setContent { PaperTheme { AddClientSheet(rememberSheetState(), onCancel = {}, onAdd = { added = it }) } }
+        compose.setContent { PaperTheme { AddClientSheet(rememberSheetState(), onCancel = {}, onAdd = { name, _ -> added = name }) } }
         compose.onNode(hasContentDescription("First name")).performTextInput("george")
         compose.onNode(hasContentDescription("Surname · only the initial is kept")).performTextInput("miller")
         compose.onNode(hasText("George M.")).assertExists()

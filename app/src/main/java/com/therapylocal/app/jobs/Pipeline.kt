@@ -40,20 +40,15 @@ class Pipeline(
     private val chunks: (Long) -> List<Int>,
     /** One saved chunk of a recording, null if it is missing; throws if it cannot be read. */
     private val chunk: (Long, Int) -> AudioChunk?,
-    private val deleteAudio: (Long) -> Unit,
-    /** The prompt language ([PromptLanguage]) for a sample of a session's text: Czech only for a Czech app and a Czech client. */
-    private val promptLanguage: (sample: String) -> String = { PromptLanguage.EN },
+    /** Called by cleanup with the recording and its session once everything is stored: the app keeps the audio for a week, a test drops it. */
+    private val finishAudio: (Long, String) -> Unit,
+    /** The prompt language ([PromptLanguage]) for a client's language code: Czech only for a Czech app and a Czech client. */
+    private val promptLanguage: (clientLanguage: String) -> String = { PromptLanguage.EN },
 ) {
-    private val languages = HashMap<String, String>()
+    /** The language of the prompts for the client of [job]: Czech only for a Czech app and a Czech client. */
+    private fun language(job: Job): String = promptLanguage(store.clientLanguage(job.clientId))
 
-    /** The language of [session]'s prompts, decided once from a sample of its transcript (not remembered while the session has no text yet). */
-    private fun language(session: String): String {
-        languages[session]?.let { return it }
-        val sample = store.segments(session).joinToString(" ") { it.text }.take(LANGUAGE_SAMPLE_CHARS)
-        return promptLanguage(sample).also { if (sample.isNotBlank()) languages[session] = it }
-    }
-
-    private fun promptFor(name: String, session: String): String = prompt(Prompts.named(name, language(session)))
+    private fun promptFor(name: String, job: Job): String = prompt(Prompts.named(name, language(job)))
 
     val handlers: Map<String, JobHandler> = mapOf(
         JobGraph.TRANSCRIBE to JobHandler(::transcribe),
@@ -72,6 +67,7 @@ class Pipeline(
         val done = store.chunks(rid).filter { it.text != null }.map { it.idx }.toSet()
         val todo = chunks(rid).filter { it !in done }
         run.progress(JobPhase.Transcribing, 0, todo.size)
+        val language = store.clientLanguage(job.clientId)
         todo.forEachIndexed { i, idx ->
             run.checkStop()
             val c = try {
@@ -81,7 +77,7 @@ class Pipeline(
             } catch (_: GeneralSecurityException) {
                 null
             } ?: throw JobFailure("AUDIO")
-            store.putChunk(ChunkRow(rid, c.idx, c.startMs, c.endMs, c.overlapMs, run.pool.asr().transcribe(c.pcm)))
+            store.putChunk(ChunkRow(rid, c.idx, c.startMs, c.endMs, c.overlapMs, run.pool.asr(language).transcribe(c.pcm)))
             run.progress(JobPhase.Transcribing, i + 1, todo.size)
         }
         // A recording without chunks (gone, or too short to have any) leaves the segments as they are.
@@ -124,9 +120,7 @@ class Pipeline(
         var need = 0
         val windowsOf = HashMap<String, List<com.therapylocal.app.data.WindowRef>>()
         for (job in open) {
-            // A session not cut into windows has no text yet to tell its language from: both languages are counted.
-            val languages = if (job.kind == JobGraph.WINDOW) listOf(PromptLanguage.EN, PromptLanguage.CS) else listOf(language(job.sessionId))
-            for (lang in languages) {
+            for (lang in listOf(language(job))) {
                 val extractSystem = prompt(Prompts.named(Prompts.EXTRACT_SYSTEM, lang)) + FactSchemas.EXTRACT_STRICT
                 val extractTemplate = prompt(Prompts.named(Prompts.EXTRACT_USER, lang))
                 when (job.kind) {
@@ -159,8 +153,8 @@ class Pipeline(
         val windows = store.windows(job.sessionId)
         val window = windows.firstOrNull { it.idx == idx } ?: return
         run.progress(JobPhase.Reading, idx, windows.size)
-        val system = promptFor(Prompts.EXTRACT_SYSTEM, job.sessionId)
-        val template = promptFor(Prompts.EXTRACT_USER, job.sessionId)
+        val system = promptFor(Prompts.EXTRACT_SYSTEM, job)
+        val template = promptFor(Prompts.EXTRACT_USER, job)
         // Prompt version | model | window text: a window cut or transcribed differently is read again.
         val key = "${Prompts.version(system, template)}|${run.pool.llmModel()}|${Prompts.hash(window.text)}"
         if (store.extractCache(job.sessionId, idx)?.first == key) return
@@ -207,8 +201,8 @@ class Pipeline(
             run.checkStop()
             Candidate(f, embedFitting(run.pool.embed(), "${f.heading}. ${f.content}")).also { keyOf[it] = key }
         }
-        val system = promptFor(Prompts.REVIEW_SYSTEM, sid)
-        val template = promptFor(Prompts.REVIEW_USER, sid)
+        val system = promptFor(Prompts.REVIEW_SYSTEM, job)
+        val template = promptFor(Prompts.REVIEW_USER, job)
         val version = "${Prompts.version(system, template)}|${run.pool.llmModel()}"
         val plan = CommitPlanner.plan(
             candidates,
@@ -252,10 +246,10 @@ class Pipeline(
         return FactParser.verdict(reply, known.size)?.also { store.putReviewVerdict(session, key, it.encode()) }
     }
 
-    /** Only now, with everything stored, is the audio deleted. The recording's raw chunks go with it; the segments stay. */
+    /** Only now, with everything stored, is the audio let go (see [finishAudio]). The recording's raw chunks go with it; the segments stay. */
     private fun cleanup(job: Job, @Suppress("UNUSED_PARAMETER") run: JobContext) {
         val rid = job.recordingId ?: return
-        deleteAudio(rid)
+        finishAudio(rid, job.sessionId)
         store.deleteRecording(rid)
     }
 
@@ -282,9 +276,6 @@ class Pipeline(
 
         /** "K1: heading: content" of a known fact, at most: a heading of 60 and content of 300 are what the strict schema allows, plus room. */
         const val REVIEW_FACT_CHARS = 480
-
-        /** Enough of the transcript to tell Czech from other languages by its letters. */
-        const val LANGUAGE_SAMPLE_CHARS = 4000
     }
 
     private fun date(startedAt: Long): String = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(java.util.Date(startedAt))

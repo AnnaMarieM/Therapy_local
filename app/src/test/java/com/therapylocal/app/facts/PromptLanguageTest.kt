@@ -1,55 +1,29 @@
 package com.therapylocal.app.facts
 
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.File
 
 class PromptLanguageTest {
-    private val czech = "Moje sestra Lucie se přestěhovala do Brna a já mám pocit, že jsme si s ní teď strašně vzdálené. " +
-        "Usínám až po půlnoci a v pět ráno se budím. Pila jsem proto víc kávy, tři až čtyři hrnky denně. V pátek mi šéf řekl, že dostanu výpověď. " +
-        "Poslední den budu mít třicátého září. Bojím se, jak zaplatím nájem, platím osm tisíc měsíčně. Chodím na dlouhé procházky podél řeky."
-    private val slovak = "Moja sestra Lucia sa presťahovala do Bratislavy a mám pocit, že sme si teraz veľmi vzdialené. " +
-        "Zaspávam až po polnoci a o piatej ráno sa budím. Pila som preto viac kávy, tri až štyri hrnčeky denne. V piatok mi šéf povedal, že dostanem výpoveď. " +
-        "Posledný deň budem mať tridsiateho septembra. Bojím sa, ako zaplatím nájom, platím osem tisíc mesačne. Chodím na dlhé prechádzky popri rieke."
-    private val english = "My sister Lucie moved to Brno and I feel that we are now terribly distant from each other. " +
-        "I fall asleep only after midnight and I wake up at five in the morning. I have been drinking more coffee, three or four cups a day. " +
-        "On Friday my boss told me that I would be fired. My last day will be the thirtieth of September. I am afraid of how I will pay the rent."
-
     @Test
     fun czechAppAndCzechClientUseCzechPrompts() {
-        assertEquals(PromptLanguage.CS, PromptLanguage.choose("cs", "cs", ""))
+        assertEquals(PromptLanguage.CS, PromptLanguage.choose("cs", "cs"))
     }
 
     @Test
     fun anEnglishAppKeepsEnglishPromptsEvenForACzechClient() {
-        assertEquals(PromptLanguage.EN, PromptLanguage.choose("en", "cs", czech))
-        assertEquals(PromptLanguage.EN, PromptLanguage.choose("en", "auto", czech))
+        assertEquals(PromptLanguage.EN, PromptLanguage.choose("en", "cs"))
     }
 
     @Test
-    fun aCzechAppWithAnotherLanguageClientKeepsEnglishPrompts() {
-        assertEquals(PromptLanguage.EN, PromptLanguage.choose("cs", "en", english))
-        assertEquals(PromptLanguage.EN, PromptLanguage.choose("cs", "sk", slovak))
+    fun aCzechAppWithAnEnglishClientKeepsEnglishPrompts() {
+        assertEquals(PromptLanguage.EN, PromptLanguage.choose("cs", "en"))
     }
 
     @Test
-    fun withAutoTheTranscriptDecides() {
-        assertEquals(PromptLanguage.CS, PromptLanguage.choose("cs", "auto", czech))
-        assertEquals(PromptLanguage.EN, PromptLanguage.choose("cs", "auto", english))
-        assertEquals(PromptLanguage.EN, PromptLanguage.choose("cs", "auto", slovak))
-    }
-
-    @Test
-    fun aTextTooShortToJudgeIsNotCzech() {
-        assertFalse(PromptLanguage.looksCzech("Přestěhovala se do Brna."))
-        assertFalse(PromptLanguage.looksCzech(""))
-    }
-
-    @Test
-    fun theAppLanguageTagIsCaseInsensitive() {
-        assertEquals(PromptLanguage.CS, PromptLanguage.choose("CS", "CS", ""))
+    fun theLanguageTagsAreCaseInsensitive() {
+        assertEquals(PromptLanguage.CS, PromptLanguage.choose("CS", "CS"))
     }
 
     @Test

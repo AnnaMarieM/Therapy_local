@@ -82,7 +82,8 @@ MindVault utilizes open-weight, edge-optimized models licensed for permissive re
 
 | Model | Purpose | Developer / Source | License & Terms |
 |---|---|---|---|
-| **Whisper (via sherpa-onnx)** | Real-time on-device speech-to-text | OpenAI / k2-fsa | [Apache 2.0](https://github.com/k2-fsa/sherpa-onnx/blob/master/LICENSE) / [MIT](https://github.com/openai/whisper/blob/main/LICENSE) |
+| **Canary-1B-v2 (via sherpa-onnx)** | On-device speech-to-text, the default (25 European languages incl. Czech and English); int8 conversion by [fussraider](https://huggingface.co/fussraider/canary-1b-v2-sherpa-onnx-int8) | NVIDIA / k2-fsa | [CC-BY-4.0](https://creativecommons.org/licenses/by/4.0/) (attribution: NVIDIA, nvidia/canary-1b-v2) / [Apache 2.0](https://github.com/k2-fsa/sherpa-onnx/blob/master/LICENSE) |
+| **Whisper (via sherpa-onnx)** | Alternative on-device speech-to-text engine | OpenAI / k2-fsa | [Apache 2.0](https://github.com/k2-fsa/sherpa-onnx/blob/master/LICENSE) / [MIT](https://github.com/openai/whisper/blob/main/LICENSE) |
 | **EmbeddingGemma 2 (740M)** | On-device text and audio semantic embeddings | Google | [Gemma Terms of Use](https://ai.google.dev/gemma/terms) / Apache 2.0 |
 | **Gemma 4 E2B / LiteRT-LM** | On-device local language compression and transcript extraction | Google LiteRT | [Gemma Terms of Use](https://ai.google.dev/gemma/terms) |
 

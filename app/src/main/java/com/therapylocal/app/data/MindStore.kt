@@ -9,7 +9,8 @@ import net.zetetic.database.sqlcipher.SQLiteOpenHelper
 import com.therapylocal.app.vault.Vault
 import com.therapylocal.app.vault.VaultLockedException
 
-data class ClientRow(val id: String, val name: String, val createdAt: Long)
+/** [language] is the code of the language the client speaks in sessions ("en", "cs"); it picks the speech recogniser. */
+data class ClientRow(val id: String, val name: String, val createdAt: Long, val language: String = "en")
 
 data class SessionRow(val id: String, val clientId: String, val startedAt: Long, val endedAt: Long?)
 
@@ -94,16 +95,28 @@ class MindStore(context: Context, name: String, password: ByteArray) :
         SCHEMA.forEach(db::execSQL)
     }
 
-    override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {}
+    override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
+        if (oldVersion < 2) db.execSQL("ALTER TABLE clients ADD COLUMN language TEXT NOT NULL DEFAULT 'en'")
+    }
 
     // ---- clients and sessions ----------------------------------------------------------------------------------
 
-    fun createClient(id: String, name: String) {
-        writableDatabase.insertOrThrow("clients", null, ContentValues().apply { put("id", id); put("name", name); put("created_at", System.currentTimeMillis()) })
+    fun createClient(id: String, name: String, language: String = "en") {
+        writableDatabase.insertOrThrow(
+            "clients", null,
+            ContentValues().apply { put("id", id); put("name", name); put("created_at", System.currentTimeMillis()); put("language", language) },
+        )
     }
 
+    fun setClientLanguage(id: String, language: String) {
+        writableDatabase.update("clients", ContentValues().apply { put("language", language) }, "id = ?", arrayOf(id))
+    }
+
+    /** The client's language code, "en" if the client is not stored. */
+    fun clientLanguage(id: String): String = query("SELECT language FROM clients WHERE id = ?", id) { it.getString(0) }.firstOrNull() ?: "en"
+
     /** Sorted by name. */
-    fun clients(): List<ClientRow> = query("SELECT id, name, created_at FROM clients ORDER BY name COLLATE NOCASE") { ClientRow(it.getString(0), it.getString(1), it.getLong(2)) }
+    fun clients(): List<ClientRow> = query("SELECT id, name, created_at, language FROM clients ORDER BY name COLLATE NOCASE") { ClientRow(it.getString(0), it.getString(1), it.getLong(2), it.getString(3)) }
 
     /** True if the client existed. Everything stored for it cascades. */
     fun deleteClient(id: String): Boolean = writableDatabase.delete("clients", "id = ?", arrayOf(id)) > 0
@@ -400,13 +413,13 @@ class MindStore(context: Context, name: String, password: ByteArray) :
         /** The two databases before this one. Their data is not migrated. */
         val LEGACY = listOf("recordings.db", "memory.db")
 
-        private const val VERSION = 1
+        private const val VERSION = 2
 
         private const val FACT_COLUMNS =
             "SELECT f.id, f.client_id, f.session_id, f.heading, f.content, f.evidence, f.seg_idx, f.created_at, (SELECT COUNT(*) FROM mentions m WHERE m.fact_id = f.id)"
 
         private val SCHEMA = listOf(
-            "CREATE TABLE clients(id TEXT PRIMARY KEY, name TEXT NOT NULL, created_at INTEGER NOT NULL)",
+            "CREATE TABLE clients(id TEXT PRIMARY KEY, name TEXT NOT NULL, created_at INTEGER NOT NULL, language TEXT NOT NULL DEFAULT 'en')",
             """CREATE TABLE sessions(
                  id TEXT PRIMARY KEY,
                  client_id TEXT NOT NULL REFERENCES clients(id) ON DELETE CASCADE,

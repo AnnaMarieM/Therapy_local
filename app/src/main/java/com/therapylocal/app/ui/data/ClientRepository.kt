@@ -8,6 +8,8 @@ import com.therapylocal.app.log.AppLog
 import com.therapylocal.app.log.LogCtx
 import com.therapylocal.app.data.PendingAudio
 import com.therapylocal.app.jobs.Jobs
+import com.therapylocal.app.models.SpeechLanguage
+import com.therapylocal.app.models.SpeechLanguages
 import com.therapylocal.app.models.ModelSetup
 import com.therapylocal.app.ui.logic.SessionLogic
 import com.therapylocal.app.ui.models.FactItem
@@ -29,10 +31,17 @@ class ClientRepository(context: Context, private val open: (Context) -> MindStor
     fun clients(): List<String> = store.clients().map { it.id }
 
     /** Creates a client from the add-patient form and returns its UI patient. The id is a free slug of the name. */
-    fun createClient(name: String): Patient {
+    fun createClient(name: String, language: SpeechLanguage = SpeechLanguages.default(appContext)): Patient {
         val id = ClientInput.uniqueId(ClientInput.slug(name), clients().toSet())
-        store.createClient(id, name.trim())
+        store.createClient(id, name.trim(), language.code)
+        SpeechLanguages.markInUse(appContext, language)
         return patient(id)
+    }
+
+    /** Changes the language the client's next recordings are transcribed in; transcripts already made are kept. */
+    fun setLanguage(id: String, language: SpeechLanguage) {
+        store.setClientLanguage(id, language.code)
+        SpeechLanguages.markInUse(appContext, language)
     }
 
     /** Deletes the client and all its stored data (audio not processed yet included), and drops it from the pipeline queue state. */
@@ -41,6 +50,7 @@ class ClientRepository(context: Context, private val open: (Context) -> MindStor
         Jobs.queue(appContext).dropClient(id)
         val sessions = store.sessions(id).map { it.id }.toSet()
         deleteAudio { it in sessions }
+        sessions.forEach { PendingAudio.deleteRetained(appContext, it) }
         val removed = store.deleteClient(id)
         AppLog.i(TAG, "delete_client_verified", LogCtx.NONE, "client" to id, "removed" to removed, "facts_left" to store.facts(id).size, "sessions_left" to store.sessions(id).size)
     }
@@ -52,6 +62,7 @@ class ClientRepository(context: Context, private val open: (Context) -> MindStor
     fun deleteSession(client: String, session: String) {
         Jobs.queue(appContext).dropSession(session)
         deleteAudio { it == session }
+        PendingAudio.deleteRetained(appContext, session)
         val r = store.deleteSession(session)
         AppLog.i(TAG, "delete_session_verified", LogCtx.NONE, "client" to client, "session" to session, "promoted_facts" to r.promoted, "removed_facts" to r.deleted)
     }
@@ -65,11 +76,11 @@ class ClientRepository(context: Context, private val open: (Context) -> MindStor
     fun sourceChunk(session: String, segIdx: Int): String? = store.segmentsAround(session, segIdx, 0).firstOrNull()?.text
 
     /** All clients as UI patients. */
-    fun patients(): List<Patient> = store.clients().map { patient(it.id, it.name) }
+    fun patients(): List<Patient> = store.clients().map { patient(it.id, it.name, SpeechLanguage.of(it.language)) }
 
-    fun patient(client: String): Patient = patient(client, store.clients().firstOrNull { it.id == client }?.name)
+    fun patient(client: String): Patient = store.clients().firstOrNull { it.id == client }.let { patient(client, it?.name, SpeechLanguage.of(it?.language)) }
 
-    private fun patient(client: String, name: String?): Patient {
+    private fun patient(client: String, name: String?, language: SpeechLanguage): Patient {
         val sessions = store.sessions(client)
         val dates = sessions.associate { it.id to date(it.startedAt) }
         val rows = store.facts(client)
@@ -87,6 +98,7 @@ class ClientRepository(context: Context, private val open: (Context) -> MindStor
             sessionCount = sessions.size,
             sessions = items.asReversed(), // newest first, as the profile lists them
             facts = rows.map { it.toItem(dates) },
+            language = language,
         )
     }
 

@@ -13,32 +13,9 @@ object PromptLanguage {
     const val CS_DIR = "cs"
 
     /**
-     * [appLanguage] is the UI language tag, [clientSpeech] the speech language setting of the client ("auto", "en", "sk", "cs", ...), and
-     * [transcript] a sample of the session's text, read only when the setting is "auto".
+     * [appLanguage] is the UI language tag and [clientLanguage] the language code the client speaks in sessions (see
+     * [com.therapylocal.app.models.SpeechLanguage]): Czech prompts only if both are Czech.
      */
-    fun choose(appLanguage: String, clientSpeech: String, transcript: String): String {
-        if (!appLanguage.equals(CS, ignoreCase = true)) return EN
-        return when (clientSpeech.lowercase()) {
-            CS -> CS
-            "auto", "" -> if (looksCzech(transcript)) CS else EN
-            else -> EN
-        }
-    }
-
-    /**
-     * Czech by its own letters: ě, ř and ů make about 3 of every 100 letters of Czech text and none of Slovak, Polish or English, so a Slovak
-     * client of a Czech-language app keeps the English prompts. Needs enough text to say.
-     */
-    fun looksCzech(text: String): Boolean {
-        var letters = 0
-        var czech = 0
-        for (c in text) if (c.isLetter()) {
-            letters++
-            if (c == 'ě' || c == 'ř' || c == 'ů' || c == 'Ě' || c == 'Ř' || c == 'Ů') czech++
-        }
-        return letters >= MIN_LETTERS && czech * 1000 >= letters * MIN_PER_MILLE
-    }
-
-    private const val MIN_LETTERS = 200
-    private const val MIN_PER_MILLE = 15
+    fun choose(appLanguage: String, clientLanguage: String): String =
+        if (appLanguage.equals(CS, ignoreCase = true) && clientLanguage.equals(CS, ignoreCase = true)) CS else EN
 }

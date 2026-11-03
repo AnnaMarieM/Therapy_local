@@ -21,3 +21,13 @@ dist/
 # Personal opencode skills (never commit)
 .opencode/skills/local/
 __pycache__/
+
+# local tooling
+/toolchains/
+/orchestration/
+/.opencode/
+/.cortex/
+
+# Local speech test audio, including any real session recordings pulled for debugging: never commit.
+qa/eval-audio/
+qa/eval-private/

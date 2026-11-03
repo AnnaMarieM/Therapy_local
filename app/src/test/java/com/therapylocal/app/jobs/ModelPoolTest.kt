@@ -50,12 +50,26 @@ class ModelPoolTest {
     private val pool = ModelPool(
         loadLlm = { audio, ctx -> FakeLlm(chosen, audio, ctx).also { loaded += it } },
         loadEmbed = { FakeEmbed().also { embeds += it } },
-        loadAsr = { llm -> val onLlm = llm() != null; FakeAsr(onLlm).also { asrs += it } },
+        loadAsr = { llm, _ -> val onLlm = llm() != null; FakeAsr(onLlm).also { asrs += it } },
         llmModel = { chosen },
         asrOnLlm = { gemmaAsr },
         contextNeeded = { needed },
         baseContext = 6144,
     )
+
+    @Test
+    fun theSpeechRecogniserIsKeptPerLanguageAndSwappedWhenTheLanguageChanges() {
+        gemmaAsr = false
+        val english = pool.asr("en") as FakeAsr
+        assertSame(english, pool.asr("en"))
+        assertFalse(english.closed)
+
+        val czech = pool.asr("cs") as FakeAsr
+        assertTrue(english.closed)
+        assertFalse(czech.closed)
+        assertSame(czech, pool.asr("cs"))
+        assertEquals(listOf("whisper"), resident())
+    }
 
     @Test
     fun theLlmIsKeptAcrossCallsWhileTheChoiceStands() {
@@ -91,7 +105,7 @@ class ModelPoolTest {
         val noAudio = ModelPool(
             loadLlm = { _, ctx -> FakeLlm(chosen, false, ctx).also { loaded += it } },
             loadEmbed = { error("not used") },
-            loadAsr = { llm -> assertTrue(llm() == null); FakeAsr(false).also { asrs += it } },
+            loadAsr = { llm, _ -> assertTrue(llm() == null); FakeAsr(false).also { asrs += it } },
             llmModel = { chosen },
             asrOnLlm = { true },
             baseContext = 6144,

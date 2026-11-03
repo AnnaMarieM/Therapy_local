@@ -24,8 +24,11 @@ class ModelPool(
     /** Loads the LLM with `context` tokens; `audio` asks for its audio encoder too (Gemma speech recognition), otherwise text only. */
     private val loadLlm: (audio: Boolean, context: Int) -> Llm,
     private val loadEmbed: () -> Embed,
-    /** Gets the LLM engine if it has an audio encoder (null otherwise); a recogniser that runs on it (Gemma) uses it, Whisper does not. */
-    private val loadAsr: (llm: () -> Llm?) -> Asr,
+    /**
+     * Loads the speech recogniser for a client [language]. Gets the LLM engine if it has an audio encoder (null otherwise): a recogniser that
+     * runs on it (Gemma) uses it, the others have their own model.
+     */
+    private val loadAsr: (llm: () -> Llm?, language: String) -> Asr,
     /** The id of the LLM chosen in the settings, known without loading it. */
     llmModel: () -> String,
     /** Whether the chosen speech recogniser runs on the LLM's engine (Gemma) or has its own model (Whisper). */
@@ -40,6 +43,7 @@ class ModelPool(
     private var embed: Embed? = null
     private var asr: Asr? = null
     private var asrOnEngine = false
+    private var asrLanguage: String? = null
     private var current: String? = null
     private var needed = baseContext
 
@@ -82,8 +86,10 @@ class ModelPool(
         return loadEmbed().also { embed = it }
     }
 
-    fun asr(): Asr {
-        asr?.let { return it }
+    /** The speech recogniser for [language] (a language code). Only one is held: asking for another unloads the current one. */
+    fun asr(language: String = "en"): Asr {
+        asr?.let { if (asrLanguage == language) return it }
+        closeAsr()
         closeEmbed()
         if (asrOnLlm()) {
             // The engine without an audio encoder cannot hear: it is not kept next to the recogniser that takes its place.
@@ -91,9 +97,9 @@ class ModelPool(
         } else {
             closeLlm()
         }
-        val recogniser = loadAsr { llm?.takeIf { it.hasAudio } }
+        val recogniser = loadAsr({ llm?.takeIf { it.hasAudio } }, language)
         asrOnEngine = llm?.hasAudio == true
-        return recogniser.also { asr = it }
+        return recogniser.also { asr = it; asrLanguage = language }
     }
 
     /**
@@ -137,6 +143,7 @@ class ModelPool(
         asr?.close()
         asr = null
         asrOnEngine = false
+        asrLanguage = null
     }
 
     /** A recogniser with its own model (Whisper) only; one that runs on the LLM's engine goes with it. */

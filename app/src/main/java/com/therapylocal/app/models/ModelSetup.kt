@@ -41,13 +41,18 @@ object ModelSetup {
     val progress: StateFlow<SetupProgress> = _progress.asStateFlow()
     private var observing = false
 
-    /** Distinct specs the current settings need: embeddings, the speech engine, and the memory model. */
+    /** Distinct specs the current settings need: embeddings, the speech engine (for Whisper, a build per language in use), and the memory model. */
     fun required(context: Context): List<ModelSpec> {
         val prefs = prefs(context)
-        val engine = prefs.getString("engine", "whisper") ?: "whisper"
-        val size = prefs.getString("whisper_size", "base") ?: "base"
+        val engine = prefs.getString("engine", ModelRegistry.DEFAULT_ENGINE) ?: ModelRegistry.DEFAULT_ENGINE
+        val size = prefs.getString("whisper_size", ModelRegistry.DEFAULT_WHISPER_SIZE) ?: ModelRegistry.DEFAULT_WHISPER_SIZE
         val gemma = gemma(context)
-        return listOf(ModelRegistry.EMBED, if (engine == "gemma") gemma else ModelRegistry.whisperFor(size), gemma).distinct()
+        val speech = when (engine) {
+            "gemma" -> listOf(gemma)
+            "whisper" -> SpeechLanguages.inUse(context).map { ModelRegistry.whisperFor(size, it) }
+            else -> listOf(ModelRegistry.CANARY_1B_V2) // one multilingual model serves every client language
+        }
+        return (listOf(ModelRegistry.EMBED) + speech + gemma).distinct()
     }
 
     fun gemmaVariant(context: Context): GemmaVariant = ModelChoice.resolve(prefs(context).getString(ModelChoice.PREF, null))
@@ -119,7 +124,8 @@ object ModelSetup {
         AppLog.i(TAG, "setup_needed", LogCtx.NONE, "missing_mb" to (missing shr 20))
         val request = OneTimeWorkRequestBuilder<ModelDownloadWorker>()
             .setConstraints(Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build())
-            .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 10, TimeUnit.SECONDS)
+            // The downloader retries a dropped connection itself; this is only the last resort, so keep it short and linear (exponential grows to hours).
+            .setBackoffCriteria(BackoffPolicy.LINEAR, 30, TimeUnit.SECONDS)
             .build()
         WorkManager.getInstance(context).enqueueUniqueWork(WORK_NAME, policy, request)
     }

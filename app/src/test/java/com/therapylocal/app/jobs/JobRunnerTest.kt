@@ -41,7 +41,7 @@ class JobRunnerTest {
 
     private var chosen = "gemma-test"
 
-    private fun pool() = ModelPool({ _, _ -> FakeLlm(chosen).also { llms += it } }, { error("not used") }, { error("not used") }, { chosen })
+    private fun pool() = ModelPool({ _, _ -> FakeLlm(chosen).also { llms += it } }, { error("not used") }, { _, _ -> error("not used") }, { chosen })
 
     private fun runner(handler: (Job, JobContext) -> Unit) =
         JobRunner(q, mapOf("work" to JobHandler { j, c -> ran += j.id; handler(j, c) }), pool()) { true }
