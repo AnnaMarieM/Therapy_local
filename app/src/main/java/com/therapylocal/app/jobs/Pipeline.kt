@@ -17,6 +17,7 @@ import com.therapylocal.app.facts.FactSchemas
 import com.therapylocal.app.facts.Known
 import com.therapylocal.app.facts.Prompts
 import com.therapylocal.app.facts.PromptBudget
+import com.therapylocal.app.facts.PromptLanguage
 import com.therapylocal.app.facts.TranscriptWindows
 import com.therapylocal.app.facts.Verdict
 import com.therapylocal.app.log.AppLog
@@ -40,7 +41,20 @@ class Pipeline(
     /** One saved chunk of a recording, null if it is missing; throws if it cannot be read. */
     private val chunk: (Long, Int) -> AudioChunk?,
     private val deleteAudio: (Long) -> Unit,
+    /** The prompt language ([PromptLanguage]) for a sample of a session's text: Czech only for a Czech app and a Czech client. */
+    private val promptLanguage: (sample: String) -> String = { PromptLanguage.EN },
 ) {
+    private val languages = HashMap<String, String>()
+
+    /** The language of [session]'s prompts, decided once from a sample of its transcript (not remembered while the session has no text yet). */
+    private fun language(session: String): String {
+        languages[session]?.let { return it }
+        val sample = store.segments(session).joinToString(" ") { it.text }.take(LANGUAGE_SAMPLE_CHARS)
+        return promptLanguage(sample).also { if (sample.isNotBlank()) languages[session] = it }
+    }
+
+    private fun promptFor(name: String, session: String): String = prompt(Prompts.named(name, language(session)))
+
     val handlers: Map<String, JobHandler> = mapOf(
         JobGraph.TRANSCRIBE to JobHandler(::transcribe),
         JobGraph.WINDOW to JobHandler(::window),
@@ -108,24 +122,30 @@ class Pipeline(
     fun requiredContext(): Int {
         val open = queue.openJobs()
         var need = 0
-        val extractSystem = prompt(Prompts.EXTRACT_SYSTEM) + FactSchemas.EXTRACT_STRICT
-        val extractTemplate = prompt(Prompts.EXTRACT_USER)
         val windowsOf = HashMap<String, List<com.therapylocal.app.data.WindowRef>>()
-        for (job in open) when (job.kind) {
-            JobGraph.EXTRACT -> {
-                val windows = windowsOf.getOrPut(job.sessionId) { store.windows(job.sessionId) }
-                val window = windows.firstOrNull { it.idx == job.ref.toIntOrNull() } ?: continue
-                need = maxOf(need, PromptBudget.required(extractSystem, extractUser(job, extractTemplate, window, windows.size), MemoryConfig.EXTRACT_MAX_OUTPUT_TOKENS))
-            }
-            JobGraph.WINDOW -> {
-                // A word is at most WORD_CHARS characters with its space, an accented one for the safe (high) token estimate.
-                val text = "ě".repeat(TranscriptWindows.wordsFor(MemoryConfig.WINDOW_TOKENS) * WORD_CHARS)
-                need = maxOf(need, PromptBudget.required(extractSystem, Prompts.fill(extractTemplate, mapOf("TEXT" to text, "CLIENT" to "x".repeat(40))), MemoryConfig.EXTRACT_MAX_OUTPUT_TOKENS))
-            }
-            JobGraph.COMMIT -> {
-                val known = "ě".repeat(MemoryConfig.NEIGHBOURS * REVIEW_FACT_CHARS)
-                val user = Prompts.fill(prompt(Prompts.REVIEW_USER), mapOf("KNOWN" to known, "FACT" to "ě".repeat(REVIEW_FACT_CHARS)))
-                need = maxOf(need, PromptBudget.required(prompt(Prompts.REVIEW_SYSTEM), user, MemoryConfig.REVIEW_MAX_OUTPUT_TOKENS))
+        for (job in open) {
+            // A session not cut into windows has no text yet to tell its language from: both languages are counted.
+            val languages = if (job.kind == JobGraph.WINDOW) listOf(PromptLanguage.EN, PromptLanguage.CS) else listOf(language(job.sessionId))
+            for (lang in languages) {
+                val extractSystem = prompt(Prompts.named(Prompts.EXTRACT_SYSTEM, lang)) + FactSchemas.EXTRACT_STRICT
+                val extractTemplate = prompt(Prompts.named(Prompts.EXTRACT_USER, lang))
+                when (job.kind) {
+                    JobGraph.EXTRACT -> {
+                        val windows = windowsOf.getOrPut(job.sessionId) { store.windows(job.sessionId) }
+                        val window = windows.firstOrNull { it.idx == job.ref.toIntOrNull() } ?: continue
+                        need = maxOf(need, PromptBudget.required(extractSystem, extractUser(job, extractTemplate, window, windows.size), MemoryConfig.EXTRACT_MAX_OUTPUT_TOKENS))
+                    }
+                    JobGraph.WINDOW -> {
+                        // A word is at most WORD_CHARS characters with its space, an accented one for the safe (high) token estimate.
+                        val text = "ě".repeat(TranscriptWindows.wordsFor(MemoryConfig.WINDOW_TOKENS) * WORD_CHARS)
+                        need = maxOf(need, PromptBudget.required(extractSystem, Prompts.fill(extractTemplate, mapOf("TEXT" to text, "CLIENT" to "x".repeat(40))), MemoryConfig.EXTRACT_MAX_OUTPUT_TOKENS))
+                    }
+                    JobGraph.COMMIT -> {
+                        val known = "ě".repeat(MemoryConfig.NEIGHBOURS * REVIEW_FACT_CHARS)
+                        val user = Prompts.fill(prompt(Prompts.named(Prompts.REVIEW_USER, lang)), mapOf("KNOWN" to known, "FACT" to "ě".repeat(REVIEW_FACT_CHARS)))
+                        need = maxOf(need, PromptBudget.required(prompt(Prompts.named(Prompts.REVIEW_SYSTEM, lang)), user, MemoryConfig.REVIEW_MAX_OUTPUT_TOKENS))
+                    }
+                }
             }
         }
         val context = PromptBudget.contextFor(need, MemoryConfig.LLM_MAX_TOKENS)
@@ -139,8 +159,8 @@ class Pipeline(
         val windows = store.windows(job.sessionId)
         val window = windows.firstOrNull { it.idx == idx } ?: return
         run.progress(JobPhase.Reading, idx, windows.size)
-        val system = prompt(Prompts.EXTRACT_SYSTEM)
-        val template = prompt(Prompts.EXTRACT_USER)
+        val system = promptFor(Prompts.EXTRACT_SYSTEM, job.sessionId)
+        val template = promptFor(Prompts.EXTRACT_USER, job.sessionId)
         // Prompt version | model | window text: a window cut or transcribed differently is read again.
         val key = "${Prompts.version(system, template)}|${run.pool.llmModel()}|${Prompts.hash(window.text)}"
         if (store.extractCache(job.sessionId, idx)?.first == key) return
@@ -187,8 +207,8 @@ class Pipeline(
             run.checkStop()
             Candidate(f, embedFitting(run.pool.embed(), "${f.heading}. ${f.content}")).also { keyOf[it] = key }
         }
-        val system = prompt(Prompts.REVIEW_SYSTEM)
-        val template = prompt(Prompts.REVIEW_USER)
+        val system = promptFor(Prompts.REVIEW_SYSTEM, sid)
+        val template = promptFor(Prompts.REVIEW_USER, sid)
         val version = "${Prompts.version(system, template)}|${run.pool.llmModel()}"
         val plan = CommitPlanner.plan(
             candidates,
@@ -262,6 +282,9 @@ class Pipeline(
 
         /** "K1: heading: content" of a known fact, at most: a heading of 60 and content of 300 are what the strict schema allows, plus room. */
         const val REVIEW_FACT_CHARS = 480
+
+        /** Enough of the transcript to tell Czech from other languages by its letters. */
+        const val LANGUAGE_SAMPLE_CHARS = 4000
     }
 
     private fun date(startedAt: Long): String = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(java.util.Date(startedAt))

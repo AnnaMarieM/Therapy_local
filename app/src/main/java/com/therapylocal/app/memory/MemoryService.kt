@@ -14,6 +14,8 @@ import android.content.pm.ServiceInfo
 import android.os.IBinder
 import android.os.PowerManager
 import com.therapylocal.app.data.MindStore
+import com.therapylocal.app.facts.PromptLanguage
+import com.therapylocal.app.i18n.LocaleStore
 import com.therapylocal.app.data.PendingAudio
 import com.therapylocal.app.jobs.JobRunner
 import com.therapylocal.app.jobs.Jobs
@@ -74,7 +76,7 @@ class MemoryService : Service() {
                 queue.clearStop()
                 if (debugJob) DevHarness.seed(app)
                 trackRun()
-                val pipeline = Pipeline(MindStore.get(app), queue, { MemoryFiles.prompt(app, it) }, { PendingAudio.indices(app, it) }, { r, i -> PendingAudio.load(app, r, i) }, { PendingAudio.delete(app, it) })
+                val pipeline = Pipeline(MindStore.get(app), queue, { MemoryFiles.prompt(app, it) }, { PendingAudio.indices(app, it) }, { r, i -> PendingAudio.load(app, r, i) }, { PendingAudio.delete(app, it) }, promptLanguage = { sample -> PromptLanguage.choose(LocaleStore.current(app).tag, app.getSharedPreferences("settings", MODE_PRIVATE).getString("language", "auto") ?: "auto", sample) })
                 PerfStats.init(app)
                 val pool = DeviceModels.pool(app, contextNeeded = pipeline::requiredContext)
                 val store = MindStore.get(app)
