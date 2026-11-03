@@ -7,8 +7,8 @@ on:
   workflow_dispatch:
     inputs:
       clips:
-        description: "How many FLEURS clips to score (24 is quick; 200 gives steadier numbers)"
-        default: "24"
+        description: "How many FLEURS clips to score (60 is the default; 24 is quick, 200 gives the steadiest numbers)"
+        default: "60"
   pull_request:
     paths: ["qa/asr_bench/**", ".github/workflows/asr-bench.yml"]
 
@@ -17,7 +17,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  CLIPS: ${{ github.event.inputs.clips || '24' }}
+  CLIPS: ${{ github.event.inputs.clips || '60' }}
 
 jobs:
   # The test speech is built once and shared: random FLEURS clips with their reference text, cut to 16 kHz mono.
@@ -36,7 +36,7 @@ jobs:
   bench:
     needs: clips
     runs-on: ubuntu-latest   # 4 vCPU on public repos: free and unlimited
-    timeout-minutes: 90
+    timeout-minutes: 150
     strategy:
       fail-fast: false       # one model failing must not hide the others
       matrix:
