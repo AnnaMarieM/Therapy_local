@@ -131,6 +131,19 @@ class ClientLanguageTest {
     }
 
     @Test
+    fun canaryServesEveryLanguageWithOneDownloadAndIsTheDefault() {
+        fun speech() = ModelSetup.required(context).map { it.id }.filter { it.startsWith("canary") || it.startsWith("whisper") }.toSet()
+
+        assertEquals("nothing chosen: Canary", setOf("canary-1b-v2"), speech())
+
+        prefs.edit().putString("default_language", "cs").putStringSet("client_languages", setOf("en")).commit()
+        assertEquals("Czech and English clients still need only Canary", setOf("canary-1b-v2"), speech())
+
+        prefs.edit().putString("engine", "whisper").putString("whisper_size", "base").commit()
+        assertEquals(setOf("whisper-base", "whisper-base.en"), speech())
+    }
+
+    @Test
     fun theAddClientFormStartsWithTheDefaultLanguageAndReturnsTheChosenOne() {
         prefs.edit().putString("default_language", "cs").commit()
         var added: Pair<String, SpeechLanguage>? = null

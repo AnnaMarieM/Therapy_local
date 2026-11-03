@@ -1,6 +1,8 @@
 package com.therapylocal.app.memory
 
 import android.content.Context
+import com.therapylocal.app.asr.AsrEngine
+import com.therapylocal.app.asr.SherpaCanaryAsr
 import com.therapylocal.app.asr.SherpaWhisperAsr
 import com.therapylocal.app.config.EmbeddingConfig
 import com.therapylocal.app.config.MemoryConfig
@@ -25,23 +27,32 @@ object DeviceModels {
         llmModel = { ModelSetup.gemma(context).id },
     )
 
-    /** The engine chosen in the settings, Whisper for the client's [language]. Gemma runs on the LLM's engine; a Gemma build without audio input falls back to Whisper. */
+    /**
+     * The engine chosen in the settings: Canary (the default), Whisper or Gemma, for the client's [language]. Gemma runs on the LLM's engine;
+     * a Gemma build without audio input falls back to Canary.
+     */
     private fun asr(context: Context, llm: () -> Llm, language: String): Asr {
         val prefs = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
-        if (prefs.getString("engine", "whisper") == "gemma") {
+        val speech = SpeechLanguage.of(language)
+        var engine = prefs.getString("engine", ModelRegistry.DEFAULT_ENGINE) ?: ModelRegistry.DEFAULT_ENGINE
+        if (engine == "gemma") {
             (llm() as? MemoryLlm)?.speech()?.let { return it }
-            AppLog.w(TAG, "gemma_asr_unavailable", LogCtx.NONE, "fallback" to "whisper")
+            AppLog.w(TAG, "gemma_asr_unavailable", LogCtx.NONE, "fallback" to "canary")
+            engine = "canary"
         }
-        val whisper = SherpaWhisperAsr(context, prefs.getString("whisper_size", ModelRegistry.DEFAULT_WHISPER_SIZE) ?: ModelRegistry.DEFAULT_WHISPER_SIZE, SpeechLanguage.of(language))
+        val engineImpl: AsrEngine = when (engine) {
+            "whisper" -> SherpaWhisperAsr(context, prefs.getString("whisper_size", ModelRegistry.DEFAULT_WHISPER_SIZE) ?: ModelRegistry.DEFAULT_WHISPER_SIZE, speech)
+            else -> SherpaCanaryAsr(context, speech)
+        }
         try {
-            runBlocking { whisper.load() }
+            runBlocking { engineImpl.load() }
         } catch (t: Throwable) {
-            whisper.close()
+            engineImpl.close()
             throw t
         }
         return object : Asr {
-            override fun transcribe(pcm: ShortArray): String = runBlocking { whisper.transcribe(pcm, LogCtx.NONE).text }
-            override fun close() = whisper.close()
+            override fun transcribe(pcm: ShortArray): String = runBlocking { engineImpl.transcribe(pcm, LogCtx.NONE).text }
+            override fun close() = engineImpl.close()
         }
     }
 

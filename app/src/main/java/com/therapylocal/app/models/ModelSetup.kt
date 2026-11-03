@@ -41,13 +41,17 @@ object ModelSetup {
     val progress: StateFlow<SetupProgress> = _progress.asStateFlow()
     private var observing = false
 
-    /** Distinct specs the current settings need: embeddings, the speech engine, and the memory model. */
+    /** Distinct specs the current settings need: embeddings, the speech engine (for Whisper, a build per language in use), and the memory model. */
     fun required(context: Context): List<ModelSpec> {
         val prefs = prefs(context)
-        val engine = prefs.getString("engine", "whisper") ?: "whisper"
+        val engine = prefs.getString("engine", ModelRegistry.DEFAULT_ENGINE) ?: ModelRegistry.DEFAULT_ENGINE
         val size = prefs.getString("whisper_size", ModelRegistry.DEFAULT_WHISPER_SIZE) ?: ModelRegistry.DEFAULT_WHISPER_SIZE
         val gemma = gemma(context)
-        val speech = if (engine == "gemma") listOf(gemma) else SpeechLanguages.inUse(context).map { ModelRegistry.whisperFor(size, it) }
+        val speech = when (engine) {
+            "gemma" -> listOf(gemma)
+            "whisper" -> SpeechLanguages.inUse(context).map { ModelRegistry.whisperFor(size, it) }
+            else -> listOf(ModelRegistry.CANARY_1B_V2) // one multilingual model serves every client language
+        }
         return (listOf(ModelRegistry.EMBED) + speech + gemma).distinct()
     }
 

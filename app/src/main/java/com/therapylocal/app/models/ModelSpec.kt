@@ -144,10 +144,31 @@ object ModelRegistry {
         )
     }
 
+    /**
+     * NVIDIA Canary-1B-v2, int8, on sherpa-onnx: 25 European languages including Czech and English; the speech engine used unless the settings
+     * choose another. The weights are CC-BY-4.0 (NVIDIA); this int8 conversion is a community upload, so the file checksums below pin exactly
+     * what was benchmarked (qa/asr_bench).
+     * Source: https://huggingface.co/fussraider/canary-1b-v2-sherpa-onnx-int8
+     */
+    val CANARY_1B_V2 = run {
+        val repo = "$HF/fussraider/canary-1b-v2-sherpa-onnx-int8/resolve/main"
+        ModelSpec(
+            id = "canary-1b-v2", title = "Canary 1B v2 (int8, CPU)", subdir = "canary-1b-v2",
+            files = listOf(
+                ModelFile("encoder.int8.onnx", "$repo/encoder.int8.onnx", 857_603_131L, "0653fdb7fa13a39f5b63016b91c5319cfdf02736f627aebb57b51aec7c63968e"),
+                ModelFile("decoder.int8.onnx", "$repo/decoder.int8.onnx", 557_033_012L, "e77ad881ee06c0e9f63e9fce0173c446b1e9fae2c7e6ac932d78e8547ad9b6a0"),
+                ModelFile("tokens.txt", "$repo/tokens.txt", 208_022L, "2c9efe6104fd29522ea27ce0e3aef5d37c690af4e5a4232e643e23ca403ffea3"),
+            ),
+        )
+    }
+
+    /** The speech engine used until the settings choose another: "canary", "whisper" or "gemma". */
+    const val DEFAULT_ENGINE = "canary"
+
     /** The Whisper size used until the settings choose another: base is too weak for Czech. */
     const val DEFAULT_WHISPER_SIZE = "small"
 
-    val ALL = listOf(GEMMA_E2B, GEMMA_E4B, EMBED, WHISPER_TINY, WHISPER_BASE, WHISPER_SMALL, WHISPER_TINY_EN, WHISPER_BASE_EN, WHISPER_SMALL_EN, WHISPER_MEDIUM, WHISPER_TURBO, WHISPER_LARGE_V3, PARAKEET_V3)
+    val ALL = listOf(GEMMA_E2B, GEMMA_E4B, EMBED, WHISPER_TINY, WHISPER_BASE, WHISPER_SMALL, WHISPER_TINY_EN, WHISPER_BASE_EN, WHISPER_SMALL_EN, WHISPER_MEDIUM, WHISPER_TURBO, WHISPER_LARGE_V3, PARAKEET_V3, CANARY_1B_V2)
     fun byId(id: String): ModelSpec = ALL.first { it.id == id }
 
     /** The Whisper build for a client's language: English has its own English-only build, every other language uses the multilingual one. */

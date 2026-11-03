@@ -45,7 +45,7 @@ data class SearchState(val listening: Boolean = false, val searching: Boolean = 
 data class UiState(
     val phase: Phase = Phase.Preparing,
     val prepareMsg: String = "Starting",
-    val engine: String = "whisper", // "gemma" or "whisper": which engine transcribes recordings (in the background, after they stop)
+    val engine: String = ModelRegistry.DEFAULT_ENGINE, // "canary", "whisper" or "gemma": which engine transcribes recordings (in the background, after they stop)
     val whisperSize: String = ModelRegistry.DEFAULT_WHISPER_SIZE,
     val backendOverride: String = "auto", // debug: auto, npu, gpu, cpu
     val embedBackend: String = "-",
@@ -66,7 +66,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     private val prefs = app.getSharedPreferences("settings", Context.MODE_PRIVATE)
     private val _state = MutableStateFlow(
         UiState(
-            engine = prefs.getString("engine", "whisper")!!,
+            engine = prefs.getString("engine", ModelRegistry.DEFAULT_ENGINE)!!,
             whisperSize = prefs.getString("whisper_size", ModelRegistry.DEFAULT_WHISPER_SIZE)!!,
                 backendOverride = prefs.getString("backend_override", "auto")!!,
             testFiles = if (BuildConfig.DEBUG) TestAudio.list(app) else emptyList(),

@@ -4,6 +4,7 @@ import android.os.SystemClock
 import android.util.Log
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import com.therapylocal.app.asr.SherpaCanaryAsr
 import com.therapylocal.app.asr.SherpaParakeetAsr
 import com.therapylocal.app.asr.SherpaWhisperAsr
 import com.therapylocal.app.log.LogCtx
@@ -43,10 +44,17 @@ class WhisperEvalTest {
         for (size in sizes) for (provider in providers) for (lang in listOf(SpeechLanguage.Czech, SpeechLanguage.English)) {
             val group = wavs.filter { it.name.startsWith(if (lang == SpeechLanguage.Czech) "cs_" else "en_") }
             if (group.isEmpty()) continue
-            val parakeet = size == "parakeet"
-            val spec = if (parakeet) ModelRegistry.PARAKEET_V3 else ModelRegistry.whisperFor(size, lang)
+            val spec = when (size) {
+                "parakeet" -> ModelRegistry.PARAKEET_V3
+                "canary" -> ModelRegistry.CANARY_1B_V2
+                else -> ModelRegistry.whisperFor(size, lang)
+            }
             if (!spec.isReady(context)) { out.line("SKIP ${lang.code} ${spec.id}: model not on the phone").line(""); continue }
-            val asr: com.therapylocal.app.asr.AsrEngine = if (parakeet) SherpaParakeetAsr(context, provider) else SherpaWhisperAsr(context, size, lang, provider)
+            val asr: com.therapylocal.app.asr.AsrEngine = when (size) {
+                "parakeet" -> SherpaParakeetAsr(context, provider)
+                "canary" -> SherpaCanaryAsr(context, lang, provider)
+                else -> SherpaWhisperAsr(context, size, lang, provider)
+            }
             try {
                 runBlocking { asr.load() }
                 var errors = 0; var words = 0; var decode = 0L; var audio = 0.0; var scored = 0

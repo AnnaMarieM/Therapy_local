@@ -46,4 +46,14 @@ class WhisperLanguageTest {
         assertEquals(SpeechLanguage.English, SpeechLanguage.of(null))
         assertNotEquals(SpeechLanguage.of("cs"), SpeechLanguage.of("en"))
     }
+
+    @Test
+    fun canaryIsTheDefaultEngineAndHasThreeCheckedFiles() {
+        assertEquals("canary", ModelRegistry.DEFAULT_ENGINE)
+        val c = ModelRegistry.CANARY_1B_V2
+        assertEquals("canary-1b-v2", c.id)
+        assertEquals(listOf("encoder.int8.onnx", "decoder.int8.onnx", "tokens.txt"), c.files.map { it.name })
+        assertTrue(c.files.all { it.sha256.length == 64 && it.url.contains("/resolve/main/${it.name}") })
+        assertEquals(c, ModelRegistry.byId("canary-1b-v2"))
+    }
 }

@@ -12,6 +12,20 @@ EXT=/sdcard/Android/data/com.therapylocal.app/files
 
 # Same names, sizes and repos as ModelRegistry; Czech uses the multilingual build, English the .en one.
 for size in ${SIZES//,/ }; do
+  if [[ "$size" == canary ]]; then
+    dir="$EXT/models/canary-1b-v2"
+    while read -r n sz _; do
+      "$ADB" shell "[ -s $dir/$n ]" </dev/null 2>/dev/null && continue
+      local_f="/tmp/whisper-models/canary-1b-v2/$n"
+      "$ROOT/qa/fetch.sh" "https://huggingface.co/fussraider/canary-1b-v2-sherpa-onnx-int8/resolve/main/$n" "$local_f" "$sz"
+      "$ADB" shell "mkdir -p $dir" </dev/null && "$ADB" push "$local_f" "$dir/$n" </dev/null >/dev/null
+    done <<'CN'
+encoder.int8.onnx 857603131
+decoder.int8.onnx 557033012
+tokens.txt 208022
+CN
+    continue
+  fi
   if [[ "$size" == parakeet ]]; then
     dir="$EXT/models/parakeet-tdt-0.6b-v3"
     while read -r n sz _; do
