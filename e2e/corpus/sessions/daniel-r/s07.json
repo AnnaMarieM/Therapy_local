@@ -1,0 +1,124 @@
+{
+ "client": "daniel-r",
+ "session": "s07",
+ "lang": "en",
+ "date": "2026-02-18",
+ "turns": [
+  {
+   "who": "therapist",
+   "text": "Good to see you again. Where would you like to start today?"
+  },
+  {
+   "who": "client",
+   "text": "It has been a grey week, and the weather does not help my mood much, to be honest."
+  },
+  {
+   "who": "therapist",
+   "text": "Mm-hm. Go on."
+  },
+  {
+   "who": "client",
+   "text": "I am still keeping wine to the weekend and last Saturday I only had one glass."
+  },
+  {
+   "who": "therapist",
+   "text": "What went through your mind then?"
+  },
+  {
+   "who": "client",
+   "text": "I wrote a few notes before coming here, but now I cannot remember half of what I wanted to say. I do not know, it is hard to explain."
+  },
+  {
+   "who": "therapist",
+   "text": "I see. Can you say a bit more?"
+  },
+  {
+   "who": "client",
+   "text": "I am not sure where to begin, there are so many things going round in my head at the moment."
+  },
+  {
+   "who": "therapist",
+   "text": "Take your time."
+  },
+  {
+   "who": "client",
+   "text": "I dreamt about my grandfather in the mine and woke up with my heart racing."
+  },
+  {
+   "who": "therapist",
+   "text": "How did that feel for you?"
+  },
+  {
+   "who": "client",
+   "text": "The journey here took a while, but at least I had time to gather my thoughts. I do not know, it is hard to explain."
+  },
+  {
+   "who": "therapist",
+   "text": "Tell me more about that."
+  },
+  {
+   "who": "client",
+   "text": "Dad fell in the kitchen on Thursday and bruised his hip, thank God nothing was broken."
+  },
+  {
+   "who": "therapist",
+   "text": "What went through your mind then?"
+  },
+  {
+   "who": "client",
+   "text": "I had a long day yesterday and I was so tired in the evening that I just sat in front of the television. I do not know, it is hard to explain."
+  },
+  {
+   "who": "therapist",
+   "text": "I see. Can you say a bit more?"
+  },
+  {
+   "who": "client",
+   "text": "I asked Linda if I could move to a four-day week, she is checking with the director."
+  },
+  {
+   "who": "therapist",
+   "text": "What went through your mind then?"
+  },
+  {
+   "who": "client",
+   "text": "I made myself a cup of tea this morning and just stood by the window for a while. I keep coming back to it."
+  },
+  {
+   "who": "therapist",
+   "text": "Let us stop here for today."
+  },
+  {
+   "who": "client",
+   "text": "Thank you, see you next week."
+  }
+ ],
+ "expected": {
+  "facts": [
+   {
+    "id": "s07.f1",
+    "heading": "Father fell at home",
+    "said": "Dad fell in the kitchen on Thursday and bruised his hip, thank God nothing was broken.",
+    "repeat_of": null
+   },
+   {
+    "id": "s07.f2",
+    "heading": "Alcohol still limited",
+    "said": "I am still keeping wine to the weekend and last Saturday I only had one glass.",
+    "repeat_of": "s04.f1"
+   },
+   {
+    "id": "s07.f3",
+    "heading": "Considering a four-day week",
+    "said": "I asked Linda if I could move to a four-day week, she is checking with the director.",
+    "repeat_of": null
+   },
+   {
+    "id": "s07.f4",
+    "heading": "Dream about the mines",
+    "said": "I dreamt about my grandfather in the mine and woke up with my heart racing.",
+    "repeat_of": null
+   }
+  ]
+ }
+}

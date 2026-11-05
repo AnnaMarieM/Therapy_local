@@ -1,0 +1,56 @@
+name: E2E host (speech)
+
+# TTS corpus -> the app's Whisper model (sherpa-onnx, same int8 files) -> WER per language. Fast enough for every PR that touches the
+# corpus, the scorer or the speech settings. The full pipeline on a real phone is e2e-device.yml.
+on:
+  pull_request:
+    paths:
+      - "e2e/**"
+      - "demo/prompts/**"
+      - "app/src/main/java/com/therapylocal/app/asr/**"
+      - ".github/workflows/e2e-host.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: e2e-host-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  host:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: e2e/requirements.txt
+      - run: pip install -r e2e/requirements.txt
+      - name: Corpus builds and is committed as built
+        run: |
+          python3 e2e/corpus/build.py
+          git diff --exit-code -- e2e/corpus/sessions e2e/corpus/clients.json
+      - name: Scorer tests
+        run: python3 e2e/score/test_score.py
+      - uses: actions/cache@v4
+        with:
+          path: |
+            e2e/voices
+            e2e/models
+          key: e2e-models-v1
+      - name: Voices
+        run: python3 e2e/tts/fetch_voices.py
+      - name: Render smoke subset (2 clients per language, 3 sessions)
+        run: |
+          python3 e2e/tts/render.py --only "$(for c in daniel-r emma-k jana-n petr-h; do printf '%s/s01,%s/s02,%s/s03,' $c $c $c; done | sed 's/,$//')"
+      - name: Whisper base, language of each client
+        run: python3 e2e/host/stt_host.py --size base --language per-client --clients daniel-r,emma-k,jana-n,petr-h --sessions 3 --out e2e/results/host.json
+      - name: Score
+        run: python3 e2e/score/scorer.py --results e2e/results/host.json --thresholds e2e/thresholds-host.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: e2e-host-report
+          path: e2e/results
+          retention-days: 14

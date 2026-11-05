@@ -50,7 +50,7 @@ class PipelineHarness(private val context: Context, val name: String, private va
     /** The language of every speech recogniser the pool loaded, in order. */
     val asrLoads = ArrayList<String>()
 
-    fun pool() = ModelPool({ FakeLlm(catalogue) }, { FakeEmbed }, { _, language -> asrLoads += language; FakeAsr(spoken) }, { FakeLlm.MODEL })
+    fun pool() = ModelPool({ _, _ -> FakeLlm(catalogue) }, { FakeEmbed }, { _, language -> asrLoads += language; FakeAsr(spoken) }, { FakeLlm.MODEL })
 
     /** A session with a stopped recording: one chunk per line, saved as pending audio with untranscribed chunk rows, and its jobs queued. */
     fun record(client: String, session: String, startedAt: Long, lines: List<String>, language: String = "en"): Long {

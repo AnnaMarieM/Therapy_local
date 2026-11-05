@@ -1,0 +1,70 @@
+client: petr-h | Petr H. | cs
+
+s01 2026-01-08
+ f1 | Programátor v Praze | Pracuji jako programátor v bance v Praze a poslední tři měsíce mám pocit, že se mi hroutí hlava.
+ f2 | Záchvaty úzkosti v metru | Dvakrát jsem dostal v metru záchvat úzkosti, třásly se mi ruce a nemohl jsem dýchat.
+ f3 | Otec alkoholik | Můj otec byl alkoholik a zemřel před šesti lety na selhání jater.
+ f4 | Přítelkyně Klára | Moje přítelkyně Klára tvrdí, že jsem poslední dobou podrážděný a pořád ve stresu.
+
+s02 2026-01-15
+ f1 | Nový vedoucí týmu | V práci máme od prosince nového vedoucího, který se jmenuje Ondřej, a ten požaduje, abychom pracovali o víkendech.
+ f2 = s01.f2 | Další panika | V pátek jsem měl další záchvat na eskalátoru na Můstku a musel jsem se posadit na schody.
+ f3 | Káva a energetické nápoje | Piju denně pět káv a k tomu energetický nápoj, jinak bych odpoledne usnul.
+ f4 | Vyhýbá se metru | Začal jsem chodit do práce pěšky, trvá to čtyřicet minut, ale metrem jet nechci.
+
+s03 2026-01-22
+ f1 | Praktický lékař | Praktický lékař mi udělal krev a EKG, srdce je v pořádku a řekl mi, že jde o úzkost.
+ f2 = s01.f3 | Strach z otcova osudu | Bojím se, že skončím jako táta, že se z toho taky napiju.
+ f3 | Pije pivo po práci | Po práci vypiju tři čtyři piva, aby mi přestaly běhat myšlenky.
+ f4 | Klára chce, abych zvolnil | Klára chce, abychom odjeli na víkend do Krkonoš, ale já mám pocit, že nemůžu odejít z práce.
+
+s04 2026-01-29
+ f1 | Omezil kofein | Snížil jsem kávu na dvě denně a energetické nápoje jsem vyhodil, bolí mě z toho hlava.
+ f2 | Dýchací cvičení | Naučil jsem se dýchat do břicha podle videa a zkusil to v tramvaji, trochu to pomohlo.
+ f3 = s02.f1 | Víkendová práce | Ondřej mi poslal v sobotu v noci úkol a chtěl ho do rána.
+ f4 | Kolega Jirka | Kolega Jirka mi řekl, že trpí stejně, a poprvé jsem se nestyděl o tom mluvit.
+
+s05 2026-02-05
+ f1 | Výlet do Krkonoš | S Klárou jsme byli tři dny v Krkonoších a v neděli jsem si ani jednou nevzal telefon.
+ f2 = s03.f3 | Pivo ubylo | Piva teď piju jedno nebo dvě večer, ne už čtyři.
+ f3 | Návštěva psychiatra | Objednal jsem se k psychiatrovi, termín mám za dva týdny.
+ f4 | Vzpomínka na otce | Vzpomněl jsem si, jak mě otec jako dítě nechával v hospodě u stolu a já čekal čtyři hodiny.
+
+s06 2026-02-12
+ f1 | Pokles motivace v práci | V práci už mě nic nebaví, píšu kód jen aby bylo hotovo.
+ f2 = s02.f4 | Pěšky do práce | Pořád chodím pěšky přes Vltavu, aspoň se projdu a přemýšlím.
+ f3 | Hádka s Ondřejem | Řekl jsem Ondřejovi, že o víkendech pracovat nebudu, a on mi odpověděl, že to bude mít následky.
+ f4 = s03.f2 | Obavy z alkoholu | Mám strach, že mi pivo začíná být potřebné, a dělá mi to starosti.
+
+s07 2026-02-19
+ f1 | Psychiatr předepsal lék | Psychiatr mi předepsal escitalopram deset miligramů a doporučil psychoterapii.
+ f2 = s01.f4 | Klára trpělivá | Klára je trpělivá, vaří mi, nechává mě spát, a já se cítím provinile, že jí nic nedávám.
+ f3 | Ondřej a pohovor s personalistkou | Ondřej mě pozval na pohovor s personalistkou, údajně kvůli mému přístupu.
+ f4 | Zvažuje změnu práce | Začal jsem posílat životopisy do jiných firem, třeba do softwarové firmy v Brně.
+
+s08 2026-02-26
+ f1 | Nevolnost po léku | První týden po escitalopramu mi bylo špatně od žaludku a špatně jsem spal.
+ f2 = s07.f3 | Personalistka stála při mně | Personalistka paní Dvořáková mi řekla, že na Ondřeje už byly stížnosti od dalších lidí.
+ f3 | Pohovor v Brně | Mám pozvání na pohovor do firmy v Brně na čtvrtého března.
+ f4 = s05.f4 | Sny o otci | Zdá se mi o otci, jak sedí v hospodě a nedívá se na mě.
+
+s09 2026-03-05
+ f1 | Pohovor dopadl dobře | Pohovor v Brně dopadl dobře, nabídli mi práci s vyšším platem a čtyřdenním týdnem.
+ f2 = s01.f2 | Bez záchvatů | Už tři týdny jsem neměl záchvat úzkosti a zase jedu metrem.
+ f3 | Začíná terapii | Poprvé jsem byl u psycholožky Mgr. Svobodové a domluvili jsme se na týdenních sezeních.
+ f4 = s03.f3 | Alkohol téměř vůbec | Piva piju jen o víkendu a jedno, na ten návyk jsem přišel včas.
+
+s10 2026-03-12
+ f1 | Přijal nabídku | Přijal jsem nabídku z Brna a nastupuji prvního dubna.
+ f2 | Stěhování s Klárou | Klára souhlasila, že se přestěhuje se mnou do Brna, ona může pracovat na dálku.
+ f3 = s06.f3 | Výpověď Ondřejovi | Dal jsem výpověď a Ondřej na mě jen nevěřícně koukal.
+ f4 = s01.f1 | Hlava je klidnější | Mám pocit, že se mi hlava zase srovnala a spím šest hodin v kuse.
+
+q | záchvaty úzkosti | s01.f2 s02.f2 s03.f1
+q | otec a alkohol | s01.f3 s03.f2 s05.f4 s06.f4
+q | problémy s nadřízeným | s02.f1 s04.f3 s06.f3 s07.f3
+q | léky a léčba | s07.f1 s08.f1 s09.f3
+q | partnerka | s01.f4 s05.f1 s07.f2 s10.f2
+q | změna zaměstnání | s07.f4 s08.f3 s09.f1 s10.f1
+neg | problémy s dětmi ve škole
+neg | trápí ho chronická bolest zad

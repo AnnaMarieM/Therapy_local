@@ -1,0 +1,116 @@
+{
+ "client": "daniel-r",
+ "session": "s01",
+ "lang": "en",
+ "date": "2026-01-07",
+ "turns": [
+  {
+   "who": "therapist",
+   "text": "Hello, come in. How have you been since last time?"
+  },
+  {
+   "who": "client",
+   "text": "I made myself a cup of tea this morning and just stood by the window for a while."
+  },
+  {
+   "who": "therapist",
+   "text": "What went through your mind then?"
+  },
+  {
+   "who": "client",
+   "text": "I work as a project manager at a logistics company and I have been completely burned out since October."
+  },
+  {
+   "who": "therapist",
+   "text": "And how was that for you?"
+  },
+  {
+   "who": "client",
+   "text": "The train was late again this morning, so I almost did not make it on time today. It is not easy to talk about."
+  },
+  {
+   "who": "therapist",
+   "text": "What happened next?"
+  },
+  {
+   "who": "client",
+   "text": "My father was diagnosed with Parkinson's disease in the autumn, and I am the one who drives him to the hospital in Leeds."
+  },
+  {
+   "who": "therapist",
+   "text": "Take your time."
+  },
+  {
+   "who": "client",
+   "text": "I wrote a few notes before coming here, but now I cannot remember half of what I wanted to say. It is not easy to talk about."
+  },
+  {
+   "who": "therapist",
+   "text": "How did that feel for you?"
+  },
+  {
+   "who": "client",
+   "text": "My younger sister Hannah lives in Toronto, so all the care for our father falls on me."
+  },
+  {
+   "who": "therapist",
+   "text": "Mm-hm. Go on."
+  },
+  {
+   "who": "client",
+   "text": "I had a long day yesterday and I was so tired in the evening that I just sat in front of the television. I think so, yes."
+  },
+  {
+   "who": "therapist",
+   "text": "How did that feel for you?"
+  },
+  {
+   "who": "client",
+   "text": "Most nights I sleep about four hours, I wake up at three in the morning and cannot fall back asleep."
+  },
+  {
+   "who": "therapist",
+   "text": "How did that feel for you?"
+  },
+  {
+   "who": "client",
+   "text": "It has been a grey week, and the weather does not help my mood much, to be honest. That is how it was."
+  },
+  {
+   "who": "therapist",
+   "text": "We are nearly out of time. Is there anything you want to add?"
+  },
+  {
+   "who": "client",
+   "text": "No, I think that is everything. Thank you."
+  }
+ ],
+ "expected": {
+  "facts": [
+   {
+    "id": "s01.f1",
+    "heading": "Burnout at logistics firm",
+    "said": "I work as a project manager at a logistics company and I have been completely burned out since October.",
+    "repeat_of": null
+   },
+   {
+    "id": "s01.f2",
+    "heading": "Father diagnosed with Parkinson's",
+    "said": "My father was diagnosed with Parkinson's disease in the autumn, and I am the one who drives him to the hospital in Leeds.",
+    "repeat_of": null
+   },
+   {
+    "id": "s01.f3",
+    "heading": "Sleeping about four hours",
+    "said": "Most nights I sleep about four hours, I wake up at three in the morning and cannot fall back asleep.",
+    "repeat_of": null
+   },
+   {
+    "id": "s01.f4",
+    "heading": "Sister Hannah lives in Canada",
+    "said": "My younger sister Hannah lives in Toronto, so all the care for our father falls on me.",
+    "repeat_of": null
+   }
+  ]
+ }
+}

@@ -136,7 +136,8 @@ class MainActivity : FragmentActivity() {
 
 /** Debug only: `adb shell am start -n .../.MainActivity --ez memory_lab true` starts the queue described by files/memory/job.json once the vault is unlocked. */
 private fun isMemoryLabRequested(intent: Intent?): Boolean {
-    if (!BuildConfig.DEBUG || intent?.getBooleanExtra("memory_lab", false) != true) return false
+    // The qa build (no biometrics, test data only) takes the lab too, so a script can unlock it with the password and run beside the debug app.
+    if (!(BuildConfig.DEBUG || !BuildConfig.BIOMETRIC) || intent?.getBooleanExtra("memory_lab", false) != true) return false
     MainViewModel.skipPrepare = true
     return true
 }

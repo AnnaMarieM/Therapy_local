@@ -1,0 +1,140 @@
+{
+ "client": "lucie-s",
+ "session": "s02",
+ "lang": "cs",
+ "date": "2026-01-16",
+ "turns": [
+  {
+   "who": "therapist",
+   "text": "Rád vás zase vidím. Kde byste dnes chtěla začít?"
+  },
+  {
+   "who": "client",
+   "text": "Něco mám poznamenané na papíře, ale teď si polovinu z toho nepamatuju."
+  },
+  {
+   "who": "therapist",
+   "text": "Hm. Pokračujte."
+  },
+  {
+   "who": "client",
+   "text": "Maminka byla poslední tři týdny doma a já jsem se o ni starala po nočních směnách."
+  },
+  {
+   "who": "therapist",
+   "text": "Rozumím. Můžete to trochu rozvést?"
+  },
+  {
+   "who": "client",
+   "text": "Cesta sem trvá dlouho, ale aspoň je čas si trochu srovnat myšlenky. Není snadné o tom mluvit."
+  },
+  {
+   "who": "therapist",
+   "text": "Rozumím. Můžete to trochu rozvést?"
+  },
+  {
+   "who": "client",
+   "text": "Ondra chce dům prodat co nejdřív, ale já k němu mám obrovské citové pouto."
+  },
+  {
+   "who": "therapist",
+   "text": "Řekněte mi o tom víc."
+  },
+  {
+   "who": "client",
+   "text": "Dnes ráno mi ujel autobus, takže to bylo na poslední chvíli. Ano, přesně tak to bylo."
+  },
+  {
+   "who": "therapist",
+   "text": "Hm. Pokračujte."
+  },
+  {
+   "who": "client",
+   "text": "Nevím, kde začít, v hlavě mi teď běží spousta věcí najednou."
+  },
+  {
+   "who": "therapist",
+   "text": "Řekněte mi o tom víc."
+  },
+  {
+   "who": "client",
+   "text": "Včera jsem se na pokoji rozplakala u jedné pacientky, která mi připomínala maminku."
+  },
+  {
+   "who": "therapist",
+   "text": "Co se vám v tu chvíli honilo hlavou?"
+  },
+  {
+   "who": "client",
+   "text": "Dnes ráno byl jen čaj a chvíle u okna. Asi ano."
+  },
+  {
+   "who": "therapist",
+   "text": "Rozumím. Můžete to trochu rozvést?"
+  },
+  {
+   "who": "client",
+   "text": "Byl to šedivý týden a to počasí mi na náladě moc nepřidává, po pravdě řečeno."
+  },
+  {
+   "who": "therapist",
+   "text": "Jaké to pro vás bylo?"
+  },
+  {
+   "who": "client",
+   "text": "Můj partner Michal mi nabídl, že pojedeme společně uklízet dům, ale já nejsem připravená."
+  },
+  {
+   "who": "therapist",
+   "text": "A co se stalo potom?"
+  },
+  {
+   "who": "client",
+   "text": "Včerejšek byl dlouhý den a večer už mi nezbyly žádné síly, byla jen televize a gauč. Nevím, těžko se to vysvětluje."
+  },
+  {
+   "who": "therapist",
+   "text": "Co se vám v tu chvíli honilo hlavou?"
+  },
+  {
+   "who": "client",
+   "text": "Je zvláštní sedět tady a říkat to všechno nahlas, ale trochu to pomáhá."
+  },
+  {
+   "who": "therapist",
+   "text": "Pro dnešek tady skončíme."
+  },
+  {
+   "who": "client",
+   "text": "Děkuji, uvidíme se příští týden."
+  }
+ ],
+ "expected": {
+  "facts": [
+   {
+    "id": "s02.f1",
+    "heading": "Poslední týdny maminky",
+    "said": "Maminka byla poslední tři týdny doma a já jsem se o ni starala po nočních směnách.",
+    "repeat_of": null
+   },
+   {
+    "id": "s02.f2",
+    "heading": "Spor s bratrem o dům",
+    "said": "Ondra chce dům prodat co nejdřív, ale já k němu mám obrovské citové pouto.",
+    "repeat_of": "s01.f2"
+   },
+   {
+    "id": "s02.f3",
+    "heading": "Pláč v práci",
+    "said": "Včera jsem se na pokoji rozplakala u jedné pacientky, která mi připomínala maminku.",
+    "repeat_of": null
+   },
+   {
+    "id": "s02.f4",
+    "heading": "Partner Michal",
+    "said": "Můj partner Michal mi nabídl, že pojedeme společně uklízet dům, ale já nejsem připravená.",
+    "repeat_of": null
+   }
+  ]
+ }
+}

@@ -1,0 +1,140 @@
+{
+ "client": "marcus-t",
+ "session": "s04",
+ "lang": "en",
+ "date": "2026-01-30",
+ "turns": [
+  {
+   "who": "therapist",
+   "text": "Hello, come in. How have you been since last time?"
+  },
+  {
+   "who": "client",
+   "text": "I wrote a few notes before coming here, but now I cannot remember half of what I wanted to say."
+  },
+  {
+   "who": "therapist",
+   "text": "I see. Can you say a bit more?"
+  },
+  {
+   "who": "client",
+   "text": "The days are so long now, I wake up and there is nothing I have to do."
+  },
+  {
+   "who": "therapist",
+   "text": "I see. Can you say a bit more?"
+  },
+  {
+   "who": "client",
+   "text": "Some days are better than others, and I try to remind myself of that when things get heavy. I keep coming back to it."
+  },
+  {
+   "who": "therapist",
+   "text": "What happened next?"
+  },
+  {
+   "who": "client",
+   "text": "I had a long day yesterday and I was so tired in the evening that I just sat in front of the television."
+  },
+  {
+   "who": "therapist",
+   "text": "Take your time."
+  },
+  {
+   "who": "client",
+   "text": "I have been having three whiskies each evening, which is more than I would like."
+  },
+  {
+   "who": "therapist",
+   "text": "I see. Can you say a bit more?"
+  },
+  {
+   "who": "client",
+   "text": "The train was late again this morning, so I almost did not make it on time today. I do not know, it is hard to explain."
+  },
+  {
+   "who": "therapist",
+   "text": "Tell me more about that."
+  },
+  {
+   "who": "client",
+   "text": "I went to Denise's grave on Sunday and talked to her for an hour."
+  },
+  {
+   "who": "therapist",
+   "text": "Mm-hm. Go on."
+  },
+  {
+   "who": "client",
+   "text": "It has been a grey week, and the weather does not help my mood much, to be honest. I think so, yes."
+  },
+  {
+   "who": "therapist",
+   "text": "Tell me more about that."
+  },
+  {
+   "who": "client",
+   "text": "It is strange to sit here and say all of this out loud, but it does help a little."
+  },
+  {
+   "who": "therapist",
+   "text": "Take your time."
+  },
+  {
+   "who": "client",
+   "text": "The vet said Biscuit has arthritis in his back legs and gave me tablets for him."
+  },
+  {
+   "who": "therapist",
+   "text": "How did that feel for you?"
+  },
+  {
+   "who": "client",
+   "text": "I made myself a cup of tea this morning and just stood by the window for a while. Yes, it was like that."
+  },
+  {
+   "who": "therapist",
+   "text": "How did that feel for you?"
+  },
+  {
+   "who": "client",
+   "text": "The journey here took a while, but at least I had time to gather my thoughts."
+  },
+  {
+   "who": "therapist",
+   "text": "Let us stop here for today."
+  },
+  {
+   "who": "client",
+   "text": "Thank you, see you next week."
+  }
+ ],
+ "expected": {
+  "facts": [
+   {
+    "id": "s04.f1",
+    "heading": "Drinking whisky at night",
+    "said": "I have been having three whiskies each evening, which is more than I would like.",
+    "repeat_of": null
+   },
+   {
+    "id": "s04.f2",
+    "heading": "Biscuit has arthritis",
+    "said": "The vet said Biscuit has arthritis in his back legs and gave me tablets for him.",
+    "repeat_of": null
+   },
+   {
+    "id": "s04.f3",
+    "heading": "Visit to Denise's grave",
+    "said": "I went to Denise's grave on Sunday and talked to her for an hour.",
+    "repeat_of": null
+   },
+   {
+    "id": "s04.f4",
+    "heading": "Empty days after retirement",
+    "said": "The days are so long now, I wake up and there is nothing I have to do.",
+    "repeat_of": "s01.f1"
+   }
+  ]
+ }
+}

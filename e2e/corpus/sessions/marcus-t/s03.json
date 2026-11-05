@@ -1,0 +1,132 @@
+{
+ "client": "marcus-t",
+ "session": "s03",
+ "lang": "en",
+ "date": "2026-01-23",
+ "turns": [
+  {
+   "who": "therapist",
+   "text": "Hello, come in. How have you been since last time?"
+  },
+  {
+   "who": "client",
+   "text": "I made myself a cup of tea this morning and just stood by the window for a while."
+  },
+  {
+   "who": "therapist",
+   "text": "What went through your mind then?"
+  },
+  {
+   "who": "client",
+   "text": "I finally went on a walk with Walter along the canal, an hour and a half."
+  },
+  {
+   "who": "therapist",
+   "text": "How did that feel for you?"
+  },
+  {
+   "who": "client",
+   "text": "The train was late again this morning, so I almost did not make it on time today. That is how it was."
+  },
+  {
+   "who": "therapist",
+   "text": "What happened next?"
+  },
+  {
+   "who": "client",
+   "text": "Joy asked how I am and I said fine again, though that is not true."
+  },
+  {
+   "who": "therapist",
+   "text": "Mm-hm. Go on."
+  },
+  {
+   "who": "client",
+   "text": "It is strange to sit here and say all of this out loud, but it does help a little. That is how it was."
+  },
+  {
+   "who": "therapist",
+   "text": "What went through your mind then?"
+  },
+  {
+   "who": "client",
+   "text": "All of Denise's clothes are still in the wardrobe and I cannot bring myself to touch them."
+  },
+  {
+   "who": "therapist",
+   "text": "I see. Can you say a bit more?"
+  },
+  {
+   "who": "client",
+   "text": "Some days are better than others, and I try to remind myself of that when things get heavy. I do not know, it is hard to explain."
+  },
+  {
+   "who": "therapist",
+   "text": "Take your time."
+  },
+  {
+   "who": "client",
+   "text": "It has been a grey week, and the weather does not help my mood much, to be honest."
+  },
+  {
+   "who": "therapist",
+   "text": "Mm-hm. Go on."
+  },
+  {
+   "who": "client",
+   "text": "I am still angry at the hospital, they missed the cancer for almost a year."
+  },
+  {
+   "who": "therapist",
+   "text": "I see. Can you say a bit more?"
+  },
+  {
+   "who": "client",
+   "text": "I am not sure where to begin, there are so many things going round in my head at the moment. Yes, it was like that."
+  },
+  {
+   "who": "therapist",
+   "text": "And how was that for you?"
+  },
+  {
+   "who": "client",
+   "text": "I had a long day yesterday and I was so tired in the evening that I just sat in front of the television."
+  },
+  {
+   "who": "therapist",
+   "text": "Let us stop here for today."
+  },
+  {
+   "who": "client",
+   "text": "Thank you, see you next week."
+  }
+ ],
+ "expected": {
+  "facts": [
+   {
+    "id": "s03.f1",
+    "heading": "Denise's clothes still in wardrobe",
+    "said": "All of Denise's clothes are still in the wardrobe and I cannot bring myself to touch them.",
+    "repeat_of": null
+   },
+   {
+    "id": "s03.f2",
+    "heading": "Walked with Walter",
+    "said": "I finally went on a walk with Walter along the canal, an hour and a half.",
+    "repeat_of": null
+   },
+   {
+    "id": "s03.f3",
+    "heading": "Telling Joy he is fine",
+    "said": "Joy asked how I am and I said fine again, though that is not true.",
+    "repeat_of": "s01.f3"
+   },
+   {
+    "id": "s03.f4",
+    "heading": "Anger at the hospital",
+    "said": "I am still angry at the hospital, they missed the cancer for almost a year.",
+    "repeat_of": null
+   }
+  ]
+ }
+}

@@ -1,0 +1,132 @@
+{
+ "client": "lucie-s",
+ "session": "s09",
+ "lang": "cs",
+ "date": "2026-03-05",
+ "turns": [
+  {
+   "who": "therapist",
+   "text": "Dobrý den, pojďte dál. Jak se vám vedlo od minula?"
+  },
+  {
+   "who": "client",
+   "text": "Dnes ráno byl jen čaj a chvíle u okna."
+  },
+  {
+   "who": "therapist",
+   "text": "Hm. Pokračujte."
+  },
+  {
+   "who": "client",
+   "text": "Smutek je pořád tady, ale už mě nezaplavuje každý den."
+  },
+  {
+   "who": "therapist",
+   "text": "Rozumím. Můžete to trochu rozvést?"
+  },
+  {
+   "who": "client",
+   "text": "Něco mám poznamenané na papíře, ale teď si polovinu z toho nepamatuju. Ano, přesně tak to bylo."
+  },
+  {
+   "who": "therapist",
+   "text": "A jak vám z toho bylo?"
+  },
+  {
+   "who": "client",
+   "text": "Některé dny jsou lepší než jiné a snažím se si to připomínat, když je těžko."
+  },
+  {
+   "who": "therapist",
+   "text": "Hm. Pokračujte."
+  },
+  {
+   "who": "client",
+   "text": "V Tatrách jsme chodili po horách a poprvé po měsících jsem se smála."
+  },
+  {
+   "who": "therapist",
+   "text": "Hm. Pokračujte."
+  },
+  {
+   "who": "client",
+   "text": "Včerejšek byl dlouhý den a večer už mi nezbyly žádné síly, byla jen televize a gauč. Asi ano."
+  },
+  {
+   "who": "therapist",
+   "text": "A co se stalo potom?"
+  },
+  {
+   "who": "client",
+   "text": "Cesta sem trvá dlouho, ale aspoň je čas si trochu srovnat myšlenky."
+  },
+  {
+   "who": "therapist",
+   "text": "Co se vám v tu chvíli honilo hlavou?"
+  },
+  {
+   "who": "client",
+   "text": "S Ondrou uvažujeme, že dům pronajmeme mladé rodině z Frýdku-Místku."
+  },
+  {
+   "who": "therapist",
+   "text": "Nespěchejte."
+  },
+  {
+   "who": "client",
+   "text": "Je zvláštní sedět tady a říkat to všechno nahlas, ale trochu to pomáhá. Není snadné o tom mluvit."
+  },
+  {
+   "who": "therapist",
+   "text": "Řekněte mi o tom víc."
+  },
+  {
+   "who": "client",
+   "text": "Ondra mi teď volá každý týden a chce přijet na Velikonoce."
+  },
+  {
+   "who": "therapist",
+   "text": "A co se stalo potom?"
+  },
+  {
+   "who": "client",
+   "text": "Byl to šedivý týden a to počasí mi na náladě moc nepřidává, po pravdě řečeno. Nevím, těžko se to vysvětluje."
+  },
+  {
+   "who": "therapist",
+   "text": "Pro dnešek tady skončíme."
+  },
+  {
+   "who": "client",
+   "text": "Děkuji, uvidíme se příští týden."
+  }
+ ],
+ "expected": {
+  "facts": [
+   {
+    "id": "s09.f1",
+    "heading": "Výlet do Tater",
+    "said": "V Tatrách jsme chodili po horách a poprvé po měsících jsem se smála.",
+    "repeat_of": null
+   },
+   {
+    "id": "s09.f2",
+    "heading": "Ondra pomáhá",
+    "said": "Ondra mi teď volá každý týden a chce přijet na Velikonoce.",
+    "repeat_of": "s04.f3"
+   },
+   {
+    "id": "s09.f3",
+    "heading": "Smutek přetrvává",
+    "said": "Smutek je pořád tady, ale už mě nezaplavuje každý den.",
+    "repeat_of": "s01.f1"
+   },
+   {
+    "id": "s09.f4",
+    "heading": "Úvaha o pronájmu",
+    "said": "S Ondrou uvažujeme, že dům pronajmeme mladé rodině z Frýdku-Místku.",
+    "repeat_of": null
+   }
+  ]
+ }
+}

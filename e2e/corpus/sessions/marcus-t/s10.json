@@ -1,0 +1,140 @@
+{
+ "client": "marcus-t",
+ "session": "s10",
+ "lang": "en",
+ "date": "2026-03-13",
+ "turns": [
+  {
+   "who": "therapist",
+   "text": "Good to see you again. Where would you like to start today?"
+  },
+  {
+   "who": "client",
+   "text": "I am not sure where to begin, there are so many things going round in my head at the moment."
+  },
+  {
+   "who": "therapist",
+   "text": "What went through your mind then?"
+  },
+  {
+   "who": "client",
+   "text": "I took out Denise's blue coat and it still smells of her perfume."
+  },
+  {
+   "who": "therapist",
+   "text": "What went through your mind then?"
+  },
+  {
+   "who": "client",
+   "text": "It has been a grey week, and the weather does not help my mood much, to be honest. I think so, yes."
+  },
+  {
+   "who": "therapist",
+   "text": "I see. Can you say a bit more?"
+  },
+  {
+   "who": "client",
+   "text": "The train was late again this morning, so I almost did not make it on time today."
+  },
+  {
+   "who": "therapist",
+   "text": "Tell me more about that."
+  },
+  {
+   "who": "client",
+   "text": "There is no whisky in the house now, I gave the last bottle to my neighbour."
+  },
+  {
+   "who": "therapist",
+   "text": "Tell me more about that."
+  },
+  {
+   "who": "client",
+   "text": "It is strange to sit here and say all of this out loud, but it does help a little. That is how it was."
+  },
+  {
+   "who": "therapist",
+   "text": "What happened next?"
+  },
+  {
+   "who": "client",
+   "text": "I made myself a cup of tea this morning and just stood by the window for a while."
+  },
+  {
+   "who": "therapist",
+   "text": "Take your time."
+  },
+  {
+   "who": "client",
+   "text": "Joy offered to fly back for the review meeting and for Biscuit."
+  },
+  {
+   "who": "therapist",
+   "text": "What went through your mind then?"
+  },
+  {
+   "who": "client",
+   "text": "The journey here took a while, but at least I had time to gather my thoughts. It is not easy to talk about."
+  },
+  {
+   "who": "therapist",
+   "text": "What happened next?"
+  },
+  {
+   "who": "client",
+   "text": "Some days are better than others, and I try to remind myself of that when things get heavy."
+  },
+  {
+   "who": "therapist",
+   "text": "What went through your mind then?"
+  },
+  {
+   "who": "client",
+   "text": "I decided with the vet that we will put Biscuit to sleep next Friday, and I am dreading it."
+  },
+  {
+   "who": "therapist",
+   "text": "What went through your mind then?"
+  },
+  {
+   "who": "client",
+   "text": "I wrote a few notes before coming here, but now I cannot remember half of what I wanted to say. I keep coming back to it."
+  },
+  {
+   "who": "therapist",
+   "text": "We are nearly out of time. Is there anything you want to add?"
+  },
+  {
+   "who": "client",
+   "text": "No, I think that is everything. Thank you."
+  }
+ ],
+ "expected": {
+  "facts": [
+   {
+    "id": "s10.f1",
+    "heading": "Decision about Biscuit",
+    "said": "I decided with the vet that we will put Biscuit to sleep next Friday, and I am dreading it.",
+    "repeat_of": null
+   },
+   {
+    "id": "s10.f2",
+    "heading": "Denise's blue coat",
+    "said": "I took out Denise's blue coat and it still smells of her perfume.",
+    "repeat_of": null
+   },
+   {
+    "id": "s10.f3",
+    "heading": "Joy offers to come back",
+    "said": "Joy offered to fly back for the review meeting and for Biscuit.",
+    "repeat_of": null
+   },
+   {
+    "id": "s10.f4",
+    "heading": "No more whisky in the house",
+    "said": "There is no whisky in the house now, I gave the last bottle to my neighbour.",
+    "repeat_of": "s04.f1"
+   }
+  ]
+ }
+}

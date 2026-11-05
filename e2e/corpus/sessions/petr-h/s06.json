@@ -1,0 +1,148 @@
+{
+ "client": "petr-h",
+ "session": "s06",
+ "lang": "cs",
+ "date": "2026-02-12",
+ "turns": [
+  {
+   "who": "therapist",
+   "text": "Rád vás zase vidím. Kde byste dnes chtěla začít?"
+  },
+  {
+   "who": "client",
+   "text": "Je zvláštní sedět tady a říkat to všechno nahlas, ale trochu to pomáhá."
+  },
+  {
+   "who": "therapist",
+   "text": "Rozumím. Můžete to trochu rozvést?"
+  },
+  {
+   "who": "client",
+   "text": "V práci už mě nic nebaví, píšu kód jen aby bylo hotovo."
+  },
+  {
+   "who": "therapist",
+   "text": "Hm. Pokračujte."
+  },
+  {
+   "who": "client",
+   "text": "Byl to šedivý týden a to počasí mi na náladě moc nepřidává, po pravdě řečeno. Asi ano."
+  },
+  {
+   "who": "therapist",
+   "text": "Hm. Pokračujte."
+  },
+  {
+   "who": "client",
+   "text": "Dnes ráno byl jen čaj a chvíle u okna."
+  },
+  {
+   "who": "therapist",
+   "text": "Rozumím. Můžete to trochu rozvést?"
+  },
+  {
+   "who": "client",
+   "text": "Mám strach, že mi pivo začíná být potřebné, a dělá mi to starosti."
+  },
+  {
+   "who": "therapist",
+   "text": "Rozumím. Můžete to trochu rozvést?"
+  },
+  {
+   "who": "client",
+   "text": "Něco mám poznamenané na papíře, ale teď si polovinu z toho nepamatuju. Nevím, těžko se to vysvětluje."
+  },
+  {
+   "who": "therapist",
+   "text": "Jaké to pro vás bylo?"
+  },
+  {
+   "who": "client",
+   "text": "Dnes ráno mi ujel autobus, takže to bylo na poslední chvíli."
+  },
+  {
+   "who": "therapist",
+   "text": "Hm. Pokračujte."
+  },
+  {
+   "who": "client",
+   "text": "Pořád chodím pěšky přes Vltavu, aspoň se projdu a přemýšlím."
+  },
+  {
+   "who": "therapist",
+   "text": "A co se stalo potom?"
+  },
+  {
+   "who": "client",
+   "text": "Včerejšek byl dlouhý den a večer už mi nezbyly žádné síly, byla jen televize a gauč. Pořád se k tomu vracím."
+  },
+  {
+   "who": "therapist",
+   "text": "A co se stalo potom?"
+  },
+  {
+   "who": "client",
+   "text": "Některé dny jsou lepší než jiné a snažím se si to připomínat, když je těžko."
+  },
+  {
+   "who": "therapist",
+   "text": "Hm. Pokračujte."
+  },
+  {
+   "who": "client",
+   "text": "Řekl jsem Ondřejovi, že o víkendech pracovat nebudu, a on mi odpověděl, že to bude mít následky."
+  },
+  {
+   "who": "therapist",
+   "text": "Hm. Pokračujte."
+  },
+  {
+   "who": "client",
+   "text": "Nevím, kde začít, v hlavě mi teď běží spousta věcí najednou. Tak to prostě je."
+  },
+  {
+   "who": "therapist",
+   "text": "A co se stalo potom?"
+  },
+  {
+   "who": "client",
+   "text": "Cesta sem trvá dlouho, ale aspoň je čas si trochu srovnat myšlenky."
+  },
+  {
+   "who": "therapist",
+   "text": "Pro dnešek tady skončíme."
+  },
+  {
+   "who": "client",
+   "text": "Ne, myslím, že je to všechno. Děkuji."
+  }
+ ],
+ "expected": {
+  "facts": [
+   {
+    "id": "s06.f1",
+    "heading": "Pokles motivace v práci",
+    "said": "V práci už mě nic nebaví, píšu kód jen aby bylo hotovo.",
+    "repeat_of": null
+   },
+   {
+    "id": "s06.f2",
+    "heading": "Pěšky do práce",
+    "said": "Pořád chodím pěšky přes Vltavu, aspoň se projdu a přemýšlím.",
+    "repeat_of": "s02.f4"
+   },
+   {
+    "id": "s06.f3",
+    "heading": "Hádka s Ondřejem",
+    "said": "Řekl jsem Ondřejovi, že o víkendech pracovat nebudu, a on mi odpověděl, že to bude mít následky.",
+    "repeat_of": null
+   },
+   {
+    "id": "s06.f4",
+    "heading": "Obavy z alkoholu",
+    "said": "Mám strach, že mi pivo začíná být potřebné, a dělá mi to starosti.",
+    "repeat_of": "s01.f3"
+   }
+  ]
+ }
+}

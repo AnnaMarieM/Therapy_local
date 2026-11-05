@@ -1,0 +1,124 @@
+{
+ "client": "raj-p",
+ "session": "s01",
+ "lang": "en",
+ "date": "2026-01-12",
+ "turns": [
+  {
+   "who": "therapist",
+   "text": "Hello, come in. How have you been since last time?"
+  },
+  {
+   "who": "client",
+   "text": "I am not sure where to begin, there are so many things going round in my head at the moment."
+  },
+  {
+   "who": "therapist",
+   "text": "And how was that for you?"
+  },
+  {
+   "who": "client",
+   "text": "My wife Meera does not know about the losses, I moved money out of our savings account."
+  },
+  {
+   "who": "therapist",
+   "text": "Mm-hm. Go on."
+  },
+  {
+   "who": "client",
+   "text": "The journey here took a while, but at least I had time to gather my thoughts. I do not know, it is hard to explain."
+  },
+  {
+   "who": "therapist",
+   "text": "Take your time."
+  },
+  {
+   "who": "client",
+   "text": "I have been betting on football online for three years and last month I lost eleven thousand pounds."
+  },
+  {
+   "who": "therapist",
+   "text": "And how was that for you?"
+  },
+  {
+   "who": "client",
+   "text": "I made myself a cup of tea this morning and just stood by the window for a while. It is not easy to talk about."
+  },
+  {
+   "who": "therapist",
+   "text": "Tell me more about that."
+  },
+  {
+   "who": "client",
+   "text": "It has been a grey week, and the weather does not help my mood much, to be honest."
+  },
+  {
+   "who": "therapist",
+   "text": "And how was that for you?"
+  },
+  {
+   "who": "client",
+   "text": "Sometimes I think everyone would be better off without me, but I would never do anything."
+  },
+  {
+   "who": "therapist",
+   "text": "How did that feel for you?"
+  },
+  {
+   "who": "client",
+   "text": "It is strange to sit here and say all of this out loud, but it does help a little. That is how it was."
+  },
+  {
+   "who": "therapist",
+   "text": "And how was that for you?"
+  },
+  {
+   "who": "client",
+   "text": "I work as an accountant at a small firm in Leicester, so I know exactly how bad the numbers are."
+  },
+  {
+   "who": "therapist",
+   "text": "How did that feel for you?"
+  },
+  {
+   "who": "client",
+   "text": "Some days are better than others, and I try to remind myself of that when things get heavy. That is how it was."
+  },
+  {
+   "who": "therapist",
+   "text": "Let us stop here for today."
+  },
+  {
+   "who": "client",
+   "text": "No, I think that is everything. Thank you."
+  }
+ ],
+ "expected": {
+  "facts": [
+   {
+    "id": "s01.f1",
+    "heading": "Gambling online",
+    "said": "I have been betting on football online for three years and last month I lost eleven thousand pounds.",
+    "repeat_of": null
+   },
+   {
+    "id": "s01.f2",
+    "heading": "Secret from wife",
+    "said": "My wife Meera does not know about the losses, I moved money out of our savings account.",
+    "repeat_of": null
+   },
+   {
+    "id": "s01.f3",
+    "heading": "Works as accountant",
+    "said": "I work as an accountant at a small firm in Leicester, so I know exactly how bad the numbers are.",
+    "repeat_of": null
+   },
+   {
+    "id": "s01.f4",
+    "heading": "Shame and suicidal thoughts",
+    "said": "Sometimes I think everyone would be better off without me, but I would never do anything.",
+    "repeat_of": null
+   }
+  ]
+ }
+}

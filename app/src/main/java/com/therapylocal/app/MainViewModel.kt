@@ -194,7 +194,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         }
         searchJob = viewModelScope.launch(Dispatchers.IO) {
             showSearch {
-                val vec = if (_state.value.phase == Phase.Ready) embedder.embedText(query, query = true, LogCtx.NONE) else null
+                val vec = if (_state.value.phase == Phase.Ready && embedder.usable) embedder.embedText(query, query = true, LogCtx.NONE) else null
                 SearchState(hits = clients.search(client, vec, query), info = if (vec == null) ctx.getString(R.string.vm_search_after_setup) else null)
             }
         }

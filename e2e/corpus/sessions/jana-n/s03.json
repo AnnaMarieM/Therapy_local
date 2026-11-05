@@ -1,0 +1,140 @@
+{
+ "client": "jana-n",
+ "session": "s03",
+ "lang": "cs",
+ "date": "2026-01-21",
+ "turns": [
+  {
+   "who": "therapist",
+   "text": "Rád vás zase vidím. Kde byste dnes chtěla začít?"
+  },
+  {
+   "who": "client",
+   "text": "Nevím, kde začít, v hlavě mi teď běží spousta věcí najednou."
+  },
+  {
+   "who": "therapist",
+   "text": "Nespěchejte."
+  },
+  {
+   "who": "client",
+   "text": "Anička se mnou od neděle skoro nemluví a říká, že je to moje vina."
+  },
+  {
+   "who": "therapist",
+   "text": "Co se vám v tu chvíli honilo hlavou?"
+  },
+  {
+   "who": "client",
+   "text": "Byl to šedivý týden a to počasí mi na náladě moc nepřidává, po pravdě řečeno. Pořád se k tomu vracím."
+  },
+  {
+   "who": "therapist",
+   "text": "Nespěchejte."
+  },
+  {
+   "who": "client",
+   "text": "Cesta sem trvá dlouho, ale aspoň je čas si trochu srovnat myšlenky."
+  },
+  {
+   "who": "therapist",
+   "text": "Co se vám v tu chvíli honilo hlavou?"
+  },
+  {
+   "who": "client",
+   "text": "Dnes v noci jsem se zase probudila ve tři a už jsem neusnula."
+  },
+  {
+   "who": "therapist",
+   "text": "Co se vám v tu chvíli honilo hlavou?"
+  },
+  {
+   "who": "client",
+   "text": "Některé dny jsou lepší než jiné a snažím se si to připomínat, když je těžko. Nevím, těžko se to vysvětluje."
+  },
+  {
+   "who": "therapist",
+   "text": "Jaké to pro vás bylo?"
+  },
+  {
+   "who": "client",
+   "text": "Byla jsem u právničky a ta říká, že rozvod potrvá asi půl roku."
+  },
+  {
+   "who": "therapist",
+   "text": "Rozumím. Můžete to trochu rozvést?"
+  },
+  {
+   "who": "client",
+   "text": "Dnes ráno mi ujel autobus, takže to bylo na poslední chvíli. Asi ano."
+  },
+  {
+   "who": "therapist",
+   "text": "Nespěchejte."
+  },
+  {
+   "who": "client",
+   "text": "Dnes ráno byl jen čaj a chvíle u okna."
+  },
+  {
+   "who": "therapist",
+   "text": "A co se stalo potom?"
+  },
+  {
+   "who": "client",
+   "text": "V neděli jsme dětem řekli, že se rozvádíme, Matěj se rozplakal a Anička odešla do pokoje a zabouchla dveře."
+  },
+  {
+   "who": "therapist",
+   "text": "Hm. Pokračujte."
+  },
+  {
+   "who": "client",
+   "text": "Včerejšek byl dlouhý den a večer už mi nezbyly žádné síly, byla jen televize a gauč. Asi ano."
+  },
+  {
+   "who": "therapist",
+   "text": "A co se stalo potom?"
+  },
+  {
+   "who": "client",
+   "text": "Je zvláštní sedět tady a říkat to všechno nahlas, ale trochu to pomáhá."
+  },
+  {
+   "who": "therapist",
+   "text": "Pro dnešek tady skončíme."
+  },
+  {
+   "who": "client",
+   "text": "Ne, myslím, že je to všechno. Děkuji."
+  }
+ ],
+ "expected": {
+  "facts": [
+   {
+    "id": "s03.f1",
+    "heading": "Řekla jsem to dětem",
+    "said": "V neděli jsme dětem řekli, že se rozvádíme, Matěj se rozplakal a Anička odešla do pokoje a zabouchla dveře.",
+    "repeat_of": null
+   },
+   {
+    "id": "s03.f2",
+    "heading": "Anička nemluví",
+    "said": "Anička se mnou od neděle skoro nemluví a říká, že je to moje vina.",
+    "repeat_of": null
+   },
+   {
+    "id": "s03.f3",
+    "heading": "Pořád se budí ve tři",
+    "said": "Dnes v noci jsem se zase probudila ve tři a už jsem neusnula.",
+    "repeat_of": "s01.f4"
+   },
+   {
+    "id": "s03.f4",
+    "heading": "Návštěva právníka",
+    "said": "Byla jsem u právničky a ta říká, že rozvod potrvá asi půl roku.",
+    "repeat_of": null
+   }
+  ]
+ }
+}

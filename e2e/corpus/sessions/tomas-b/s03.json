@@ -1,0 +1,132 @@
+{
+ "client": "tomas-b",
+ "session": "s03",
+ "lang": "cs",
+ "date": "2026-01-24",
+ "turns": [
+  {
+   "who": "therapist",
+   "text": "Dobrý den, pojďte dál. Jak se vám vedlo od minula?"
+  },
+  {
+   "who": "client",
+   "text": "Je zvláštní sedět tady a říkat to všechno nahlas, ale trochu to pomáhá."
+  },
+  {
+   "who": "therapist",
+   "text": "Řekněte mi o tom víc."
+  },
+  {
+   "who": "client",
+   "text": "Doktor řekl, že se to jmenuje obsedantně-kompulzivní porucha a doporučil kognitivně-behaviorální terapii."
+  },
+  {
+   "who": "therapist",
+   "text": "A co se stalo potom?"
+  },
+  {
+   "who": "client",
+   "text": "Dnes ráno byl jen čaj a chvíle u okna. Pořád se k tomu vracím."
+  },
+  {
+   "who": "therapist",
+   "text": "Nespěchejte."
+  },
+  {
+   "who": "client",
+   "text": "Barbora mi řekla, že všechno vidí už dávno a že mě má ráda i s tím."
+  },
+  {
+   "who": "therapist",
+   "text": "Nespěchejte."
+  },
+  {
+   "who": "client",
+   "text": "Některé dny jsou lepší než jiné a snažím se si to připomínat, když je těžko. Asi ano."
+  },
+  {
+   "who": "therapist",
+   "text": "A jak vám z toho bylo?"
+  },
+  {
+   "who": "client",
+   "text": "Něco mám poznamenané na papíře, ale teď si polovinu z toho nepamatuju."
+  },
+  {
+   "who": "therapist",
+   "text": "Hm. Pokračujte."
+  },
+  {
+   "who": "client",
+   "text": "Zkoušel jsem si zámek vyfotit, abych se nemusel vracet, ale stejně se vracím."
+  },
+  {
+   "who": "therapist",
+   "text": "Nespěchejte."
+  },
+  {
+   "who": "client",
+   "text": "Nevím, kde začít, v hlavě mi teď běží spousta věcí najednou. Pořád se k tomu vracím."
+  },
+  {
+   "who": "therapist",
+   "text": "Jaké to pro vás bylo?"
+  },
+  {
+   "who": "client",
+   "text": "Cesta sem trvá dlouho, ale aspoň je čas si trochu srovnat myšlenky."
+  },
+  {
+   "who": "therapist",
+   "text": "A co se stalo potom?"
+  },
+  {
+   "who": "client",
+   "text": "Včera mi kontrola dveří trvala čtyřicet minut a zase jsem byl pozdě."
+  },
+  {
+   "who": "therapist",
+   "text": "Hm. Pokračujte."
+  },
+  {
+   "who": "client",
+   "text": "Byl to šedivý týden a to počasí mi na náladě moc nepřidává, po pravdě řečeno. Asi ano."
+  },
+  {
+   "who": "therapist",
+   "text": "Za chvíli nám končí čas. Chcete ještě něco dodat?"
+  },
+  {
+   "who": "client",
+   "text": "Ne, myslím, že je to všechno. Děkuji."
+  }
+ ],
+ "expected": {
+  "facts": [
+   {
+    "id": "s03.f1",
+    "heading": "Barbora ví",
+    "said": "Barbora mi řekla, že všechno vidí už dávno a že mě má ráda i s tím.",
+    "repeat_of": null
+   },
+   {
+    "id": "s03.f2",
+    "heading": "Praktický lékař doporučil terapii",
+    "said": "Doktor řekl, že se to jmenuje obsedantně-kompulzivní porucha a doporučil kognitivně-behaviorální terapii.",
+    "repeat_of": null
+   },
+   {
+    "id": "s03.f3",
+    "heading": "Kontrolování trvá",
+    "said": "Včera mi kontrola dveří trvala čtyřicet minut a zase jsem byl pozdě.",
+    "repeat_of": "s01.f1"
+   },
+   {
+    "id": "s03.f4",
+    "heading": "Fotografování zámku",
+    "said": "Zkoušel jsem si zámek vyfotit, abych se nemusel vracet, ale stejně se vracím.",
+    "repeat_of": null
+   }
+  ]
+ }
+}

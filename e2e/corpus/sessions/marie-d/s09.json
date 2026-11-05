@@ -1,0 +1,140 @@
+{
+ "client": "marie-d",
+ "session": "s09",
+ "lang": "cs",
+ "date": "2026-03-10",
+ "turns": [
+  {
+   "who": "therapist",
+   "text": "Rád vás zase vidím. Kde byste dnes chtěla začít?"
+  },
+  {
+   "who": "client",
+   "text": "Je zvláštní sedět tady a říkat to všechno nahlas, ale trochu to pomáhá."
+  },
+  {
+   "who": "therapist",
+   "text": "A co se stalo potom?"
+  },
+  {
+   "who": "client",
+   "text": "Jakub mi koupil tablet, abychom si mohli volat s obrazem každý den."
+  },
+  {
+   "who": "therapist",
+   "text": "A co se stalo potom?"
+  },
+  {
+   "who": "client",
+   "text": "Některé dny jsou lepší než jiné a snažím se si to připomínat, když je těžko. Tak to prostě je."
+  },
+  {
+   "who": "therapist",
+   "text": "A jak vám z toho bylo?"
+  },
+  {
+   "who": "client",
+   "text": "Jakub přijel včera a hned mě objal, byl hodně unavený z cesty."
+  },
+  {
+   "who": "therapist",
+   "text": "Co se vám v tu chvíli honilo hlavou?"
+  },
+  {
+   "who": "client",
+   "text": "Byl to šedivý týden a to počasí mi na náladě moc nepřidává, po pravdě řečeno. Asi ano."
+  },
+  {
+   "who": "therapist",
+   "text": "A co se stalo potom?"
+  },
+  {
+   "who": "client",
+   "text": "Cesta sem trvá dlouho, ale aspoň je čas si trochu srovnat myšlenky."
+  },
+  {
+   "who": "therapist",
+   "text": "A jak vám z toho bylo?"
+  },
+  {
+   "who": "client",
+   "text": "Šli jsme spolu k neurologovi a Jakub se ptal na všechno, co mě trápí."
+  },
+  {
+   "who": "therapist",
+   "text": "A co se stalo potom?"
+  },
+  {
+   "who": "client",
+   "text": "Dnes ráno byl jen čaj a chvíle u okna. Nevím, těžko se to vysvětluje."
+  },
+  {
+   "who": "therapist",
+   "text": "Hm. Pokračujte."
+  },
+  {
+   "who": "client",
+   "text": "Něco mám poznamenané na papíře, ale teď si polovinu z toho nepamatuju."
+  },
+  {
+   "who": "therapist",
+   "text": "A co se stalo potom?"
+  },
+  {
+   "who": "client",
+   "text": "Jakub mi řekl, že mě do domova nikdy nedá, a že spolu najdeme jiné řešení, třeba pečovatelku."
+  },
+  {
+   "who": "therapist",
+   "text": "Rozumím. Můžete to trochu rozvést?"
+  },
+  {
+   "who": "client",
+   "text": "Včerejšek byl dlouhý den a večer už mi nezbyly žádné síly, byla jen televize a gauč. Nevím, těžko se to vysvětluje."
+  },
+  {
+   "who": "therapist",
+   "text": "Rozumím. Můžete to trochu rozvést?"
+  },
+  {
+   "who": "client",
+   "text": "Nevím, kde začít, v hlavě mi teď běží spousta věcí najednou."
+  },
+  {
+   "who": "therapist",
+   "text": "Pro dnešek tady skončíme."
+  },
+  {
+   "who": "client",
+   "text": "Děkuji, uvidíme se příští týden."
+  }
+ ],
+ "expected": {
+  "facts": [
+   {
+    "id": "s09.f1",
+    "heading": "Jakub přijel",
+    "said": "Jakub přijel včera a hned mě objal, byl hodně unavený z cesty.",
+    "repeat_of": null
+   },
+   {
+    "id": "s09.f2",
+    "heading": "Společně u neurologa",
+    "said": "Šli jsme spolu k neurologovi a Jakub se ptal na všechno, co mě trápí.",
+    "repeat_of": null
+   },
+   {
+    "id": "s09.f3",
+    "heading": "Slíbil, že mě nedá do domova",
+    "said": "Jakub mi řekl, že mě do domova nikdy nedá, a že spolu najdeme jiné řešení, třeba pečovatelku.",
+    "repeat_of": "s04.f4"
+   },
+   {
+    "id": "s09.f4",
+    "heading": "Návrh na telefon",
+    "said": "Jakub mi koupil tablet, abychom si mohli volat s obrazem každý den.",
+    "repeat_of": null
+   }
+  ]
+ }
+}

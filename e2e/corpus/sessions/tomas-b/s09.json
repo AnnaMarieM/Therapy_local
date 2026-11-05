@@ -1,0 +1,140 @@
+{
+ "client": "tomas-b",
+ "session": "s09",
+ "lang": "cs",
+ "date": "2026-03-06",
+ "turns": [
+  {
+   "who": "therapist",
+   "text": "Dobrý den, pojďte dál. Jak se vám vedlo od minula?"
+  },
+  {
+   "who": "client",
+   "text": "Dnes ráno mi ujel autobus, takže to bylo na poslední chvíli."
+  },
+  {
+   "who": "therapist",
+   "text": "Hm. Pokračujte."
+  },
+  {
+   "who": "client",
+   "text": "Ty myšlenky na dítě mám míň často a už si z nich nedělám tolik hlavu."
+  },
+  {
+   "who": "therapist",
+   "text": "Hm. Pokračujte."
+  },
+  {
+   "who": "client",
+   "text": "Včerejšek byl dlouhý den a večer už mi nezbyly žádné síly, byla jen televize a gauč. Asi ano."
+  },
+  {
+   "who": "therapist",
+   "text": "A jak vám z toho bylo?"
+  },
+  {
+   "who": "client",
+   "text": "Dnes ráno byl jen čaj a chvíle u okna."
+  },
+  {
+   "who": "therapist",
+   "text": "A jak vám z toho bylo?"
+  },
+  {
+   "who": "client",
+   "text": "Dodavatel uznal reklamaci vadného přístroje a Pavel se mi omluvil."
+  },
+  {
+   "who": "therapist",
+   "text": "Hm. Pokračujte."
+  },
+  {
+   "who": "client",
+   "text": "Některé dny jsou lepší než jiné a snažím se si to připomínat, když je těžko. Pořád se k tomu vracím."
+  },
+  {
+   "who": "therapist",
+   "text": "Nespěchejte."
+  },
+  {
+   "who": "client",
+   "text": "Je zvláštní sedět tady a říkat to všechno nahlas, ale trochu to pomáhá."
+  },
+  {
+   "who": "therapist",
+   "text": "Jaké to pro vás bylo?"
+  },
+  {
+   "who": "client",
+   "text": "Po relapsu se mi to zase zlepšilo, tento týden jsem zkontroloval dveře jen dvakrát za den."
+  },
+  {
+   "who": "therapist",
+   "text": "Co se vám v tu chvíli honilo hlavou?"
+  },
+  {
+   "who": "client",
+   "text": "Nevím, kde začít, v hlavě mi teď běží spousta věcí najednou. Pořád se k tomu vracím."
+  },
+  {
+   "who": "therapist",
+   "text": "Řekněte mi o tom víc."
+  },
+  {
+   "who": "client",
+   "text": "Barbora cítí, jak se Eliška hýbe, a já jsem k bříšku přiložil ruku."
+  },
+  {
+   "who": "therapist",
+   "text": "Řekněte mi o tom víc."
+  },
+  {
+   "who": "client",
+   "text": "Cesta sem trvá dlouho, ale aspoň je čas si trochu srovnat myšlenky. Ano, přesně tak to bylo."
+  },
+  {
+   "who": "therapist",
+   "text": "Řekněte mi o tom víc."
+  },
+  {
+   "who": "client",
+   "text": "Něco mám poznamenané na papíře, ale teď si polovinu z toho nepamatuju."
+  },
+  {
+   "who": "therapist",
+   "text": "Za chvíli nám končí čas. Chcete ještě něco dodat?"
+  },
+  {
+   "who": "client",
+   "text": "Děkuji, uvidíme se příští týden."
+  }
+ ],
+ "expected": {
+  "facts": [
+   {
+    "id": "s09.f1",
+    "heading": "Zpátky na dobré cestě",
+    "said": "Po relapsu se mi to zase zlepšilo, tento týden jsem zkontroloval dveře jen dvakrát za den.",
+    "repeat_of": null
+   },
+   {
+    "id": "s09.f2",
+    "heading": "Reklamace u dodavatele",
+    "said": "Dodavatel uznal reklamaci vadného přístroje a Pavel se mi omluvil.",
+    "repeat_of": null
+   },
+   {
+    "id": "s09.f3",
+    "heading": "Eliška se hýbe",
+    "said": "Barbora cítí, jak se Eliška hýbe, a já jsem k bříšku přiložil ruku.",
+    "repeat_of": "s04.f4"
+   },
+   {
+    "id": "s09.f4",
+    "heading": "Strach z myšlenek ustupuje",
+    "said": "Ty myšlenky na dítě mám míň často a už si z nich nedělám tolik hlavu.",
+    "repeat_of": "s06.f4"
+   }
+  ]
+ }
+}
