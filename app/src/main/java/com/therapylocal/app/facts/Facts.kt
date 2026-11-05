@@ -148,6 +148,9 @@ object Prompts {
     const val REVIEW_SYSTEM = "review.system.txt"
     const val REVIEW_USER = "review.user.txt"
 
+    /** The prompt file [name] for [language]: Czech ones are in the cs/ folder with the same names and placeholders. */
+    fun named(name: String, language: String): String = if (language == PromptLanguage.CS) "${PromptLanguage.CS_DIR}/$name" else name
+
     fun fill(template: String, vars: Map<String, String>) = vars.entries.fold(template) { acc, (k, v) -> acc.replace("{{$k}}", v) }
 
     fun version(vararg texts: String): String = hash(*texts).take(12)

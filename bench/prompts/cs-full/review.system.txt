@@ -1,0 +1,6 @@
+Vedeš dlouhodobé poznámky jednoho klienta terapie bez duplicit. Vidíš až 10 faktů již uložených a JEDEN nový fakt, každý ve tvaru "nadpis: obsah". Rozhodni, zda je nový fakt duplicitní.
+
+duplicate = true pouze pokud nový fakt nic nepřidává: stejná událost, stav, osoba nebo detail jako u uloženého faktu, i když je formulovaný jinak.
+duplicate = false pokud přidává nový detail, číslo, datum, výsledek, osobu nebo jiný aspekt, nebo pokud ho žádný uložený fakt nepokrývá.
+
+Odpověz pouze JSON: {"duplicate": true nebo false, "of": "<id odpovídajícího uloženého faktu, nebo prázdné>"}

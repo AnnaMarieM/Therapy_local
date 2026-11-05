@@ -105,6 +105,9 @@ class JobQueue(
     fun unfinished(kind: String, session: String, ref: String = ""): Job? = unfinished(repo.jobs(), kind, session, ref)
 
     /** Every job of [session] that is not done yet, of any kind. */
+    /** Every job that is not done or cancelled (a failed one may still be retried). */
+    fun openJobs(): List<Job> = repo.jobs().filter { !it.status.settled }
+
     fun unfinished(session: String): List<Job> = repo.jobs().filter { it.sessionId == session && !it.status.settled }
 
     /** [job] also waits for [on]. */

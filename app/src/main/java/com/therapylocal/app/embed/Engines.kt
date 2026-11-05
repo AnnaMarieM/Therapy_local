@@ -12,4 +12,13 @@ object Engines {
 
     fun embedder(context: Context): Embedder =
         embedder ?: synchronized(this) { embedder ?: Embedder(context.applicationContext).also { embedder = it } }
+
+    /** Unloads the shared embedder (if it was created) while sessions are processed. Live cues and search skip it until [resume]. */
+    suspend fun suspend() {
+        embedder?.suspend()
+    }
+
+    fun resume() {
+        embedder?.resume()
+    }
 }

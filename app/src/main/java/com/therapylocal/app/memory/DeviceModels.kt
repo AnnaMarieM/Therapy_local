@@ -20,18 +20,22 @@ import kotlinx.coroutines.runBlocking
 
 /** The phone's models behind the pipeline's ports, for the runner's [ModelPool]. */
 object DeviceModels {
-    fun pool(context: Context): ModelPool = ModelPool(
-        loadLlm = { MemoryLlm(context, MemoryConfig.LLM_MAX_TOKENS, ModelSetup.gemma(context)).apply { load(MemoryConfig.LLM_BACKENDS) } },
+    /** [contextNeeded]: the context the open work needs, counted from its prompts before the LLM is loaded (see [com.therapylocal.app.jobs.Pipeline.requiredContext]). */
+    fun pool(context: Context, contextNeeded: () -> Int = { MemoryConfig.LLM_MAX_TOKENS }): ModelPool = ModelPool(
+        loadLlm = { audio, ctx -> MemoryLlm(context, ctx, ModelSetup.gemma(context)).apply { load(MemoryConfig.LLM_BACKENDS, withAudio = audio) } },
         loadEmbed = { embed(context) },
         loadAsr = { llm, language -> asr(context, llm, language) },
         llmModel = { ModelSetup.gemma(context).id },
+        asrOnLlm = { context.getSharedPreferences("settings", Context.MODE_PRIVATE).getString("engine", ModelRegistry.DEFAULT_ENGINE) == "gemma" },
+        contextNeeded = contextNeeded,
+        baseContext = MemoryConfig.LLM_MAX_TOKENS,
     )
 
     /**
      * The engine chosen in the settings: Canary (the default), Whisper or Gemma, for the client's [language]. Gemma runs on the LLM's engine;
      * a Gemma build without audio input falls back to Canary.
      */
-    private fun asr(context: Context, llm: () -> Llm, language: String): Asr {
+    private fun asr(context: Context, llm: () -> Llm?, language: String): Asr {
         val prefs = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
         val speech = SpeechLanguage.of(language)
         var engine = prefs.getString("engine", ModelRegistry.DEFAULT_ENGINE) ?: ModelRegistry.DEFAULT_ENGINE
@@ -56,9 +60,9 @@ object DeviceModels {
         }
     }
 
-    /** On CPU: the LLM holds the GPU, and both on the GPU at once can run out of memory on phones. */
+    /** On CPU: the LLM holds the GPU, and both on the GPU at once can run out of memory on phones. Text only: the audio encoder stays unloaded. */
     private fun embed(context: Context): Embed {
-        val embedder = Embedder(context, forcedBackend = "CPU")
+        val embedder = Embedder(context, forcedBackend = "CPU", textOnly = true)
         runBlocking { embedder.load() }
         return object : Embed {
             override val model = EmbeddingConfig.MODEL_ID
