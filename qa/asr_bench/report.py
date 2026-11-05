@@ -11,20 +11,21 @@ for r in rows:
 
 datasets = sorted(by)
 models = sorted({m for d in by.values() for m in d})
-avg = {m: sum(by[d][m]["wer"] for d in datasets if m in by[d]) / max(1, sum(1 for d in datasets if m in by[d])) for m in models}
-speed = {m: sum(by[d][m]["rtf"] for d in datasets if m in by[d]) / max(1, sum(1 for d in datasets if m in by[d])) for m in models}
+full = [m for m in models if all(m in by[d] for d in datasets)]  # only a model scored on every dataset gets an average, so the ranking is like for like
+avg = {m: sum(by[d][m]["wer"] for d in datasets) / len(datasets) for m in full}
+speed = {m: sum(by[d][m]["rtf"] for d in datasets if m in by[d]) / sum(1 for d in datasets if m in by[d]) for m in models}
 labels = {"fleurs": "FLEURS (read speech)", "voxpopuli": "VoxPopuli (parliament speeches)"}
 
 print("### Czech speech recognition: word error rate (lower is better)\n")
 print("| Model | " + " | ".join(labels.get(d, d) for d in datasets) + " | Average | Speed (CPU, x real time) |")
 print("|---|" + "---:|" * (len(datasets) + 2))
-for m in sorted(models, key=lambda m: avg[m]):
+for m in sorted(models, key=lambda m: (m not in avg, avg.get(m, 0), m)):
     cells = " | ".join(f"{by[d][m]['wer']:.1f}%" if m in by[d] else "-" for d in datasets)
-    print(f"| {m} | {cells} | **{avg[m]:.1f}%** | {speed[m]:.2f} |")
+    print(f"| {m} | {cells} | {f"**{avg[m]:.1f}%**" if m in avg else "-"} | {speed[m]:.2f} |")
 for d in datasets:
     sample = next(iter(by[d].values()))
     print(f"\n{labels.get(d, d)}: {sample['clips']} clips, {sample['words']} words.")
-best = min(models, key=lambda m: avg[m])
+best = min(full, key=lambda m: avg[m]) if full else models[0]
 for d in datasets:
     if best in by[d]:
         worst = sorted(by[d][best]["details"], key=lambda c: -c["wer"])[:2]
