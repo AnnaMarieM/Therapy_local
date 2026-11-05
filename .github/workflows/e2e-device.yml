@@ -11,9 +11,9 @@ on:
         description: "Comma separated client ids (empty = all)"
         required: false
       language:
-        description: "Whisper language setting: auto, or empty for each client's own"
+        description: "Whisper language setting (auto, cs, en). Settings are app-wide, so a run with both Czech and English clients needs auto."
         required: false
-        default: ""
+        default: "auto"
 
 concurrency:
   group: e2e-device
@@ -40,10 +40,12 @@ jobs:
           e2e/.venv/bin/python e2e/tts/fetch_voices.py
           e2e/.venv/bin/python e2e/tts/render.py
       - name: Run on the phone
+        env:
+          CLIENTS: ${{ inputs.clients }}
+          LANGUAGE: ${{ inputs.language || 'auto' }}
         run: |
-          args=(--sessions 10 --reset --out e2e/results/device)
-          [ -n "${{ inputs.clients }}" ] && args+=(--clients "${{ inputs.clients }}")
-          [ -n "${{ inputs.language }}" ] && args+=(--language "${{ inputs.language }}")
+          args=(--sessions 10 --reset --language "$LANGUAGE" --out e2e/results/device)
+          if [ -n "$CLIENTS" ]; then args+=(--clients "$CLIENTS"); fi
           python3 e2e/runner/run_device.py "${args[@]}"
       - name: Score
         run: python3 e2e/score/scorer.py --results e2e/results/device/results.json --thresholds e2e/thresholds-device.json

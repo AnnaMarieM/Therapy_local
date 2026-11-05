@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Score a harness run (results.json) against the corpus ground truth.
 
-  scorer.py --results results/run1/results.json [--thresholds thresholds.yaml.json] [--out results/run1/report]
+  scorer.py --results results/run1/results.json [--thresholds thresholds-host.json] [--out results/run1/report]
 
 Metrics (all per language, cs and en kept apart):
   stt          WER / CER of each stored transcript against the spoken script
@@ -250,7 +250,7 @@ def markdown(rep):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--results", required=True)
-    ap.add_argument("--thresholds", default=str(ROOT / "thresholds.json"))
+    ap.add_argument("--thresholds", help="JSON of limits per language; the run fails if it is given and missing")
     ap.add_argument("--out")
     ap.add_argument("--no-fail", action="store_true")
     a = ap.parse_args()
@@ -260,8 +260,12 @@ def main():
     out = Path(a.out) if a.out else Path(a.results).with_name("report")
     out.with_suffix(".json").write_text(json.dumps(rep, ensure_ascii=False, indent=1), encoding="utf-8")
     out.with_suffix(".md").write_text(md, encoding="utf-8")
-    th = Path(a.thresholds)
-    fails = check_thresholds(rep, json.loads(th.read_text())) if th.exists() else []
+    fails = []
+    if a.thresholds:
+        th = Path(a.thresholds)
+        if not th.exists():
+            sys.exit(f"thresholds file not found: {th}")
+        fails = check_thresholds(rep, json.loads(th.read_text()))
     for f in fails:
         print("FAIL", f)
     sys.exit(0 if (a.no_fail or not fails) else 1)
