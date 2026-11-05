@@ -1,0 +1,148 @@
+{
+ "client": "daniel-r",
+ "session": "s10",
+ "lang": "en",
+ "date": "2026-03-11",
+ "turns": [
+  {
+   "who": "therapist",
+   "text": "Good to see you again. Where would you like to start today?"
+  },
+  {
+   "who": "client",
+   "text": "The journey here took a while, but at least I had time to gather my thoughts."
+  },
+  {
+   "who": "therapist",
+   "text": "I see. Can you say a bit more?"
+  },
+  {
+   "who": "client",
+   "text": "I am less afraid of losing my job now that the four-day week is settled."
+  },
+  {
+   "who": "therapist",
+   "text": "What went through your mind then?"
+  },
+  {
+   "who": "client",
+   "text": "I made myself a cup of tea this morning and just stood by the window for a while. That is how it was."
+  },
+  {
+   "who": "therapist",
+   "text": "And how was that for you?"
+  },
+  {
+   "who": "client",
+   "text": "I wrote a few notes before coming here, but now I cannot remember half of what I wanted to say."
+  },
+  {
+   "who": "therapist",
+   "text": "And how was that for you?"
+  },
+  {
+   "who": "client",
+   "text": "The guilt about the nursing home is still there, it sits in my chest."
+  },
+  {
+   "who": "therapist",
+   "text": "Mm-hm. Go on."
+  },
+  {
+   "who": "client",
+   "text": "I had a long day yesterday and I was so tired in the evening that I just sat in front of the television. I keep coming back to it."
+  },
+  {
+   "who": "therapist",
+   "text": "What happened next?"
+  },
+  {
+   "who": "client",
+   "text": "Some days are better than others, and I try to remind myself of that when things get heavy."
+  },
+  {
+   "who": "therapist",
+   "text": "Tell me more about that."
+  },
+  {
+   "who": "client",
+   "text": "I registered for the charity race at Roundhay Park on the fourteenth of June."
+  },
+  {
+   "who": "therapist",
+   "text": "What happened next?"
+  },
+  {
+   "who": "client",
+   "text": "The train was late again this morning, so I almost did not make it on time today. Yes, it was like that."
+  },
+  {
+   "who": "therapist",
+   "text": "Tell me more about that."
+  },
+  {
+   "who": "client",
+   "text": "It is strange to sit here and say all of this out loud, but it does help a little."
+  },
+  {
+   "who": "therapist",
+   "text": "How did that feel for you?"
+  },
+  {
+   "who": "client",
+   "text": "Hannah and I had an argument at the airport because she thinks I am exaggerating how bad Dad is."
+  },
+  {
+   "who": "therapist",
+   "text": "What went through your mind then?"
+  },
+  {
+   "who": "client",
+   "text": "I am not sure where to begin, there are so many things going round in my head at the moment. I do not know, it is hard to explain."
+  },
+  {
+   "who": "therapist",
+   "text": "Tell me more about that."
+  },
+  {
+   "who": "client",
+   "text": "It has been a grey week, and the weather does not help my mood much, to be honest."
+  },
+  {
+   "who": "therapist",
+   "text": "We are nearly out of time. Is there anything you want to add?"
+  },
+  {
+   "who": "client",
+   "text": "Thank you, see you next week."
+  }
+ ],
+ "expected": {
+  "facts": [
+   {
+    "id": "s10.f1",
+    "heading": "Hannah and Daniel argued",
+    "said": "Hannah and I had an argument at the airport because she thinks I am exaggerating how bad Dad is.",
+    "repeat_of": null
+   },
+   {
+    "id": "s10.f2",
+    "heading": "Less afraid of job loss",
+    "said": "I am less afraid of losing my job now that the four-day week is settled.",
+    "repeat_of": "s02.f4"
+   },
+   {
+    "id": "s10.f3",
+    "heading": "Registered for Roundhay race",
+    "said": "I registered for the charity race at Roundhay Park on the fourteenth of June.",
+    "repeat_of": null
+   },
+   {
+    "id": "s10.f4",
+    "heading": "Still guilty about the nursing home",
+    "said": "The guilt about the nursing home is still there, it sits in my chest.",
+    "repeat_of": "s09.f4"
+   }
+  ]
+ }
+}

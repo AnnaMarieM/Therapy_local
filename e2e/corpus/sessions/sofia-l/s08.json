@@ -1,0 +1,140 @@
+{
+ "client": "sofia-l",
+ "session": "s08",
+ "lang": "en",
+ "date": "2026-02-24",
+ "turns": [
+  {
+   "who": "therapist",
+   "text": "Good to see you again. Where would you like to start today?"
+  },
+  {
+   "who": "client",
+   "text": "Some days are better than others, and I try to remind myself of that when things get heavy."
+  },
+  {
+   "who": "therapist",
+   "text": "Take your time."
+  },
+  {
+   "who": "client",
+   "text": "Callum and I split up in the summer because he said I was obsessed with food."
+  },
+  {
+   "who": "therapist",
+   "text": "Take your time."
+  },
+  {
+   "who": "client",
+   "text": "It has been a grey week, and the weather does not help my mood much, to be honest. That is how it was."
+  },
+  {
+   "who": "therapist",
+   "text": "What went through your mind then?"
+  },
+  {
+   "who": "client",
+   "text": "I am not sure where to begin, there are so many things going round in my head at the moment."
+  },
+  {
+   "who": "therapist",
+   "text": "What went through your mind then?"
+  },
+  {
+   "who": "client",
+   "text": "Bridget suggested a family session, and I might tell my father at Easter."
+  },
+  {
+   "who": "therapist",
+   "text": "What went through your mind then?"
+  },
+  {
+   "who": "client",
+   "text": "I wrote a few notes before coming here, but now I cannot remember half of what I wanted to say. I do not know, it is hard to explain."
+  },
+  {
+   "who": "therapist",
+   "text": "Take your time."
+  },
+  {
+   "who": "client",
+   "text": "It is strange to sit here and say all of this out loud, but it does help a little."
+  },
+  {
+   "who": "therapist",
+   "text": "What happened next?"
+  },
+  {
+   "who": "client",
+   "text": "I still count calories in my head even when I do not write them down."
+  },
+  {
+   "who": "therapist",
+   "text": "What happened next?"
+  },
+  {
+   "who": "client",
+   "text": "The journey here took a while, but at least I had time to gather my thoughts. Yes, it was like that."
+  },
+  {
+   "who": "therapist",
+   "text": "Take your time."
+  },
+  {
+   "who": "client",
+   "text": "I had a long day yesterday and I was so tired in the evening that I just sat in front of the television."
+  },
+  {
+   "who": "therapist",
+   "text": "Mm-hm. Go on."
+  },
+  {
+   "who": "client",
+   "text": "I restricted again after a bad day when I saw photos of my ex-boyfriend Callum with his new girlfriend."
+  },
+  {
+   "who": "therapist",
+   "text": "What happened next?"
+  },
+  {
+   "who": "client",
+   "text": "I made myself a cup of tea this morning and just stood by the window for a while. That is how it was."
+  },
+  {
+   "who": "therapist",
+   "text": "Let us stop here for today."
+  },
+  {
+   "who": "client",
+   "text": "Thank you, see you next week."
+  }
+ ],
+ "expected": {
+  "facts": [
+   {
+    "id": "s08.f1",
+    "heading": "Bad day after Valentine's",
+    "said": "I restricted again after a bad day when I saw photos of my ex-boyfriend Callum with his new girlfriend.",
+    "repeat_of": null
+   },
+   {
+    "id": "s08.f2",
+    "heading": "Ex-boyfriend Callum",
+    "said": "Callum and I split up in the summer because he said I was obsessed with food.",
+    "repeat_of": null
+   },
+   {
+    "id": "s08.f3",
+    "heading": "Calorie counting persists",
+    "said": "I still count calories in my head even when I do not write them down.",
+    "repeat_of": "s01.f1"
+   },
+   {
+    "id": "s08.f4",
+    "heading": "Considering telling father",
+    "said": "Bridget suggested a family session, and I might tell my father at Easter.",
+    "repeat_of": null
+   }
+  ]
+ }
+}

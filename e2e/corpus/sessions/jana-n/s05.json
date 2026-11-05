@@ -1,0 +1,140 @@
+{
+ "client": "jana-n",
+ "session": "s05",
+ "lang": "cs",
+ "date": "2026-02-04",
+ "turns": [
+  {
+   "who": "therapist",
+   "text": "Rád vás zase vidím. Kde byste dnes chtěla začít?"
+  },
+  {
+   "who": "client",
+   "text": "Cesta sem trvá dlouho, ale aspoň je čas si trochu srovnat myšlenky."
+  },
+  {
+   "who": "therapist",
+   "text": "Hm. Pokračujte."
+  },
+  {
+   "who": "client",
+   "text": "Anička mi konečně řekla, že se bojí, že ji budu mít míň ráda, když bude chtít bydlet u táty."
+  },
+  {
+   "who": "therapist",
+   "text": "Nespěchejte."
+  },
+  {
+   "who": "client",
+   "text": "Nevím, kde začít, v hlavě mi teď běží spousta věcí najednou. Není snadné o tom mluvit."
+  },
+  {
+   "who": "therapist",
+   "text": "Nespěchejte."
+  },
+  {
+   "who": "client",
+   "text": "Kolega Martin ve škole za mě vzal dvě hodiny dozoru, když jsem byla tak vyčerpaná."
+  },
+  {
+   "who": "therapist",
+   "text": "A co se stalo potom?"
+  },
+  {
+   "who": "client",
+   "text": "Dnes ráno byl jen čaj a chvíle u okna. Není snadné o tom mluvit."
+  },
+  {
+   "who": "therapist",
+   "text": "Nespěchejte."
+  },
+  {
+   "who": "client",
+   "text": "Je zvláštní sedět tady a říkat to všechno nahlas, ale trochu to pomáhá."
+  },
+  {
+   "who": "therapist",
+   "text": "Nespěchejte."
+  },
+  {
+   "who": "client",
+   "text": "Domluvila jsem pro děti schůzku s dětskou psycholožkou v Brně, příští středu."
+  },
+  {
+   "who": "therapist",
+   "text": "Řekněte mi o tom víc."
+  },
+  {
+   "who": "client",
+   "text": "Byl to šedivý týden a to počasí mi na náladě moc nepřidává, po pravdě řečeno. Asi ano."
+  },
+  {
+   "who": "therapist",
+   "text": "Řekněte mi o tom víc."
+  },
+  {
+   "who": "client",
+   "text": "Dnes ráno mi ujel autobus, takže to bylo na poslední chvíli."
+  },
+  {
+   "who": "therapist",
+   "text": "Řekněte mi o tom víc."
+  },
+  {
+   "who": "client",
+   "text": "Radek mi řekl, že se s Veronikou chce k jaru nastěhovat, a mně se zatočila hlava."
+  },
+  {
+   "who": "therapist",
+   "text": "Řekněte mi o tom víc."
+  },
+  {
+   "who": "client",
+   "text": "Některé dny jsou lepší než jiné a snažím se si to připomínat, když je těžko. Pořád se k tomu vracím."
+  },
+  {
+   "who": "therapist",
+   "text": "Řekněte mi o tom víc."
+  },
+  {
+   "who": "client",
+   "text": "Včerejšek byl dlouhý den a večer už mi nezbyly žádné síly, byla jen televize a gauč."
+  },
+  {
+   "who": "therapist",
+   "text": "Pro dnešek tady skončíme."
+  },
+  {
+   "who": "client",
+   "text": "Děkuji, uvidíme se příští týden."
+  }
+ ],
+ "expected": {
+  "facts": [
+   {
+    "id": "s05.f1",
+    "heading": "Rozhovor s Aničkou",
+    "said": "Anička mi konečně řekla, že se bojí, že ji budu mít míň ráda, když bude chtít bydlet u táty.",
+    "repeat_of": null
+   },
+   {
+    "id": "s05.f2",
+    "heading": "Psycholožka pro děti",
+    "said": "Domluvila jsem pro děti schůzku s dětskou psycholožkou v Brně, příští středu.",
+    "repeat_of": null
+   },
+   {
+    "id": "s05.f3",
+    "heading": "Veronika",
+    "said": "Radek mi řekl, že se s Veronikou chce k jaru nastěhovat, a mně se zatočila hlava.",
+    "repeat_of": "s02.f1"
+   },
+   {
+    "id": "s05.f4",
+    "heading": "Kolega ve škole pomáhá",
+    "said": "Kolega Martin ve škole za mě vzal dvě hodiny dozoru, když jsem byla tak vyčerpaná.",
+    "repeat_of": null
+   }
+  ]
+ }
+}

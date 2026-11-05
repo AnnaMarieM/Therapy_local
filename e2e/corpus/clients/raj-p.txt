@@ -1,0 +1,70 @@
+client: raj-p | Raj P. | en
+
+s01 2026-01-12
+ f1 | Gambling online | I have been betting on football online for three years and last month I lost eleven thousand pounds.
+ f2 | Secret from wife | My wife Meera does not know about the losses, I moved money out of our savings account.
+ f3 | Works as accountant | I work as an accountant at a small firm in Leicester, so I know exactly how bad the numbers are.
+ f4 | Shame and suicidal thoughts | Sometimes I think everyone would be better off without me, but I would never do anything.
+
+s02 2026-01-19
+ f1 | Deleted betting apps | I deleted three betting apps on Sunday but reinstalled one on Tuesday.
+ f2 = s01.f2 | Lying to Meera | Meera asked about the savings and I said we are saving for a new kitchen.
+ f3 | Son Arjun's birthday | My son Arjun turns eight on the thirtieth of January and I cannot afford the party.
+ f4 | Father was also a gambler | My father used to bet on horses and my mother never forgave him.
+
+s03 2026-01-26
+ f1 | Called gambling helpline | I called the gambling helpline and talked to a man named Dave for forty minutes.
+ f2 | Blocking software installed | Dave helped me install blocking software on my phone and laptop.
+ f3 = s02.f3 | Borrowed for party | I borrowed five hundred pounds from a payday lender for Arjun's party and I hate myself for it.
+ f4 | Insomnia | I lie awake at night calculating how long it would take to pay everything back.
+
+s04 2026-02-02
+ f1 | Meera found out | Meera found a loan letter in the post and confronted me last night, and I admitted everything.
+ f2 | Meera threatened to leave | She said she will take Arjun to her sister's in Birmingham if I do not get help.
+ f3 | Agreed to go to GA meeting | I promised her I will go to a Gamblers Anonymous meeting on Thursday.
+ f4 = s01.f4 | Dark thoughts after confession | After the fight I sat in the car for an hour and thought about driving into the river.
+
+s05 2026-02-09
+ f1 | Attended Gamblers Anonymous | I went to Gamblers Anonymous at the community centre and a man named Frank shared a story just like mine.
+ f2 = s01.f1 | Twelve days free of betting | It is twelve days since my last bet, the longest in three years.
+ f3 | Meera stayed but cold | Meera stayed but she sleeps in the spare room and barely speaks to me.
+ f4 | Total debt calculated | I added everything up, the debt is nineteen thousand pounds with the credit cards and the payday loan.
+
+s06 2026-02-16
+ f1 | Debt advice charity | I booked a session with a debt charity and an adviser called Hilary said there are repayment plans.
+ f2 = s04.f2 | Meera still angry | Meera still talks about leaving, and says she does not trust me with money any more.
+ f3 | Handed over finances | I gave Meera all of my bank cards and she now controls the household account.
+ f4 | Craving during football | Saturday's match was hard, I had a strong urge to bet on the second half.
+
+s07 2026-02-23
+ f1 | Urge on Saturday handled | I called Frank from the group when the urge came and we talked until the match ended.
+ f2 | Debt management plan agreed | The debt management plan is agreed, I will pay four hundred pounds a month for five years.
+ f3 = s02.f4 | Thinks about father | I realised I am turning into my father and that terrifies me.
+ f4 | Arjun's drawing | Arjun drew a picture of our family with all three of us holding hands, and I had to leave the room.
+
+s08 2026-03-02
+ f1 | Thirty days without betting | It is thirty days without a bet and Meera noticed and said well done.
+ f2 = s03.f4 | Sleeping better | I sleep five or six hours now because the debt has a plan.
+ f3 | Meera back in bedroom | Meera moved back into our bedroom on Thursday, but she says it does not mean everything is forgiven.
+ f4 | Told boss | I told my boss Gareth about the problem, because I was afraid he would find out through my accounts.
+
+s09 2026-03-09
+ f1 | Boss was supportive | Gareth was supportive and offered to pay for me to see a counsellor through the firm.
+ f2 | Relapse thought | I opened a betting site and looked at odds for ten minutes before closing it.
+ f3 = s05.f1 | Second GA meeting | I go to the Thursday Gamblers Anonymous meetings every week, and Frank is now my sponsor.
+ f4 = s01.f4 | Hope | For the first time I think that I might survive this.
+
+s10 2026-03-16
+ f1 | Told his mother | I told my mother about the gambling and she said she knew the signs because of my father.
+ f2 = s06.f3 | Wife manages money | Meera manages all the money, I get twenty pounds a week pocket money, and it is fine.
+ f3 | Sixty days free | I reached sixty days without a bet and Meera baked a cake.
+ f4 = s02.f3 | Arjun's party paid | We held a small party for Arjun in the garden, cheaper but he loved it.
+
+q | how much money was lost | s01.f1 s05.f4
+q | relationship with wife | s02.f2 s04.f1 s04.f2 s08.f3
+q | suicidal thoughts | s01.f4 s04.f4
+q | recovery support | s03.f1 s05.f1 s07.f1 s09.f3
+q | debt solutions | s06.f1 s07.f2 s06.f3
+q | his father | s02.f4 s07.f3
+neg | problems with eating
+neg | the death of a pet

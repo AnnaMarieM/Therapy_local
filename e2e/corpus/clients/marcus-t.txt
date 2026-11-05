@@ -1,0 +1,70 @@
+client: marcus-t | Marcus T. | en
+
+s01 2026-01-09
+ f1 | Retired after 35 years | I retired from the post office in December after thirty-five years and I do not know what to do with myself.
+ f2 | Wife Denise died last year | My wife Denise died of cancer in June of last year and the house is very quiet.
+ f3 | Daughter Joy calls on Sundays | My daughter Joy phones every Sunday from Atlanta but I tell her I am fine.
+ f4 | Stopped cooking | I have stopped cooking, I mostly eat toast and tinned soup.
+
+s02 2026-01-16
+ f1 | Dog Biscuit | Denise and I got our dog Biscuit eleven years ago, and he follows me from room to room.
+ f2 | Cannot sleep in the bed | I sleep on the sofa because I cannot sleep in our bed without her.
+ f3 = s01.f4 | Meals are tinned food | I had beans on toast three nights in a row, Joy would be shocked.
+ f4 | Church friend Walter | Walter from church invited me for a walk, but I made an excuse.
+
+s03 2026-01-23
+ f1 | Denise's clothes still in wardrobe | All of Denise's clothes are still in the wardrobe and I cannot bring myself to touch them.
+ f2 | Walked with Walter | I finally went on a walk with Walter along the canal, an hour and a half.
+ f3 = s01.f3 | Telling Joy he is fine | Joy asked how I am and I said fine again, though that is not true.
+ f4 | Anger at the hospital | I am still angry at the hospital, they missed the cancer for almost a year.
+
+s04 2026-01-30
+ f1 | Drinking whisky at night | I have been having three whiskies each evening, which is more than I would like.
+ f2 | Biscuit has arthritis | The vet said Biscuit has arthritis in his back legs and gave me tablets for him.
+ f3 | Visit to Denise's grave | I went to Denise's grave on Sunday and talked to her for an hour.
+ f4 = s01.f1 | Empty days after retirement | The days are so long now, I wake up and there is nothing I have to do.
+
+s05 2026-02-06
+ f1 | Told Joy the truth | I told Joy on the phone that I am not fine, and she said she is booking a flight.
+ f2 | Joy visiting in February | Joy arrives on the fourteenth of February and will stay for ten days.
+ f3 = s04.f1 | Whisky less | I poured out half the whisky bottle and I am down to one glass a night.
+ f4 | Considering volunteering | Walter says the food bank needs volunteers on Tuesdays and Thursdays.
+
+s06 2026-02-13
+ f1 | Cleaned the house for Joy | I cleaned the whole house for Joy and I even washed the bedroom window.
+ f2 = s03.f1 | Wardrobe with Joy | Joy and I sat down together and opened Denise's wardrobe, and we both cried.
+ f3 | Donating clothes | We decided to give most of Denise's clothes to the hospice charity shop and keep her blue coat.
+ f4 | Cooked a roast | I cooked a chicken roast for Joy, the first proper meal in months.
+
+s07 2026-02-20
+ f1 | Joy returned to Atlanta | Joy flew home on Monday and the house felt even emptier for a day.
+ f2 = s02.f2 | Slept in the bed | On Wednesday I slept in the bed for the first time since June.
+ f3 | Started at food bank | I did my first Tuesday shift at the food bank, sorting tins and tea bags.
+ f4 | Biscuit had a bad week | Biscuit could hardly get up the stairs, and I carried him to bed.
+
+s08 2026-02-27
+ f1 | Complaint to hospital | Joy helped me write a formal complaint to the hospital about the missed diagnosis.
+ f2 | Got new friend at food bank | At the food bank I met a woman named Gloria who also lost her husband to cancer.
+ f3 = s03.f2 | Walking with Walter weekly | Walter and I now walk along the canal every Thursday morning.
+ f4 = s01.f4 | Cooking again | I made a vegetable soup from scratch, Denise's recipe, and it tasted almost right.
+
+s09 2026-03-06
+ f1 | Hospital replied to complaint | The hospital sent a letter saying they will hold a review meeting on the twentieth of March.
+ f2 | Biscuit worse | The vet says Biscuit is in pain a lot of the time and we need to think about what is kind.
+ f3 = s05.f4 | Volunteer twice a week | Now I volunteer both Tuesday and Thursday at the food bank.
+ f4 = s01.f2 | Still grieving Denise | Some mornings it hits me that she is gone and I can hardly breathe.
+
+s10 2026-03-13
+ f1 | Decision about Biscuit | I decided with the vet that we will put Biscuit to sleep next Friday, and I am dreading it.
+ f2 | Denise's blue coat | I took out Denise's blue coat and it still smells of her perfume.
+ f3 | Joy offers to come back | Joy offered to fly back for the review meeting and for Biscuit.
+ f4 = s04.f1 | No more whisky in the house | There is no whisky in the house now, I gave the last bottle to my neighbour.
+
+q | how his wife died | s01.f2 s09.f4
+q | the dog | s02.f1 s04.f2 s09.f2 s10.f1
+q | communication with daughter | s01.f3 s05.f1 s05.f2 s10.f3
+q | alcohol | s04.f1 s05.f3 s10.f4
+q | complaint about the hospital | s03.f4 s08.f1 s09.f1
+q | social activity and friends | s02.f4 s03.f2 s07.f3 s08.f2
+neg | problems with his boss
+neg | wants to have a baby

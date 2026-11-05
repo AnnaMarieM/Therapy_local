@@ -1,0 +1,132 @@
+{
+ "client": "raj-p",
+ "session": "s06",
+ "lang": "en",
+ "date": "2026-02-16",
+ "turns": [
+  {
+   "who": "therapist",
+   "text": "Hello, come in. How have you been since last time?"
+  },
+  {
+   "who": "client",
+   "text": "I wrote a few notes before coming here, but now I cannot remember half of what I wanted to say."
+  },
+  {
+   "who": "therapist",
+   "text": "Take your time."
+  },
+  {
+   "who": "client",
+   "text": "I booked a session with a debt charity and an adviser called Hilary said there are repayment plans."
+  },
+  {
+   "who": "therapist",
+   "text": "Take your time."
+  },
+  {
+   "who": "client",
+   "text": "The train was late again this morning, so I almost did not make it on time today. I keep coming back to it."
+  },
+  {
+   "who": "therapist",
+   "text": "What went through your mind then?"
+  },
+  {
+   "who": "client",
+   "text": "Meera still talks about leaving, and says she does not trust me with money any more."
+  },
+  {
+   "who": "therapist",
+   "text": "Mm-hm. Go on."
+  },
+  {
+   "who": "client",
+   "text": "It is strange to sit here and say all of this out loud, but it does help a little. I think so, yes."
+  },
+  {
+   "who": "therapist",
+   "text": "And how was that for you?"
+  },
+  {
+   "who": "client",
+   "text": "It has been a grey week, and the weather does not help my mood much, to be honest."
+  },
+  {
+   "who": "therapist",
+   "text": "I see. Can you say a bit more?"
+  },
+  {
+   "who": "client",
+   "text": "Saturday's match was hard, I had a strong urge to bet on the second half."
+  },
+  {
+   "who": "therapist",
+   "text": "Mm-hm. Go on."
+  },
+  {
+   "who": "client",
+   "text": "Some days are better than others, and I try to remind myself of that when things get heavy. I keep coming back to it."
+  },
+  {
+   "who": "therapist",
+   "text": "What happened next?"
+  },
+  {
+   "who": "client",
+   "text": "I gave Meera all of my bank cards and she now controls the household account."
+  },
+  {
+   "who": "therapist",
+   "text": "Tell me more about that."
+  },
+  {
+   "who": "client",
+   "text": "I had a long day yesterday and I was so tired in the evening that I just sat in front of the television. I do not know, it is hard to explain."
+  },
+  {
+   "who": "therapist",
+   "text": "Take your time."
+  },
+  {
+   "who": "client",
+   "text": "I made myself a cup of tea this morning and just stood by the window for a while."
+  },
+  {
+   "who": "therapist",
+   "text": "Let us stop here for today."
+  },
+  {
+   "who": "client",
+   "text": "No, I think that is everything. Thank you."
+  }
+ ],
+ "expected": {
+  "facts": [
+   {
+    "id": "s06.f1",
+    "heading": "Debt advice charity",
+    "said": "I booked a session with a debt charity and an adviser called Hilary said there are repayment plans.",
+    "repeat_of": null
+   },
+   {
+    "id": "s06.f2",
+    "heading": "Meera still angry",
+    "said": "Meera still talks about leaving, and says she does not trust me with money any more.",
+    "repeat_of": "s04.f2"
+   },
+   {
+    "id": "s06.f3",
+    "heading": "Handed over finances",
+    "said": "I gave Meera all of my bank cards and she now controls the household account.",
+    "repeat_of": null
+   },
+   {
+    "id": "s06.f4",
+    "heading": "Craving during football",
+    "said": "Saturday's match was hard, I had a strong urge to bet on the second half.",
+    "repeat_of": null
+   }
+  ]
+ }
+}

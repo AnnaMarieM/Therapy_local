@@ -1,0 +1,132 @@
+{
+ "client": "emma-k",
+ "session": "s09",
+ "lang": "en",
+ "date": "2026-03-04",
+ "turns": [
+  {
+   "who": "therapist",
+   "text": "Good to see you again. Where would you like to start today?"
+  },
+  {
+   "who": "client",
+   "text": "I am not sure where to begin, there are so many things going round in my head at the moment."
+  },
+  {
+   "who": "therapist",
+   "text": "Take your time."
+  },
+  {
+   "who": "client",
+   "text": "We went to a baby swimming class and Oliver loved the water."
+  },
+  {
+   "who": "therapist",
+   "text": "Take your time."
+  },
+  {
+   "who": "client",
+   "text": "I made myself a cup of tea this morning and just stood by the window for a while. I do not know, it is hard to explain."
+  },
+  {
+   "who": "therapist",
+   "text": "Take your time."
+  },
+  {
+   "who": "client",
+   "text": "I wrote a few notes before coming here, but now I cannot remember half of what I wanted to say."
+  },
+  {
+   "who": "therapist",
+   "text": "I see. Can you say a bit more?"
+  },
+  {
+   "who": "client",
+   "text": "I still feel guilty about the formula, although Oliver is growing well."
+  },
+  {
+   "who": "therapist",
+   "text": "Mm-hm. Go on."
+  },
+  {
+   "who": "client",
+   "text": "It has been a grey week, and the weather does not help my mood much, to be honest. I do not know, it is hard to explain."
+  },
+  {
+   "who": "therapist",
+   "text": "What happened next?"
+  },
+  {
+   "who": "client",
+   "text": "Some days are better than others, and I try to remind myself of that when things get heavy."
+  },
+  {
+   "who": "therapist",
+   "text": "Mm-hm. Go on."
+  },
+  {
+   "who": "client",
+   "text": "My first CBT session was on Monday and the therapist, Rachel, gave me a worry diary."
+  },
+  {
+   "who": "therapist",
+   "text": "What happened next?"
+  },
+  {
+   "who": "client",
+   "text": "The journey here took a while, but at least I had time to gather my thoughts. I think so, yes."
+  },
+  {
+   "who": "therapist",
+   "text": "Mm-hm. Go on."
+  },
+  {
+   "who": "client",
+   "text": "I tell Tom about the scary thoughts now, he says it makes him feel closer to me."
+  },
+  {
+   "who": "therapist",
+   "text": "What went through your mind then?"
+  },
+  {
+   "who": "client",
+   "text": "It is strange to sit here and say all of this out loud, but it does help a little. I think so, yes."
+  },
+  {
+   "who": "therapist",
+   "text": "We are nearly out of time. Is there anything you want to add?"
+  },
+  {
+   "who": "client",
+   "text": "No, I think that is everything. Thank you."
+  }
+ ],
+ "expected": {
+  "facts": [
+   {
+    "id": "s09.f1",
+    "heading": "CBT started",
+    "said": "My first CBT session was on Monday and the therapist, Rachel, gave me a worry diary.",
+    "repeat_of": null
+   },
+   {
+    "id": "s09.f2",
+    "heading": "Guilt about formula",
+    "said": "I still feel guilty about the formula, although Oliver is growing well.",
+    "repeat_of": "s02.f1"
+   },
+   {
+    "id": "s09.f3",
+    "heading": "Went swimming with baby",
+    "said": "We went to a baby swimming class and Oliver loved the water.",
+    "repeat_of": null
+   },
+   {
+    "id": "s09.f4",
+    "heading": "Telling Tom things",
+    "said": "I tell Tom about the scary thoughts now, he says it makes him feel closer to me.",
+    "repeat_of": "s03.f3"
+   }
+  ]
+ }
+}

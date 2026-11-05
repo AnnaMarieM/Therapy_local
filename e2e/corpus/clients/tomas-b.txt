@@ -1,0 +1,70 @@
+client: tomas-b | Tomáš B. | cs
+
+s01 2026-01-10
+ f1 | Nutkavé kontrolování | Třicetkrát za večer kontroluji, jestli jsem zamkl dveře a vypnul sporák, a trvá mi to hodinu, než odejdu z bytu.
+ f2 | Pracuje jako elektrikář | Pracuji jako elektrikář v Olomouci a bojím se, že kvůli své hlavě jednou udělám chybu.
+ f3 | Začalo po požáru | Začalo to před dvěma lety, kdy hořelo u sousedů a my se museli evakuovat.
+ f4 | Manželka Barbora | Moje manželka Barbora je těhotná ve čtvrtém měsíci a já se bojím, že jí a dítěti ublížím.
+
+s02 2026-01-17
+ f1 | Zpoždění do práce | Kvůli kontrolování jsem tento týden třikrát přišel pozdě do práce, šéf se mračil.
+ f2 = s01.f4 | Strach o dítě | Mám obrovský strach, že nebudu schopný se o miminko postarat.
+ f3 | Rituál s plynem | Před odchodem musím třikrát sáhnout na kohoutek plynu a zopakovat si, že je zavřený.
+ f4 | Stydí se | Stydím se o tom komukoli říct, i Barboře jsem to dlouho tajil.
+
+s03 2026-01-24
+ f1 | Barbora ví | Barbora mi řekla, že všechno vidí už dávno a že mě má ráda i s tím.
+ f2 | Praktický lékař doporučil terapii | Doktor řekl, že se to jmenuje obsedantně-kompulzivní porucha a doporučil kognitivně-behaviorální terapii.
+ f3 = s01.f1 | Kontrolování trvá | Včera mi kontrola dveří trvala čtyřicet minut a zase jsem byl pozdě.
+ f4 | Fotografování zámku | Zkoušel jsem si zámek vyfotit, abych se nemusel vracet, ale stejně se vracím.
+
+s04 2026-01-31
+ f1 | První sezení KBT | První sezení kognitivně-behaviorální terapie bylo v Olomouci u psychologa Mgr. Nováka.
+ f2 | Expozice s prevencí reakce | Pan Novák mi vysvětlil metodu, kdy se zámek zkontroluje jen jednou a pak se čeká s úzkostí.
+ f3 = s02.f1 | Šéf Pavel | Šéf Pavel mi řekl, že pokud se to opakuje, bude muset postupovat podle pracovního řádu.
+ f4 | Ultrazvuk | Byli jsme s Barborou na ultrazvuku a dozvěděli jsme se, že čekáme holčičku.
+
+s05 2026-02-07
+ f1 | Domácí úkol | Domácí úkol je zamknout dveře jedinkrát a odejít, bez návratu.
+ f2 | Úkol se podařil dvakrát | Z deseti pokusů se mi to podařilo dvakrát, ale pak jsem se strašně bál, že se něco stane.
+ f3 = s03.f1 | Barbora podporuje | Barbora mi každé ráno říká, že jsem to zvládl, a stojí u dveří, když odcházím.
+ f4 | Jméno pro dceru | Chceme holčičce dát jméno Eliška, po Barbořině babičce.
+
+s06 2026-02-14
+ f1 | Zlepšení kontroly | Tento týden mi kontrola dveří trvala v průměru pět minut, ne čtyřicet.
+ f2 = s02.f3 | Plyn už jen jednou | Plyn kontroluji jednou a zbytek zvládám bez návratů.
+ f3 | Šéf si všiml | Šéf Pavel poznamenal, že chodím včas, a pochválil mě před kolegy.
+ f4 | Intruzivní myšlenky o dítěti | Bojím se, že budu mít nekontrolovatelné myšlenky, že dítěti ublížím, i když vím, že bych to nikdy neudělal.
+
+s07 2026-02-21
+ f1 | Terapeut vysvětluje myšlenky | Pan Novák mi vysvětlil, že tyhle myšlenky jsou u OCD časté a nic neznamenají.
+ f2 = s02.f4 | Řekl to rodičům | Řekl jsem o své nemoci rodičům a máma řekla, že to u nás má v rodině i strýc Jaroslav.
+ f3 | Práce na zakázce v bytě | Montoval jsem elektroinstalaci v novém bytě a zkontroloval jsem každý jistič jen jednou.
+ f4 = s05.f4 | Nábytek pro Elišku | S Barborou jsme koupili postýlku a komodu a já jsem postýlku složil sám.
+
+s08 2026-02-28
+ f1 | Relaps po stresu | Po hádce s Pavlem jsem se zase vrátil ke starým rituálům a kontroloval jsem všechno dvacetkrát.
+ f2 = s03.f2 | Diagnóza OCD | Pan Novák říká, že relaps patří k OCD, a nejde o selhání.
+ f3 | Hádka s Pavlem | Pavel mi vytkl chybu v rozvaděči, i když šlo o vadný přístroj od dodavatele.
+ f4 = s05.f3 | Barbořina podpora | Barbora mě večer objala a řekla, že jsem skvělý elektrikář.
+
+s09 2026-03-06
+ f1 | Zpátky na dobré cestě | Po relapsu se mi to zase zlepšilo, tento týden jsem zkontroloval dveře jen dvakrát za den.
+ f2 | Reklamace u dodavatele | Dodavatel uznal reklamaci vadného přístroje a Pavel se mi omluvil.
+ f3 = s04.f4 | Eliška se hýbe | Barbora cítí, jak se Eliška hýbe, a já jsem k bříšku přiložil ruku.
+ f4 = s06.f4 | Strach z myšlenek ustupuje | Ty myšlenky na dítě mám míň často a už si z nich nedělám tolik hlavu.
+
+s10 2026-03-13
+ f1 | Zvládl jsem odejít bez kontroly | Dnes ráno jsem zamkl dveře jednou a bez návratu došel až do práce.
+ f2 = s01.f2 | Důvěra v práci | Pavel mi svěřil velkou zakázku v nemocnici a já se nebojím, že to nezvládnu.
+ f3 | Porodnice | S Barborou jsme se přihlásili na kurz v olomoucké porodnici.
+ f4 = s01.f4 | Radost z dítěte | Těším se na Elišku a už se nebojím, že jí ublížím.
+
+q | rituály a kontrolování | s01.f1 s02.f3 s03.f3 s08.f1
+q | léčba OCD | s03.f2 s04.f1 s04.f2 s05.f1
+q | těhotná manželka | s01.f4 s04.f4 s05.f4 s09.f3
+q | problémy v práci | s02.f1 s04.f3 s06.f3 s08.f3
+q | strach z ublížení dítěti | s01.f4 s06.f4 s07.f1
+q | rodinná anamnéza | s07.f2
+neg | problémy s alkoholem
+neg | smrt rodiče

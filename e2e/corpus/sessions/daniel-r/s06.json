@@ -1,0 +1,124 @@
+{
+ "client": "daniel-r",
+ "session": "s06",
+ "lang": "en",
+ "date": "2026-02-11",
+ "turns": [
+  {
+   "who": "therapist",
+   "text": "Good to see you again. Where would you like to start today?"
+  },
+  {
+   "who": "client",
+   "text": "I made myself a cup of tea this morning and just stood by the window for a while."
+  },
+  {
+   "who": "therapist",
+   "text": "What went through your mind then?"
+  },
+  {
+   "who": "client",
+   "text": "The sertraline made me nauseous for the first week, but it is getting better."
+  },
+  {
+   "who": "therapist",
+   "text": "I see. Can you say a bit more?"
+  },
+  {
+   "who": "client",
+   "text": "I had a long day yesterday and I was so tired in the evening that I just sat in front of the television. That is how it was."
+  },
+  {
+   "who": "therapist",
+   "text": "Tell me more about that."
+  },
+  {
+   "who": "client",
+   "text": "I spoke with the HR manager Linda about my workload and she agreed to move two projects to a colleague."
+  },
+  {
+   "who": "therapist",
+   "text": "I see. Can you say a bit more?"
+  },
+  {
+   "who": "client",
+   "text": "I am not sure where to begin, there are so many things going round in my head at the moment. I think so, yes."
+  },
+  {
+   "who": "therapist",
+   "text": "How did that feel for you?"
+  },
+  {
+   "who": "client",
+   "text": "On Sunday I went for a short jog of three kilometres and felt alive for the first time in months."
+  },
+  {
+   "who": "therapist",
+   "text": "Mm-hm. Go on."
+  },
+  {
+   "who": "client",
+   "text": "Some days are better than others, and I try to remind myself of that when things get heavy. Yes, it was like that."
+  },
+  {
+   "who": "therapist",
+   "text": "What happened next?"
+  },
+  {
+   "who": "client",
+   "text": "It has been a grey week, and the weather does not help my mood much, to be honest."
+  },
+  {
+   "who": "therapist",
+   "text": "I see. Can you say a bit more?"
+  },
+  {
+   "who": "client",
+   "text": "Hannah is far away, so everything with Dad is on my shoulders, the pills, the appointments, the shopping."
+  },
+  {
+   "who": "therapist",
+   "text": "Mm-hm. Go on."
+  },
+  {
+   "who": "client",
+   "text": "The journey here took a while, but at least I had time to gather my thoughts. I do not know, it is hard to explain."
+  },
+  {
+   "who": "therapist",
+   "text": "We are nearly out of time. Is there anything you want to add?"
+  },
+  {
+   "who": "client",
+   "text": "Thank you, see you next week."
+  }
+ ],
+ "expected": {
+  "facts": [
+   {
+    "id": "s06.f1",
+    "heading": "Nausea from sertraline",
+    "said": "The sertraline made me nauseous for the first week, but it is getting better.",
+    "repeat_of": null
+   },
+   {
+    "id": "s06.f2",
+    "heading": "Spoke to HR about workload",
+    "said": "I spoke with the HR manager Linda about my workload and she agreed to move two projects to a colleague.",
+    "repeat_of": null
+   },
+   {
+    "id": "s06.f3",
+    "heading": "Care falls on me",
+    "said": "Hannah is far away, so everything with Dad is on my shoulders, the pills, the appointments, the shopping.",
+    "repeat_of": "s01.f4"
+   },
+   {
+    "id": "s06.f4",
+    "heading": "Went for a short jog",
+    "said": "On Sunday I went for a short jog of three kilometres and felt alive for the first time in months.",
+    "repeat_of": null
+   }
+  ]
+ }
+}

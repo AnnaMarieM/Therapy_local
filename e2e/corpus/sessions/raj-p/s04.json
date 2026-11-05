@@ -1,0 +1,140 @@
+{
+ "client": "raj-p",
+ "session": "s04",
+ "lang": "en",
+ "date": "2026-02-02",
+ "turns": [
+  {
+   "who": "therapist",
+   "text": "Hello, come in. How have you been since last time?"
+  },
+  {
+   "who": "client",
+   "text": "It is strange to sit here and say all of this out loud, but it does help a little."
+  },
+  {
+   "who": "therapist",
+   "text": "Mm-hm. Go on."
+  },
+  {
+   "who": "client",
+   "text": "After the fight I sat in the car for an hour and thought about driving into the river."
+  },
+  {
+   "who": "therapist",
+   "text": "Take your time."
+  },
+  {
+   "who": "client",
+   "text": "It has been a grey week, and the weather does not help my mood much, to be honest. I think so, yes."
+  },
+  {
+   "who": "therapist",
+   "text": "Tell me more about that."
+  },
+  {
+   "who": "client",
+   "text": "I wrote a few notes before coming here, but now I cannot remember half of what I wanted to say."
+  },
+  {
+   "who": "therapist",
+   "text": "Take your time."
+  },
+  {
+   "who": "client",
+   "text": "I promised her I will go to a Gamblers Anonymous meeting on Thursday."
+  },
+  {
+   "who": "therapist",
+   "text": "What happened next?"
+  },
+  {
+   "who": "client",
+   "text": "Some days are better than others, and I try to remind myself of that when things get heavy. That is how it was."
+  },
+  {
+   "who": "therapist",
+   "text": "And how was that for you?"
+  },
+  {
+   "who": "client",
+   "text": "I made myself a cup of tea this morning and just stood by the window for a while."
+  },
+  {
+   "who": "therapist",
+   "text": "Take your time."
+  },
+  {
+   "who": "client",
+   "text": "She said she will take Arjun to her sister's in Birmingham if I do not get help."
+  },
+  {
+   "who": "therapist",
+   "text": "And how was that for you?"
+  },
+  {
+   "who": "client",
+   "text": "I had a long day yesterday and I was so tired in the evening that I just sat in front of the television. I do not know, it is hard to explain."
+  },
+  {
+   "who": "therapist",
+   "text": "And how was that for you?"
+  },
+  {
+   "who": "client",
+   "text": "Meera found a loan letter in the post and confronted me last night, and I admitted everything."
+  },
+  {
+   "who": "therapist",
+   "text": "What went through your mind then?"
+  },
+  {
+   "who": "client",
+   "text": "I am not sure where to begin, there are so many things going round in my head at the moment. Yes, it was like that."
+  },
+  {
+   "who": "therapist",
+   "text": "I see. Can you say a bit more?"
+  },
+  {
+   "who": "client",
+   "text": "The journey here took a while, but at least I had time to gather my thoughts."
+  },
+  {
+   "who": "therapist",
+   "text": "Let us stop here for today."
+  },
+  {
+   "who": "client",
+   "text": "No, I think that is everything. Thank you."
+  }
+ ],
+ "expected": {
+  "facts": [
+   {
+    "id": "s04.f1",
+    "heading": "Meera found out",
+    "said": "Meera found a loan letter in the post and confronted me last night, and I admitted everything.",
+    "repeat_of": null
+   },
+   {
+    "id": "s04.f2",
+    "heading": "Meera threatened to leave",
+    "said": "She said she will take Arjun to her sister's in Birmingham if I do not get help.",
+    "repeat_of": null
+   },
+   {
+    "id": "s04.f3",
+    "heading": "Agreed to go to GA meeting",
+    "said": "I promised her I will go to a Gamblers Anonymous meeting on Thursday.",
+    "repeat_of": null
+   },
+   {
+    "id": "s04.f4",
+    "heading": "Dark thoughts after confession",
+    "said": "After the fight I sat in the car for an hour and thought about driving into the river.",
+    "repeat_of": "s01.f4"
+   }
+  ]
+ }
+}

@@ -1,0 +1,55 @@
+name: E2E device (full pipeline)
+
+# The whole corpus (10 clients x 10 sessions, Czech and English) through the real app on a phone: chunker, Whisper, Gemma extraction,
+# embeddings, dedupe and recall. Needs a self-hosted runner with the phone attached over adb, an unlocked vault and the models downloaded.
+on:
+  schedule:
+    - cron: "17 2 * * *"
+  workflow_dispatch:
+    inputs:
+      clients:
+        description: "Comma separated client ids (empty = all)"
+        required: false
+      language:
+        description: "Whisper language setting: auto, or empty for each client's own"
+        required: false
+        default: ""
+
+concurrency:
+  group: e2e-device
+  cancel-in-progress: false
+
+jobs:
+  device:
+    runs-on: [self-hosted, android-phone]
+    timeout-minutes: 480
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Build and update the app (never uninstall, that deletes the models)
+        run: |
+          ./gradlew :app:assembleDebug
+          adb install -r app/build/outputs/apk/debug/app-debug.apk
+      - name: Render corpus audio
+        run: |
+          python3 -m venv e2e/.venv && e2e/.venv/bin/pip install -r e2e/requirements.txt
+          e2e/.venv/bin/python e2e/tts/fetch_voices.py
+          e2e/.venv/bin/python e2e/tts/render.py
+      - name: Run on the phone
+        run: |
+          args=(--sessions 10 --reset --out e2e/results/device)
+          [ -n "${{ inputs.clients }}" ] && args+=(--clients "${{ inputs.clients }}")
+          [ -n "${{ inputs.language }}" ] && args+=(--language "${{ inputs.language }}")
+          python3 e2e/runner/run_device.py "${args[@]}"
+      - name: Score
+        run: python3 e2e/score/scorer.py --results e2e/results/device/results.json --thresholds e2e/thresholds-device.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: e2e-device-report
+          path: e2e/results/device
+          retention-days: 30

@@ -1,0 +1,140 @@
+{
+ "client": "sofia-l",
+ "session": "s04",
+ "lang": "en",
+ "date": "2026-01-27",
+ "turns": [
+  {
+   "who": "therapist",
+   "text": "Hello, come in. How have you been since last time?"
+  },
+  {
+   "who": "client",
+   "text": "I am not sure where to begin, there are so many things going round in my head at the moment."
+  },
+  {
+   "who": "therapist",
+   "text": "What went through your mind then?"
+  },
+  {
+   "who": "client",
+   "text": "I have a property law exam in two weeks and I am not sleeping."
+  },
+  {
+   "who": "therapist",
+   "text": "I see. Can you say a bit more?"
+  },
+  {
+   "who": "client",
+   "text": "The train was late again this morning, so I almost did not make it on time today. I do not know, it is hard to explain."
+  },
+  {
+   "who": "therapist",
+   "text": "Mm-hm. Go on."
+  },
+  {
+   "who": "client",
+   "text": "I had a long day yesterday and I was so tired in the evening that I just sat in front of the television."
+  },
+  {
+   "who": "therapist",
+   "text": "Tell me more about that."
+  },
+  {
+   "who": "client",
+   "text": "I threw away the scale yesterday, but I wanted to take it out of the bin straight afterwards."
+  },
+  {
+   "who": "therapist",
+   "text": "Mm-hm. Go on."
+  },
+  {
+   "who": "client",
+   "text": "Some days are better than others, and I try to remind myself of that when things get heavy. I keep coming back to it."
+  },
+  {
+   "who": "therapist",
+   "text": "I see. Can you say a bit more?"
+  },
+  {
+   "who": "client",
+   "text": "The GP referred me to the student eating disorder service and the first appointment is the third of February."
+  },
+  {
+   "who": "therapist",
+   "text": "I see. Can you say a bit more?"
+  },
+  {
+   "who": "client",
+   "text": "It is strange to sit here and say all of this out loud, but it does help a little. It is not easy to talk about."
+  },
+  {
+   "who": "therapist",
+   "text": "What happened next?"
+  },
+  {
+   "who": "client",
+   "text": "The journey here took a while, but at least I had time to gather my thoughts."
+  },
+  {
+   "who": "therapist",
+   "text": "I see. Can you say a bit more?"
+  },
+  {
+   "who": "client",
+   "text": "My mother is much gentler than my father, she sends me soup recipes and says nothing about weight."
+  },
+  {
+   "who": "therapist",
+   "text": "Take your time."
+  },
+  {
+   "who": "client",
+   "text": "I made myself a cup of tea this morning and just stood by the window for a while. It is not easy to talk about."
+  },
+  {
+   "who": "therapist",
+   "text": "Mm-hm. Go on."
+  },
+  {
+   "who": "client",
+   "text": "It has been a grey week, and the weather does not help my mood much, to be honest."
+  },
+  {
+   "who": "therapist",
+   "text": "We are nearly out of time. Is there anything you want to add?"
+  },
+  {
+   "who": "client",
+   "text": "No, I think that is everything. Thank you."
+  }
+ ],
+ "expected": {
+  "facts": [
+   {
+    "id": "s04.f1",
+    "heading": "Referred to eating disorder service",
+    "said": "The GP referred me to the student eating disorder service and the first appointment is the third of February.",
+    "repeat_of": null
+   },
+   {
+    "id": "s04.f2",
+    "heading": "Scale in the bathroom",
+    "said": "I threw away the scale yesterday, but I wanted to take it out of the bin straight afterwards.",
+    "repeat_of": "s02.f1"
+   },
+   {
+    "id": "s04.f3",
+    "heading": "Mother is kind",
+    "said": "My mother is much gentler than my father, she sends me soup recipes and says nothing about weight.",
+    "repeat_of": null
+   },
+   {
+    "id": "s04.f4",
+    "heading": "Exam anxiety in January",
+    "said": "I have a property law exam in two weeks and I am not sleeping.",
+    "repeat_of": null
+   }
+  ]
+ }
+}

@@ -1,0 +1,140 @@
+{
+ "client": "lucie-s",
+ "session": "s10",
+ "lang": "cs",
+ "date": "2026-03-12",
+ "turns": [
+  {
+   "who": "therapist",
+   "text": "Rád vás zase vidím. Kde byste dnes chtěla začít?"
+  },
+  {
+   "who": "client",
+   "text": "Dnes ráno byl jen čaj a chvíle u okna."
+  },
+  {
+   "who": "therapist",
+   "text": "A jak vám z toho bylo?"
+  },
+  {
+   "who": "client",
+   "text": "Ondra s rodinou přijede na Velikonoce a všichni budeme u mě."
+  },
+  {
+   "who": "therapist",
+   "text": "Co se vám v tu chvíli honilo hlavou?"
+  },
+  {
+   "who": "client",
+   "text": "Včerejšek byl dlouhý den a večer už mi nezbyly žádné síly, byla jen televize a gauč. Ano, přesně tak to bylo."
+  },
+  {
+   "who": "therapist",
+   "text": "A jak vám z toho bylo?"
+  },
+  {
+   "who": "client",
+   "text": "Je zvláštní sedět tady a říkat to všechno nahlas, ale trochu to pomáhá."
+  },
+  {
+   "who": "therapist",
+   "text": "Hm. Pokračujte."
+  },
+  {
+   "who": "client",
+   "text": "Přibrala jsem už tři kila a Hana říká, že vypadám líp."
+  },
+  {
+   "who": "therapist",
+   "text": "Nespěchejte."
+  },
+  {
+   "who": "client",
+   "text": "Něco mám poznamenané na papíře, ale teď si polovinu z toho nepamatuju. Tak to prostě je."
+  },
+  {
+   "who": "therapist",
+   "text": "A jak vám z toho bylo?"
+  },
+  {
+   "who": "client",
+   "text": "Dnes ráno mi ujel autobus, takže to bylo na poslední chvíli."
+  },
+  {
+   "who": "therapist",
+   "text": "Hm. Pokračujte."
+  },
+  {
+   "who": "client",
+   "text": "Chci s Ondrou na podzim zajet do Beskyd na houby, jako jsme jezdili s maminkou."
+  },
+  {
+   "who": "therapist",
+   "text": "Hm. Pokračujte."
+  },
+  {
+   "who": "client",
+   "text": "Některé dny jsou lepší než jiné a snažím se si to připomínat, když je těžko. Nevím, těžko se to vysvětluje."
+  },
+  {
+   "who": "therapist",
+   "text": "Co se vám v tu chvíli honilo hlavou?"
+  },
+  {
+   "who": "client",
+   "text": "Cítím, že si už pomalu odpouštím, že jsem u maminky nebyla."
+  },
+  {
+   "who": "therapist",
+   "text": "Jaké to pro vás bylo?"
+  },
+  {
+   "who": "client",
+   "text": "Nevím, kde začít, v hlavě mi teď běží spousta věcí najednou. Asi ano."
+  },
+  {
+   "who": "therapist",
+   "text": "Hm. Pokračujte."
+  },
+  {
+   "who": "client",
+   "text": "Byl to šedivý týden a to počasí mi na náladě moc nepřidává, po pravdě řečeno."
+  },
+  {
+   "who": "therapist",
+   "text": "Za chvíli nám končí čas. Chcete ještě něco dodat?"
+  },
+  {
+   "who": "client",
+   "text": "Děkuji, uvidíme se příští týden."
+  }
+ ],
+ "expected": {
+  "facts": [
+   {
+    "id": "s10.f1",
+    "heading": "Ondra přijede",
+    "said": "Ondra s rodinou přijede na Velikonoce a všichni budeme u mě.",
+    "repeat_of": null
+   },
+   {
+    "id": "s10.f2",
+    "heading": "Odpuštění",
+    "said": "Cítím, že si už pomalu odpouštím, že jsem u maminky nebyla.",
+    "repeat_of": "s03.f1"
+   },
+   {
+    "id": "s10.f3",
+    "heading": "Houby v Beskydech",
+    "said": "Chci s Ondrou na podzim zajet do Beskyd na houby, jako jsme jezdili s maminkou.",
+    "repeat_of": "s05.f2"
+   },
+   {
+    "id": "s10.f4",
+    "heading": "Váha",
+    "said": "Přibrala jsem už tři kila a Hana říká, že vypadám líp.",
+    "repeat_of": "s03.f4"
+   }
+  ]
+ }
+}

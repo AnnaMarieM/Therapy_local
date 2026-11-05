@@ -1,0 +1,70 @@
+client: sofia-l | Sofia L. | en
+
+s01 2026-01-06
+ f1 | Eating restriction | I have been eating only about a thousand calories a day for the last year and I count everything.
+ f2 | Student at university studying law | I am a second-year law student at Edinburgh and the exams are what stress me most.
+ f3 | Perfectionism | If I do not get a first-class mark on an essay I feel completely worthless.
+ f4 | Roommate worried | My flatmate Aisha said she is worried because I skip dinner with everyone.
+
+s02 2026-01-13
+ f1 | Weighs herself daily | I weigh myself every morning and the number decides the whole day.
+ f2 | Parents expect high grades | My father is a barrister and he expects me to graduate with the highest honours.
+ f3 = s01.f3 | Failed to get first | I got a two-one on the contract law essay and I cried for three hours.
+ f4 | Stopped dancing | I quit the ballet society in October because I felt too ashamed of my body.
+
+s03 2026-01-20
+ f1 | Fainting episode | I fainted in the library on Friday and woke up with a security guard over me.
+ f2 | GP blood tests | The GP did blood tests and said my potassium is low and I need to come back next week.
+ f3 = s01.f4 | Aisha asked her to eat | Aisha made pasta and sat with me until I ate half of it, and I hated her for it.
+ f4 | Fear of telling parents | I cannot tell my father about any of this, he would say I am being dramatic.
+
+s04 2026-01-27
+ f1 | Referred to eating disorder service | The GP referred me to the student eating disorder service and the first appointment is the third of February.
+ f2 = s02.f1 | Scale in the bathroom | I threw away the scale yesterday, but I wanted to take it out of the bin straight afterwards.
+ f3 | Mother is kind | My mother is much gentler than my father, she sends me soup recipes and says nothing about weight.
+ f4 | Exam anxiety in January | I have a property law exam in two weeks and I am not sleeping.
+
+s05 2026-02-03
+ f1 | First appointment at service | At the service I met a nurse called Bridget and she asked me to keep a food diary.
+ f2 = s03.f4 | Father's reaction imagined | I keep imagining my father's face if he found out, I think he would be disappointed.
+ f3 | Panic before property exam | I had a panic attack in the exam hall, but I stayed and finished the paper.
+ f4 | Cold all the time | I am cold all the time, I wear two jumpers inside the flat.
+
+s06 2026-02-10
+ f1 | Started eating breakfast | I ate a bowl of porridge every morning this week, which feels terrifying.
+ f2 | Told her mother | I phoned my mother and told her about the eating disorder service, and she said she loves me.
+ f3 = s02.f4 | Missing ballet | I walked past the dance studio and felt a sharp longing to go back.
+ f4 | Exam result better than expected | I got a sixty-eight percent on the property law exam, which is a two-one, and I did not fall apart.
+
+s07 2026-02-17
+ f1 | Weight restored slightly | Bridget said I have gained one kilo and I want to scream.
+ f2 = s02.f2 | Father's expectations | My father emailed about summer internships at his chambers, like nothing is happening.
+ f3 | Joined a support group | I went to the peer support group on Wednesday and everyone there understood me.
+ f4 | Aisha cooks together | Aisha and I cooked dinner together and I ate it without counting.
+
+s08 2026-02-24
+ f1 | Bad day after Valentine's | I restricted again after a bad day when I saw photos of my ex-boyfriend Callum with his new girlfriend.
+ f2 | Ex-boyfriend Callum | Callum and I split up in the summer because he said I was obsessed with food.
+ f3 = s01.f1 | Calorie counting persists | I still count calories in my head even when I do not write them down.
+ f4 | Considering telling father | Bridget suggested a family session, and I might tell my father at Easter.
+
+s09 2026-03-03
+ f1 | Told father by phone | I called my father and told him, and he was silent for a long time and then said he would read about it.
+ f2 = s06.f4 | Grades fine | My grades are fine, and my tutor said I am on track for a high two-one.
+ f3 | Went to dance class | I went to a beginners' contemporary dance class, not ballet, and enjoyed it.
+ f4 = s03.f1 | No more fainting | I have not fainted again and the potassium result came back normal.
+
+s10 2026-03-10
+ f1 | Father came to Edinburgh | My father took the train to Edinburgh and we had lunch, I ate a whole sandwich in front of him.
+ f2 = s07.f1 | Weight steady | Bridget says my weight is steady and the number does not scare me as much.
+ f3 | Plans family session | The family session with my parents and Bridget is booked for the twenty-fourth of March.
+ f4 = s04.f2 | Scale gone for good | I have not weighed myself for two weeks, and I gave the scale to Aisha to hide.
+
+q | physical health consequences | s03.f1 s03.f2 s05.f4
+q | relationship with her father | s02.f2 s03.f4 s09.f1 s10.f1
+q | professional help | s04.f1 s05.f1 s07.f3 s10.f3
+q | studies and exams | s01.f2 s04.f4 s05.f3 s06.f4
+q | support from flatmate | s01.f4 s03.f3 s07.f4
+q | past relationship | s08.f1 s08.f2
+neg | workplace bullying
+neg | fear of flying

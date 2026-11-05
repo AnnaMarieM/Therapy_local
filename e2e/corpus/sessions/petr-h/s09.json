@@ -1,0 +1,132 @@
+{
+ "client": "petr-h",
+ "session": "s09",
+ "lang": "cs",
+ "date": "2026-03-05",
+ "turns": [
+  {
+   "who": "therapist",
+   "text": "Rád vás zase vidím. Kde byste dnes chtěla začít?"
+  },
+  {
+   "who": "client",
+   "text": "Je zvláštní sedět tady a říkat to všechno nahlas, ale trochu to pomáhá."
+  },
+  {
+   "who": "therapist",
+   "text": "Řekněte mi o tom víc."
+  },
+  {
+   "who": "client",
+   "text": "Piva piju jen o víkendu a jedno, na ten návyk jsem přišel včas."
+  },
+  {
+   "who": "therapist",
+   "text": "A co se stalo potom?"
+  },
+  {
+   "who": "client",
+   "text": "Nevím, kde začít, v hlavě mi teď běží spousta věcí najednou. Nevím, těžko se to vysvětluje."
+  },
+  {
+   "who": "therapist",
+   "text": "A jak vám z toho bylo?"
+  },
+  {
+   "who": "client",
+   "text": "Poprvé jsem byl u psycholožky Mgr. Svobodové a domluvili jsme se na týdenních sezeních."
+  },
+  {
+   "who": "therapist",
+   "text": "Co se vám v tu chvíli honilo hlavou?"
+  },
+  {
+   "who": "client",
+   "text": "Některé dny jsou lepší než jiné a snažím se si to připomínat, když je těžko. Nevím, těžko se to vysvětluje."
+  },
+  {
+   "who": "therapist",
+   "text": "A co se stalo potom?"
+  },
+  {
+   "who": "client",
+   "text": "Dnes ráno byl jen čaj a chvíle u okna."
+  },
+  {
+   "who": "therapist",
+   "text": "Rozumím. Můžete to trochu rozvést?"
+  },
+  {
+   "who": "client",
+   "text": "Už tři týdny jsem neměl záchvat úzkosti a zase jedu metrem."
+  },
+  {
+   "who": "therapist",
+   "text": "A co se stalo potom?"
+  },
+  {
+   "who": "client",
+   "text": "Cesta sem trvá dlouho, ale aspoň je čas si trochu srovnat myšlenky. Ano, přesně tak to bylo."
+  },
+  {
+   "who": "therapist",
+   "text": "Nespěchejte."
+  },
+  {
+   "who": "client",
+   "text": "Byl to šedivý týden a to počasí mi na náladě moc nepřidává, po pravdě řečeno."
+  },
+  {
+   "who": "therapist",
+   "text": "Řekněte mi o tom víc."
+  },
+  {
+   "who": "client",
+   "text": "Pohovor v Brně dopadl dobře, nabídli mi práci s vyšším platem a čtyřdenním týdnem."
+  },
+  {
+   "who": "therapist",
+   "text": "A jak vám z toho bylo?"
+  },
+  {
+   "who": "client",
+   "text": "Včerejšek byl dlouhý den a večer už mi nezbyly žádné síly, byla jen televize a gauč. Tak to prostě je."
+  },
+  {
+   "who": "therapist",
+   "text": "Pro dnešek tady skončíme."
+  },
+  {
+   "who": "client",
+   "text": "Ne, myslím, že je to všechno. Děkuji."
+  }
+ ],
+ "expected": {
+  "facts": [
+   {
+    "id": "s09.f1",
+    "heading": "Pohovor dopadl dobře",
+    "said": "Pohovor v Brně dopadl dobře, nabídli mi práci s vyšším platem a čtyřdenním týdnem.",
+    "repeat_of": null
+   },
+   {
+    "id": "s09.f2",
+    "heading": "Bez záchvatů",
+    "said": "Už tři týdny jsem neměl záchvat úzkosti a zase jedu metrem.",
+    "repeat_of": "s01.f2"
+   },
+   {
+    "id": "s09.f3",
+    "heading": "Začíná terapii",
+    "said": "Poprvé jsem byl u psycholožky Mgr. Svobodové a domluvili jsme se na týdenních sezeních.",
+    "repeat_of": null
+   },
+   {
+    "id": "s09.f4",
+    "heading": "Alkohol téměř vůbec",
+    "said": "Piva piju jen o víkendu a jedno, na ten návyk jsem přišel včas.",
+    "repeat_of": "s03.f3"
+   }
+  ]
+ }
+}

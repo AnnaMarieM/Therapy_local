@@ -1,0 +1,116 @@
+{
+ "client": "raj-p",
+ "session": "s07",
+ "lang": "en",
+ "date": "2026-02-23",
+ "turns": [
+  {
+   "who": "therapist",
+   "text": "Hello, come in. How have you been since last time?"
+  },
+  {
+   "who": "client",
+   "text": "I made myself a cup of tea this morning and just stood by the window for a while."
+  },
+  {
+   "who": "therapist",
+   "text": "Mm-hm. Go on."
+  },
+  {
+   "who": "client",
+   "text": "The debt management plan is agreed, I will pay four hundred pounds a month for five years."
+  },
+  {
+   "who": "therapist",
+   "text": "Take your time."
+  },
+  {
+   "who": "client",
+   "text": "It is strange to sit here and say all of this out loud, but it does help a little. It is not easy to talk about."
+  },
+  {
+   "who": "therapist",
+   "text": "I see. Can you say a bit more?"
+  },
+  {
+   "who": "client",
+   "text": "Arjun drew a picture of our family with all three of us holding hands, and I had to leave the room."
+  },
+  {
+   "who": "therapist",
+   "text": "Mm-hm. Go on."
+  },
+  {
+   "who": "client",
+   "text": "The journey here took a while, but at least I had time to gather my thoughts. I keep coming back to it."
+  },
+  {
+   "who": "therapist",
+   "text": "And how was that for you?"
+  },
+  {
+   "who": "client",
+   "text": "I called Frank from the group when the urge came and we talked until the match ended."
+  },
+  {
+   "who": "therapist",
+   "text": "I see. Can you say a bit more?"
+  },
+  {
+   "who": "client",
+   "text": "I wrote a few notes before coming here, but now I cannot remember half of what I wanted to say. That is how it was."
+  },
+  {
+   "who": "therapist",
+   "text": "How did that feel for you?"
+  },
+  {
+   "who": "client",
+   "text": "I realised I am turning into my father and that terrifies me."
+  },
+  {
+   "who": "therapist",
+   "text": "What happened next?"
+  },
+  {
+   "who": "client",
+   "text": "I am not sure where to begin, there are so many things going round in my head at the moment. It is not easy to talk about."
+  },
+  {
+   "who": "therapist",
+   "text": "We are nearly out of time. Is there anything you want to add?"
+  },
+  {
+   "who": "client",
+   "text": "Thank you, see you next week."
+  }
+ ],
+ "expected": {
+  "facts": [
+   {
+    "id": "s07.f1",
+    "heading": "Urge on Saturday handled",
+    "said": "I called Frank from the group when the urge came and we talked until the match ended.",
+    "repeat_of": null
+   },
+   {
+    "id": "s07.f2",
+    "heading": "Debt management plan agreed",
+    "said": "The debt management plan is agreed, I will pay four hundred pounds a month for five years.",
+    "repeat_of": null
+   },
+   {
+    "id": "s07.f3",
+    "heading": "Thinks about father",
+    "said": "I realised I am turning into my father and that terrifies me.",
+    "repeat_of": "s02.f4"
+   },
+   {
+    "id": "s07.f4",
+    "heading": "Arjun's drawing",
+    "said": "Arjun drew a picture of our family with all three of us holding hands, and I had to leave the room.",
+    "repeat_of": null
+   }
+  ]
+ }
+}

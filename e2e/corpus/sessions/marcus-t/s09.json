@@ -1,0 +1,132 @@
+{
+ "client": "marcus-t",
+ "session": "s09",
+ "lang": "en",
+ "date": "2026-03-06",
+ "turns": [
+  {
+   "who": "therapist",
+   "text": "Hello, come in. How have you been since last time?"
+  },
+  {
+   "who": "client",
+   "text": "Some days are better than others, and I try to remind myself of that when things get heavy."
+  },
+  {
+   "who": "therapist",
+   "text": "Tell me more about that."
+  },
+  {
+   "who": "client",
+   "text": "The vet says Biscuit is in pain a lot of the time and we need to think about what is kind."
+  },
+  {
+   "who": "therapist",
+   "text": "What happened next?"
+  },
+  {
+   "who": "client",
+   "text": "It is strange to sit here and say all of this out loud, but it does help a little. That is how it was."
+  },
+  {
+   "who": "therapist",
+   "text": "And how was that for you?"
+  },
+  {
+   "who": "client",
+   "text": "The journey here took a while, but at least I had time to gather my thoughts."
+  },
+  {
+   "who": "therapist",
+   "text": "Tell me more about that."
+  },
+  {
+   "who": "client",
+   "text": "Some mornings it hits me that she is gone and I can hardly breathe."
+  },
+  {
+   "who": "therapist",
+   "text": "Mm-hm. Go on."
+  },
+  {
+   "who": "client",
+   "text": "I am not sure where to begin, there are so many things going round in my head at the moment. I think so, yes."
+  },
+  {
+   "who": "therapist",
+   "text": "Tell me more about that."
+  },
+  {
+   "who": "client",
+   "text": "The train was late again this morning, so I almost did not make it on time today."
+  },
+  {
+   "who": "therapist",
+   "text": "How did that feel for you?"
+  },
+  {
+   "who": "client",
+   "text": "Now I volunteer both Tuesday and Thursday at the food bank."
+  },
+  {
+   "who": "therapist",
+   "text": "How did that feel for you?"
+  },
+  {
+   "who": "client",
+   "text": "I wrote a few notes before coming here, but now I cannot remember half of what I wanted to say. It is not easy to talk about."
+  },
+  {
+   "who": "therapist",
+   "text": "Take your time."
+  },
+  {
+   "who": "client",
+   "text": "The hospital sent a letter saying they will hold a review meeting on the twentieth of March."
+  },
+  {
+   "who": "therapist",
+   "text": "I see. Can you say a bit more?"
+  },
+  {
+   "who": "client",
+   "text": "I had a long day yesterday and I was so tired in the evening that I just sat in front of the television. I think so, yes."
+  },
+  {
+   "who": "therapist",
+   "text": "We are nearly out of time. Is there anything you want to add?"
+  },
+  {
+   "who": "client",
+   "text": "No, I think that is everything. Thank you."
+  }
+ ],
+ "expected": {
+  "facts": [
+   {
+    "id": "s09.f1",
+    "heading": "Hospital replied to complaint",
+    "said": "The hospital sent a letter saying they will hold a review meeting on the twentieth of March.",
+    "repeat_of": null
+   },
+   {
+    "id": "s09.f2",
+    "heading": "Biscuit worse",
+    "said": "The vet says Biscuit is in pain a lot of the time and we need to think about what is kind.",
+    "repeat_of": null
+   },
+   {
+    "id": "s09.f3",
+    "heading": "Volunteer twice a week",
+    "said": "Now I volunteer both Tuesday and Thursday at the food bank.",
+    "repeat_of": "s05.f4"
+   },
+   {
+    "id": "s09.f4",
+    "heading": "Still grieving Denise",
+    "said": "Some mornings it hits me that she is gone and I can hardly breathe.",
+    "repeat_of": "s01.f2"
+   }
+  ]
+ }
+}

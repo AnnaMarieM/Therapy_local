@@ -1,0 +1,124 @@
+{
+ "client": "tomas-b",
+ "session": "s02",
+ "lang": "cs",
+ "date": "2026-01-17",
+ "turns": [
+  {
+   "who": "therapist",
+   "text": "Rád vás zase vidím. Kde byste dnes chtěla začít?"
+  },
+  {
+   "who": "client",
+   "text": "Dnes ráno byl jen čaj a chvíle u okna."
+  },
+  {
+   "who": "therapist",
+   "text": "Jaké to pro vás bylo?"
+  },
+  {
+   "who": "client",
+   "text": "Kvůli kontrolování jsem tento týden třikrát přišel pozdě do práce, šéf se mračil."
+  },
+  {
+   "who": "therapist",
+   "text": "A co se stalo potom?"
+  },
+  {
+   "who": "client",
+   "text": "Něco mám poznamenané na papíře, ale teď si polovinu z toho nepamatuju. Není snadné o tom mluvit."
+  },
+  {
+   "who": "therapist",
+   "text": "Řekněte mi o tom víc."
+  },
+  {
+   "who": "client",
+   "text": "Stydím se o tom komukoli říct, i Barboře jsem to dlouho tajil."
+  },
+  {
+   "who": "therapist",
+   "text": "A co se stalo potom?"
+  },
+  {
+   "who": "client",
+   "text": "Dnes ráno mi ujel autobus, takže to bylo na poslední chvíli. Ano, přesně tak to bylo."
+  },
+  {
+   "who": "therapist",
+   "text": "A co se stalo potom?"
+  },
+  {
+   "who": "client",
+   "text": "Byl to šedivý týden a to počasí mi na náladě moc nepřidává, po pravdě řečeno."
+  },
+  {
+   "who": "therapist",
+   "text": "Jaké to pro vás bylo?"
+  },
+  {
+   "who": "client",
+   "text": "Mám obrovský strach, že nebudu schopný se o miminko postarat."
+  },
+  {
+   "who": "therapist",
+   "text": "Nespěchejte."
+  },
+  {
+   "who": "client",
+   "text": "Nevím, kde začít, v hlavě mi teď běží spousta věcí najednou. Asi ano."
+  },
+  {
+   "who": "therapist",
+   "text": "A co se stalo potom?"
+  },
+  {
+   "who": "client",
+   "text": "Před odchodem musím třikrát sáhnout na kohoutek plynu a zopakovat si, že je zavřený."
+  },
+  {
+   "who": "therapist",
+   "text": "Řekněte mi o tom víc."
+  },
+  {
+   "who": "client",
+   "text": "Některé dny jsou lepší než jiné a snažím se si to připomínat, když je těžko. Ano, přesně tak to bylo."
+  },
+  {
+   "who": "therapist",
+   "text": "Pro dnešek tady skončíme."
+  },
+  {
+   "who": "client",
+   "text": "Děkuji, uvidíme se příští týden."
+  }
+ ],
+ "expected": {
+  "facts": [
+   {
+    "id": "s02.f1",
+    "heading": "Zpoždění do práce",
+    "said": "Kvůli kontrolování jsem tento týden třikrát přišel pozdě do práce, šéf se mračil.",
+    "repeat_of": null
+   },
+   {
+    "id": "s02.f2",
+    "heading": "Strach o dítě",
+    "said": "Mám obrovský strach, že nebudu schopný se o miminko postarat.",
+    "repeat_of": "s01.f4"
+   },
+   {
+    "id": "s02.f3",
+    "heading": "Rituál s plynem",
+    "said": "Před odchodem musím třikrát sáhnout na kohoutek plynu a zopakovat si, že je zavřený.",
+    "repeat_of": null
+   },
+   {
+    "id": "s02.f4",
+    "heading": "Stydí se",
+    "said": "Stydím se o tom komukoli říct, i Barboře jsem to dlouho tajil.",
+    "repeat_of": null
+   }
+  ]
+ }
+}

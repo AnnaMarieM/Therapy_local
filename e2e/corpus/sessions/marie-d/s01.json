@@ -1,0 +1,140 @@
+{
+ "client": "marie-d",
+ "session": "s01",
+ "lang": "cs",
+ "date": "2026-01-13",
+ "turns": [
+  {
+   "who": "therapist",
+   "text": "Dobrý den, pojďte dál. Jak se vám vedlo od minula?"
+  },
+  {
+   "who": "client",
+   "text": "Něco mám poznamenané na papíře, ale teď si polovinu z toho nepamatuju."
+  },
+  {
+   "who": "therapist",
+   "text": "Řekněte mi o tom víc."
+  },
+  {
+   "who": "client",
+   "text": "Manžel Josef zemřel před čtyřmi lety a od té doby žiji v Plzni sama."
+  },
+  {
+   "who": "therapist",
+   "text": "Jaké to pro vás bylo?"
+  },
+  {
+   "who": "client",
+   "text": "Je zvláštní sedět tady a říkat to všechno nahlas, ale trochu to pomáhá. Pořád se k tomu vracím."
+  },
+  {
+   "who": "therapist",
+   "text": "A co se stalo potom?"
+  },
+  {
+   "who": "client",
+   "text": "Dnes ráno byl jen čaj a chvíle u okna."
+  },
+  {
+   "who": "therapist",
+   "text": "A co se stalo potom?"
+  },
+  {
+   "who": "client",
+   "text": "Můj syn Jakub žije v Drážďanech a vídáme se jen dvakrát do roka."
+  },
+  {
+   "who": "therapist",
+   "text": "Nespěchejte."
+  },
+  {
+   "who": "client",
+   "text": "Byl to šedivý týden a to počasí mi na náladě moc nepřidává, po pravdě řečeno. Nevím, těžko se to vysvětluje."
+  },
+  {
+   "who": "therapist",
+   "text": "Hm. Pokračujte."
+  },
+  {
+   "who": "client",
+   "text": "Mám cukrovku druhého typu a píchám si inzulín dvakrát denně."
+  },
+  {
+   "who": "therapist",
+   "text": "A jak vám z toho bylo?"
+  },
+  {
+   "who": "client",
+   "text": "Včerejšek byl dlouhý den a večer už mi nezbyly žádné síly, byla jen televize a gauč. Asi ano."
+  },
+  {
+   "who": "therapist",
+   "text": "Hm. Pokračujte."
+  },
+  {
+   "who": "client",
+   "text": "Dnes ráno mi ujel autobus, takže to bylo na poslední chvíli."
+  },
+  {
+   "who": "therapist",
+   "text": "Co se vám v tu chvíli honilo hlavou?"
+  },
+  {
+   "who": "client",
+   "text": "Je mi sedmdesát čtyři let a bojím se, že mám začínající demenci, protože zapomínám jména a ztrácím věci."
+  },
+  {
+   "who": "therapist",
+   "text": "Co se vám v tu chvíli honilo hlavou?"
+  },
+  {
+   "who": "client",
+   "text": "Nevím, kde začít, v hlavě mi teď běží spousta věcí najednou. Není snadné o tom mluvit."
+  },
+  {
+   "who": "therapist",
+   "text": "A co se stalo potom?"
+  },
+  {
+   "who": "client",
+   "text": "Některé dny jsou lepší než jiné a snažím se si to připomínat, když je těžko."
+  },
+  {
+   "who": "therapist",
+   "text": "Za chvíli nám končí čas. Chcete ještě něco dodat?"
+  },
+  {
+   "who": "client",
+   "text": "Děkuji, uvidíme se příští týden."
+  }
+ ],
+ "expected": {
+  "facts": [
+   {
+    "id": "s01.f1",
+    "heading": "Strach z ztráty paměti",
+    "said": "Je mi sedmdesát čtyři let a bojím se, že mám začínající demenci, protože zapomínám jména a ztrácím věci.",
+    "repeat_of": null
+   },
+   {
+    "id": "s01.f2",
+    "heading": "Syn Jakub v Německu",
+    "said": "Můj syn Jakub žije v Drážďanech a vídáme se jen dvakrát do roka.",
+    "repeat_of": null
+   },
+   {
+    "id": "s01.f3",
+    "heading": "Vdova",
+    "said": "Manžel Josef zemřel před čtyřmi lety a od té doby žiji v Plzni sama.",
+    "repeat_of": null
+   },
+   {
+    "id": "s01.f4",
+    "heading": "Cukrovka",
+    "said": "Mám cukrovku druhého typu a píchám si inzulín dvakrát denně.",
+    "repeat_of": null
+   }
+  ]
+ }
+}

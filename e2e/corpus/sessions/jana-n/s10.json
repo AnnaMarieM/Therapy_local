@@ -1,0 +1,132 @@
+{
+ "client": "jana-n",
+ "session": "s10",
+ "lang": "cs",
+ "date": "2026-03-11",
+ "turns": [
+  {
+   "who": "therapist",
+   "text": "Dobrý den, pojďte dál. Jak se vám vedlo od minula?"
+  },
+  {
+   "who": "client",
+   "text": "Cesta sem trvá dlouho, ale aspoň je čas si trochu srovnat myšlenky."
+  },
+  {
+   "who": "therapist",
+   "text": "Řekněte mi o tom víc."
+  },
+  {
+   "who": "client",
+   "text": "Poprvé po třech měsících jsem spala celou noc až do šesti ráno."
+  },
+  {
+   "who": "therapist",
+   "text": "Hm. Pokračujte."
+  },
+  {
+   "who": "client",
+   "text": "Byl to šedivý týden a to počasí mi na náladě moc nepřidává, po pravdě řečeno. Asi ano."
+  },
+  {
+   "who": "therapist",
+   "text": "A co se stalo potom?"
+  },
+  {
+   "who": "client",
+   "text": "Přihlásila jsem se na půlmaraton v Brně v květnu."
+  },
+  {
+   "who": "therapist",
+   "text": "Řekněte mi o tom víc."
+  },
+  {
+   "who": "client",
+   "text": "Dnes ráno byl jen čaj a chvíle u okna. Ano, přesně tak to bylo."
+  },
+  {
+   "who": "therapist",
+   "text": "Jaké to pro vás bylo?"
+  },
+  {
+   "who": "client",
+   "text": "Nevím, kde začít, v hlavě mi teď běží spousta věcí najednou."
+  },
+  {
+   "who": "therapist",
+   "text": "Řekněte mi o tom víc."
+  },
+  {
+   "who": "client",
+   "text": "S Evou jsme šly na večeři a nakonec jsem se smála tak, že mě bolely tváře."
+  },
+  {
+   "who": "therapist",
+   "text": "Jaké to pro vás bylo?"
+  },
+  {
+   "who": "client",
+   "text": "Některé dny jsou lepší než jiné a snažím se si to připomínat, když je těžko. Pořád se k tomu vracím."
+  },
+  {
+   "who": "therapist",
+   "text": "Řekněte mi o tom víc."
+  },
+  {
+   "who": "client",
+   "text": "Už nejsem tak naštvaná na Radka, spíš mi je smutno z toho, jak to dopadlo."
+  },
+  {
+   "who": "therapist",
+   "text": "Co se vám v tu chvíli honilo hlavou?"
+  },
+  {
+   "who": "client",
+   "text": "Včerejšek byl dlouhý den a večer už mi nezbyly žádné síly, byla jen televize a gauč. Asi ano."
+  },
+  {
+   "who": "therapist",
+   "text": "A jak vám z toho bylo?"
+  },
+  {
+   "who": "client",
+   "text": "Něco mám poznamenané na papíře, ale teď si polovinu z toho nepamatuju."
+  },
+  {
+   "who": "therapist",
+   "text": "Pro dnešek tady skončíme."
+  },
+  {
+   "who": "client",
+   "text": "Ne, myslím, že je to všechno. Děkuji."
+  }
+ ],
+ "expected": {
+  "facts": [
+   {
+    "id": "s10.f1",
+    "heading": "Zvládla jsem spát celou noc",
+    "said": "Poprvé po třech měsících jsem spala celou noc až do šesti ráno.",
+    "repeat_of": null
+   },
+   {
+    "id": "s10.f2",
+    "heading": "Večeře s Evou",
+    "said": "S Evou jsme šly na večeři a nakonec jsem se smála tak, že mě bolely tváře.",
+    "repeat_of": "s02.f4"
+   },
+   {
+    "id": "s10.f3",
+    "heading": "Přihlášena na půlmaraton",
+    "said": "Přihlásila jsem se na půlmaraton v Brně v květnu.",
+    "repeat_of": null
+   },
+   {
+    "id": "s10.f4",
+    "heading": "Hněv se zmírňuje",
+    "said": "Už nejsem tak naštvaná na Radka, spíš mi je smutno z toho, jak to dopadlo.",
+    "repeat_of": "s07.f4"
+   }
+  ]
+ }
+}

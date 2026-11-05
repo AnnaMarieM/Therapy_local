@@ -15,8 +15,11 @@ object TestAudio {
 
     fun list(context: Context): List<String> = dir(context).listFiles { f -> f.extension == "wav" }?.map { it.name }?.sorted() ?: emptyList()
 
-    fun load(context: Context, name: String): ShortArray {
-        val bytes = File(dir(context), name).readBytes()
+    fun load(context: Context, name: String): ShortArray = load(File(dir(context), name))
+
+    fun load(file: File): ShortArray {
+        val name = file.name
+        val bytes = file.readBytes()
         val bb = ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN)
         require(bytes.size > 44 && String(bytes, 0, 4) == "RIFF") { "$name is not a WAV file" }
         var pos = 12

@@ -1,0 +1,124 @@
+{
+ "client": "daniel-r",
+ "session": "s03",
+ "lang": "en",
+ "date": "2026-01-21",
+ "turns": [
+  {
+   "who": "therapist",
+   "text": "Hello, come in. How have you been since last time?"
+  },
+  {
+   "who": "client",
+   "text": "It has been a grey week, and the weather does not help my mood much, to be honest."
+  },
+  {
+   "who": "therapist",
+   "text": "Mm-hm. Go on."
+  },
+  {
+   "who": "client",
+   "text": "I have started drinking two glasses of wine every evening to switch my head off."
+  },
+  {
+   "who": "therapist",
+   "text": "How did that feel for you?"
+  },
+  {
+   "who": "client",
+   "text": "I made myself a cup of tea this morning and just stood by the window for a while. I keep coming back to it."
+  },
+  {
+   "who": "therapist",
+   "text": "Mm-hm. Go on."
+  },
+  {
+   "who": "client",
+   "text": "My girlfriend Claire has been very patient, she makes me tea and does not push me to talk."
+  },
+  {
+   "who": "therapist",
+   "text": "I see. Can you say a bit more?"
+  },
+  {
+   "who": "client",
+   "text": "The journey here took a while, but at least I had time to gather my thoughts. It is not easy to talk about."
+  },
+  {
+   "who": "therapist",
+   "text": "Mm-hm. Go on."
+  },
+  {
+   "who": "client",
+   "text": "The train was late again this morning, so I almost did not make it on time today."
+  },
+  {
+   "who": "therapist",
+   "text": "Take your time."
+  },
+  {
+   "who": "client",
+   "text": "On Tuesday I had a panic attack on the train to Manchester, my hands went numb and I had to get off at Stalybridge."
+  },
+  {
+   "who": "therapist",
+   "text": "Take your time."
+  },
+  {
+   "who": "client",
+   "text": "It is strange to sit here and say all of this out loud, but it does help a little. I keep coming back to it."
+  },
+  {
+   "who": "therapist",
+   "text": "What went through your mind then?"
+  },
+  {
+   "who": "client",
+   "text": "Dad has another neurology appointment in Leeds next week and I have to take the day off again."
+  },
+  {
+   "who": "therapist",
+   "text": "Tell me more about that."
+  },
+  {
+   "who": "client",
+   "text": "I had a long day yesterday and I was so tired in the evening that I just sat in front of the television. That is how it was."
+  },
+  {
+   "who": "therapist",
+   "text": "We are nearly out of time. Is there anything you want to add?"
+  },
+  {
+   "who": "client",
+   "text": "Thank you, see you next week."
+  }
+ ],
+ "expected": {
+  "facts": [
+   {
+    "id": "s03.f1",
+    "heading": "Panic attack on the train",
+    "said": "On Tuesday I had a panic attack on the train to Manchester, my hands went numb and I had to get off at Stalybridge.",
+    "repeat_of": null
+   },
+   {
+    "id": "s03.f2",
+    "heading": "Girlfriend Claire is patient",
+    "said": "My girlfriend Claire has been very patient, she makes me tea and does not push me to talk.",
+    "repeat_of": null
+   },
+   {
+    "id": "s03.f3",
+    "heading": "Father's hospital appointments",
+    "said": "Dad has another neurology appointment in Leeds next week and I have to take the day off again.",
+    "repeat_of": "s01.f2"
+   },
+   {
+    "id": "s03.f4",
+    "heading": "Drinking more wine",
+    "said": "I have started drinking two glasses of wine every evening to switch my head off.",
+    "repeat_of": null
+   }
+  ]
+ }
+}
