@@ -28,6 +28,13 @@ class EngineServer(private val context: Context, private val role: EngineRole, p
 
     fun handle(op: EngineOp, phases: PhaseSink = PhaseSink { _, _, _, _ -> }): EngineReply {
         if (lowerPriority && lowersPriority(op)) Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND)
+        Faults.at("before:${op.tag.op}", role, op)
+        val reply = dispatch(op, phases)
+        Faults.at("after:${op.tag.op}", role, op)
+        return reply
+    }
+
+    private fun dispatch(op: EngineOp, phases: PhaseSink): EngineReply {
         return when (op) {
             is EngineOp.Open -> open(op, phases)
             is EngineOp.Ask -> {
@@ -52,10 +59,7 @@ class EngineServer(private val context: Context, private val role: EngineRole, p
                 AppLog.clear()
                 EngineReply.Done
             }
-            is EngineOp.ArmFaults -> {
-                AppLog.w(TAG, EngineEvents.FAULT_PLAN_IGNORED, LogCtx.NONE, *callFields(op.tag))
-                EngineReply.Refused
-            }
+            is EngineOp.ArmFaults -> Faults.arm(op)
         }
     }
 
@@ -71,14 +75,20 @@ class EngineServer(private val context: Context, private val role: EngineRole, p
             AppLog.w(TAG, EngineEvents.ROLE_VIOLATION, LogCtx.NONE, "kind" to op.kind.name, "text_only" to op.textOnly, "role" to role.proc, *callFields(op.tag))
             throw IllegalArgumentException("kind ${op.kind} not served by role ${role.proc}")
         }
+        Faults.at("before_open", role, op)
+        // The fault hook for "phase:<p>" fires after main has heard of the step and the host has logged and flushed it.
+        val sink = PhaseSink { t, m, b, p ->
+            phases.phase(t, m, b, p)
+            Faults.at("phase:$p", role, op)
+        }
         val f = callFields(op.tag)
         AppLog.i(TAG, EngineEvents.HOST_OPEN, LogCtx.NONE, "model" to op.model, "backend_try" to op.backend, "kind" to op.kind.name, *f)
         return AppLog.span(TAG, "host_open", LogCtx.NONE, "model" to op.model, "backend_try" to op.backend, *f) { span ->
             // Each runner closes whatever it created if a step fails, so a failed attempt leaves nothing behind and no handle.
             val (runner, opened) = when (op.kind) {
-                EngineKind.LLM -> LlmRunner(context).let { it to it.open(op, phases) }
-                EngineKind.EMBED -> EmbedRunner(context, role, op.textOnly).let { it to it.open(op, phases) }
-                EngineKind.ASR -> CanaryRunner(context).let { it to it.open(op, phases) }
+                EngineKind.LLM -> LlmRunner(context).let { it to it.open(op, sink) }
+                EngineKind.EMBED -> EmbedRunner(context, role, op.textOnly).let { it to it.open(op, sink) }
+                EngineKind.ASR -> CanaryRunner(context).let { it to it.open(op, sink) }
             }
             val handle = nextHandle.getAndIncrement()
             handles[handle] = runner
@@ -108,6 +118,14 @@ class EngineServer(private val context: Context, private val role: EngineRole, p
         // Waits for a call still running on this handle: two binder threads never run one native engine at once.
         synchronized(r) { AppLog.span(TAG, "host_close", LogCtx.NONE, "kind" to r.kind.name, "backend" to r.backend, *callFields(op.tag, op.handle)) { r.close(op.tag) } }
         return EngineReply.Done
+    }
+
+    /** Process end: closes every handle (a failing close never stops the rest). */
+    fun closeAll() {
+        for (h in handles.keys.toList()) {
+            val r = handles.remove(h) ?: continue
+            runCatching { r.close(CallTag("shutdown", null, "close")) }
+        }
     }
 
     private fun status() = EngineReply.HostStatus(
