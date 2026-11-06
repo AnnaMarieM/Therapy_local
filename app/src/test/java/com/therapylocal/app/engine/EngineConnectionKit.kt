@@ -12,24 +12,39 @@ import java.util.concurrent.locks.Condition
 import java.util.concurrent.locks.ReentrantLock
 
 /**
- * A virtual clock and scheduler in one. With [autoAdvance] a thread that waits moves virtual time forward to the next due task (or by the
- * whole wait), so single-threaded tests need no sleeps. Concurrent tests turn it off: a waiter then only waits briefly in real time, and
- * the test moves time with [advance].
+ * The virtual clock of the JVM suite (catalogue N05, N06, N09). [now] is the monotonic clock, [wallMs] is `wallOffset + now`.
+ * [advance] moves time only; [jumpWall] moves the wall clock alone (the idle timer and the backoff must not care, N09).
+ * With [autoAdvance] a thread that waits on the connection lock moves virtual time forward by the whole wait, so single-threaded tests
+ * need no sleeps; concurrent tests turn it off (the waiter then only waits 2 ms of real time) and move time themselves.
+ *
+ *     val clock = ManualClock()
+ *     clock.advance(250); clock.jumpWall(3_600_000)     // an hour passes on the wall clock only
+ *     assertEquals(250, clock.nowMs())
+ *
+ * Pair it with [ManualTime] (timers run on advance) or [StepExecutor] (timers and tasks run only when the test says so).
  */
-internal class ManualTime : EngineClock, EngineScheduler {
+internal open class ManualClock : EngineClock {
     @Volatile var now = 0L
     @Volatile var wallOffset = 1_700_000_000_000L
     @Volatile var autoAdvance = true
-    private class Task(val due: Long, val seq: Long, val run: Runnable) : Cancelable {
-        @Volatile var cancelled = false
-        override fun cancel() { cancelled = true }
-    }
-    private val queue = PriorityQueue<Task>(compareBy<Task>({ it.due }, { it.seq }))
-    private var seq = 0L
-    val executed = AtomicInteger(0)
+
+    /** Set by a [StepExecutor] built on this clock, so a waiting thread can run its due tasks and timers first. */
+    @Volatile internal var steps: StepExecutor? = null
 
     override fun nowMs() = now
     override fun wallMs() = wallOffset + now
+
+    /** Moves the monotonic clock (and with it the wall clock) by [ms]. Does not run tasks; [ManualTime] and [StepExecutor] override or add that. */
+    open fun advance(ms: Long) { now += ms }
+
+    /** The wall clock jumps by [ms] (positive or negative); the monotonic clock does not move. */
+    fun jumpWall(ms: Long) { wallOffset += ms }
+
+    /** One step of a waiting thread: run what is due within [max] ms, or move time by [max]. */
+    protected open fun step(max: Long) {
+        val s = steps
+        if (s != null) s.stepWithin(max) else now += max
+    }
 
     override fun await(lock: ReentrantLock, cond: Condition, ms: Long) {
         if (!autoAdvance) {
@@ -44,6 +59,20 @@ internal class ManualTime : EngineClock, EngineScheduler {
             repeat(holds) { lock.lock() }
         }
     }
+}
+
+/**
+ * A virtual clock and scheduler in one: tasks run inline, timers run when time reaches them ([advance], or a waiting thread with
+ * [autoAdvance]). The default of [Rig]. For tests that need to choose the order of tasks and timers, use [StepExecutor] instead.
+ */
+internal class ManualTime : ManualClock(), EngineScheduler {
+    private class Task(val due: Long, val seq: Long, val run: Runnable) : Cancelable {
+        @Volatile var cancelled = false
+        override fun cancel() { cancelled = true }
+    }
+    private val queue = PriorityQueue<Task>(compareBy<Task>({ it.due }, { it.seq }))
+    private var seq = 0L
+    val executed = AtomicInteger(0)
 
     override fun execute(task: Runnable) {
         executed.incrementAndGet()
@@ -55,7 +84,8 @@ internal class ManualTime : EngineClock, EngineScheduler {
     }
 
     /** Runs the earliest due task if it is due within [max] ms (time moves to it), else moves time by [max]. */
-    private fun step(max: Long) {
+    override fun step(max: Long) {
+        steps?.let { it.stepWithin(max); return } // a StepExecutor on this clock owns tasks and timers
         val t = synchronized(queue) {
             while (queue.isNotEmpty() && queue.peek().cancelled) queue.poll()
             val head = queue.peek()
@@ -70,7 +100,8 @@ internal class ManualTime : EngineClock, EngineScheduler {
     }
 
     /** Moves time by [ms], running every task that falls due, in order. */
-    fun advance(ms: Long) {
+    override fun advance(ms: Long) {
+        steps?.let { it.advance(ms); return }
         val end = now + ms
         while (true) {
             val t = synchronized(queue) {
@@ -111,8 +142,22 @@ internal class RecSettler(private val order: MutableList<String>? = null) : Hand
     }
 }
 
-/** A scripted fake of the platform half. Callbacks are delivered straight away on the calling thread (which stands in for the executor). */
-internal class FakeBinding(val time: ManualTime, val processName: String, val pidBase: Int = 1000, val events: MutableList<String>? = null, val tag: String = "") : EngineBinding {
+/**
+ * A scripted fake of the platform half (`EngineBinding`). Callbacks are delivered straight away on the calling thread (which stands in
+ * for the executor).
+ *
+ * How a test drives it:
+ *  - [onBind] decides what a bind does ("connect", "refuse", "silent", "null", "died", "attach_failed");
+ *  - [script] answers or fails calls, [die] ends a process (exit record, release of blocked callers, callbacks);
+ *  - [fire] delivers any of the five connection callbacks for any generation, also an old one (N24, AMS redelivery);
+ *  - [useHost] routes every call to a [FakeHost] (so `FakeHost.die()` ends the process the way a real death does).
+ *
+ *     val binding = FakeBinding(ManualClock(), "pkg:batch")
+ *     binding.fire(gen = 1, "disconnected")            // a stale callback after the generation ended
+ *     val host = FakeHost().also { binding.useHost(it) }
+ *     host.hangOn = { it is EngineOp.Ask }; ...; host.die()
+ */
+internal class FakeBinding(val time: ManualClock, val processName: String, val pidBase: Int = 1000, val events: MutableList<String>? = null, val tag: String = "") : EngineBinding {
     override lateinit var listener: EngineBinding.Listener
 
     inner class Proc(val gen: Int, val pid: Int) {
@@ -143,6 +188,32 @@ internal class FakeBinding(val time: ManualTime, val processName: String, val pi
     var onShutdown: (Proc) -> Boolean = { true }
     val inCall = CountDownLatch(1)
     private val pids = AtomicInteger(0)
+    private var routed: FakeHost? = null
+
+    /** Delivers a connection callback by name to the listener: connected, disconnected, bindingDied, nullBinding, binderDied, attachFailed. */
+    fun fire(gen: Int, callback: String, pid: Int = pidBase) {
+        when (callback) {
+            "connected" -> listener.connected(gen, procs[gen]?.pid ?: pid)
+            "disconnected" -> listener.disconnected(gen)
+            "bindingDied" -> listener.bindingDied(gen)
+            "nullBinding" -> listener.nullBinding(gen)
+            "binderDied" -> listener.binderDied(gen)
+            "attachFailed" -> listener.attachFailed(gen, "attach_failed")
+            else -> error("unknown callback $callback")
+        }
+    }
+
+    /**
+     * Routes every call to [host] after [script] had its say. A [DeadObjectException][android.os.DeadObjectException] from the host becomes a
+     * [BindingFailure] DEATH (what `RemoteFailures.classify` does), host phases reach the listener, and `host.die()` ends the current process
+     * with the host's [FakeHost.exitReason] and [FakeHost.exitStatus]. Each new bind revives the host as a new generation.
+     */
+    fun useHost(host: FakeHost) {
+        routed = host
+        host.onDied = {
+            procs.values.filter { it.alive }.maxByOrNull { it.gen }?.let { die(it, host.exitReason, host.exitStatus) }
+        }
+    }
 
     override fun bind(gen: Int): Boolean {
         binds += gen
@@ -157,6 +228,7 @@ internal class FakeBinding(val time: ManualTime, val processName: String, val pi
             else -> {
                 val p = Proc(gen, pidBase + pids.incrementAndGet())
                 procs[gen] = p
+                routed?.let { if (it.dead) it.revive() }
                 maxAlive = maxOf(maxAlive, procs.values.count { it.alive })
                 listener.connected(gen, p.pid)
                 true
@@ -173,6 +245,13 @@ internal class FakeBinding(val time: ManualTime, val processName: String, val pi
         val p = procs[gen] ?: throw BindingFailure(BindingFailure.Kind.DEATH)
         if (!p.alive) throw BindingFailure(BindingFailure.Kind.DEATH)
         script(p, op)?.let { return it }
+        routed?.let { h ->
+            return try {
+                h.call(op) { tag, model, backend, phase -> listener.phase(tag.requestId, tag.loadId, model, backend, phase) }
+            } catch (e: android.os.DeadObjectException) {
+                throw BindingFailure(BindingFailure.Kind.DEATH)
+            }
+        }
         return when (op) {
             is EngineOp.Open -> EngineReply.Opened(p.nextHandle++, op.backend, 512, null)
             is EngineOp.Ask -> EngineReply.Text("ok", null)
@@ -240,6 +319,8 @@ internal class Rig(
     closeExecutor: java.util.concurrent.Executor = java.util.concurrent.Executor { it.run() },
     val time: ManualTime = ManualTime(),
     val log: ListLog = ListLog(),
+    /** Where tasks and timers run. The default is [time] itself (inline tasks, timers on advance); pass a [StepExecutor] to choose the order. */
+    val scheduler: EngineScheduler = time,
 ) {
     init { time.autoAdvance = autoAdvance }
     val binding = FakeBinding(time, processName, pidBase, events, tag)
@@ -249,7 +330,7 @@ internal class Rig(
     val views = CopyOnWriteArrayList<HostView>()
     var decodeTps = 0.0
     val conn = EngineConnection(
-        role, binding, time, time, binding.source, CpuTime { cpu }, { importance }, tuning, log, processName, settler,
+        role, binding, time, scheduler, binding.source, CpuTime { cpu }, { importance }, tuning, log, processName, settler,
         lowMemoryKillReports = true, closeExecutor = closeExecutor, beforeOpen = beforeOpen, decodeTps = { decodeTps }, onView = { views += it },
     )
     private val ids = AtomicInteger()

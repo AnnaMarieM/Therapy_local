@@ -86,19 +86,3 @@ class BareHost private constructor(val role: EngineRole, private val ctx: Contex
         }
     }
 }
-
-/** `getHistoricalProcessExitReasons`, polled up to a bound (anti-flake rule 4a: AMS writes the record asynchronously). */
-object ExitInfos {
-    class Found(val info: ApplicationExitInfo, val latencyMs: Long)
-
-    fun await(pid: Int, timeoutMs: Long = 5_000): Found? {
-        val ctx = InstrumentationRegistry.getInstrumentation().targetContext
-        val am = ctx.getSystemService(android.app.ActivityManager::class.java)
-        val t0 = SystemClock.elapsedRealtime()
-        while (true) {
-            am.getHistoricalProcessExitReasons(ctx.packageName, pid, 1).firstOrNull()?.let { return Found(it, SystemClock.elapsedRealtime() - t0) }
-            if (SystemClock.elapsedRealtime() - t0 > timeoutMs) return null
-            Thread.sleep(50) // bounded poll, see above
-        }
-    }
-}

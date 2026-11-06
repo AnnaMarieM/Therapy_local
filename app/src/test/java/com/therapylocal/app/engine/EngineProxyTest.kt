@@ -25,48 +25,6 @@ import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
-/** A pure-Kotlin [EngineHost] whose behaviour a test scripts. */
-internal class FakeHost(override val role: EngineRole = EngineRole.BATCH) : EngineHost {
-    val ops = CopyOnWriteArrayList<EngineOp>()
-    val closed = CopyOnWriteArrayList<Int>()
-    var nextHandle = 1
-    var failBackends = mutableMapOf<String, Throwable>()
-    var onOpen: (EngineOp.Open) -> Unit = {}
-    var ask: (EngineOp.Ask) -> EngineReply = { EngineReply.Text("ok", LlmCall(10, 100.0, 5, 20.0, 50)) }
-    var vector: (Int) -> FloatArray = { FloatArray(EmbeddingConfig.DIM) { 0.01f } }
-    var embedGate: CountDownLatch? = null
-    var embedEntered = CountDownLatch(0)
-    var maxTokens = 512
-
-    override fun call(op: EngineOp, phases: PhaseSink): EngineReply {
-        ops += op
-        return when (op) {
-            is EngineOp.Open -> {
-                onOpen(op)
-                phases.phase(op.tag, op.model, op.backend, "create")
-                failBackends[op.backend]?.let { throw it }
-                phases.phase(op.tag, op.model, op.backend, "test")
-                EngineReply.Opened(nextHandle++, op.backend, maxTokens, null)
-            }
-            is EngineOp.Ask -> ask(op)
-            is EngineOp.EmbedText -> {
-                embedEntered.countDown()
-                embedGate?.await(5, TimeUnit.SECONDS)
-                EngineReply.Vector(vector(op.handle))
-            }
-            is EngineOp.EmbedAudio -> EngineReply.Vector(vector(op.handle))
-            is EngineOp.Transcribe -> EngineReply.Text("hello world", null)
-            is EngineOp.Close -> { closed += op.handle; EngineReply.Done }
-            is EngineOp.Status -> EngineReply.HostStatus(1, 0, 1234, emptyList())
-            else -> EngineReply.Refused
-        }
-    }
-
-    override fun closeAsync(op: EngineOp.Close) {
-        closed += op.handle
-    }
-}
-
 class EngineProxyTest {
     private val context: Context = ContextWrapper(null)
     private val store = SharedStore()

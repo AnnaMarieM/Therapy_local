@@ -92,12 +92,13 @@ class EngineLabService : Service() {
 internal object Scenarios {
     private const val TAG = "EngineLab"
     private val generation = HashMap<String, AtomicInteger>()
+    private val threads = HashMap<String, Thread>()
 
     @Synchronized
     fun start(app: Context, name: String, canary: String) {
         val mine = generation.getOrPut(name) { AtomicInteger() }.incrementAndGet()
         val alive = { generation[name]?.get() == mine }
-        Thread({
+        val t = Thread({
             while (alive()) {
                 try {
                     when (name) {
@@ -111,7 +112,23 @@ internal object Scenarios {
                 }
                 runCatching { Thread.sleep(500) }
             }
-        }, "lab-$name").apply { isDaemon = true; start() }
+        }, "lab-$name").apply { isDaemon = true }
+        threads[name] = t
+        t.start()
+    }
+
+    /**
+     * Stops every scenario loop (the test rule's teardown): bumps the generations so each loop ends after its current round, then waits at
+     * most [joinMs] in total for the threads. True when all ended.
+     */
+    fun stopAll(joinMs: Long = 10_000): Boolean {
+        val ts = synchronized(this) {
+            generation.values.forEach { it.incrementAndGet() }
+            threads.values.toList().also { threads.clear() }
+        }
+        val end = System.nanoTime() + joinMs * 1_000_000
+        ts.forEach { runCatching { it.join(((end - System.nanoTime()) / 1_000_000).coerceAtLeast(1)) } }
+        return ts.none { it.isAlive }
     }
 
     private fun processing(app: Context, canary: String, alive: () -> Boolean) {

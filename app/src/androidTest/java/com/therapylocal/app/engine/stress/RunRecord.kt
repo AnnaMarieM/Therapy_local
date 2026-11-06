@@ -51,6 +51,9 @@ class RunRecord : TestWatcher() {
     /** Free-form top-level section (`ui`, `memory`, `guard`, `fds`, `story`, `excerpts`), as the schema names them. */
     fun section(name: String, value: Any) { extra.put(name, value) }
 
+    /** True when a test (or the lab) already wrote the section [name], so the lab does not overwrite a test's own `story`. */
+    fun hasSection(name: String) = extra.has(name)
+
     override fun starting(d: Description) { startedAt = System.nanoTime() }
 
     override fun failed(e: Throwable, d: Description) {
