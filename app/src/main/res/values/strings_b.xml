@@ -2,6 +2,9 @@
 <resources>
     <!-- settings -->
     <string name="settings_title">Settings</string>
+    <string name="settings_group_display">Display</string>
+    <string name="settings_keep_screen_on_title">Keep screen awake</string>
+    <string name="settings_keep_screen_on_body">Prevents the screen from dimming or locking while using %1$s. Always stays awake while recording.</string>
     <string name="settings_group_privacy">Privacy</string>
     <string name="settings_group_notifications">Notifications</string>
     <string name="settings_group_processing">Processing</string>

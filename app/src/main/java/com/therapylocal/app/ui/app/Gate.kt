@@ -439,6 +439,23 @@ private fun OfferBiometric(onDone: () -> Unit) {
     }
 }
 
+/** A quiet row of the languages on the lock screen, so the app can be switched before signing in. */
+@Composable
+private fun LanguageSwitch(activity: androidx.fragment.app.FragmentActivity?) {
+    val selected = LocaleStore.current(LocalContext.current).tag
+    Row(Modifier.fillMaxWidth().padding(top = 18.dp), horizontalArrangement = Arrangement.spacedBy(18.dp)) {
+        Languages.all.forEach { language ->
+            val on = language.tag == selected
+            TextAction(
+                language.nativeName,
+                { if (!on && activity != null) LocaleStore.choose(activity, language.tag) },
+                modifier = Modifier.semantics { this.selected = on },
+                color = if (on) Palette.Ink else Palette.InkSoft,
+            )
+        }
+    }
+}
+
 @Composable
 private fun Unlock(onOpen: () -> Unit, onErased: () -> Unit) {
     val ctx = LocalContext.current
@@ -500,11 +517,14 @@ private fun Unlock(onOpen: () -> Unit, onErased: () -> Unit) {
             error = ctx.getString(R.string.gate_bio_failed)
         }
     }
-    LaunchedEffect(Unit) { if (biometric) withBiometric() }
+    // Not again after a language switch recreates the screen.
+    var prompted by rememberSaveable { mutableStateOf(false) }
+    LaunchedEffect(Unit) { if (biometric && !prompted) { prompted = true; withBiometric() } }
 
     Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().imePadding()) {
         Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 26.dp), verticalArrangement = Arrangement.Center) {
-            Spacer(Modifier.height(60.dp))
+            LanguageSwitch(activity)
+            Spacer(Modifier.height(28.dp))
             Label(stringResource(R.string.gate_locked_kicker))
             Spacer(Modifier.height(18.dp))
             Text(stringResource(R.string.app_name), style = Type.Hero, color = Palette.Ink)

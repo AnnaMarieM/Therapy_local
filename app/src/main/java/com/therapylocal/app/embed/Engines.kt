@@ -21,4 +21,15 @@ object Engines {
     fun resume() {
         embedder?.resume()
     }
+
+    /** Proactively frees the embedder if idle when the system reports memory pressure. */
+    fun onLowMemory() {
+        embedder?.let { e ->
+            if (!com.therapylocal.app.jobs.JobRunner.recordingActive) {
+                e.close()
+                com.therapylocal.app.log.AppLog.w("Memory", "proactive_embedder_unload", com.therapylocal.app.log.LogCtx.NONE)
+            }
+        }
+        System.gc()
+    }
 }

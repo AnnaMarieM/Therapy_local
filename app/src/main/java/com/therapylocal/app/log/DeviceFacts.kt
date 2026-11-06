@@ -32,6 +32,9 @@ object DeviceFacts {
                 "low_memory" to mem.lowMemory,
                 "storage_free_mb" to (ext?.usableSpace ?: 0L) / MB,
                 "cpu_cores" to Runtime.getRuntime().availableProcessors(),
+                "tier" to com.therapylocal.app.memory.DeviceMemory.tier(context).name.lowercase(),
+                "mali_or_tensor" to com.therapylocal.app.memory.DeviceMemory.isMaliOrTensor(),
+                "embedder_gpu_allowed" to com.therapylocal.app.memory.DeviceMemory.allowEmbedderGpu(context),
             ),
         )
         // Cheap availability hints. The real answer is whichever backend actually loads (see Engine/Embed spans).
