@@ -7,12 +7,17 @@ import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -478,6 +483,8 @@ private fun Unlock(onOpen: () -> Unit, onErased: () -> Unit, onResetPassword: ()
     val haptics = rememberHaptics()
     val bar = rememberChoiceState()
     var password by remember { mutableStateOf("") }
+    var focused by remember { mutableStateOf(false) }
+    val isTyping = password.isNotEmpty() || focused
     var busy by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
     var forgot by remember { mutableStateOf(false) }
@@ -581,21 +588,24 @@ private fun Unlock(onOpen: () -> Unit, onErased: () -> Unit, onResetPassword: ()
                     enabled = !busy,
                     error = error != null,
                     onIme = withPassword,
+                    onFocusChanged = { focused = it },
                     trailing = {
-                        Box(
-                            Modifier
-                                .size(36.dp)
-                                .clip(CircleShape)
-                                .background(if (password.isNotEmpty()) Palette.Ink else Palette.Tonal)
-                                .pressable(onClick = withPassword, label = stringResource(R.string.gate_submit_password), depth = 0.04f),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Icon(
-                                Icons.AutoMirrored.Rounded.ArrowForward,
-                                contentDescription = stringResource(R.string.gate_submit_password),
-                                tint = if (password.isNotEmpty()) Palette.Paper else Palette.InkSoft,
-                                modifier = Modifier.size(20.dp),
-                            )
+                        if (password.isNotEmpty()) {
+                            Box(
+                                Modifier
+                                    .size(36.dp)
+                                    .clip(CircleShape)
+                                    .background(Palette.Ink)
+                                    .pressable(onClick = withPassword, label = stringResource(R.string.gate_submit_password), depth = 0.04f),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                Icon(
+                                    Icons.AutoMirrored.Rounded.ArrowForward,
+                                    contentDescription = stringResource(R.string.gate_submit_password),
+                                    tint = Palette.Paper,
+                                    modifier = Modifier.size(20.dp),
+                                )
+                            }
                         }
                     },
                 )
@@ -624,38 +634,45 @@ private fun Unlock(onOpen: () -> Unit, onErased: () -> Unit, onResetPassword: ()
             }
             Spacer(Modifier.height(40.dp))
         }
-        ChoiceBar(
-            bar,
-            left = null,
-            right = if (biometric && password.isEmpty()) {
-                Choice(
-                    stringResource(R.string.gate_unlock_with_fingerprint),
-                    stringResource(R.string.gate_release_fingerprint),
-                    Palette.Ink,
-                    Palette.Paper,
-                    enabled = !busy,
-                    swipe = false,
-                ) { withBiometric() }
-            } else {
-                Choice(
-                    stringResource(if (busy) R.string.gate_opening else R.string.gate_unlock_with_password),
-                    stringResource(R.string.gate_release_unlock),
-                    Palette.Ink,
-                    Palette.Paper,
-                    enabled = !busy,
-                    swipe = false,
-                ) { withPassword() }
-            },
-            modifier = Modifier.padding(14.dp).axisDrag(axisDragHandler(
-                accepts = { a, _, _ -> a == Axis.Horizontal && !busy },
-                onDrag = { _, t, _ -> bar.drag(t) { s -> s == Side.Right } },
-                onEnd = { _, _, _ ->
-                    if (bar.release() == Side.Right) {
-                        if (biometric && password.isEmpty()) withBiometric() else withPassword()
-                    }
+        val showBar = biometric || isTyping
+        AnimatedVisibility(
+            visible = showBar,
+            enter = fadeIn(tween(200)) + slideInVertically(tween(250)) { it / 2 },
+            exit = fadeOut(tween(150)) + slideOutVertically(tween(200)) { it / 2 },
+        ) {
+            ChoiceBar(
+                bar,
+                left = null,
+                right = if (biometric && !isTyping) {
+                    Choice(
+                        stringResource(R.string.gate_unlock_with_fingerprint),
+                        stringResource(R.string.gate_release_fingerprint),
+                        Palette.Ink,
+                        Palette.Paper,
+                        enabled = !busy,
+                        swipe = false,
+                    ) { withBiometric() }
+                } else {
+                    Choice(
+                        stringResource(if (busy) R.string.gate_opening else R.string.gate_unlock_with_password),
+                        stringResource(R.string.gate_release_unlock),
+                        Palette.Ink,
+                        Palette.Paper,
+                        enabled = !busy,
+                        swipe = false,
+                    ) { withPassword() }
                 },
-            )),
-        )
+                modifier = Modifier.padding(14.dp).axisDrag(axisDragHandler(
+                    accepts = { a, _, _ -> a == Axis.Horizontal && !busy },
+                    onDrag = { _, t, _ -> bar.drag(t) { s -> s == Side.Right } },
+                    onEnd = { _, _, _ ->
+                        if (bar.release() == Side.Right) {
+                            if (biometric && !isTyping) withBiometric() else withPassword()
+                        }
+                    },
+                )),
+            )
+        }
     }
 
     if (confirmErase) ConfirmDialog(
