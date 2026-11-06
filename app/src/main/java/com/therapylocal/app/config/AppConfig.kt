@@ -157,4 +157,10 @@ object LiveCueConfig {
 object EngineConfig {
     /** The emergency switch from AD-01: forces `LocalEngineHost` everywhere. */
     val IN_PROCESS: Boolean = com.therapylocal.app.BuildConfig.ENGINE_IN_PROCESS
+
+    /** The one inline limit: a string or PCM over this many bytes (UTF-8 for strings) goes through shared memory. */
+    const val INLINE_MAX_BYTES = 128 * 1024
+
+    /** Debug check on a finished Bundle (a parcelled String is UTF-16, so inline strings count double); the binder limit is about 1 MB. */
+    const val BUNDLE_DEBUG_MAX_BYTES = 768 * 1024
 }

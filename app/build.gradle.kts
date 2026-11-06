@@ -13,6 +13,7 @@ val appName = "MnemoThera"
 android {
     namespace = "com.therapylocal.app"
     compileSdk = 34
+    buildToolsVersion = "35.0.0" // the build tools of docker/Dockerfile (BUILD_TOOLS), so the pinned image never downloads another
 
     defaultConfig {
         applicationId = "com.therapylocal.app"
@@ -68,9 +69,12 @@ android {
     // jvmTarget is set via the kotlin { compilerOptions } block below
     // The memory prompts ship in the app (assets/prompts/), so processing works on a fresh install without pushing files.
     sourceSets.getByName("main").assets.srcDir(layout.buildDirectory.dir("generated/promptAssets"))
+    // The fault seam: debug has the real Faults (src/debug); every other build type gets the no-op copy.
+    for (bt in listOf("release", "feel", "qa")) sourceSets.getByName(bt).java.srcDir("src/noFaults/java")
     buildFeatures {
         compose = true
         buildConfig = true
+        aidl = true
     }
     lint {
         // The Compose runtime lint jar bundles an old kotlinx-metadata and crashes on Kotlin 2.4 types (LiteRT-LM needs Kotlin 2.4).
