@@ -8,7 +8,7 @@ plugins {
 }
 
 // The one place the app's name lives: the launcher label, notifications and every screen read it as @string/app_name.
-val appName = "Mnemothera"
+val appName = "MnemoThera"
 
 android {
     namespace = "com.therapylocal.app"

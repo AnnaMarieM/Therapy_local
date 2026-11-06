@@ -170,6 +170,9 @@ class ProfileUiTest {
         prefs().edit().remove(LiveCueSettings.KEY_LOOKBACK_S).commit()
         compose.setContent { PaperTheme { SettingsSheet(rememberSheetState(), 0, {}, {}, null, {}, remember { NoticeState() }) } }
 
+        compose.onAllNodes(hasScrollToNodeAction()).onFirst().performScrollToNode(hasText("Technical settings"))
+        compose.onNode(hasText("Technical settings")).performClick()
+
         compose.onAllNodes(hasScrollToNodeAction()).onFirst().performScrollToNode(hasContentDescription("Listens back"))
         compose.onNode(hasContentDescription("Listens back")).performSemanticsAction(SemanticsActions.SetProgress) { it(LOOKBACK.toFloat()) }
 
