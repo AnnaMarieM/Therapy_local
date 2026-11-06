@@ -1,33 +1,32 @@
-.gradle/
+
+app/libs/
 build/
-local.properties
-.idea/
-*.iml
-*.litertlm
-.kotlin/
 captures/
 .claude/worktrees/
-app/libs/
-node_modules/
-**/node_modules/
-dist/
-**/dist/
-.tempmediaStorage/
-.env
-.env.local
-.env.*.local
-*.env
-
-# Personal opencode skills (never commit)
-.opencode/skills/local/
-__pycache__/
-
-# local tooling
-/toolchains/
-/orchestration/
-/.opencode/
 /.cortex/
-
+**/dist/
+dist/
+.env
+*.env
+.env.*.local
+.env.local
+.gradle/
+.idea/
+*.iml
+.kotlin/
+*.litertlm
+local.properties
 # Local speech test audio, including any real session recordings pulled for debugging: never commit.
+# local tooling
+**/node_modules/
+node_modules/
+/.opencode/
+.opencode/skills/local/
+/orchestration/
+# Personal opencode skills (never commit)
+*.pyc
+__pycache__/
 qa/eval-audio/
 qa/eval-private/
+.tempmediaStorage/
+/toolchains/

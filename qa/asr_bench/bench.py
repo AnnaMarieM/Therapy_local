@@ -79,6 +79,7 @@ def main():
     a.add_argument("--model-dir", required=True)
     a.add_argument("--name", default="")
     a.add_argument("--language", default="cs")
+    a.add_argument("--dataset", default="", help="label stored in the result, e.g. fleurs or voxpopuli")
     a.add_argument("--clips", required=True)
     a.add_argument("--out", required=True)
     a.add_argument("--threads", type=int, default=4)
@@ -110,7 +111,7 @@ def main():
         total += n
         clips.append({"clip": os.path.basename(f), "wer": round(100 * e / max(n, 1), 1), "ref": ref, "hyp": hyp})
     label = args.name or "parakeet-tdt-0.6b-v3"
-    result = {"model": f"whisper-{label}" if args.engine == "whisper" else label, "engine": args.engine, "language": args.language,
+    result = {"model": f"whisper-{label}" if args.engine == "whisper" else label, "engine": args.engine, "language": args.language, "dataset": args.dataset,
               "wer": round(100 * errors / max(total, 1), 2), "words": total, "clips": len(files),
               "rtf": round(decode / max(audio, 1e-9), 3), "audio_sec": round(audio, 1), "details": clips}
     os.makedirs(os.path.dirname(os.path.abspath(args.out)), exist_ok=True)

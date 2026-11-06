@@ -33,29 +33,34 @@ def float_wav_to_pcm16(raw, dst):
 
 
 BASE = "https://huggingface.co/datasets/google/fleurs/resolve/main/data/cs_cz"
-a = argparse.ArgumentParser(); a.add_argument("--count", type=int, required=True); a.add_argument("--out", required=True)
-args = a.parse_args()
-os.makedirs(args.out, exist_ok=True)
-here = os.path.dirname(os.path.abspath(__file__))
-fetch = os.path.join(here, "..", "fetch.sh")
-for url, out in ((f"{BASE}/test.tsv", "test.tsv"), (f"{BASE}/audio/test.tar.gz", "test.tar.gz")):
-    subprocess.run([fetch, url, out], check=True)
-rows = list(csv.reader(open("test.tsv", encoding="utf-8"), delimiter="\t"))
-random.Random(11).shuffle(rows)
-want, seen = {}, set()
-for r in rows:
-    if r[1] not in seen:
-        seen.add(r[1]); want[r[1]] = r[2]
-    if len(want) == args.count:
-        break
-done = 0
-with tarfile.open("test.tar.gz", "r:gz") as t:
-    for m in t:
-        b = os.path.basename(m.name)
-        if b in want:
-            dst = os.path.join(args.out, f"cs_fleurs_{done:03d}")
-            float_wav_to_pcm16(t.extractfile(m).read(), dst + ".wav")
-            open(dst + ".txt", "w", encoding="utf-8").write(want[b]); done += 1
-            if done == len(want):
-                break
-print(f"{done} clips in {args.out}")
+def main():
+    a = argparse.ArgumentParser(); a.add_argument("--count", type=int, required=True); a.add_argument("--out", required=True)
+    args = a.parse_args()
+    os.makedirs(args.out, exist_ok=True)
+    here = os.path.dirname(os.path.abspath(__file__))
+    fetch = os.path.join(here, "..", "fetch.sh")
+    for url, out in ((f"{BASE}/test.tsv", "test.tsv"), (f"{BASE}/audio/test.tar.gz", "test.tar.gz")):
+        subprocess.run([fetch, url, out], check=True)
+    rows = list(csv.reader(open("test.tsv", encoding="utf-8"), delimiter="\t"))
+    random.Random(11).shuffle(rows)
+    want, seen = {}, set()
+    for r in rows:
+        if r[1] not in seen:
+            seen.add(r[1]); want[r[1]] = r[2]
+        if len(want) == args.count:
+            break
+    done = 0
+    with tarfile.open("test.tar.gz", "r:gz") as t:
+        for m in t:
+            b = os.path.basename(m.name)
+            if b in want:
+                dst = os.path.join(args.out, f"cs_fleurs_{done:03d}")
+                float_wav_to_pcm16(t.extractfile(m).read(), dst + ".wav")
+                open(dst + ".txt", "w", encoding="utf-8").write(want[b]); done += 1
+                if done == len(want):
+                    break
+    print(f"{done} clips in {args.out}")
+
+
+if __name__ == "__main__":
+    main()

@@ -1,7 +1,9 @@
 name: ASR benchmark
 
-# Word error rate and speed of every speech model we could use, on public Czech speech (Google FLEURS cs_cz), one runner per model.
-# Only public audio goes here: this repo and its runners are public, so never add real session recordings to this workflow.
+# Word error rate and speed of every speech model we could use, on public Czech speech, one runner per model. Two datasets, because a model
+# that does well on clean read speech can still fall apart on real speech: Google FLEURS cs_cz (read sentences) and VoxPopuli cs (European
+# Parliament speeches: real microphones, natural pace; CC0, human-verified transcripts).
+# Only public audio goes here: this repo and its runners are public, so never add real session recordings or TV/broadcast audio.
 # Run it from the Actions tab (workflow_dispatch), or by touching qa/asr_bench/ in a pull request.
 on:
   workflow_dispatch:
@@ -9,6 +11,9 @@ on:
       clips:
         description: "How many FLEURS clips to score (60 is the default; 24 is quick, 200 gives the steadiest numbers)"
         default: "60"
+      vox_clips:
+        description: "How many VoxPopuli parliament-speech clips to score (about 11 s each; one per speaker, 48 at most)"
+        default: "48"
   pull_request:
     paths: ["qa/asr_bench/**", ".github/workflows/asr-bench.yml"]
 
@@ -18,15 +23,23 @@ concurrency:
 
 env:
   CLIPS: ${{ github.event.inputs.clips || '60' }}
+  VOX_CLIPS: ${{ github.event.inputs.vox_clips || '48' }}
 
 jobs:
   # The test speech is built once and shared: random FLEURS clips with their reference text, cut to 16 kHz mono.
   clips:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
-      - run: python3 qa/asr_bench/fleurs.py --count "$CLIPS" --out clips
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pyarrow
+      - name: FLEURS (read sentences)
+        run: python3 qa/asr_bench/fleurs.py --count "$CLIPS" --out clips/fleurs
+      - name: VoxPopuli (parliament speeches)
+        run: python3 qa/asr_bench/voxpopuli.py --count "$VOX_CLIPS" --out clips/voxpopuli
       - uses: actions/upload-artifact@v4
         with:
           name: clips
@@ -36,7 +49,7 @@ jobs:
   bench:
     needs: clips
     runs-on: ubuntu-latest   # 4 vCPU on public repos: free and unlimited
-    timeout-minutes: 150
+    timeout-minutes: 240
     strategy:
       fail-fast: false       # one model failing must not hide the others
       matrix:
@@ -85,15 +98,17 @@ jobs:
           name: clips
           path: clips
 
-      - name: Score
+      - name: Score both datasets
         run: |
-          python qa/asr_bench/bench.py --engine ${{ matrix.engine }} --name "${{ matrix.name }}" --language cs \
-            --model-dir models/${{ matrix.id }} --clips clips --threads 4 --out results/${{ matrix.id }}.json
+          for ds in fleurs voxpopuli; do
+            python qa/asr_bench/bench.py --engine ${{ matrix.engine }} --name "${{ matrix.name }}" --language cs --dataset $ds \
+              --model-dir models/${{ matrix.id }} --clips clips/$ds --threads 4 --out results/${{ matrix.id }}-$ds.json
+          done
 
       - uses: actions/upload-artifact@v4
         with:
           name: result-${{ matrix.id }}
-          path: results/${{ matrix.id }}.json
+          path: results/${{ matrix.id }}-*.json
           retention-days: 30
 
   report:
