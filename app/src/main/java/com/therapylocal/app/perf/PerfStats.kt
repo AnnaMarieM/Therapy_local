@@ -2,6 +2,7 @@ package com.therapylocal.app.perf
 
 import android.content.Context
 import android.content.SharedPreferences
+import com.therapylocal.app.jobs.JobGraph
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -19,7 +20,19 @@ data class LlmCall(
 data class LiveSpeed(val prefillTokS: Double, val decodeTokS: Double, val promptTokens: Int, val atMs: Long)
 
 /** What finished sessions took, per minute of interview: the basis for time left on sessions that have not started. */
-data class PerMinute(val sessions: Int, val processingMs: Double, val promptTokens: Double, val decodeTokens: Double)
+data class PerMinute(
+    val sessions: Int,
+    val processingMs: Double,
+    val promptTokens: Double,
+    val decodeTokens: Double,
+    /** Model calls per minute of interview, and the average wall time of one: the basis for work that starts from the stored transcript. */
+    val callsPerMinute: Double = 0.0,
+    val msPerCall: Double = 0.0,
+) {
+    /** Time to read [transcriptMs] of interview again from its transcript (no speech recognition), unpadded; null if no calls were measured. */
+    fun rereadMs(transcriptMs: Long): Long? =
+        if (callsPerMinute <= 0 || msPerCall <= 0) null else (transcriptMs / 60_000.0 * callsPerMinute * msPerCall).toLong()
+}
 
 /**
  * How fast this phone processes sessions, measured and kept so a status can show evidence instead of guesses: every model call's tokens
@@ -28,7 +41,7 @@ data class PerMinute(val sessions: Int, val processingMs: Double, val promptToke
  */
 object PerfStats {
     /** Sessions measured before a time left is promised for one that has not started. */
-    const val MIN_SESSIONS = 2
+    const val MIN_SESSIONS = 1
 
     private const val PREFS = "perf"
     private var prefs: SharedPreferences? = null
@@ -41,7 +54,7 @@ object PerfStats {
     val version: StateFlow<Int> = _version.asStateFlow()
 
     /** Per running session (in memory only): tokens and time so far. */
-    private class Running(var promptTokens: Long = 0, var decodeTokens: Long = 0, var wallMs: Long = 0, var calls: Int = 0)
+    private class Running(var promptTokens: Long = 0, var decodeTokens: Long = 0, var wallMs: Long = 0, var calls: Int = 0, var callMs: Long = 0, var extracts: Int = 0)
     private val running = HashMap<String, Running>()
     private var current: String? = null
     private var currentKind: String = "other"
@@ -60,7 +73,10 @@ object PerfStats {
 
     @Synchronized
     fun jobEnded(sessionId: String, wallMs: Long) {
-        running.getOrPut(sessionId) { Running() }.wallMs += wallMs
+        running.getOrPut(sessionId) { Running() }.apply {
+            this.wallMs += wallMs
+            if (currentKind == JobGraph.EXTRACT) extracts++
+        }
         if (current == sessionId) current = null
     }
 
@@ -75,17 +91,20 @@ object PerfStats {
             .putLong("$k|decode", p.getLong("$k|decode", 0) + c.decodeTokens)
             .putLong("$k|wall", p.getLong("$k|wall", 0) + c.wallMs)
             .apply()
-        current?.let { s -> running.getOrPut(s) { Running() }.apply { promptTokens += c.promptTokens; decodeTokens += c.decodeTokens; calls++ } }
+        current?.let { s -> running.getOrPut(s) { Running() }.apply { promptTokens += c.promptTokens; decodeTokens += c.decodeTokens; calls++; callMs += c.wallMs } }
         _live.value = LiveSpeed(c.prefillTokS, c.decodeTokS, c.promptTokens, System.currentTimeMillis())
         _version.value++
     }
 
-    /** All of a session's jobs are done: what its [audioMs] of interview cost, per minute, joins the history. */
+    /**
+     * All of a session's jobs are done: what its [audioMs] of interview cost, per minute, joins the history. Only when this run saw all
+     * [windows] extract jobs: a session that was picked up again part-way, or only committed again, would count as far quicker than it is.
+     */
     @Synchronized
-    fun sessionDone(sessionId: String, model: String, audioMs: Long) {
+    fun sessionDone(sessionId: String, model: String, audioMs: Long, windows: Int) {
         val r = running.remove(sessionId) ?: return
         val p = prefs ?: return
-        if (audioMs < 30_000 || r.wallMs <= 0) return // too short to say anything per minute
+        if (audioMs < 30_000 || r.wallMs <= 0 || windows <= 0 || r.extracts < windows || r.calls <= 0) return // too short, or not all of it was seen
         val k = "session|$model"
         p.edit()
             .putLong("$k|count", p.getLong("$k|count", 0) + 1)
@@ -93,6 +112,8 @@ object PerfStats {
             .putLong("$k|wall", p.getLong("$k|wall", 0) + r.wallMs)
             .putLong("$k|prompt", p.getLong("$k|prompt", 0) + r.promptTokens)
             .putLong("$k|decode", p.getLong("$k|decode", 0) + r.decodeTokens)
+            .putLong("$k|calls", p.getLong("$k|calls", 0) + r.calls)
+            .putLong("$k|callms", p.getLong("$k|callms", 0) + r.callMs)
             .apply()
         _version.value++
     }
@@ -115,7 +136,11 @@ object PerfStats {
         val n = p.getLong("$k|count", 0).toInt()
         val minutes = p.getLong("$k|audio", 0) / 60_000.0
         if (n < MIN_SESSIONS || minutes <= 0) return null
-        return PerMinute(n, p.getLong("$k|wall", 0) / minutes, p.getLong("$k|prompt", 0) / minutes, p.getLong("$k|decode", 0) / minutes)
+        val calls = p.getLong("$k|calls", 0)
+        return PerMinute(
+            n, p.getLong("$k|wall", 0) / minutes, p.getLong("$k|prompt", 0) / minutes, p.getLong("$k|decode", 0) / minutes,
+            callsPerMinute = calls / minutes, msPerCall = if (calls > 0) p.getLong("$k|callms", 0).toDouble() / calls else 0.0,
+        )
     }
 
     /** Sessions measured so far on [model]. */
