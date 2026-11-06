@@ -71,3 +71,33 @@ jobs:
           name: android-test-report
           path: app/build/reports/androidTests/connected
           retention-days: 7
+
+  # Rolling "main" prerelease holding the latest APK. Reuses the APK built above and
+  # waits for unit and emulator tests, so the build runs in parallel with them.
+  release-main:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [build, android-test]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    concurrency:
+      group: release-main
+      cancel-in-progress: false
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: app-debug
+      - name: Replace the "main" release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          mv app-debug.apk Therapy-main.apk
+          # Drop the previous release and its tag so no old builds are kept
+          gh release delete main --cleanup-tag --yes || true
+          gh release create main Therapy-main.apk \
+            --target "$GITHUB_SHA" \
+            --prerelease \
+            --title "Latest main build" \
+            --notes "Automated build of \`main\` at ${GITHUB_SHA}. Replaced on every push to main."
