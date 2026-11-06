@@ -5,6 +5,7 @@ import com.therapylocal.app.asr.SpeechRecogniser
 import com.therapylocal.app.config.EmbeddingConfig
 import com.therapylocal.app.config.MemoryConfig
 import com.therapylocal.app.embed.Embedder
+import com.therapylocal.app.engine.LabWiring
 import com.therapylocal.app.jobs.Asr
 import com.therapylocal.app.jobs.Embed
 import com.therapylocal.app.jobs.ModelPool
@@ -17,10 +18,10 @@ import kotlinx.coroutines.runBlocking
 object DeviceModels {
     /** [contextNeeded]: the context the open work needs, counted from its prompts before the LLM is loaded (see [com.therapylocal.app.jobs.Pipeline.requiredContext]). */
     fun pool(context: Context, contextNeeded: () -> Int = { MemoryConfig.LLM_MAX_TOKENS }): ModelPool = ModelPool(
-        loadLlm = { ctx -> MemoryLlm(context, ctx, ModelSetup.gemma(context)).apply { load() } },
+        loadLlm = { ctx -> MemoryLlm(context, ctx, LabWiring.spec(ModelSetup.gemma(context))).apply { load() } },
         loadEmbed = { embed(context) },
         loadAsr = { language -> asr(context, language) },
-        llmModel = { ModelSetup.gemma(context).id },
+        llmModel = { LabWiring.spec(ModelSetup.gemma(context)).id },
         contextNeeded = contextNeeded,
         baseContext = MemoryConfig.LLM_MAX_TOKENS,
     )

@@ -644,6 +644,22 @@ class EngineConnection(
         if (g.pid == 0) triggerFinalize(g, "stopped_before_connect")
     }
 
+    /**
+     * Debug lab (`EngineLabKills`, catalogue B10 and F03): tags the current generation's coming end as [kind] with reason [why] and returns
+     * its pid, or null when no host is bound or its end is already tagged. The caller then kills the process. The same mechanism as an idle
+     * or timeout kill, so main has no other test code.
+     */
+    fun expectedExit(kind: ExitKind, why: String): Int? {
+        val g = lock.withLock {
+            val g = cur?.takeIf { it.phase == P.BOUND && it.expected == null } ?: return null
+            g.expected = Expected(kind, why, "$why kill", false)
+            g
+        }
+        ev('e', EngineEvents.KILL, "host_pid" to g.pid, "why" to why, "gen" to g.n)
+        log.flush()
+        return g.pid
+    }
+
     /** Ends the host without waiting (the settings screen, `Engines.suspend`). Never blocks. */
     fun release() {
         val g = lock.withLock { cur?.takeIf { it.phase == P.BOUND || it.phase == P.BINDING }?.also { beginStopLocked(it, "release") } } ?: return

@@ -3,6 +3,8 @@ package com.therapylocal.app.engine.runner
 import android.util.Log
 import com.therapylocal.app.engine.CallTag
 import com.therapylocal.app.engine.EngineKind
+import com.therapylocal.app.engine.EngineOp
+import com.therapylocal.app.engine.EngineReply
 import com.therapylocal.app.engine.PhaseSink
 import com.therapylocal.app.log.AppLog
 import com.therapylocal.app.log.LogCtx
@@ -17,6 +19,14 @@ internal interface Runner {
     /** Releases the native engine. Never throws; logs its own failures. */
     fun close(tag: CallTag)
 }
+
+/** What a host can ask of a loaded engine. The real runners and the debug fakes (src/debug) implement them, so the server never names a class. */
+internal interface AskEngine : Runner { fun ask(op: EngineOp.Ask): EngineReply.Text }
+internal interface EmbedEngine : Runner {
+    fun embedText(op: EngineOp.EmbedText): EngineReply.Vector
+    fun embedAudio(op: EngineOp.EmbedAudio): EngineReply.Vector
+}
+internal interface AsrEngine : Runner { fun transcribe(op: EngineOp.Transcribe): EngineReply.Text }
 
 internal typealias Fields = Array<Pair<String, Any?>>
 

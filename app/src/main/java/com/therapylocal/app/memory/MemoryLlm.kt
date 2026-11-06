@@ -154,7 +154,10 @@ class MemoryLlm(
         const val TAG = "Memory"
 
         /** Why [name] is not tried now, or null. Accelerators that take the model's memory from the system (GPU, NPU) need it free. The check is system-wide, so main is right. */
-        internal fun memoryGate(context: Context, spec: ModelSpec, name: String): String? {
+        internal fun memoryGate(context: Context, spec: ModelSpec, name: String): String? =
+            com.therapylocal.app.engine.LabWiring.gate(realMemoryGate(context, spec, name))
+
+        private fun realMemoryGate(context: Context, spec: ModelSpec, name: String): String? {
             Accelerators.unavailable(context, name, spec.id, ModelRuntime.LITERT)?.let { return it }
             if (BackendPolicy.forcing()) { AppLog.w(TAG, "backend_memory_gate_forced", LogCtx.NONE, "backend_try" to name); return null }
             if (Accelerators.get(name)?.takesSystemMemory != true) return null

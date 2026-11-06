@@ -4,7 +4,10 @@ import android.content.Context
 import android.os.Debug
 import android.os.Process
 import android.os.SystemClock
+import com.therapylocal.app.engine.runner.AskEngine
+import com.therapylocal.app.engine.runner.AsrEngine
 import com.therapylocal.app.engine.runner.CanaryRunner
+import com.therapylocal.app.engine.runner.EmbedEngine
 import com.therapylocal.app.engine.runner.EmbedRunner
 import com.therapylocal.app.engine.runner.LlmRunner
 import com.therapylocal.app.engine.runner.Runner
@@ -28,29 +31,42 @@ class EngineServer(private val context: Context, private val role: EngineRole, p
 
     fun handle(op: EngineOp, phases: PhaseSink = PhaseSink { _, _, _, _ -> }): EngineReply {
         if (lowerPriority && lowersPriority(op)) Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND)
-        Faults.at("before:${op.tag.op}", role, op)
+        // Fault hooks (S11): no-ops in release, feel and qa. The model and backend of the handle let a rule name them.
+        val r = handleOf(op)?.let { handles[it] }
+        val model = (op as? EngineOp.Open)?.model ?: r?.model
+        val backend = (op as? EngineOp.Open)?.backend ?: r?.backend
+        Faults.at("before:${op.tag.op}", role, op, model, backend)
         val reply = dispatch(op, phases)
-        Faults.at("after:${op.tag.op}", role, op)
-        return reply
+        Faults.at("after:${op.tag.op}", role, op, model, backend)
+        return Faults.reply(role, op, reply)
+    }
+
+    private fun handleOf(op: EngineOp): Int? = when (op) {
+        is EngineOp.Ask -> op.handle
+        is EngineOp.EmbedText -> op.handle
+        is EngineOp.EmbedAudio -> op.handle
+        is EngineOp.Transcribe -> op.handle
+        is EngineOp.Close -> op.handle
+        else -> null
     }
 
     private fun dispatch(op: EngineOp, phases: PhaseSink): EngineReply {
         return when (op) {
             is EngineOp.Open -> open(op, phases)
             is EngineOp.Ask -> {
-                val llm = runner<LlmRunner>(op.handle, op.tag)
+                val llm = runner<AskEngine>(op.handle, op.tag)
                 synchronized(llm) { AppLog.spanRedacted(TAG, "host_ask", LogCtx.NONE, *callFields(op.tag, op.handle)) { llm.ask(op) } }
             }
             is EngineOp.EmbedText -> {
-                val e = runner<EmbedRunner>(op.handle, op.tag)
+                val e = runner<EmbedEngine>(op.handle, op.tag)
                 synchronized(e) { e.embedText(op) }
             }
             is EngineOp.EmbedAudio -> {
-                val e = runner<EmbedRunner>(op.handle, op.tag)
+                val e = runner<EmbedEngine>(op.handle, op.tag)
                 synchronized(e) { e.embedAudio(op) }
             }
             is EngineOp.Transcribe -> {
-                val c = runner<CanaryRunner>(op.handle, op.tag)
+                val c = runner<AsrEngine>(op.handle, op.tag)
                 synchronized(c) { c.transcribe(op) }
             }
             is EngineOp.Close -> close(op)
@@ -75,17 +91,18 @@ class EngineServer(private val context: Context, private val role: EngineRole, p
             AppLog.w(TAG, EngineEvents.ROLE_VIOLATION, LogCtx.NONE, "kind" to op.kind.name, "text_only" to op.textOnly, "role" to role.proc, *callFields(op.tag))
             throw IllegalArgumentException("kind ${op.kind} not served by role ${role.proc}")
         }
-        Faults.at("before_open", role, op)
+        Faults.at("before_open", role, op, op.model, op.backend)
         // The fault hook for "phase:<p>" fires after main has heard of the step and the host has logged and flushed it.
         val sink = PhaseSink { t, m, b, p ->
             phases.phase(t, m, b, p)
-            Faults.at("phase:$p", role, op)
+            Faults.at("phase:$p", role, op, op.model, op.backend)
         }
         val f = callFields(op.tag)
         AppLog.i(TAG, EngineEvents.HOST_OPEN, LogCtx.NONE, "model" to op.model, "backend_try" to op.backend, "kind" to op.kind.name, *f)
         return AppLog.span(TAG, "host_open", LogCtx.NONE, "model" to op.model, "backend_try" to op.backend, *f) { span ->
             // Each runner closes whatever it created if a step fails, so a failed attempt leaves nothing behind and no handle.
-            val (runner, opened) = when (op.kind) {
+            // The fake-* model ids belong to the debug lab; the noFaults copy always answers null.
+            val (runner, opened) = Faults.runner(op, role, sink) ?: when (op.kind) {
                 EngineKind.LLM -> LlmRunner(context).let { it to it.open(op, sink) }
                 EngineKind.EMBED -> EmbedRunner(context, role, op.textOnly).let { it to it.open(op, sink) }
                 EngineKind.ASR -> CanaryRunner(context).let { it to it.open(op, sink) }

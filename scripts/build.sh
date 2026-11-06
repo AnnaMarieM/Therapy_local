@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # The one way to build. Developers and every CI job run this, so every APK comes from the same pinned container.
 # Usage: scripts/build.sh [full|fast]
-#   full (default)  clean, lint, unit tests, debug APK and test APK
+#   full (default)  clean, lint, unit tests, debug APK and test APK, then verifyNoFaultsInRelease over the release, feel and qa APKs
 #   fast            clean and the two APKs only
 # Output: dist/Therapy-main.apk, dist/Therapy-main-androidTest.apk, dist/Therapy-main.apk.sha256
 # Windows: use scripts/build.ps1 (same container, same docker/inside.sh).

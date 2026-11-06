@@ -71,6 +71,8 @@ class Embedder(
 ) : CueEmbedder {
     var backend: String = "none"
         private set
+    /** The embedder's model id; the debug lab swaps it for `fake-embed` (LabWiring). */
+    private val modelId = com.therapylocal.app.engine.LabWiring.model(EmbeddingConfig.MODEL_ID)
     val dim = EmbeddingConfig.DIM
 
     /** [EmbeddingConfig.MAX_TOKENS], lowered to the context the model reports. Known after [load]. */
@@ -129,8 +131,8 @@ class Embedder(
         if (handle != null) return
         withContext(com.therapylocal.app.jobs.ModelDispatchers.Compute) {
             val fileInfo = runCatching { ModelRegistry.EMBED.file(context, ModelRegistry.EMBED.files.first()).let { it.name to it.length() } }.getOrNull()
-            AppLog.span(TAG, "embed_load", LogCtx.NONE, "model" to EmbeddingConfig.MODEL_ID, "model_mb" to ((fileInfo?.second ?: 0L) shr 20), "dim" to dim) { span ->
-                val preferred = Accelerators.order(EmbeddingConfig.MODEL_ID, ModelRuntime.LITERT)
+            AppLog.span(TAG, "embed_load", LogCtx.NONE, "model" to modelId, "model_mb" to ((fileInfo?.second ?: 0L) shr 20), "dim" to dim) { span ->
+                val preferred = Accelerators.order(modelId, ModelRuntime.LITERT)
                 val candidates = if (forcedBackend != null) BackendPolicy.order(listOf(Accelerators.fallback.id), forcedBackend) else BackendPolicy.order(preferred)
                 val forced = forcedBackend != null || !BackendPolicy.override.equals("auto", ignoreCase = true)
                 AppLog.i(
@@ -153,7 +155,7 @@ class Embedder(
                         candidates = candidates,
                         respectBlocks = judged,
                         gate = { name -> gateFn(name, forced) },
-                        open = { name -> proxy.open(EngineKind.EMBED, EmbeddingConfig.MODEL_ID, guardModel, name, loadId = loadId, maxTokens = EmbeddingConfig.MAX_TOKENS, textOnly = textOnly) },
+                        open = { name -> proxy.open(EngineKind.EMBED, modelId, guardModel, name, loadId = loadId, maxTokens = EmbeddingConfig.MAX_TOKENS, textOnly = textOnly) },
                         close = { runCatching { proxy.closeNow(it.handle) } },
                     )
                 } catch (e: BackendLadder.NoBackend) {
@@ -183,14 +185,16 @@ class Embedder(
     }
 
     /** The model as [Backends.guard] keeps it: with the audio encoder it loads more, so it is proven separately. */
-    private val guardModel get() = if (textOnly) EmbeddingConfig.MODEL_ID else "${EmbeddingConfig.MODEL_ID}+audio"
+    private val guardModel get() = if (textOnly) modelId else "${modelId}+audio"
 
     /**
      * Why [name] is not tried now, or null. A [forced] backend (debug override) skips the device-class rule, never availability or the
      * free-memory check: GPU and NPU take their memory from the system, and running out there gets the app killed, not an exception.
      */
-    private fun memoryGate(name: String, forced: Boolean): String? {
-        Accelerators.unavailable(context, name, EmbeddingConfig.MODEL_ID, ModelRuntime.LITERT)?.let { return it }
+    private fun memoryGate(name: String, forced: Boolean): String? = com.therapylocal.app.engine.LabWiring.gate(realGate(name, forced))
+
+    private fun realGate(name: String, forced: Boolean): String? {
+        Accelerators.unavailable(context, name, modelId, ModelRuntime.LITERT)?.let { return it }
         if (BackendPolicy.forcing()) return null
         if (Accelerators.get(name)?.takesSystemMemory != true) return null
         if (SystemClock.elapsedRealtime() < cpuOnlyUntil) return "CPU only for a while after the system asked for memory"

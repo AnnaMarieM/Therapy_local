@@ -30,6 +30,7 @@ abstract class EngineHostService(private val role: EngineRole) : Service() {
     override fun onCreate() {
         super.onCreate()
         server = EngineServer(applicationContext, role, lowerPriority = true)
+        Faults.at("service_create", role, null)
         AppLog.i(TAG, EngineEvents.HOST_START, LogCtx.NONE, "role" to role.proc, "pid" to Process.myPid())
     }
 
@@ -69,7 +70,10 @@ abstract class EngineHostService(private val role: EngineRole) : Service() {
         override fun shutdown(reason: String?) = end(HostExit.SHUTDOWN, reason)
     }
 
-    override fun onBind(intent: Intent?): IBinder = binder
+    override fun onBind(intent: Intent?): IBinder {
+        Faults.at("bind", role, null)
+        return binder
+    }
 
     override fun onUnbind(intent: Intent?): Boolean {
         end(HostExit.UNBIND, null)
@@ -92,6 +96,7 @@ abstract class EngineHostService(private val role: EngineRole) : Service() {
      */
     private fun end(exit: HostExit, reason: String?) {
         if (!ended.compareAndSet(false, true)) return
+        if (exit == HostExit.SHUTDOWN) Faults.at("shutdown", role, null)
         if (exit == HostExit.CLIENT_DIED) AppLog.i(TAG, EngineEvents.HOST_CLIENT_DIED, LogCtx.NONE, "role" to role.proc)
         AppLog.i(TAG, EngineEvents.HOST_EXIT, LogCtx.NONE, "role" to role.proc, "why" to exit.why, "reason" to reason)
         AppLog.flush()

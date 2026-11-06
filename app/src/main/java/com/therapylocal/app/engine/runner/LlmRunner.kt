@@ -27,7 +27,7 @@ import com.therapylocal.app.perf.LlmCall
  * the memory gate, `PerfStats` and the health flag stay in the main process (`MemoryLlm`); a runner never touches them.
  */
 @OptIn(ExperimentalApi::class)
-internal class LlmRunner(private val context: Context) : Runner {
+internal class LlmRunner(private val context: Context) : AskEngine {
     override val kind = EngineKind.LLM
     override var model: String = ""
         private set
@@ -67,7 +67,7 @@ internal class LlmRunner(private val context: Context) : Runner {
     }
 
     /** One fresh conversation. [EngineOp.Ask.schema] switches on constrained decoding for this call only. */
-    fun ask(op: EngineOp.Ask): EngineReply.Text {
+    override fun ask(op: EngineOp.Ask): EngineReply.Text {
         val e = checkNotNull(engine) { "not loaded" }
         val t0 = System.nanoTime()
         // A global flag: switched off again afterwards, or every later conversation on the engine pays its ~4 s setup.

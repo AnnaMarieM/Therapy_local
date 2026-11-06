@@ -78,7 +78,7 @@ object ModelSetup {
 
     private fun prefs(context: Context) = context.applicationContext.getSharedPreferences("settings", Context.MODE_PRIVATE)
 
-    fun isReady(context: Context): Boolean = required(context).all { it.isReady(context) }
+    fun isReady(context: Context): Boolean = com.therapylocal.app.engine.LabWiring.ready(required(context).all { it.isReady(context) })
 
     fun start(context: Context) {
         val app = context.applicationContext

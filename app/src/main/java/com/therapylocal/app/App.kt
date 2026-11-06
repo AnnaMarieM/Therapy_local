@@ -19,6 +19,7 @@ class App : Application() {
         super.onCreate()
         val role = EngineProcess.current()
         AppLog.init(this, role?.proc ?: "main")
+        if (role != null) com.therapylocal.app.engine.Faults.hostStart(this, role)
         // An engine process holds patient text: its crash lines carry types and frames only.
         AppLog.installCrashHandler(redacted = role != null)
         if (role != null) {

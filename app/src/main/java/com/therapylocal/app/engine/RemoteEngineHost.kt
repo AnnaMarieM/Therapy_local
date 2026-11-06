@@ -127,7 +127,7 @@ class RemoteEngineHost(
             }
         }
 
-        private inner class Conn(val gen: Int) : android.content.ServiceConnection {
+        private inner class Conn(val gen: Int, val startNo: Int) : android.content.ServiceConnection {
             @Volatile var host: IEngineHost? = null
             @Volatile var unbound = false
             val death = IBinder.DeathRecipient { connExecutor.execute { listener.binderDied(gen) } }
@@ -138,6 +138,7 @@ class RemoteEngineHost(
                     val h = IEngineHost.Stub.asInterface(service)
                     service.linkToDeath(death, 0)
                     h.attach(clientToken, events, Process.myPid(), AppLog.sid)
+                    armFaults(h, startNo)
                     pid = hostPid(h)
                     host = h
                 } catch (e: Exception) {
@@ -163,8 +164,19 @@ class RemoteEngineHost(
             }
         }
 
+        /** Debug lab only: sends the fault plan right after attach, on every generation (the plan is null, so nothing is sent, in every other build). */
+        private fun armFaults(h: IEngineHost, startNo: Int) {
+            val plan = Faults.plan ?: return
+            val b = EngineCodec.encode(EngineOp.ArmFaults(CallTag("arm", null, "arm_faults"), plan, startNo))
+            try {
+                h.call(b)
+            } finally {
+                EngineCodec.release(b)
+            }
+        }
+
         override fun bind(gen: Int): Boolean {
-            val c = Conn(gen)
+            val c = Conn(gen, Faults.beforeBind(app, role))
             convs[gen] = c
             val intent = Intent(app, if (role == EngineRole.LIVE) EngineHostLive::class.java else EngineHostBatch::class.java)
             val ok = try {

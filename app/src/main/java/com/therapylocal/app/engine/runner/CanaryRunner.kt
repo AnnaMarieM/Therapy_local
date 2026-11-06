@@ -23,7 +23,7 @@ import com.therapylocal.app.models.SpeechLanguage
  * The native half of NVIDIA Canary-1B-v2 (int8) on sherpa-onnx, the only speech recogniser (docs/AD/AD-02.md): one recogniser on one
  * provider. The check that every model file is complete needs no native code and runs in the main process before the ladder.
  */
-internal class CanaryRunner(private val context: Context) : Runner {
+internal class CanaryRunner(private val context: Context) : AsrEngine {
     override val kind = EngineKind.ASR
     override var model: String = ""
         private set
@@ -85,7 +85,7 @@ internal class CanaryRunner(private val context: Context) : Runner {
         }
     }
 
-    fun transcribe(op: EngineOp.Transcribe): EngineReply.Text {
+    override fun transcribe(op: EngineOp.Transcribe): EngineReply.Text {
         val r = checkNotNull(recognizer) { "Canary not loaded" }
         val audioSec = Pcm.seconds(op.pcm)
         val samples = Pcm.toFloats(op.pcm)

@@ -30,7 +30,7 @@ import kotlin.math.sqrt
  * 768-d space. The ladder, memory gates, suspend/resume and the cooldown stay in the main process (`Embedder`). The `embed` span with
  * norm and rtf is DEBUG in `:live` (a tick every 2 s) and INFO elsewhere.
  */
-internal class EmbedRunner(private val context: Context, private val role: EngineRole, private val textOnly: Boolean) : Runner {
+internal class EmbedRunner(private val context: Context, private val role: EngineRole, private val textOnly: Boolean) : EmbedEngine {
     override val kind = EngineKind.EMBED
     override var model: String = ""
         private set
@@ -94,10 +94,10 @@ internal class EmbedRunner(private val context: Context, private val role: Engin
 
     private fun isolatedCacheDir(): File = File(context.cacheDir, "emb_t$maxTokens").apply { mkdirs() }
 
-    fun embedText(op: EngineOp.EmbedText): EngineReply.Vector =
+    override fun embedText(op: EngineOp.EmbedText): EngineReply.Vector =
         EngineReply.Vector(runText(checkNotNull(engine) { "Embedder not loaded" }, op.text, op.query, callFields(op.tag, op.handle)))
 
-    fun embedAudio(op: EngineOp.EmbedAudio): EngineReply.Vector {
+    override fun embedAudio(op: EngineOp.EmbedAudio): EngineReply.Vector {
         check(!textOnly) { "Loaded without the audio encoder" }
         return EngineReply.Vector(runAudio(checkNotNull(engine) { "Embedder not loaded" }, op.pcm, op.role, callFields(op.tag, op.handle)))
     }

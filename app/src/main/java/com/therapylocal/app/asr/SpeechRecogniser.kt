@@ -43,7 +43,7 @@ class SpeechRecogniser(
     private val guard: () -> BackendGuard? = { Backends.guard(context) },
     private val proxy: EngineProxy = EngineProxy(context, { host }, TAG, ENGINE),
 ) : AsrEngine {
-    private val spec = ModelRegistry.CANARY_1B_V2
+    private val spec = com.therapylocal.app.engine.LabWiring.spec(ModelRegistry.CANARY_1B_V2)
     override val engineName = ENGINE
     override val modelName = spec.id
     override var backend: String = "none"

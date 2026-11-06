@@ -1,4 +1,5 @@
 import java.net.URI
+import java.util.zip.ZipFile
 import java.security.MessageDigest
 
 plugins {
@@ -155,4 +156,43 @@ dependencies {
 
 kotlin {
     compilerOptions { jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17) }
+}
+
+// Gate 1 of the fault lab (AD-01, plan S11): no fault code in an APK that ships. Scans the dex files of the release, feel and qa
+// (applicationIdSuffix .qa) APKs for the lab classes and for the format marker in the dex string table, so it still holds after a later
+// minify renames classes. Fails the build on a hit. `-PfaultScanApks=a.apk,b.apk` scans those files instead (to prove the check bites:
+// scan the debug APK and it must fail).
+val verifyNoFaultsInRelease by tasks.registering {
+    group = "verification"
+    description = "Fails if the release, feel or qa APK contains the fault lab (classes or the FAULT_PLAN_V1 marker)."
+    val override = providers.gradleProperty("faultScanApks")
+    if (!override.isPresent) dependsOn("assembleRelease", "assembleFeel", "assembleQa")
+    val outDir = layout.buildDirectory.dir("outputs/apk")
+    doLast {
+        val forbidden = listOf("FaultPlan", "FakeRunners", "EngineLabKills", "EngineLabActivity", "EngineLabService", "HostOnlyException", "FAULT_PLAN_V1")
+        val apks: List<File> = if (override.isPresent) override.get().split(',').map { File(it) }
+        else listOf("release", "feel", "qa").flatMap { bt -> outDir.get().dir(bt).asFile.walkTopDown().filter { it.extension == "apk" }.toList() }
+        check(apks.isNotEmpty()) { "verifyNoFaultsInRelease: no APK found" }
+        val hits = ArrayList<String>()
+        for (apk in apks) {
+            ZipFile(apk).use { zip ->
+                val dex = zip.entries().toList().filter { Regex("classes\\d*\\.dex").matches(it.name) }
+                check(dex.isNotEmpty()) { "${apk.name}: no dex file" }
+                for (e in dex) {
+                    val bytes = zip.getInputStream(e).readBytes()
+                    for (word in forbidden) {
+                        val needle = word.toByteArray(Charsets.US_ASCII)
+                        outer@ for (i in 0..bytes.size - needle.size) {
+                            if (bytes[i] != needle[0]) continue
+                            for (j in 1 until needle.size) if (bytes[i + j] != needle[j]) continue@outer
+                            hits += "${apk.name}!${e.name}: $word"
+                            break
+                        }
+                    }
+                }
+            }
+        }
+        if (hits.isNotEmpty()) throw GradleException("Fault lab code found in a non-debug APK:\n  " + hits.joinToString("\n  "))
+        println("verifyNoFaultsInRelease: ${apks.joinToString { it.name }} are clean")
+    }
 }

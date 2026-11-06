@@ -29,7 +29,7 @@ object Engines {
     fun batchHost(context: Context): EngineHost = host(context, EngineRole.BATCH)
 
     /** Every timing the remote hosts use. */
-    val tuning: EngineTuning = EngineConfig.DEFAULT
+    val tuning: EngineTuning get() = com.therapylocal.app.engine.LabWiring.tuning(EngineConfig.DEFAULT)
 
     private fun host(context: Context, role: EngineRole): EngineHost =
         hosts.getOrPut(role) {

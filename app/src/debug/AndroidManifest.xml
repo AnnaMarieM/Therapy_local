@@ -1,7 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application>
-        <!-- Debug only: replays a test WAV through the live-cue pipeline, see LiveCuesBenchActivity. -->
-        <activity android:name=".debug.LiveCuesBenchActivity" android:exported="true" />
+        <!-- Debug only. Both lab entries need android.permission.DUMP: the shell holds it (am start from adb, UiAutomation) and a third-party
+             app cannot get it, so no other app can crash or memory-bomb the engine hosts of a shipped debug build (AD-01, catalogue M06). -->
+        <!-- Replays a test WAV through the live-cue pipeline, see LiveCuesBenchActivity. -->
+        <activity android:name=".debug.LiveCuesBenchActivity" android:exported="true" android:permission="android.permission.DUMP" />
+        <!-- The engine lab: fake engines and fault plans in the real app process, see EngineLabActivity. -->
+        <activity android:name=".engine.EngineLabActivity" android:exported="true" android:permission="android.permission.DUMP" />
+        <service android:name=".engine.EngineLabService" android:exported="false" android:foregroundServiceType="dataSync" />
     </application>
 </manifest>
