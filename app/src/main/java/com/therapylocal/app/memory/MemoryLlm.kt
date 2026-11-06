@@ -4,7 +4,11 @@ import android.content.Context
 import com.therapylocal.app.config.BackendPolicy
 import com.therapylocal.app.embed.Engines
 import com.therapylocal.app.engine.EngineDied
+import com.therapylocal.app.engine.EngineUnavailable
+import com.therapylocal.app.engine.ReplyTooLarge
+import com.therapylocal.app.jobs.JobFailure
 import com.therapylocal.app.engine.EngineHost
+import com.therapylocal.app.engine.guardRole
 import com.therapylocal.app.engine.EngineKind
 import com.therapylocal.app.engine.EngineOp
 import com.therapylocal.app.engine.EngineProxy
@@ -32,7 +36,7 @@ class MemoryLlm(
     private val maxTokens: Int,
     private val spec: ModelSpec,
     host: EngineHost = Engines.batchHost(context),
-    private val ladder: () -> BackendLadder = { Backends.ladder(context, TAG, "memory_llm") },
+    private val ladder: () -> BackendLadder = { Backends.ladder(context, TAG, "memory_llm", host.guardRole) },
     private val guard: () -> BackendGuard? = { Backends.guard(context) },
     private val gate: (String) -> String? = { name -> memoryGate(context, spec, name) },
     private val proxy: EngineProxy = EngineProxy(context, { host }, TAG, "memory_llm"),
@@ -65,15 +69,31 @@ class MemoryLlm(
             "override" to BackendPolicy.override, "respect_blocks" to respectBlocks,
         )
         val loadId = BackendLadder.newLoadId()
-        val loaded = ladder().load(
-            loadId = loadId,
-            model = spec.id,
-            candidates = BackendPolicy.order(preferred),
-            respectBlocks = respectBlocks && !BackendPolicy.forcing(),
-            gate = gate,
-            open = { name -> proxy.open(EngineKind.LLM, spec.id, spec.id, name, loadId = loadId, maxTokens = maxTokens, textOnly = true) },
-            close = { runCatching { proxy.closeNow(it.handle) } },
-        )
+        // A model the system kept killing even on the CPU cannot run here: fail the job for good (a retry would be killed again), unless a
+        // person forces the load (debug override, QA probe).
+        val judged = respectBlocks && !BackendPolicy.forcing()
+        if (judged && runCatching { guard()?.tooLarge(spec.id) }.getOrNull() == true) {
+            AppLog.w(TAG, "model_too_large_for_device", LogCtx.NONE, "model" to spec.id, "load_id" to loadId, "when" to "before_load")
+            throw JobFailure.modelTooLarge()
+        }
+        val loaded = try {
+            ladder().load(
+                loadId = loadId,
+                model = spec.id,
+                candidates = BackendPolicy.order(preferred),
+                respectBlocks = judged,
+                gate = gate,
+                open = { name -> proxy.open(EngineKind.LLM, spec.id, spec.id, name, loadId = loadId, maxTokens = maxTokens, textOnly = true) },
+                close = { runCatching { proxy.closeNow(it.handle) } },
+            )
+        } catch (e: BackendLadder.NoBackend) {
+            // Every backend failed, and the CPU was killed for memory again and again: say so, not "no backend".
+            if (judged && runCatching { guard()?.tooLarge(spec.id) }.getOrNull() == true) {
+                AppLog.w(TAG, "model_too_large_for_device", LogCtx.NONE, "model" to spec.id, "load_id" to loadId, "when" to "after_ladder")
+                throw JobFailure.modelTooLarge()
+            }
+            throw e
+        }
         handle = loaded.engine.handle
         backend = loaded.backend
         healthy = true
@@ -97,7 +117,9 @@ class MemoryLlm(
         } catch (t: Throwable) {
             // Noted per device; failing on prompts again and again strikes the backend and marks this engine unhealthy, so the pool reloads
             // it on the next backend. Types and code locations only, never the message: an inference error can quote the prompt.
-            val r = runCatching { guard()?.inferenceFailed(spec.id, backend, BackendLadder.name(t)) }.getOrNull()
+            // A host that died or could not be reached is not a bad prompt: the connection already struck what was at fault.
+            val notThePrompt = t is EngineDied || t is EngineUnavailable || t is ReplyTooLarge
+            val r = if (notThePrompt) null else runCatching { guard()?.inferenceFailed(spec.id, backend, BackendLadder.name(t)) }.getOrNull()
             // The host ended under this handle (a death, or an idle stop): the handle is gone, so the pool must reload.
             if (r != null || t is EngineDied) healthy = false
             // The connection's registry already settled this handle in the guard; the pool's close() must not settle it again (unloaded would reset strikes).

@@ -102,4 +102,23 @@ class ProcessingNoticeTest {
         assertNull(ProcessingNotice.finished(snap(job("a_1", JobStatus.Pending)), setOf("a_1")))
         assertNull(ProcessingNotice.finished(snap(), emptySet()))
     }
+
+    @Test
+    fun aFailureBecauseTheModelIsTooLargeSaysWhatToDo() {
+        val failed = job("a_1", JobStatus.Failed, attempts = 1).copy(errorCode = "model_too_large_for_device")
+        val n = ProcessingNotice.finished(snap(failed), setOf("a_1"))!!
+        assertEquals(NoticeText.Plural(R.plurals.processing_failed_title, 1), n.title)
+        assertEquals(str(R.string.processing_too_large_text), n.text)
+        // Any other code keeps the generic text.
+        val other = job("b_1", JobStatus.Failed, attempts = 3).copy(errorCode = "LLM")
+        assertEquals(str(R.string.processing_failed_text, 0, 1), ProcessingNotice.finished(snap(other), setOf("b_1"))!!.text)
+    }
+
+    @Test
+    fun aDeferredRunIsAStatusNotAFailure() {
+        val n = ProcessingNotice.deferred()
+        assertEquals(str(R.string.processing_deferred_title), n.title)
+        assertFalse(n.ongoing)
+        assertFalse(n.success)
+    }
 }

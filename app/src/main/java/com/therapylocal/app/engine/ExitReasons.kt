@@ -38,6 +38,10 @@ object ExitReasons {
     fun pick(records: List<ExitRecord>, pid: Int, processName: String, sinceWallMs: Long): ExitRecord? =
         records.filter { it.pid == pid && it.processName == processName && it.timestamp >= sinceWallMs }.maxByOrNull { it.timestamp }
 
+    /** The newest record of the process [processName] written at or after [sinceWallMs]: how a host that was running at the last start ended. */
+    fun newest(records: List<ExitRecord>, processName: String, sinceWallMs: Long): ExitRecord? =
+        records.filter { it.processName == processName && it.timestamp >= sinceWallMs }.maxByOrNull { it.timestamp }
+
     fun map(r: ExitRecord, lowMemoryKillReports: Boolean): Mapped {
         val name = reasonName(r.reason)
         fun m(kind: ExitKind, why: String? = null) = Mapped(kind, why, name)

@@ -99,7 +99,7 @@ internal class LogTape : BackendLadder.Log {
         val DECISIVE = setOf("backend_skipped", "backend_skipped_blocked", "backend_proven", "backend_failed")
         val KNOWN = DECISIVE + setOf(
             "ladder_start", "backend_attempting", "backend_gate_failed", "backend_blocked", "backend_guard_error", "backend_close_failed",
-            "ladder_done", "ladder_failed",
+            "ladder_done", "ladder_failed", "backend_attempt_abandoned", "model_too_large_for_device",
         )
     }
 }

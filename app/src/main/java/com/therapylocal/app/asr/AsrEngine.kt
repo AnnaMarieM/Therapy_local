@@ -17,6 +17,9 @@ interface AsrEngine {
     /** Backend that actually loaded: NPU, GPU or CPU. "none" until [load] succeeds. */
     val backend: String
 
+    /** False once the host ended under the loaded engine (a death, an idle stop): it must be closed and loaded again. */
+    val healthy: Boolean get() = true
+
     suspend fun load()
 
     suspend fun transcribe(pcm: ShortArray, ctx: LogCtx): AsrResult

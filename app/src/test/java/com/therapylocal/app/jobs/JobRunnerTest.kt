@@ -179,4 +179,38 @@ class JobRunnerTest {
         assertEquals(0, job(id).attempts)
         assertEquals(listOf("gemma-other"), llms.map { it.model })
     }
+
+    @Test
+    fun noHostThatCanServeReleasesTheJobWithoutAnAttemptAndTheDrainStopsDeferred() {
+        val first = q.enqueue("work", "a_1")
+        val second = q.enqueue("work", "a_2")
+        var claims = 0
+        val result = runner { _, _ ->
+            claims++
+            throw com.therapylocal.app.engine.EngineUnavailable(com.therapylocal.app.engine.EngineRole.BATCH, "storm", 42_000)
+        }.drain()
+        assertEquals(DrainResult.Deferred(42_000), result)
+        // One claim, no hot loop, no attempt counted, and the job (and the one behind it) is still pending.
+        assertEquals(1, claims)
+        assertEquals(JobStatus.Pending, job(first).status)
+        assertEquals(0, job(first).attempts)
+        assertEquals(JobStatus.Pending, job(second).status)
+        assertEquals(listOf(first), ran)
+    }
+
+    @Test
+    fun aDrainThatFindsNothingWrongIsFinished() {
+        q.enqueue("work", "a_1")
+        assertEquals(DrainResult.Finished, runner { _, _ -> }.drain())
+    }
+
+    @Test
+    fun aTooLargeModelFailsTheJobForGoodWithItsCode() {
+        val id = q.enqueue("work", "a_1")
+        val result = runner { _, _ -> throw JobFailure.modelTooLarge() }.drain()
+        assertEquals(DrainResult.Finished, result)
+        assertEquals(JobStatus.Failed, job(id).status)
+        assertEquals(1, job(id).attempts)
+        assertEquals("model_too_large_for_device", job(id).errorCode)
+    }
 }

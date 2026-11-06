@@ -6,7 +6,9 @@ import com.therapylocal.app.config.BackendPolicy
 import com.therapylocal.app.config.EmbeddingConfig
 import com.therapylocal.app.config.LiveCueConfig
 import com.therapylocal.app.engine.EngineDied
+import com.therapylocal.app.jobs.JobFailure
 import com.therapylocal.app.engine.EngineHost
+import com.therapylocal.app.engine.guardRole
 import com.therapylocal.app.engine.EngineKind
 import com.therapylocal.app.engine.EngineOp
 import com.therapylocal.app.engine.EngineProxy
@@ -24,6 +26,17 @@ import com.therapylocal.app.models.ModelRuntime
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+
+/** What live cues need from the embedder (a seam, so the cue loop runs on the JVM against a fake). */
+interface CueEmbedder {
+    /** False while the embedder is held back so it does not share memory with the LLM that processes sessions. */
+    val usable: Boolean
+
+    /** Longest audio clip one call can take. */
+    val maxAudioSeconds: Int
+
+    suspend fun embedAudio(pcm: ShortArray, ctx: LogCtx, role: String = "document"): FloatArray
+}
 
 /**
  * EmbeddingGemma 2 (740M, natively multimodal) on LiteRT-LM. One engine embeds text and audio into the same 768-d space, so
@@ -51,11 +64,11 @@ class Embedder(
     /** Load only the text encoder: the audio encoder is left out (the pipeline embeds text only). [embedAudio] then fails. */
     private val textOnly: Boolean = false,
     host: EngineHost = if (textOnly) Engines.batchHost(context) else Engines.liveHost(context),
-    private val ladder: () -> BackendLadder = { Backends.ladder(context, TAG, "embeddinggemma") },
+    private val ladder: () -> BackendLadder = { Backends.ladder(context, TAG, "embeddinggemma", host.guardRole) },
     private val guard: () -> BackendGuard? = { Backends.guard(context) },
     gate: ((String, Boolean) -> String?)? = null,
     private val proxy: EngineProxy = EngineProxy(context, { host }, TAG, "embeddinggemma"),
-) {
+) : CueEmbedder {
     var backend: String = "none"
         private set
     val dim = EmbeddingConfig.DIM
@@ -65,7 +78,7 @@ class Embedder(
         private set
 
     /** Longest audio clip one call can take, from [maxTokens]. */
-    val maxAudioSeconds get() = EmbeddingConfig.maxAudioSeconds(maxTokens)
+    override val maxAudioSeconds get() = EmbeddingConfig.maxAudioSeconds(maxTokens)
 
     private val gateFn: (String, Boolean) -> String? = gate ?: { name, forced -> memoryGate(name, forced) }
     private var handle: Int? = null
@@ -93,7 +106,7 @@ class Embedder(
         private set
 
     /** Whether [embedText] and [embedAudio] can run now. */
-    val usable: Boolean get() = !suspended
+    override val usable: Boolean get() = !suspended
 
     /**
      * A [close] asked for during the load (a settings change, the system asking for memory) is carried out as soon as it is done. While
@@ -126,14 +139,30 @@ class Embedder(
                     "cpu_only_for_ms" to (cpuOnlyUntil - SystemClock.elapsedRealtime()).coerceAtLeast(0),
                 )
                 val loadId = BackendLadder.newLoadId()
-                val loaded = ladder().load(
-                    loadId = loadId,
-                    model = guardModel,
-                    candidates = candidates,
-                    gate = { name -> gateFn(name, forced) },
-                    open = { name -> proxy.open(EngineKind.EMBED, EmbeddingConfig.MODEL_ID, guardModel, name, loadId = loadId, maxTokens = EmbeddingConfig.MAX_TOKENS, textOnly = textOnly) },
-                    close = { runCatching { proxy.closeNow(it.handle) } },
-                )
+                // The model was killed for memory again and again even on the CPU: it cannot run here (unless a person forces the load).
+                val judged = !BackendPolicy.forcing()
+                fun tooLarge() = judged && runCatching { guard()?.tooLarge(guardModel) }.getOrNull() == true
+                if (tooLarge()) {
+                    AppLog.w(TAG, "model_too_large_for_device", LogCtx.NONE, "model" to guardModel, "load_id" to loadId, "when" to "before_load")
+                    throw JobFailure.modelTooLarge()
+                }
+                val loaded = try {
+                    ladder().load(
+                        loadId = loadId,
+                        model = guardModel,
+                        candidates = candidates,
+                        respectBlocks = judged,
+                        gate = { name -> gateFn(name, forced) },
+                        open = { name -> proxy.open(EngineKind.EMBED, EmbeddingConfig.MODEL_ID, guardModel, name, loadId = loadId, maxTokens = EmbeddingConfig.MAX_TOKENS, textOnly = textOnly) },
+                        close = { runCatching { proxy.closeNow(it.handle) } },
+                    )
+                } catch (e: BackendLadder.NoBackend) {
+                    if (tooLarge()) {
+                        AppLog.w(TAG, "model_too_large_for_device", LogCtx.NONE, "model" to guardModel, "load_id" to loadId, "when" to "after_ladder")
+                        throw JobFailure.modelTooLarge()
+                    }
+                    throw e
+                }
                 handle = loaded.engine.handle
                 backend = loaded.backend
                 healthy = true
@@ -175,7 +204,7 @@ class Embedder(
     private fun audioBackendName() = if (textOnly) "none" else "CPU"
 
     /** Embeds the AUDIO of one chunk directly. No transcript is involved. */
-    suspend fun embedAudio(pcm: ShortArray, ctx: LogCtx, role: String = "document"): FloatArray {
+    override suspend fun embedAudio(pcm: ShortArray, ctx: LogCtx, role: String): FloatArray {
         // Before any IPC: a longer clip cannot be embedded and must not cross the boundary.
         require(pcm.size <= LiveCueConfig.MAX_LOOKBACK_SAMPLES) { "audio too long: ${pcm.size} samples, at most ${LiveCueConfig.MAX_LOOKBACK_SAMPLES}" }
         return lock.withLock {
@@ -220,6 +249,7 @@ class Embedder(
         } catch (d: EngineDied) {
             handle = null
             backend = "none"
+            healthy = false
             // Not while suspended: the :live process was shut down for :batch on purpose and must not come back until resume().
             if (d.exit.kind != BackendGuard.ExitKind.BENIGN || suspended) throw d
             AppLog.i(TAG, "embed_reload_after_idle", LogCtx.NONE, "gen" to d.generation, "exit" to d.exit.description)

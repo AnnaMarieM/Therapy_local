@@ -6,7 +6,11 @@ import com.therapylocal.app.config.ChunkConfig
 import com.therapylocal.app.config.LiveCueConfig
 import com.therapylocal.app.config.LiveCueSettings
 import com.therapylocal.app.data.MindStore
+import com.therapylocal.app.data.FactRow
+import com.therapylocal.app.embed.CueEmbedder
 import com.therapylocal.app.embed.Embedder
+import com.therapylocal.app.engine.EngineDied
+import com.therapylocal.app.engine.EngineUnavailable
 import com.therapylocal.app.log.AppLog
 import com.therapylocal.app.log.LogCtx
 import kotlinx.coroutines.CancellationException
@@ -34,18 +38,29 @@ data class Cue(val factId: String, val text: String, val heading: String, val se
  * Audio stays in memory (a [LiveCueConfig.MAX_LOOKBACK_S] ring), nothing is written to disk and no text is logged, only fact ids and scores.
  */
 class LiveCues(
-    private val embedder: Embedder,
-    private val store: MindStore,
+    private val embedder: CueEmbedder,
+    /** The client's facts nearest to a vector, all of them with their cosine (the database in production, a fake in tests). */
+    private val nearest: suspend (client: String, vec: FloatArray) -> List<Pair<FactRow, Float>>,
     private val settings: () -> LiveCueSettings = { LiveCueSettings.DEFAULT },
 ) {
+    constructor(embedder: Embedder, store: MindStore, settings: () -> LiveCueSettings = { LiveCueSettings.DEFAULT }) :
+        this(embedder, { client, vec -> withContext(Dispatchers.IO) { store.nearestFacts(client, vec, Int.MAX_VALUE) } }, settings)
+
     private val scope = CoroutineScope(SupervisorJob() + com.therapylocal.app.jobs.ModelDispatchers.Compute)
     private val _cues = MutableStateFlow<List<Cue>>(emptyList())
     private val _running = MutableStateFlow(false)
     private val _error = MutableStateFlow<String?>(null)
+    private val _paused = MutableStateFlow(false)
 
     val cues: StateFlow<List<Cue>> = _cues.asStateFlow()
     val running: StateFlow<Boolean> = _running.asStateFlow()
     val error: StateFlow<String?> = _error.asStateFlow()
+
+    /**
+     * True while the engine behind the cues is away (it died, is restarting, or cannot be reached) or held back for processing. The last cues stay
+     * and [error] is left alone, so no exception text reaches the screen; the next tick that works clears it. Never stops or restarts the session.
+     */
+    val paused: StateFlow<Boolean> = _paused.asStateFlow()
 
     private val ring = ShortArray(LiveCueConfig.MAX_LOOKBACK_SAMPLES)
     private var ringPos = 0
@@ -84,6 +99,7 @@ class LiveCues(
         val gen = ++generation
         tick = 0
         _error.value = null
+        _paused.value = false
         _cues.value = emptyList()
         _running.value = true
         val s = settings()
@@ -104,6 +120,7 @@ class LiveCues(
         generation++
         clearRing()
         _cues.value = emptyList()
+        _paused.value = false
         if (was) AppLog.i(TAG, "live_cues_stop", LogCtx.NONE, "ticks" to tick)
     }
 
@@ -126,13 +143,21 @@ class LiveCues(
             } catch (e: CancellationException) {
                 throw e
             } catch (t: Throwable) {
-                _error.value = t.message ?: t.javaClass.simpleName
-                AppLog.eRedacted(TAG, "live_cue_tick_failed", LogCtx.NONE, t)
+                // The engine ended (a death, an idle stop, a restart storm) or the embedder was suspended just now: a quiet pause, not an error.
+                if (isEnginePause(t)) {
+                    if (gen == generation) _paused.value = true
+                    AppLog.eRedacted(TAG, "live_cue_tick_paused", LogCtx.NONE, t)
+                } else {
+                    _error.value = t.message ?: t.javaClass.simpleName
+                    AppLog.eRedacted(TAG, "live_cue_tick_failed", LogCtx.NONE, t)
+                }
             }
             val spent = SystemClock.elapsedRealtime() - t0
             delay((s.intervalMs - spent).coerceAtLeast(LiveCueConfig.MIN_GAP_MS))
         }
     }
+
+    private fun isEnginePause(t: Throwable) = t is EngineDied || t is EngineUnavailable || (t is IllegalStateException && !embedder.usable)
 
     /** The newest [samples] of the ring, or all of it when less was recorded. */
     private fun snapshot(samples: Int): ShortArray? = synchronized(ring) {
@@ -161,7 +186,7 @@ class LiveCues(
             val t0 = SystemClock.elapsedRealtime()
             val vec = embedder.embedAudio(pcm, LogCtx.NONE, role = "live_cue")
             val t1 = SystemClock.elapsedRealtime()
-            val scored = withContext(Dispatchers.IO) { store.nearestFacts(client, vec, Int.MAX_VALUE) }
+            val scored = nearest(client, vec)
             val t2 = SystemClock.elapsedRealtime()
 
             val a = s.smoothing
@@ -176,6 +201,7 @@ class LiveCues(
             if (gen == generation) {
                 _cues.value = top.map { (f, sm, _) -> Cue(f.id.toString(), f.content, f.heading, f.sessionId, f.segIdx, sm) }
                 _error.value = null
+                _paused.value = false
             }
             span.put("embed_ms", t1 - t0)
             span.put("search_ms", t2 - t1)

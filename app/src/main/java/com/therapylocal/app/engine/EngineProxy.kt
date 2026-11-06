@@ -21,7 +21,7 @@ class EngineProxy(
     private val onPhase: (guardModel: String, backend: String, phase: String) -> Unit,
 ) {
     constructor(context: Context, host: () -> EngineHost, tag: String, engine: String) :
-        this(host, tag, engine, { model, backend, phase -> Backends.phase(context, tag, model, backend, phase) })
+        this(host, tag, engine, { model, backend, phase -> Backends.phase(context, tag, model, backend, phase, host().guardRole) })
 
     fun newTag(op: String, loadId: String? = null) = CallTag(UUID.randomUUID().toString().take(8), loadId, op)
 
@@ -105,3 +105,9 @@ class EngineProxy(
 
     private fun isTextOp(op: EngineOp) = op is EngineOp.Ask || op is EngineOp.EmbedText || op is EngineOp.EmbedAudio || op is EngineOp.Transcribe
 }
+
+/**
+ * The process an engine really lives in, as the guard's notes name it: `main` for the in-process host (tests, probes, the emergency switch,
+ * whatever role it was asked for), else the host's own role. A kill is judged by that process's exit record.
+ */
+val EngineHost.guardRole: String get() = if (this is LocalEngineHost) com.therapylocal.app.models.BackendGuard.ROLE_MAIN else role.proc

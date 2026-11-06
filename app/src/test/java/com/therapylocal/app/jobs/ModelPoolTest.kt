@@ -244,4 +244,30 @@ class ModelPoolTest {
         pool.close()
         assertEquals(emptyList<String>(), resident())
     }
+
+    @Test
+    fun aTooLargeModelFailureFromTheLoaderPropagatesAndNothingStaysLoaded() {
+        val failing = ModelPool(
+            loadLlm = { throw JobFailure.modelTooLarge() }, loadEmbed = { FakeEmbed().also { embeds += it } }, loadAsr = { FakeAsr(it) },
+            llmModel = { chosen }, contextNeeded = { needed }, baseContext = 6144,
+        )
+        val e = assertThrows(JobFailure::class.java) { failing.llm() }
+        assertEquals("model_too_large_for_device", e.code)
+        assertTrue(e.permanent)
+    }
+
+    @Test
+    fun anAsrAndAnEmbedderThatLostTheirHostAreLoadedAgain() {
+        val a = pool.asr("cs")
+        a as FakeAsr
+        assertSame(a, pool.asr("cs"))
+        a.healthy = false
+        val b = pool.asr("cs")
+        assertTrue(a.closed)
+        assertTrue(b !== a)
+        val e = pool.embed() as FakeEmbed
+        e.healthy = false
+        assertTrue(pool.embed() !== e)
+        assertTrue(e.closed)
+    }
 }

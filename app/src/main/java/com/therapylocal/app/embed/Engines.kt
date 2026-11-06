@@ -41,11 +41,13 @@ object Engines {
     /** Settles the guard entries of the handles a host generation still held when it ended (see [EngineConnection]). */
     private fun settler(app: Context) = object : HandleSettler {
         override fun unloaded(guardModel: String, backend: String) {
-            runCatching { Backends.guard(app)?.unloaded(guardModel, backend) }
+            runCatching { Backends.guard(app).unloaded(guardModel, backend) }
         }
 
-        // The guard side (a strike plus removing the resident entry) arrives with the immediate-strike step; until then the entry is left to recover().
-        override fun diedWhileLoaded(guardModel: String, backend: String, exit: BackendGuard.LastExit) {}
+        // A strike for a GPU/NPU engine the host took down with it, and the resident note goes, so the next start does not count it again.
+        override fun diedWhileLoaded(guardModel: String, backend: String, exit: BackendGuard.LastExit) {
+            runCatching { Backends.guard(app).diedWhileLoaded(guardModel, backend, exit).forEach { Backends.log(it, warn = true) } }
+        }
     }
 
     /**

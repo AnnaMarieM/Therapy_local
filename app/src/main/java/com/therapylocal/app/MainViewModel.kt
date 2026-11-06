@@ -38,8 +38,14 @@ import java.io.File
 
 enum class Phase { Preparing, Ready, Failed }
 
-/** Client search on the profile: [hits] is null before the first search. */
-data class SearchState(val listening: Boolean = false, val searching: Boolean = false, val hits: List<SearchHit>? = null, val info: String? = null)
+/**
+ * Client search on the profile: [hits] is null before the first search. [paused]: the search model is unloaded while sessions are processed
+ * (or its engine is away), which is told quietly, never as an error; word hits in facts still show.
+ */
+data class SearchState(
+    val listening: Boolean = false, val searching: Boolean = false, val hits: List<SearchHit>? = null, val info: String? = null,
+    val paused: Boolean = false,
+)
 
 data class UiState(
     val phase: Phase = Phase.Preparing,
@@ -180,8 +186,14 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         }
         searchJob = viewModelScope.launch(Dispatchers.IO) {
             showSearch {
-                val vec = if (_state.value.phase == Phase.Ready && embedder.usable) embedder.embedText(query, query = true, LogCtx.NONE) else null
-                SearchState(hits = clients.search(client, vec, query), info = if (vec == null) ctx.getString(R.string.vm_search_after_setup) else null)
+                val ready = _state.value.phase == Phase.Ready
+                // Held back while sessions are processed: no call into the (unloaded) embedder, a quiet note instead of an error.
+                val paused = ready && !embedder.usable
+                val vec = if (ready && !paused) embedder.embedText(query, query = true, LogCtx.NONE) else null
+                SearchState(
+                    hits = clients.search(client, vec, query), paused = paused,
+                    info = if (vec == null && !paused) ctx.getString(R.string.vm_search_after_setup) else null,
+                )
             }
         }
     }
@@ -193,6 +205,10 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     fun startVoiceSearch(client: String): Boolean {
         val s = _state.value
         if (s.phase != Phase.Ready || s.recording || voiceRecorder != null) return false
+        if (!embedder.usable) {
+            _search.value = SearchState(paused = true)
+            return false
+        }
         val rec = ChunkRecorder.query(LogCtx.NONE)
         try {
             rec.start()
@@ -227,8 +243,14 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         } catch (e: CancellationException) {
             throw e
         } catch (t: Throwable) {
-            AppLog.e(TAG, "search_failed", LogCtx.NONE, t)
-            SearchState(info = ctx.getString(R.string.vm_search_failed))
+            // Suspended between the check and the call (processing just started): the same quiet pause.
+            if (!embedder.usable) {
+                AppLog.i(TAG, "search_paused", LogCtx.NONE, "error" to t.javaClass.simpleName)
+                SearchState(paused = true)
+            } else {
+                AppLog.e(TAG, "search_failed", LogCtx.NONE, t)
+                SearchState(info = ctx.getString(R.string.vm_search_failed))
+            }
         }
     }
 

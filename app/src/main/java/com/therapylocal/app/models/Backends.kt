@@ -6,6 +6,7 @@ import android.os.Build
 import android.os.PowerManager
 import com.therapylocal.app.BuildConfig
 import com.therapylocal.app.engine.ExitReasons
+import com.therapylocal.app.engine.ExitRecord
 import com.therapylocal.app.log.AppLog
 import com.therapylocal.app.log.LogCtx
 
@@ -32,7 +33,7 @@ object Backends {
      * A [BackendLadder] that logs under [tag] with `engine=[engine]` on every line, and writes the memory and thermal picture on every attempt.
      * A guard that cannot be opened leaves the ladder working without history.
      */
-    fun ladder(context: Context, tag: String, engine: String): BackendLadder {
+    fun ladder(context: Context, tag: String, engine: String, role: String = BackendGuard.ROLE_MAIN): BackendLadder {
         val app = context.applicationContext
         val g = runCatching { guard(app) }.onFailure { AppLog.e(TAG, "backend_guard_unavailable", LogCtx.NONE, it) }.getOrNull()
         return BackendLadder(
@@ -50,6 +51,7 @@ object Backends {
             },
             memory = { com.therapylocal.app.memory.DeviceMemory.memorySnapshot(app) + thermal(app) },
             memoryLight = { memoryLight(app) },
+            role = role,
         )
     }
 
@@ -57,9 +59,9 @@ object Backends {
      * Before each native step of an attempt ("create", "initialize", "test"): noted in the guard, so a kill on the next start names the step,
      * and logged and flushed to disk before the step runs. Never throws.
      */
-    fun phase(context: Context, tag: String, model: String, backend: String, phase: String) {
+    fun phase(context: Context, tag: String, model: String, backend: String, phase: String, role: String = BackendGuard.ROLE_MAIN) {
         runCatching { guard(context).phase(model, backend, phase) }
-        AppLog.i(tag, "backend_phase", LogCtx.NONE, "model" to model, "backend_try" to backend, "phase" to phase, *memoryLight(context))
+        AppLog.i(tag, "backend_phase", LogCtx.NONE, "model" to model, "backend_try" to backend, "phase" to phase, "guard_role" to role, *memoryLight(context))
         AppLog.flush()
     }
 
@@ -97,9 +99,20 @@ object Backends {
         Thread({ runCatching { logAcceleratorProfile(app) }.onFailure { AppLog.e(TAG, "accelerator_profile_failed", LogCtx.NONE, it) } }, "accelerator-profile").apply { isDaemon = true }.start()
         runCatching {
             val g = guard(context)
-            val exit = lastExit(context)
+            val records = exitRecords(context)
+            val exit = lastExit(context, records)
             AppLog.i(TAG, "last_exit", LogCtx.NONE, "kind" to exit?.kind?.name?.lowercase(), "foreground" to exit?.foreground, "description" to exit?.description)
-            g.recover(exit).forEach { log(it, warn = it.evt != "backend_attempt_interrupted") }
+            val pkg = context.packageName
+            val lowMemoryReports = ActivityManager.isLowMemoryKillReportSupported()
+            // An entry noted for an engine host is judged by that host's own record (never by a main that was killed beside it).
+            val hostExit = { role: String, since: Long ->
+                ExitReasons.newest(records, "$pkg:$role", since)?.let { r ->
+                    BackendGuard.LastExit(
+                        ExitReasons.map(r, lowMemoryReports).kind, r.importance <= ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND_SERVICE, ExitReasons.describe(r),
+                    )
+                }
+            }
+            g.recover(exit, hostExit).forEach { log(it, warn = it.evt != "backend_attempt_interrupted") }
             g.all().forEach { log(it, warn = false) }
             overview(context).forEach { m ->
                 AppLog.i(
@@ -173,11 +186,14 @@ object Backends {
      * are all logged, since a pattern (killed every time it loads) only shows in a row. Hosts that stop on idle fill the system's list with
      * their own records, so all of them are fetched and filtered by process name.
      */
-    private fun lastExit(context: Context): BackendGuard.LastExit? {
-        val am = context.getSystemService(ActivityManager::class.java) ?: return null
-        val all = runCatching { am.getHistoricalProcessExitReasons(context.packageName, 0, 0) }
-            .onFailure { AppLog.w(TAG, "exit_reasons_unavailable", LogCtx.NONE, "reason" to it.message) }.getOrNull().orEmpty()
-        val exits = all.map(ExitReasons::of).filter { it.processName == context.packageName }
+    private fun exitRecords(context: Context): List<ExitRecord> {
+        val am = context.getSystemService(ActivityManager::class.java) ?: return emptyList()
+        return runCatching { am.getHistoricalProcessExitReasons(context.packageName, 0, 0) }
+            .onFailure { AppLog.w(TAG, "exit_reasons_unavailable", LogCtx.NONE, "reason" to it.message) }.getOrNull().orEmpty().map(ExitReasons::of)
+    }
+
+    private fun lastExit(context: Context, all: List<ExitRecord>): BackendGuard.LastExit? {
+        val exits = all.filter { it.processName == context.packageName }
         exits.take(5).forEachIndexed { i, x ->
             AppLog.i(
                 TAG, "process_exit", LogCtx.NONE, "index" to i, "at" to x.timestamp, "reason" to x.reason, "reason_name" to ExitReasons.reasonName(x.reason), "status" to x.status,

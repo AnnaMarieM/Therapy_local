@@ -35,6 +35,7 @@ object DeviceModels {
             throw t
         }
         return object : Asr {
+            override val healthy: Boolean get() = engineImpl.healthy
             override fun transcribe(pcm: ShortArray): String = runBlocking { engineImpl.transcribe(pcm, LogCtx.NONE).text }
             override fun close() = engineImpl.close()
         }
@@ -49,6 +50,7 @@ object DeviceModels {
         runBlocking { embedder.load() }
         return object : Embed {
             override val model = EmbeddingConfig.MODEL_ID
+            override val healthy: Boolean get() = embedder.healthy
             override fun embed(text: String): FloatArray = runBlocking { embedder.embedText(text, false, LogCtx.NONE) }
             override fun close() = embedder.close()
         }

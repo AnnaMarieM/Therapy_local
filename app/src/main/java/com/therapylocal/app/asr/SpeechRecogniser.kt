@@ -4,7 +4,11 @@ import android.content.Context
 import android.os.SystemClock
 import com.therapylocal.app.config.LiveCueConfig
 import com.therapylocal.app.embed.Engines
+import com.therapylocal.app.engine.EngineDied
 import com.therapylocal.app.engine.EngineHost
+import com.therapylocal.app.config.BackendPolicy
+import com.therapylocal.app.jobs.JobFailure
+import com.therapylocal.app.engine.guardRole
 import com.therapylocal.app.engine.EngineKind
 import com.therapylocal.app.engine.EngineOp
 import com.therapylocal.app.engine.EngineProxy
@@ -35,7 +39,7 @@ class SpeechRecogniser(
     private val language: SpeechLanguage,
     host: EngineHost = Engines.batchHost(context),
     private val provider: String = "cpu",
-    private val ladder: () -> BackendLadder = { Backends.ladder(context, TAG, ENGINE) },
+    private val ladder: () -> BackendLadder = { Backends.ladder(context, TAG, ENGINE, host.guardRole) },
     private val guard: () -> BackendGuard? = { Backends.guard(context) },
     private val proxy: EngineProxy = EngineProxy(context, { host }, TAG, ENGINE),
 ) : AsrEngine {
@@ -48,6 +52,11 @@ class SpeechRecogniser(
     private var handle: Int? = null
     private val lock = Mutex()
 
+    /** False once the host ended under the handle: [com.therapylocal.app.jobs.ModelPool] then closes this recogniser and loads another. */
+    @Volatile
+    override var healthy: Boolean = true
+        private set
+
     override suspend fun load() = lock.withLock {
         if (handle != null) return@withLock
         withContext(Dispatchers.Default) {
@@ -57,16 +66,33 @@ class SpeechRecogniser(
                 // The provider asked for (an evaluation's "nnapi") goes first, then every accelerator with an ONNX binding that serves this model.
                 val asked = Accelerators.all().firstOrNull { it.onnxProvider == provider }?.id ?: provider.uppercase()
                 val loadId = BackendLadder.newLoadId()
-                val loaded = ladder().load(
-                    loadId = loadId,
-                    model = spec.id,
-                    candidates = listOf(asked) + Accelerators.order(spec.id, ModelRuntime.ONNX),
-                    gate = { id -> if (Accelerators.get(id) == null) null else Accelerators.unavailable(context, id, spec.id, ModelRuntime.ONNX) },
-                    open = { name -> proxy.open(EngineKind.ASR, spec.id, spec.id, name, loadId = loadId, language = language.code) },
-                    close = { runCatching { proxy.closeNow(it.handle) } },
-                )
+                // Killed for memory again and again even on the CPU: it cannot run here (unless a person forces the load).
+                val judged = !BackendPolicy.forcing()
+                fun tooLarge() = judged && runCatching { guard()?.tooLarge(spec.id) }.getOrNull() == true
+                if (tooLarge()) {
+                    AppLog.w(TAG, "model_too_large_for_device", LogCtx.NONE, "model" to spec.id, "load_id" to loadId, "when" to "before_load")
+                    throw JobFailure.modelTooLarge()
+                }
+                val loaded = try {
+                    ladder().load(
+                        loadId = loadId,
+                        model = spec.id,
+                        candidates = listOf(asked) + Accelerators.order(spec.id, ModelRuntime.ONNX),
+                        respectBlocks = judged,
+                        gate = { id -> if (Accelerators.get(id) == null) null else Accelerators.unavailable(context, id, spec.id, ModelRuntime.ONNX) },
+                        open = { name -> proxy.open(EngineKind.ASR, spec.id, spec.id, name, loadId = loadId, language = language.code) },
+                        close = { runCatching { proxy.closeNow(it.handle) } },
+                    )
+                } catch (e: BackendLadder.NoBackend) {
+                    if (tooLarge()) {
+                        AppLog.w(TAG, "model_too_large_for_device", LogCtx.NONE, "model" to spec.id, "load_id" to loadId, "when" to "after_ladder")
+                        throw JobFailure.modelTooLarge()
+                    }
+                    throw e
+                }
                 handle = loaded.engine.handle
                 backend = loaded.backend
+                healthy = true
                 span.put("backend", backend)
                 span.put("load_id", loaded.loadId)
             }
@@ -95,7 +121,16 @@ class SpeechRecogniser(
             withContext(Dispatchers.Default) {
                 val audioSec = Pcm.seconds(pcm)
                 val start = SystemClock.elapsedRealtime()
-                val text = proxy.call<EngineReply.Text>(EngineOp.Transcribe(proxy.newTag("transcribe", null), h, pcm)).text
+                val text = try {
+                    proxy.call<EngineReply.Text>(EngineOp.Transcribe(proxy.newTag("transcribe", null), h, pcm)).text
+                } catch (d: EngineDied) {
+                    // The host ended under the handle. The connection's registry already settled it in the guard (a strike for a death,
+                    // `unloaded` for a benign end), so this recogniser neither closes it nor settles it again; the pool loads another.
+                    healthy = false
+                    handle = null
+                    backend = "none"
+                    throw d
+                }
                 AppLog.text(TAG, "transcript", ctx, text)
                 AsrResult(text, audioSec, SystemClock.elapsedRealtime() - start)
             }

@@ -119,6 +119,7 @@ private fun Main(viewModel: MainViewModel, openSessionRequest: Int, onDeveloper:
     val session by SessionController.state.collectAsStateWithLifecycle()
     val cues by SessionController.cues.collectAsStateWithLifecycle()
     val cuesError by SessionController.liveCues.error.collectAsStateWithLifecycle()
+    val cuesPaused by SessionController.liveCues.paused.collectAsStateWithLifecycle()
     val queue by Jobs.snapshot.collectAsStateWithLifecycle()
     val setup by ModelSetup.progress.collectAsStateWithLifecycle()
 
@@ -439,6 +440,7 @@ private fun Main(viewModel: MainViewModel, openSessionRequest: Int, onDeveloper:
                 level = SessionController.level,
                 cues = cues,
                 cuesError = cuesError,
+                cuesPaused = cuesPaused,
                 repo = clientsVm.repo,
                 onPause = { haptics.press(); SessionController.pause() },
                 onResume = { haptics.press(); SessionController.resume() },
