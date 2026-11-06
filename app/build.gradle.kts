@@ -71,6 +71,9 @@ android {
     sourceSets.getByName("main").assets.srcDir(layout.buildDirectory.dir("generated/promptAssets"))
     // The fault seam: debug has the real Faults (src/debug); every other build type gets the no-op copy.
     for (bt in listOf("release", "feel", "qa")) sourceSets.getByName(bt).java.srcDir("src/noFaults/java")
+    // One copy of the log-story helpers (LogTape, assertDeadClear, LogFileTape) for the JVM tests and the device tests (catalogue finding 30).
+    sourceSets.getByName("test").java.srcDir("src/sharedTest/java")
+    sourceSets.getByName("androidTest").java.srcDir("src/sharedTest/java")
     buildFeatures {
         compose = true
         buildConfig = true

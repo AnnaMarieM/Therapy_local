@@ -1,0 +1,76 @@
+name: Emulator lane
+
+# One emulator lane of the engine stress lab, called from stress-nightly.yml (catalogue section 5). The required PR lanes stay inline in ci.yml,
+# so their check names do not change. The APKs come from the calling run's `app-debug` artifact.
+on:
+  workflow_call:
+    inputs:
+      lane:      { type: string, required: true }
+      api:       { type: number, required: true }
+      target:    { type: string, default: google_apis }
+      profile:   { type: string, default: pixel_6 }
+      ram:       { type: string, default: "" }         # MB; empty = the profile default
+      cores:     { type: number, default: 2 }
+      args:      { type: string, default: "" }         # extra `am instrument` arguments
+      script:    { type: string, default: "" }         # replaces the instrumented run (the HOST lane)
+      extra_options: { type: string, default: "" }
+
+jobs:
+  lane:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: app-debug
+          path: dist
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - uses: actions/cache@v4
+        id: avd-cache
+        with:
+          path: |
+            ~/.android/avd/*
+            ~/.android/adb*
+          key: avd-${{ inputs.api }}-${{ inputs.target }}-${{ inputs.profile }}-${{ inputs.ram || 'default' }}-${{ inputs.cores }}
+      - name: Create the AVD and its snapshot
+        if: steps.avd-cache.outputs.cache-hit != 'true'
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ inputs.api }}
+          arch: x86_64
+          target: ${{ inputs.target }}
+          profile: ${{ inputs.profile }}
+          ram-size: ${{ inputs.ram && format('{0}M', inputs.ram) || '' }}
+          cores: ${{ inputs.cores }}
+          force-avd-creation: false
+          disable-animations: false
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none ${{ inputs.extra_options }}
+          script: echo "AVD snapshot generated for the cache"
+      - name: Run
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ inputs.api }}
+          arch: x86_64
+          target: ${{ inputs.target }}
+          profile: ${{ inputs.profile }}
+          ram-size: ${{ inputs.ram && format('{0}M', inputs.ram) || '' }}
+          cores: ${{ inputs.cores }}
+          force-avd-creation: false
+          disable-animations: true
+          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none ${{ inputs.extra_options }}
+          script: ${{ inputs.script || format('SKIP_BUILD=1 OUT_DIR=out INSTR_ARGS="{0} -e lane {1} -e commit {2}" qa/run-device-tests.sh', inputs.args, inputs.lane, github.sha) }}
+      - name: Job summary
+        if: always()
+        run: python3 qa/stress-summary.py out/stress/results.jsonl --title "${{ inputs.lane }}" >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: stress-${{ inputs.lane }}
+          path: out
+          retention-days: 7
+          if-no-files-found: warn
