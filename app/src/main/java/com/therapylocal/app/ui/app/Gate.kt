@@ -36,6 +36,9 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ArrowForward
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -570,7 +573,32 @@ private fun Unlock(onOpen: () -> Unit, onErased: () -> Unit, onResetPassword: ()
             Text(stringResource(R.string.app_name), style = Type.Hero, color = Palette.Ink)
             Spacer(Modifier.height(40.dp))
             Box(Modifier.offset { IntOffset(shake.value.roundToInt(), 0) }) {
-                PaperField(password, { password = it; error = null }, stringResource(R.string.gate_password_hint), secret = true, enabled = !busy, error = error != null, onIme = withPassword)
+                PaperField(
+                    password,
+                    { password = it; error = null },
+                    stringResource(R.string.gate_password_hint),
+                    secret = true,
+                    enabled = !busy,
+                    error = error != null,
+                    onIme = withPassword,
+                    trailing = {
+                        Box(
+                            Modifier
+                                .size(36.dp)
+                                .clip(CircleShape)
+                                .background(if (password.isNotEmpty()) Palette.Ink else Palette.Tonal)
+                                .pressable(onClick = withPassword, label = stringResource(R.string.gate_submit_password), depth = 0.04f),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Icon(
+                                Icons.AutoMirrored.Rounded.ArrowForward,
+                                contentDescription = stringResource(R.string.gate_submit_password),
+                                tint = if (password.isNotEmpty()) Palette.Paper else Palette.InkSoft,
+                                modifier = Modifier.size(20.dp),
+                            )
+                        }
+                    },
+                )
             }
             Spacer(Modifier.height(12.dp))
             Label(error ?: if (busy) stringResource(R.string.gate_opening) else " ", color = if (error != null) Palette.Rec else Palette.InkSoft)
@@ -598,13 +626,34 @@ private fun Unlock(onOpen: () -> Unit, onErased: () -> Unit, onResetPassword: ()
         }
         ChoiceBar(
             bar,
-            // No fingerprint set up (or none in this build): just Unlock, not a greyed-out button that does nothing.
-            left = if (biometric) Choice(stringResource(R.string.gate_fingerprint), stringResource(R.string.gate_release_fingerprint), Palette.Tonal, Palette.Ink, enabled = !busy, swipe = false) { withBiometric() } else null,
-            right = Choice(stringResource(if (busy) R.string.gate_opening else R.string.gate_unlock), stringResource(R.string.gate_release_unlock), Palette.Ink, Palette.Paper, enabled = !busy, swipe = false) { withPassword() },
+            left = null,
+            right = if (biometric && password.isEmpty()) {
+                Choice(
+                    stringResource(R.string.gate_unlock_with_fingerprint),
+                    stringResource(R.string.gate_release_fingerprint),
+                    Palette.Ink,
+                    Palette.Paper,
+                    enabled = !busy,
+                    swipe = false,
+                ) { withBiometric() }
+            } else {
+                Choice(
+                    stringResource(if (busy) R.string.gate_opening else R.string.gate_unlock_with_password),
+                    stringResource(R.string.gate_release_unlock),
+                    Palette.Ink,
+                    Palette.Paper,
+                    enabled = !busy,
+                    swipe = false,
+                ) { withPassword() }
+            },
             modifier = Modifier.padding(14.dp).axisDrag(axisDragHandler(
                 accepts = { a, _, _ -> a == Axis.Horizontal && !busy },
-                onDrag = { _, t, _ -> bar.drag(t) { s -> s == Side.Right || biometric } },
-                onEnd = { _, _, _ -> when (bar.release()) { Side.Left -> withBiometric(); Side.Right -> withPassword(); null -> {} } },
+                onDrag = { _, t, _ -> bar.drag(t) { s -> s == Side.Right } },
+                onEnd = { _, _, _ ->
+                    if (bar.release() == Side.Right) {
+                        if (biometric && password.isEmpty()) withBiometric() else withPassword()
+                    }
+                },
             )),
         )
     }
