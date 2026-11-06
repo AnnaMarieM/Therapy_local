@@ -120,6 +120,16 @@ object BackendPolicy {
     /** "auto" in any case, and a blank override, which names no accelerator. */
     private fun isAuto(override: String) = override.isBlank() || override.trim().equals("auto", ignoreCase = true)
 
+    /**
+     * Debug/QA only, never set by a release path: with a specific accelerator in [override] and this on, the engines skip the free-memory
+     * gate and the guard's block and demotion and try exactly that accelerator. The engine process then survives or dies and main goes on
+     * (docs/AD/AD-01.md). A library that is missing still refuses it: it could not run.
+     */
+    @Volatile
+    var force: Boolean = false
+
+    fun forcing() = force && !isAuto(override)
+
     fun allows(backend: String) = isAuto(override) || override.trim().equals(backend, ignoreCase = true)
 
     /**

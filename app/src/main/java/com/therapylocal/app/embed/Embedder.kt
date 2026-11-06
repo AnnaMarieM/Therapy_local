@@ -162,6 +162,7 @@ class Embedder(
      */
     private fun memoryGate(name: String, forced: Boolean): String? {
         Accelerators.unavailable(context, name, EmbeddingConfig.MODEL_ID, ModelRuntime.LITERT)?.let { return it }
+        if (BackendPolicy.forcing()) return null
         if (Accelerators.get(name)?.takesSystemMemory != true) return null
         if (SystemClock.elapsedRealtime() < cpuOnlyUntil) return "CPU only for a while after the system asked for memory"
         if (Accelerators.get(name)?.graphicsMemory == true && !forced && !com.therapylocal.app.memory.DeviceMemory.allowEmbedderGpu(context)) return "memory safety: Tensor/Mali GPU or not enough RAM"

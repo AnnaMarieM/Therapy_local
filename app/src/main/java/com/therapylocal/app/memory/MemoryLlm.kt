@@ -69,7 +69,7 @@ class MemoryLlm(
             loadId = loadId,
             model = spec.id,
             candidates = BackendPolicy.order(preferred),
-            respectBlocks = respectBlocks,
+            respectBlocks = respectBlocks && !BackendPolicy.forcing(),
             gate = gate,
             open = { name -> proxy.open(EngineKind.LLM, spec.id, spec.id, name, loadId = loadId, maxTokens = maxTokens, textOnly = true) },
             close = { runCatching { proxy.closeNow(it.handle) } },
@@ -134,6 +134,7 @@ class MemoryLlm(
         /** Why [name] is not tried now, or null. Accelerators that take the model's memory from the system (GPU, NPU) need it free. The check is system-wide, so main is right. */
         internal fun memoryGate(context: Context, spec: ModelSpec, name: String): String? {
             Accelerators.unavailable(context, name, spec.id, ModelRuntime.LITERT)?.let { return it }
+            if (BackendPolicy.forcing()) { AppLog.w(TAG, "backend_memory_gate_forced", LogCtx.NONE, "backend_try" to name); return null }
             if (Accelerators.get(name)?.takesSystemMemory != true) return null
             val (available, low) = LlmMemory.available(context)
             val needed = LlmMemory.gpuNeeds(spec.totalBytes)
