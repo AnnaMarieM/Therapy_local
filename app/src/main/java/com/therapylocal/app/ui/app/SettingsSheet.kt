@@ -258,6 +258,8 @@ private fun TechnicalSettingsSheet(
     val bar = rememberChoiceState()
     val list = rememberLazyListState()
     val setup by ModelSetup.progress.collectAsStateWithLifecycle()
+    var tick by remember { mutableIntStateOf(0) }
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { tick++ }
 
     Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().axisDrag(sheetDrag(sheet, bar, onBack = onClose))) {
         LazyColumn(Modifier.weight(1f), state = list, contentPadding = PaddingValues(start = 26.dp, end = 26.dp, top = 24.dp, bottom = hintsClearance())) {
