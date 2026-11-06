@@ -7,7 +7,6 @@ corpus/clients/*.txt   ground-truth sheet per client: planted facts per session,
 corpus/build.py        sheets -> corpus/sessions/<client>/sNN.json (dialogue + expected facts) + corpus/clients.json   (committed, deterministic)
 tts/render.py          sessions -> audio/<client>/sNN.wav, 16 kHz mono, cached by content hash                        (wavs not committed)
 host/stt_host.py       same Whisper int8 models as the app via sherpa-onnx on the CI box -> WER/CER only (PR tier)
-runner/run_device.py   pushes audio + job.json to the phone, starts the debug harness, pulls out/results.json (nightly tier)
 score/scorer.py        results.json -> report.json/.md per language, thresholds in thresholds-*.json
 variants/              prompt variants for A/B runs (`run_device.py --prompts e2e/variants/lang-aware`)
 ```
@@ -26,18 +25,6 @@ python3 e2e/score/test_score.py                              # scorer tests (an 
 ```
 
 Edit a sheet, run `python3 e2e/corpus/build.py`, commit the regenerated `corpus/sessions`.
-
-## Device tier
-
-Debug build only (the harness is `memory_lab`, see docs/MEMORY.md). Unlock the vault in the app first, then:
-
-```
-python3 e2e/runner/run_device.py --sessions 10 --reset --out e2e/results/device
-python3 e2e/score/scorer.py --results e2e/results/device/results.json
-```
-
-It writes into the app's `files/memory` folder on the phone (job.json, in/, out/, prompts/): do not run it while someone else uses that
-app. Use `adb install -r`, never uninstall (that deletes the downloaded models).
 
 ## What is measured
 

@@ -1,7 +1,7 @@
 name: E2E host (speech)
 
 # TTS corpus -> the app's Whisper model (sherpa-onnx, same int8 files) -> WER per language. Fast enough for every PR that touches the
-# corpus, the scorer or the speech settings. The full pipeline on a real phone is e2e-device.yml.
+# corpus, the scorer or the speech settings.
 on:
   pull_request:
     paths:
