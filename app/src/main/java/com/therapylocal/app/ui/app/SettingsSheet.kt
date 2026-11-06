@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
@@ -57,6 +58,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
@@ -91,6 +93,8 @@ import com.therapylocal.app.ui.design.Type
 import com.therapylocal.app.ui.design.rememberChoiceState
 import com.therapylocal.app.ui.design.rememberHaptics
 import com.therapylocal.app.ui.design.LocalReducedMotion
+import com.therapylocal.app.ui.logic.ClientDisambiguation
+import com.therapylocal.app.ui.logic.DisambiguationTarget
 import com.therapylocal.app.ui.motion.PageShift
 import com.therapylocal.app.ui.motion.SheetState
 import com.therapylocal.app.ui.motion.axisDrag
@@ -126,6 +130,7 @@ fun SettingsSheet(
     val bar = rememberChoiceState()
     val list = rememberLazyListState()
     val technicalSheet = rememberSheetState()
+    val changePasswordSheet = rememberSheetState()
     val keepScreenAwake by DisplayConfig.keepScreenAwake.collectAsStateWithLifecycle()
     var tick by remember { mutableIntStateOf(0) }
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { tick++ }
@@ -137,7 +142,7 @@ fun SettingsSheet(
         Column(
             Modifier
                 .fillMaxSize()
-                .recede(listOf(technicalSheet), LocalReducedMotion.current)
+                .recede(listOf(technicalSheet, changePasswordSheet), LocalReducedMotion.current)
                 .statusBarsPadding()
                 .navigationBarsPadding()
                 .axisDrag(sheetDrag(sheet, bar, onBack = onClose))
@@ -199,7 +204,16 @@ fun SettingsSheet(
                         }
                     }
                 }
-                item { Row2(stringResource(R.string.settings_lock_title), stringResource(R.string.settings_lock_body, stringResource(R.string.app_name)), stringResource(R.string.settings_lock_action), onLock) }
+                item {
+                    Row2(
+                        stringResource(R.string.settings_change_password_title),
+                        stringResource(R.string.settings_change_password_body, stringResource(R.string.app_name)),
+                        stringResource(R.string.settings_change_password_action),
+                    ) {
+                        haptics.confirm()
+                        changePasswordSheet.open()
+                    }
+                }
 
                 item { Group(stringResource(R.string.settings_group_notifications)) }
                 item {
@@ -230,6 +244,15 @@ fun SettingsSheet(
                         style = Type.BodySmall, color = Palette.InkFaint, modifier = Modifier.padding(vertical = 16.dp),
                     )
                 }
+                item {
+                    Spacer(Modifier.height(16.dp))
+                    PillButton(
+                        text = stringResource(R.string.settings_sign_out),
+                        onClick = onLock,
+                        color = Palette.Tonal,
+                        content = Palette.Ink,
+                    )
+                }
             }
             SwipeHints(bar, back = Way(stringResource(R.string.settings_go_back)) { haptics.confirm(); onClose() }, forward = null, modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 10.dp))
         }
@@ -243,6 +266,14 @@ fun SettingsSheet(
                 onClose = { technicalSheet.close() },
                 notice = notice,
                 onReprocess = onReprocess,
+            )
+        }
+
+        PageShift(changePasswordSheet, onBack = { changePasswordSheet.close() }) {
+            ChangePasswordSheet(
+                sheet = changePasswordSheet,
+                onClose = { changePasswordSheet.close() },
+                notice = notice,
             )
         }
     }
@@ -439,10 +470,7 @@ private fun Knob(title: String, value: String, position: Float, range: ClosedFlo
 private fun DefaultLanguage() {
     val ctx = LocalContext.current
     var language by remember { mutableStateOf(SpeechLanguages.default(ctx)) }
-    Column(Modifier.padding(top = 10.dp)) {
-        Text(stringResource(R.string.speech_default_body), style = Type.BodySmall, color = Palette.InkSoft)
-        LanguagePicker(language, { SpeechLanguages.setDefault(ctx, it); language = it })
-    }
+    LanguagePicker(language, { SpeechLanguages.setDefault(ctx, it); language = it })
 }
 
 @Composable
@@ -639,27 +667,132 @@ private fun HardwareModel(m: BackendGuard.ModelView) {
 }
 
 /**
- * Adding a client: a first name and, if you like, a surname, kept as an initial ("George M."). Only what is needed to recognise them.
+ * Changing the password from Settings while authenticated.
  */
 @Composable
-fun AddClientSheet(sheet: SheetState, onCancel: () -> Unit, onAdd: (String, SpeechLanguage) -> Unit) {
+fun ChangePasswordSheet(
+    sheet: SheetState,
+    onClose: () -> Unit,
+    notice: NoticeState,
+) {
+    val ctx = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val haptics = rememberHaptics()
+    val bar = rememberChoiceState()
+    var password by remember { mutableStateOf("") }
+    var confirm by remember { mutableStateOf("") }
+    var busy by remember { mutableStateOf(false) }
+    var error by remember { mutableStateOf<String?>(null) }
+    val longEnough = password.length >= MIN_PASSWORD
+    val matches = password == confirm
+    val valid = longEnough && matches && confirm.isNotEmpty()
+    val (shake, kick) = rememberShake()
+    val focus = remember { FocusRequester() }
+    androidx.compose.runtime.LaunchedEffect(Unit) { kotlinx.coroutines.delay(320); runCatching { focus.requestFocus() } }
+
+    val save: () -> Unit = save@{
+        if (busy) return@save
+        if (!valid) {
+            haptics.reject()
+            scope.launch { kick() }
+            error = if (!longEnough) ctx.resources.getQuantityString(R.plurals.gate_pw_min, MIN_PASSWORD, MIN_PASSWORD) else ctx.getString(R.string.gate_pw_mismatch)
+            return@save
+        }
+        busy = true
+        val chars = password.toCharArray()
+        scope.launch {
+            try {
+                withContext(Dispatchers.Default) { Vault.changePassword(ctx, chars) }
+                haptics.confirm()
+                notice.show(ctx.getString(R.string.settings_password_changed))
+                onClose()
+            } catch (e: Exception) {
+                error = ctx.getString(R.string.gate_change_pw_failed)
+                busy = false
+            } finally {
+                chars.fill('\u0000')
+            }
+        }
+    }
+
+    Column(
+        Modifier
+            .fillMaxSize()
+            .statusBarsPadding()
+            .navigationBarsPadding()
+            .imePadding()
+            .axisDrag(sheetDrag(sheet, bar, onBack = onClose, onForward = { save() }, canForward = { valid && !busy }))
+    ) {
+        Column(
+            Modifier
+                .weight(1f)
+                .verticalScroll(rememberScrollState())
+                .padding(start = 26.dp, end = 26.dp, top = 24.dp, bottom = hintsClearance())
+        ) {
+            Label(stringResource(R.string.settings_change_password_kicker))
+            Spacer(Modifier.height(14.dp))
+            Text(stringResource(R.string.settings_change_password_title), style = Type.Hero, color = Palette.Ink)
+            Spacer(Modifier.height(14.dp))
+            Text(stringResource(R.string.settings_change_password_body, stringResource(R.string.app_name)), style = Type.Body, color = Palette.InkSoft)
+            Spacer(Modifier.height(30.dp))
+            Column(Modifier.offset { IntOffset(shake.value.roundToInt(), 0) }) {
+                PaperField(
+                    password,
+                    { password = it; error = null },
+                    pluralStringResource(R.plurals.gate_pw_hint, MIN_PASSWORD, MIN_PASSWORD),
+                    secret = true,
+                    enabled = !busy,
+                    imeAction = ImeAction.Next,
+                    modifier = Modifier.focusRequester(focus),
+                )
+                Spacer(Modifier.height(22.dp))
+                PaperField(
+                    confirm,
+                    { confirm = it; error = null },
+                    stringResource(R.string.gate_pw_confirm_hint),
+                    secret = true,
+                    enabled = !busy,
+                    error = confirm.isNotEmpty() && !matches && confirm.length >= password.length,
+                    onIme = save,
+                )
+            }
+            Spacer(Modifier.height(12.dp))
+            Label(error ?: if (busy) stringResource(R.string.gate_securing) else " ", color = if (error != null) Palette.Rec else Palette.InkSoft)
+        }
+        SwipeHints(
+            bar,
+            back = Way(stringResource(R.string.settings_go_back)) { onClose() },
+            forward = Way(stringResource(R.string.settings_change_password_save), enabled = !busy) { save() },
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 10.dp),
+        )
+    }
+}
+
+/**
+ * Adding a client: a first name and, if you like, a surname, shortened automatically to distinguish clients.
+ */
+@Composable
+fun AddClientSheet(
+    sheet: SheetState,
+    onCancel: () -> Unit,
+    onAdd: (String, String, SpeechLanguage) -> Unit,
+    existingClients: List<DisambiguationTarget> = emptyList(),
+) {
     val ctx = LocalContext.current
     val haptics = rememberHaptics()
     val bar = rememberChoiceState()
     var first by remember { mutableStateOf("") }
     var last by remember { mutableStateOf("") }
     var language by remember { mutableStateOf(SpeechLanguages.default(ctx)) }
-    val name = displayName(first, last)
-    val error = ClientInput.validate(ctx, name)
+    val name = ClientDisambiguation.preview(first, last, existingClients)
+    val error = ClientInput.validate(ctx, first)
     val focus = remember { FocusRequester() }
     androidx.compose.runtime.LaunchedEffect(Unit) { kotlinx.coroutines.delay(320); runCatching { focus.requestFocus() } }
-    val add = { if (error == null) onAdd(name, language) else haptics.reject() }
+    val add = { if (error == null) onAdd(first.trim(), last.trim(), language) else haptics.reject() }
 
     Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().imePadding().axisDrag(sheetDrag(sheet, bar, onBack = onCancel, onForward = { add() }, canForward = { error == null }))) {
         Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(start = 26.dp, end = 26.dp, top = 24.dp, bottom = hintsClearance())) {
-            Label(stringResource(R.string.settings_addclient_label))
-            Spacer(Modifier.height(14.dp))
-            Text(if (name.isBlank()) stringResource(R.string.settings_addclient_who) else name, style = Type.Hero, color = if (name.isBlank()) Palette.InkFaint else Palette.Ink, maxLines = 2)
+            Text(if (name.isBlank()) stringResource(R.string.settings_addclient_label) else name, style = Type.Hero, color = Palette.Ink, maxLines = 2)
             Spacer(Modifier.height(36.dp))
             PaperField(first, { first = it }, stringResource(R.string.settings_addclient_first_name), imeAction = ImeAction.Next, modifier = Modifier.focusRequester(focus), capitalization = KeyboardCapitalization.Words)
             Spacer(Modifier.height(22.dp))
@@ -679,9 +812,22 @@ fun AddClientSheet(sheet: SheetState, onCancel: () -> Unit, onAdd: (String, Spee
     }
 }
 
-/** "george", "miller" -> "George M."; the surname is optional. */
-internal fun displayName(first: String, last: String): String {
-    val f = first.trim().replaceFirstChar { it.titlecase(Locale.getDefault()) }
-    val l = last.trim().firstOrNull()?.uppercaseChar()
-    return if (l == null) f else "$f $l."
+@Composable
+fun AddClientSheet(
+    sheet: SheetState,
+    onCancel: () -> Unit,
+    onAdd: (String, SpeechLanguage) -> Unit,
+) {
+    AddClientSheet(
+        sheet = sheet,
+        onCancel = onCancel,
+        onAdd = { first, last, lang ->
+            val preview = ClientDisambiguation.preview(first, last, emptyList())
+            onAdd(preview, lang)
+        },
+    )
 }
+
+/** Legacy helper; preview is computed by [ClientDisambiguation]. */
+internal fun displayName(first: String, last: String): String =
+    ClientDisambiguation.preview(first, last, emptyList())

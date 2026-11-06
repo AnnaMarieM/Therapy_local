@@ -83,4 +83,12 @@
     <string name="gate_erase_text">Every client, recording, transcript and fact on this phone is permanently deleted. This cannot be undone.</string>
     <string name="gate_erase_confirm">Erase everything</string>
     <string name="gate_erase_failed">Could not erase. Please try again.</string>
+    <string name="gate_forgot_bio_hint">You can use your fingerprint to set a new password, or erase %1$s to start over.</string>
+    <string name="gate_reset_with_fingerprint">Reset with fingerprint…</string>
+    <string name="gate_pw_reset_kicker">Password</string>
+    <string name="gate_pw_reset_title">Set a new\npassword.</string>
+    <string name="gate_pw_reset_body">This password will unlock %1$s alongside your fingerprint.</string>
+    <string name="gate_pw_reset_save">Save password</string>
+    <string name="gate_release_save">Release to save</string>
+    <string name="gate_change_pw_failed">Could not update password. Please try again.</string>
 </resources>

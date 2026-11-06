@@ -207,7 +207,7 @@ class ProfileUiTest {
         var added: String? = null
         compose.setContent { PaperTheme { AddClientSheet(rememberSheetState(), onCancel = {}, onAdd = { name, _ -> added = name }) } }
         compose.onNode(hasContentDescription("First name")).performTextInput("george")
-        compose.onNode(hasContentDescription("Surname · only the initial is kept")).performTextInput("miller")
+        compose.onNode(hasContentDescription("Surname")).performTextInput("miller")
         compose.onNode(hasText("George M.")).assertExists()
         compose.onNode(hasContentDescription("Swipe from right to left to add George M.") and hasClickAction()).performClick()
         compose.runOnIdle { assertEquals("George M.", added) }

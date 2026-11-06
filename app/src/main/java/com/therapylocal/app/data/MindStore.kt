@@ -7,10 +7,12 @@ import android.database.Cursor
 import net.zetetic.database.sqlcipher.SQLiteDatabase
 import net.zetetic.database.sqlcipher.SQLiteOpenHelper
 import com.therapylocal.app.vault.Vault
+import com.therapylocal.app.ui.logic.ClientDisambiguation
+import com.therapylocal.app.ui.logic.DisambiguationTarget
 import com.therapylocal.app.vault.VaultLockedException
 
 /** [language] is the code of the language the client speaks in sessions ("en", "cs"); it picks the speech recogniser. */
-data class ClientRow(val id: String, val name: String, val createdAt: Long, val language: String = "en")
+data class ClientRow(val id: String, val name: String, val createdAt: Long, val language: String = "en", val firstName: String = "", val lastName: String = "")
 
 data class SessionRow(val id: String, val clientId: String, val startedAt: Long, val endedAt: Long?)
 
@@ -97,15 +99,66 @@ class MindStore(context: Context, name: String, password: ByteArray) :
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
         if (oldVersion < 2) db.execSQL("ALTER TABLE clients ADD COLUMN language TEXT NOT NULL DEFAULT 'en'")
+        if (oldVersion < 3) {
+            db.execSQL("ALTER TABLE clients ADD COLUMN first_name TEXT NOT NULL DEFAULT ''")
+            db.execSQL("ALTER TABLE clients ADD COLUMN last_name TEXT NOT NULL DEFAULT ''")
+            val cursor = db.rawQuery("SELECT id, name FROM clients", null)
+            val updates = mutableListOf<Triple<String, String, String>>()
+            while (cursor.moveToNext()) {
+                val id = cursor.getString(0)
+                val name = cursor.getString(1)
+                val parts = name.trim().split(Regex("\\s+"), limit = 2)
+                val first = parts.getOrNull(0) ?: ""
+                val last = parts.getOrNull(1)?.trimEnd('.') ?: ""
+                updates.add(Triple(id, first, last))
+            }
+            cursor.close()
+            for ((id, first, last) in updates) {
+                db.execSQL("UPDATE clients SET first_name = ?, last_name = ? WHERE id = ?", arrayOf(first, last, id))
+            }
+        }
     }
 
     // ---- clients and sessions ----------------------------------------------------------------------------------
 
-    fun createClient(id: String, name: String, language: String = "en") {
+    fun createClient(id: String, firstName: String, lastName: String, language: String = "en") {
+        val now = System.currentTimeMillis()
+        val initialName = if (lastName.isBlank()) firstName.trim() else "${firstName.trim()} ${lastName.trim().first().uppercaseChar()}."
         writableDatabase.insertOrThrow(
             "clients", null,
-            ContentValues().apply { put("id", id); put("name", name); put("created_at", System.currentTimeMillis()); put("language", language) },
+            ContentValues().apply {
+                put("id", id)
+                put("name", initialName)
+                put("created_at", now)
+                put("language", language)
+                put("first_name", firstName.trim())
+                put("last_name", lastName.trim())
+            },
         )
+        refreshDisplayNames()
+    }
+
+    fun createClient(id: String, name: String, language: String = "en") {
+        val parts = name.trim().split(Regex("\\s+"), limit = 2)
+        val first = parts.getOrNull(0) ?: name
+        val last = parts.getOrNull(1)?.trimEnd('.') ?: ""
+        createClient(id, first, last, language)
+    }
+
+    fun refreshDisplayNames() {
+        val all = clients().map { DisambiguationTarget(it.id, it.firstName, it.lastName, it.createdAt) }
+        val names = ClientDisambiguation.disambiguate(all)
+        val db = writableDatabase
+        db.beginTransaction()
+        try {
+            for ((id, newName) in names) {
+                val cv = ContentValues().apply { put("name", newName) }
+                db.update("clients", cv, "id = ?", arrayOf(id))
+            }
+            db.setTransactionSuccessful()
+        } finally {
+            db.endTransaction()
+        }
     }
 
     fun setClientLanguage(id: String, language: String) {
@@ -116,10 +169,16 @@ class MindStore(context: Context, name: String, password: ByteArray) :
     fun clientLanguage(id: String): String = query("SELECT language FROM clients WHERE id = ?", id) { it.getString(0) }.firstOrNull() ?: "en"
 
     /** Sorted by name. */
-    fun clients(): List<ClientRow> = query("SELECT id, name, created_at, language FROM clients ORDER BY name COLLATE NOCASE") { ClientRow(it.getString(0), it.getString(1), it.getLong(2), it.getString(3)) }
+    fun clients(): List<ClientRow> = query("SELECT id, name, created_at, language, first_name, last_name FROM clients ORDER BY name COLLATE NOCASE") {
+        ClientRow(it.getString(0), it.getString(1), it.getLong(2), it.getString(3), it.getString(4), it.getString(5))
+    }
 
     /** True if the client existed. Everything stored for it cascades. */
-    fun deleteClient(id: String): Boolean = writableDatabase.delete("clients", "id = ?", arrayOf(id)) > 0
+    fun deleteClient(id: String): Boolean {
+        val deleted = writableDatabase.delete("clients", "id = ?", arrayOf(id)) > 0
+        if (deleted) refreshDisplayNames()
+        return deleted
+    }
 
     /** Does nothing if the session already exists. */
     fun createSession(id: String, clientId: String, startedAt: Long) {
@@ -413,13 +472,13 @@ class MindStore(context: Context, name: String, password: ByteArray) :
         /** The two databases before this one. Their data is not migrated. */
         val LEGACY = listOf("recordings.db", "memory.db")
 
-        private const val VERSION = 2
+        private const val VERSION = 3
 
         private const val FACT_COLUMNS =
             "SELECT f.id, f.client_id, f.session_id, f.heading, f.content, f.evidence, f.seg_idx, f.created_at, (SELECT COUNT(*) FROM mentions m WHERE m.fact_id = f.id)"
 
         private val SCHEMA = listOf(
-            "CREATE TABLE clients(id TEXT PRIMARY KEY, name TEXT NOT NULL, created_at INTEGER NOT NULL, language TEXT NOT NULL DEFAULT 'en')",
+            "CREATE TABLE clients(id TEXT PRIMARY KEY, name TEXT NOT NULL, created_at INTEGER NOT NULL, language TEXT NOT NULL DEFAULT 'en', first_name TEXT NOT NULL DEFAULT '', last_name TEXT NOT NULL DEFAULT '')",
             """CREATE TABLE sessions(
                  id TEXT PRIMARY KEY,
                  client_id TEXT NOT NULL REFERENCES clients(id) ON DELETE CASCADE,

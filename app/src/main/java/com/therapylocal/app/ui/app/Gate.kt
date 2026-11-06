@@ -89,7 +89,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.math.roundToInt
 
-private const val MIN_PASSWORD = 8
+internal const val MIN_PASSWORD = 8
 
 /**
  * Everything before the client list: first run (a short welcome, the two permissions, a password, optionally biometrics) or unlocking.
@@ -121,13 +121,24 @@ fun Gate(onOpen: () -> Unit) {
                     if (Vault.biometricAvailability(ctx) == BiometricAvailability.Unsupported) onOpen() else step = GateStep.Biometric
                 })
                 GateStep.Biometric -> OfferBiometric(onDone = onOpen)
-                GateStep.Unlock -> Unlock(onOpen = onOpen, onErased = { step = GateStep.Password })
+                GateStep.Unlock -> Unlock(
+                    onOpen = onOpen,
+                    onErased = { step = GateStep.Password },
+                    onResetPassword = { step = GateStep.ResetPassword },
+                )
+                GateStep.ResetPassword -> ResetPassword(
+                    onBack = {
+                        Vault.relock()
+                        step = GateStep.Unlock
+                    },
+                    onDone = onOpen,
+                )
             }
         }
     }
 }
 
-enum class GateStep { Language, Welcome, Speech, Password, Biometric, Unlock }
+enum class GateStep { Language, Welcome, Speech, Password, Biometric, Unlock, ResetPassword }
 
 private data class Page(@StringRes val kicker: Int, @StringRes val title: Int, @StringRes val body: Int)
 
@@ -316,7 +327,7 @@ private fun granted(ctx: Context, p: String) = ContextCompat.checkSelfPermission
 
 /** A wrong entry shakes the field like a head: a spring kicked sideways, no fixed keyframes. */
 @Composable
-private fun rememberShake(): Pair<Animatable<Float, *>, suspend () -> Unit> {
+internal fun rememberShake(): Pair<Animatable<Float, *>, suspend () -> Unit> {
     val a = remember { Animatable(0f) }
     return a to { a.snapTo(0f); a.animateTo(0f, Motion.Pop, initialVelocity = 700f) }
 }
@@ -457,7 +468,7 @@ private fun LanguageSwitch(activity: androidx.fragment.app.FragmentActivity?) {
 }
 
 @Composable
-private fun Unlock(onOpen: () -> Unit, onErased: () -> Unit) {
+private fun Unlock(onOpen: () -> Unit, onErased: () -> Unit, onResetPassword: () -> Unit) {
     val ctx = LocalContext.current
     val activity = remember(ctx) { ctx.findFragmentActivity() }
     val scope = rememberCoroutineScope()
@@ -517,6 +528,37 @@ private fun Unlock(onOpen: () -> Unit, onErased: () -> Unit) {
             error = ctx.getString(R.string.gate_bio_failed)
         }
     }
+    val withBiometricReset = withBiometricReset@{
+        val a = activity ?: return@withBiometricReset
+        if (busy) return@withBiometricReset
+        error = null
+        try {
+            val cipher = Vault.biometricUnlockCipher(ctx)
+            if (cipher == null) { error = ctx.getString(R.string.gate_bio_reset); return@withBiometricReset }
+            authenticateWithBiometric(
+                a, ctx.getString(R.string.gate_bio_unlock_title, ctx.getString(R.string.app_name)), ctx.getString(R.string.gate_bio_unlock_subtitle), ctx.getString(R.string.gate_bio_use_password), cipher,
+                onSuccess = { c ->
+                    busy = true
+                    scope.launch {
+                        try {
+                            val ok = withContext(Dispatchers.Default) { Vault.completeBiometricUnlock(ctx, c) }
+                            if (ok) {
+                                haptics.confirm()
+                                onResetPassword()
+                            } else error = ctx.getString(R.string.gate_bio_failed)
+                        } catch (e: Exception) {
+                            error = ctx.getString(R.string.gate_bio_failed)
+                        } finally {
+                            busy = false
+                        }
+                    }
+                },
+                onError = { if (it.isNotEmpty()) error = it },
+            )
+        } catch (e: Exception) {
+            error = ctx.getString(R.string.gate_bio_failed)
+        }
+    }
     // Not again after a language switch recreates the screen.
     var prompted by rememberSaveable { mutableStateOf(false) }
     LaunchedEffect(Unit) { if (biometric && !prompted) { prompted = true; withBiometric() } }
@@ -525,8 +567,6 @@ private fun Unlock(onOpen: () -> Unit, onErased: () -> Unit) {
         Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 26.dp), verticalArrangement = Arrangement.Center) {
             LanguageSwitch(activity)
             Spacer(Modifier.height(28.dp))
-            Label(stringResource(R.string.gate_locked_kicker))
-            Spacer(Modifier.height(18.dp))
             Text(stringResource(R.string.app_name), style = Type.Hero, color = Palette.Ink)
             Spacer(Modifier.height(40.dp))
             Box(Modifier.offset { IntOffset(shake.value.roundToInt(), 0) }) {
@@ -538,7 +578,16 @@ private fun Unlock(onOpen: () -> Unit, onErased: () -> Unit) {
             if (!forgot) {
                 TextAction(stringResource(R.string.gate_forgot), { forgot = true }, color = Palette.InkSoft)
             } else {
-                Text(stringResource(R.string.gate_forgot_body, stringResource(R.string.app_name)), style = Type.BodySmall, color = Palette.InkSoft)
+                Text(
+                    stringResource(if (biometric) R.string.gate_forgot_bio_hint else R.string.gate_forgot_body, stringResource(R.string.app_name)),
+                    style = Type.BodySmall,
+                    color = Palette.InkSoft,
+                )
+                Spacer(Modifier.height(10.dp))
+                if (biometric) {
+                    TextAction(stringResource(R.string.gate_reset_with_fingerprint), { withBiometricReset() }, color = Palette.Ink)
+                    Spacer(Modifier.height(10.dp))
+                }
                 Row {
                     TextAction(stringResource(R.string.gate_erase_start), { confirmErase = true }, color = Palette.Rec)
                     Spacer(Modifier.width(18.dp))
@@ -550,8 +599,8 @@ private fun Unlock(onOpen: () -> Unit, onErased: () -> Unit) {
         ChoiceBar(
             bar,
             // No fingerprint set up (or none in this build): just Unlock, not a greyed-out button that does nothing.
-            left = if (biometric) Choice(stringResource(R.string.gate_fingerprint), stringResource(R.string.gate_release_fingerprint), Palette.Tonal, Palette.Ink, enabled = !busy) { withBiometric() } else null,
-            right = Choice(stringResource(if (busy) R.string.gate_opening else R.string.gate_unlock), stringResource(R.string.gate_release_unlock), Palette.Ink, Palette.Paper, enabled = !busy) { withPassword() },
+            left = if (biometric) Choice(stringResource(R.string.gate_fingerprint), stringResource(R.string.gate_release_fingerprint), Palette.Tonal, Palette.Ink, enabled = !busy, swipe = false) { withBiometric() } else null,
+            right = Choice(stringResource(if (busy) R.string.gate_opening else R.string.gate_unlock), stringResource(R.string.gate_release_unlock), Palette.Ink, Palette.Paper, enabled = !busy, swipe = false) { withPassword() },
             modifier = Modifier.padding(14.dp).axisDrag(axisDragHandler(
                 accepts = { a, _, _ -> a == Axis.Horizontal && !busy },
                 onDrag = { _, t, _ -> bar.drag(t) { s -> s == Side.Right || biometric } },
@@ -578,4 +627,74 @@ private fun Unlock(onOpen: () -> Unit, onErased: () -> Unit) {
             }
         },
     )
+}
+
+@Composable
+private fun ResetPassword(onBack: () -> Unit, onDone: () -> Unit) {
+    val ctx = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val haptics = rememberHaptics()
+    val bar = rememberChoiceState()
+    var password by remember { mutableStateOf("") }
+    var confirm by remember { mutableStateOf("") }
+    var busy by remember { mutableStateOf(false) }
+    var error by remember { mutableStateOf<String?>(null) }
+    val longEnough = password.length >= MIN_PASSWORD
+    val matches = password == confirm
+    val valid = longEnough && matches && confirm.isNotEmpty()
+    val (shake, kick) = rememberShake()
+
+    val save = save@{
+        if (busy) return@save
+        if (!valid) {
+            haptics.reject()
+            scope.launch { kick() }
+            error = if (!longEnough) ctx.resources.getQuantityString(R.plurals.gate_pw_min, MIN_PASSWORD, MIN_PASSWORD) else ctx.getString(R.string.gate_pw_mismatch)
+            return@save
+        }
+        busy = true
+        val chars = password.toCharArray()
+        scope.launch {
+            try {
+                withContext(Dispatchers.Default) { Vault.changePassword(ctx, chars) }
+                haptics.confirm()
+                onDone()
+            } catch (e: Exception) {
+                error = ctx.getString(R.string.gate_change_pw_failed)
+                busy = false
+            } finally {
+                chars.fill('\u0000')
+            }
+        }
+    }
+
+    Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().imePadding()) {
+        Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 26.dp), verticalArrangement = Arrangement.Center) {
+            Spacer(Modifier.height(60.dp))
+            Label(stringResource(R.string.gate_pw_reset_kicker))
+            Spacer(Modifier.height(18.dp))
+            Text(stringResource(R.string.gate_pw_reset_title), style = Type.Hero.copy(fontSize = Type.Hero.fontSize * 0.78f, lineHeight = Type.Hero.lineHeight * 0.8f), color = Palette.Ink)
+            Spacer(Modifier.height(14.dp))
+            Text(stringResource(R.string.gate_pw_reset_body, stringResource(R.string.app_name)), style = Type.Body, color = Palette.InkSoft)
+            Spacer(Modifier.height(30.dp))
+            Column(Modifier.offset { IntOffset(shake.value.roundToInt(), 0) }) {
+                PaperField(password, { password = it; error = null }, pluralStringResource(R.plurals.gate_pw_hint, MIN_PASSWORD, MIN_PASSWORD), secret = true, enabled = !busy, imeAction = ImeAction.Next)
+                Spacer(Modifier.height(22.dp))
+                PaperField(confirm, { confirm = it; error = null }, stringResource(R.string.gate_pw_confirm_hint), secret = true, enabled = !busy, error = confirm.isNotEmpty() && !matches && confirm.length >= password.length, onIme = save)
+            }
+            Spacer(Modifier.height(12.dp))
+            Label(error ?: if (busy) stringResource(R.string.gate_securing) else " ", color = if (error != null) Palette.Rec else Palette.InkSoft)
+            Spacer(Modifier.height(40.dp))
+        }
+        ChoiceBar(
+            bar,
+            left = Choice(stringResource(R.string.gate_back), stringResource(R.string.gate_release_back), Palette.Tonal, Palette.Ink, enabled = !busy) { onBack() },
+            right = Choice(stringResource(if (busy) R.string.gate_securing else R.string.gate_pw_reset_save), stringResource(R.string.gate_release_save), Palette.Ink, Palette.Paper, enabled = !busy) { save() },
+            modifier = Modifier.padding(14.dp).axisDrag(axisDragHandler(
+                accepts = { a, _, _ -> a == Axis.Horizontal && !busy },
+                onDrag = { _, t, _ -> bar.drag(t) },
+                onEnd = { _, _, _ -> when (bar.release()) { Side.Left -> onBack(); Side.Right -> save(); null -> {} } },
+            )),
+        )
+    }
 }

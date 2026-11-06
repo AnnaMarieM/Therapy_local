@@ -1,11 +1,15 @@
 package com.therapylocal.app.models
 
 import android.content.Context
+import androidx.annotation.StringRes
+import com.therapylocal.app.R
 
 /** A language a client speaks in sessions. Canary is told it per recording. */
-enum class SpeechLanguage(val code: String, val title: String) {
-    English("en", "English"),
-    Czech("cs", "Čeština");
+enum class SpeechLanguage(val code: String, @StringRes val labelRes: Int, val title: String) {
+    English("en", R.string.speech_lang_english, "English"),
+    Czech("cs", R.string.speech_lang_czech, "Čeština");
+
+    fun displayName(context: Context): String = context.getString(labelRes)
 
     companion object {
         fun of(code: String?): SpeechLanguage = entries.firstOrNull { it.code == code } ?: English

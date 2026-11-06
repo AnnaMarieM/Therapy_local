@@ -156,8 +156,8 @@ class ClientLanguageTest {
     fun thePickerReportsATapOnAnotherLanguageOnly() {
         val picked = ArrayList<SpeechLanguage>()
         compose.setContent { PaperTheme { LanguagePicker(SpeechLanguage.English, { picked += it }) } }
-        compose.onNode(hasText("English")).performClick()
-        compose.onNode(hasText("Čeština")).performClick()
+        compose.onNode(hasText(context.getString(SpeechLanguage.English.labelRes))).performClick()
+        compose.onNode(hasText(context.getString(SpeechLanguage.Czech.labelRes))).performClick()
         compose.runOnIdle { assertEquals(listOf(SpeechLanguage.Czech), picked) }
     }
 

@@ -111,6 +111,21 @@ object Vault {
         return true
     }
 
+    /** Re-encrypts the live DEK under a new password. Requires unlocked. */
+    fun changePassword(context: Context, newPassword: CharArray) {
+        val liveDek = key()
+        val salt = VaultCrypto.randomBytes(16)
+        val kek = VaultCrypto.deriveKey(newPassword, salt, VaultCrypto.PBKDF2_ITERATIONS)
+        try {
+            val sealed = VaultCrypto.seal(kek, liveDek, DEK_AAD.toByteArray())
+            val currentKf = readKeyFile(context)
+            writeKeyFile(context, currentKf.copy(salt = salt, iterations = VaultCrypto.PBKDF2_ITERATIONS, passwordSealed = sealed))
+            AppLog.i(TAG, "password_changed", LogCtx.NONE)
+        } finally {
+            kek.fill(0)
+        }
+    }
+
     private fun finishUnlock(context: Context, key: ByteArray, method: String) {
         dek = key
         AppLog.pseudonymize = ::pseudonym
@@ -196,6 +211,12 @@ object Vault {
     }
 
     // --- lifecycle ---
+
+    /** Clears the DEK from memory and marks the vault locked without restarting the process. */
+    fun relock() {
+        wipe()
+        _unlocked.value = false
+    }
 
     /**
      * Wipes the DEK, relaunches the launcher activity in a fresh task and kills the process. A restart (rather than just clearing a flag)
