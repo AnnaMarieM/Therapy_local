@@ -46,7 +46,7 @@ class MemProbeActivity : Activity() {
             Log.i(TAG, "step=$name ${steps.getJSONObject(steps.length() - 1)}")
         }
         snap("start")
-        val llm = MemoryLlm(this, ctx, ModelRegistry.gemma(variant), host = com.therapylocal.app.engine.LocalEngineHost(this))
+        val llm = MemoryLlm(this, ctx, ModelRegistry.gemma(variant))
         try {
             check(ModelRegistry.gemma(variant).isReady(this)) { "model file missing or incomplete" }
             val l0 = System.nanoTime()
