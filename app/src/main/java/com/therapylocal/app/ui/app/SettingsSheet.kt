@@ -85,6 +85,8 @@ import com.therapylocal.app.ui.design.Type
 import com.therapylocal.app.ui.design.rememberChoiceState
 import com.therapylocal.app.ui.design.rememberHaptics
 import com.therapylocal.app.ui.design.LocalReducedMotion
+import com.therapylocal.app.ui.logic.ClientDisambiguation
+import com.therapylocal.app.ui.logic.DisambiguationTarget
 import com.therapylocal.app.ui.motion.PageShift
 import com.therapylocal.app.ui.motion.SheetState
 import com.therapylocal.app.ui.motion.axisDrag
@@ -193,7 +195,6 @@ fun SettingsSheet(
                         }
                     }
                 }
-                item { Row2(stringResource(R.string.settings_lock_title), stringResource(R.string.settings_lock_body, stringResource(R.string.app_name)), stringResource(R.string.settings_lock_action), onLock) }
 
                 item { Group(stringResource(R.string.settings_group_notifications)) }
                 item {
@@ -222,6 +223,15 @@ fun SettingsSheet(
                     Text(
                         stringResource(R.string.settings_about_text, stringResource(R.string.app_name), BuildConfig.VERSION_NAME),
                         style = Type.BodySmall, color = Palette.InkFaint, modifier = Modifier.padding(vertical = 16.dp),
+                    )
+                }
+                item {
+                    Spacer(Modifier.height(16.dp))
+                    PillButton(
+                        text = stringResource(R.string.settings_sign_out),
+                        onClick = onLock,
+                        color = Palette.Tonal,
+                        content = Palette.Ink,
                     )
                 }
             }
@@ -433,10 +443,7 @@ private fun Knob(title: String, value: String, position: Float, range: ClosedFlo
 private fun DefaultLanguage() {
     val ctx = LocalContext.current
     var language by remember { mutableStateOf(SpeechLanguages.default(ctx)) }
-    Column(Modifier.padding(top = 10.dp)) {
-        Text(stringResource(R.string.speech_default_body), style = Type.BodySmall, color = Palette.InkSoft)
-        LanguagePicker(language, { SpeechLanguages.setDefault(ctx, it); language = it })
-    }
+    LanguagePicker(language, { SpeechLanguages.setDefault(ctx, it); language = it })
 }
 
 @Composable
@@ -565,27 +572,30 @@ private fun HardwareModel(m: BackendGuard.ModelView) {
 }
 
 /**
- * Adding a client: a first name and, if you like, a surname, kept as an initial ("George M."). Only what is needed to recognise them.
+ * Adding a client: a first name and, if you like, a surname, shortened automatically to distinguish clients.
  */
 @Composable
-fun AddClientSheet(sheet: SheetState, onCancel: () -> Unit, onAdd: (String, SpeechLanguage) -> Unit) {
+fun AddClientSheet(
+    sheet: SheetState,
+    onCancel: () -> Unit,
+    onAdd: (String, String, SpeechLanguage) -> Unit,
+    existingClients: List<DisambiguationTarget> = emptyList(),
+) {
     val ctx = LocalContext.current
     val haptics = rememberHaptics()
     val bar = rememberChoiceState()
     var first by remember { mutableStateOf("") }
     var last by remember { mutableStateOf("") }
     var language by remember { mutableStateOf(SpeechLanguages.default(ctx)) }
-    val name = displayName(first, last)
-    val error = ClientInput.validate(ctx, name)
+    val name = ClientDisambiguation.preview(first, last, existingClients)
+    val error = ClientInput.validate(ctx, first)
     val focus = remember { FocusRequester() }
     androidx.compose.runtime.LaunchedEffect(Unit) { kotlinx.coroutines.delay(320); runCatching { focus.requestFocus() } }
-    val add = { if (error == null) onAdd(name, language) else haptics.reject() }
+    val add = { if (error == null) onAdd(first.trim(), last.trim(), language) else haptics.reject() }
 
     Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().imePadding().axisDrag(sheetDrag(sheet, bar, onBack = onCancel, onForward = { add() }, canForward = { error == null }))) {
         Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(start = 26.dp, end = 26.dp, top = 24.dp, bottom = hintsClearance())) {
-            Label(stringResource(R.string.settings_addclient_label))
-            Spacer(Modifier.height(14.dp))
-            Text(if (name.isBlank()) stringResource(R.string.settings_addclient_who) else name, style = Type.Hero, color = if (name.isBlank()) Palette.InkFaint else Palette.Ink, maxLines = 2)
+            Text(if (name.isBlank()) stringResource(R.string.settings_addclient_label) else name, style = Type.Hero, color = Palette.Ink, maxLines = 2)
             Spacer(Modifier.height(36.dp))
             PaperField(first, { first = it }, stringResource(R.string.settings_addclient_first_name), imeAction = ImeAction.Next, modifier = Modifier.focusRequester(focus), capitalization = KeyboardCapitalization.Words)
             Spacer(Modifier.height(22.dp))
@@ -605,9 +615,22 @@ fun AddClientSheet(sheet: SheetState, onCancel: () -> Unit, onAdd: (String, Spee
     }
 }
 
-/** "george", "miller" -> "George M."; the surname is optional. */
-internal fun displayName(first: String, last: String): String {
-    val f = first.trim().replaceFirstChar { it.titlecase(Locale.getDefault()) }
-    val l = last.trim().firstOrNull()?.uppercaseChar()
-    return if (l == null) f else "$f $l."
+@Composable
+fun AddClientSheet(
+    sheet: SheetState,
+    onCancel: () -> Unit,
+    onAdd: (String, SpeechLanguage) -> Unit,
+) {
+    AddClientSheet(
+        sheet = sheet,
+        onCancel = onCancel,
+        onAdd = { first, last, lang ->
+            val preview = ClientDisambiguation.preview(first, last, emptyList())
+            onAdd(preview, lang)
+        },
+    )
 }
+
+/** Legacy helper; preview is computed by [ClientDisambiguation]. */
+internal fun displayName(first: String, last: String): String =
+    ClientDisambiguation.preview(first, last, emptyList())

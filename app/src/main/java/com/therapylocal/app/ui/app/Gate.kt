@@ -525,8 +525,6 @@ private fun Unlock(onOpen: () -> Unit, onErased: () -> Unit) {
         Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 26.dp), verticalArrangement = Arrangement.Center) {
             LanguageSwitch(activity)
             Spacer(Modifier.height(28.dp))
-            Label(stringResource(R.string.gate_locked_kicker))
-            Spacer(Modifier.height(18.dp))
             Text(stringResource(R.string.app_name), style = Type.Hero, color = Palette.Ink)
             Spacer(Modifier.height(40.dp))
             Box(Modifier.offset { IntOffset(shake.value.roundToInt(), 0) }) {
@@ -550,8 +548,8 @@ private fun Unlock(onOpen: () -> Unit, onErased: () -> Unit) {
         ChoiceBar(
             bar,
             // No fingerprint set up (or none in this build): just Unlock, not a greyed-out button that does nothing.
-            left = if (biometric) Choice(stringResource(R.string.gate_fingerprint), stringResource(R.string.gate_release_fingerprint), Palette.Tonal, Palette.Ink, enabled = !busy) { withBiometric() } else null,
-            right = Choice(stringResource(if (busy) R.string.gate_opening else R.string.gate_unlock), stringResource(R.string.gate_release_unlock), Palette.Ink, Palette.Paper, enabled = !busy) { withPassword() },
+            left = if (biometric) Choice(stringResource(R.string.gate_fingerprint), stringResource(R.string.gate_release_fingerprint), Palette.Tonal, Palette.Ink, enabled = !busy, swipe = false) { withBiometric() } else null,
+            right = Choice(stringResource(if (busy) R.string.gate_opening else R.string.gate_unlock), stringResource(R.string.gate_release_unlock), Palette.Ink, Palette.Paper, enabled = !busy, swipe = false) { withPassword() },
             modifier = Modifier.padding(14.dp).axisDrag(axisDragHandler(
                 accepts = { a, _, _ -> a == Axis.Horizontal && !busy },
                 onDrag = { _, t, _ -> bar.drag(t) { s -> s == Side.Right || biometric } },

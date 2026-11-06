@@ -11,6 +11,7 @@ import com.therapylocal.app.jobs.Jobs
 import com.therapylocal.app.models.SpeechLanguage
 import com.therapylocal.app.models.SpeechLanguages
 import com.therapylocal.app.models.ModelSetup
+import com.therapylocal.app.ui.logic.DisambiguationTarget
 import com.therapylocal.app.ui.logic.SessionLogic
 import com.therapylocal.app.ui.models.FactItem
 import com.therapylocal.app.ui.models.FactOccurrence
@@ -30,12 +31,24 @@ class ClientRepository(context: Context, private val open: (Context) -> MindStor
 
     fun clients(): List<String> = store.clients().map { it.id }
 
-    /** Creates a client from the add-patient form and returns its UI patient. The id is a free slug of the name. */
-    fun createClient(name: String, language: SpeechLanguage = SpeechLanguages.default(appContext)): Patient {
-        val id = ClientInput.uniqueId(ClientInput.slug(name), clients().toSet())
-        store.createClient(id, name.trim(), language.code)
+    fun disambiguationTargets(): List<DisambiguationTarget> =
+        store.clients().map { DisambiguationTarget(it.id, it.firstName, it.lastName, it.createdAt) }
+
+    /** Creates a client from first and last name and returns its UI patient. */
+    fun createClient(firstName: String, lastName: String, language: SpeechLanguage = SpeechLanguages.default(appContext)): Patient {
+        val fullName = if (lastName.isBlank()) firstName.trim() else "${firstName.trim()} ${lastName.trim()}"
+        val id = ClientInput.uniqueId(ClientInput.slug(fullName), clients().toSet())
+        store.createClient(id, firstName.trim(), lastName.trim(), language.code)
         SpeechLanguages.markInUse(appContext, language)
         return patient(id)
+    }
+
+    /** Creates a client from a combined name string (legacy / tests). */
+    fun createClient(name: String, language: SpeechLanguage = SpeechLanguages.default(appContext)): Patient {
+        val parts = name.trim().split(Regex("\\s+"), limit = 2)
+        val first = parts.getOrNull(0) ?: name
+        val last = parts.getOrNull(1)?.trimEnd('.') ?: ""
+        return createClient(first, last, language)
     }
 
     /** Changes the language the client's next recordings are transcribed in; transcripts already made are kept. */
