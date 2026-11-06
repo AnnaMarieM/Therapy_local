@@ -5,6 +5,7 @@ import android.os.SystemClock
 import com.therapylocal.app.config.BackendPolicy
 import com.therapylocal.app.config.EmbeddingConfig
 import com.therapylocal.app.config.LiveCueConfig
+import com.therapylocal.app.engine.EngineDied
 import com.therapylocal.app.engine.EngineHost
 import com.therapylocal.app.engine.EngineKind
 import com.therapylocal.app.engine.EngineOp
@@ -179,11 +180,11 @@ class Embedder(
         return lock.withLock {
             check(!textOnly) { "Loaded without the audio encoder" }
             check(!suspended) { "Embedder suspended while sessions are processed" }
-            prepareLocked()
-            val h = checkNotNull(handle) { "Embedder not loaded" }
             try {
-                withContext(com.therapylocal.app.jobs.ModelDispatchers.Compute) {
-                    vectorOf { proxy.call<EngineReply.Vector>(EngineOp.EmbedAudio(proxy.newTag("embed_audio", null), h, pcm, role)) }
+                withHandleLocked { h ->
+                    withContext(com.therapylocal.app.jobs.ModelDispatchers.Compute) {
+                        vectorOf { proxy.call<EngineReply.Vector>(EngineOp.EmbedAudio(proxy.newTag("embed_audio", null), h, pcm, role)) }
+                    }
                 }
             } finally {
                 closeIfRequested()
@@ -194,14 +195,35 @@ class Embedder(
     /** Embeds text as a query ("task: search query | text: ...") or as a document. */
     suspend fun embedText(text: String, query: Boolean, ctx: LogCtx): FloatArray = lock.withLock {
         check(!suspended) { "Embedder suspended while sessions are processed" }
-        prepareLocked()
-        val h = checkNotNull(handle) { "Embedder not loaded" }
         try {
-            withContext(com.therapylocal.app.jobs.ModelDispatchers.Compute) {
-                vectorOf { proxy.call<EngineReply.Vector>(EngineOp.EmbedText(proxy.newTag("embed_text", null), h, text, query)) }
+            withHandleLocked { h ->
+                withContext(com.therapylocal.app.jobs.ModelDispatchers.Compute) {
+                    vectorOf { proxy.call<EngineReply.Vector>(EngineOp.EmbedText(proxy.newTag("embed_text", null), h, text, query)) }
+                }
             }
         } finally {
             closeIfRequested()
+        }
+    }
+
+    /**
+     * Under the lock: runs [block] with the handle. A host that ended under the handle (an idle stop, a death) makes the call fail with
+     * [EngineDied]. The connection's registry has already settled that handle in the guard, so it is dropped here without a close and without
+     * `guard.unloaded`. After a benign end (an idle stop, the system freezing the host) the embedder reloads once and retries, so a search
+     * after two quiet minutes only sees latency (`embed_reload_after_idle`); after a death the error goes on and the next use reloads.
+     */
+    private suspend fun <T> withHandleLocked(block: suspend (Int) -> T): T {
+        prepareLocked()
+        try {
+            return block(checkNotNull(handle) { "Embedder not loaded" })
+        } catch (d: EngineDied) {
+            handle = null
+            backend = "none"
+            // Not while suspended: the :live process was shut down for :batch on purpose and must not come back until resume().
+            if (d.exit.kind != BackendGuard.ExitKind.BENIGN || suspended) throw d
+            AppLog.i(TAG, "embed_reload_after_idle", LogCtx.NONE, "gen" to d.generation, "exit" to d.exit.description)
+            loadLocked()
+            return block(checkNotNull(handle) { "Embedder not loaded" })
         }
     }
 
@@ -270,6 +292,15 @@ class Embedder(
     suspend fun suspend() = lock.withLock {
         suspended = true
         closeLocked()
+    }
+
+    /**
+     * [suspend] for the safety net before a `:batch` open: marks the embedder suspended and unloads it without waiting for a call that holds
+     * the lock (a call in flight closes the engine when it is done). Never blocks, so it is safe on a compute thread.
+     */
+    fun suspendNow() {
+        suspended = true
+        close()
     }
 
     /** Allows work again; the engine loads on its next use. */

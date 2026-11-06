@@ -1,7 +1,11 @@
 package com.therapylocal.app.embed
 
 import android.content.Context
+import com.therapylocal.app.engine.EngineConnection
 import com.therapylocal.app.engine.EngineHost
+import com.therapylocal.app.engine.HandleSettler
+import com.therapylocal.app.models.BackendGuard
+import com.therapylocal.app.models.Backends
 import com.therapylocal.app.engine.EngineRole
 import com.therapylocal.app.config.EngineConfig
 import com.therapylocal.app.config.EngineTuning
@@ -30,8 +34,30 @@ object Engines {
     private fun host(context: Context, role: EngineRole): EngineHost =
         hosts.getOrPut(role) {
             val app = context.applicationContext
-            if (EngineConfig.IN_PROCESS) LocalEngineHost(app, role) else RemoteEngineHost(app, role, tuning)
+            if (EngineConfig.IN_PROCESS) LocalEngineHost(app, role)
+            else RemoteEngineHost(app, role, tuning, beforeOpen = if (role == EngineRole.BATCH) ({ stopLive() }) else ({}), settler = settler(app))
         }
+
+    /** Settles the guard entries of the handles a host generation still held when it ended (see [EngineConnection]). */
+    private fun settler(app: Context) = object : HandleSettler {
+        override fun unloaded(guardModel: String, backend: String) {
+            runCatching { Backends.guard(app)?.unloaded(guardModel, backend) }
+        }
+
+        // The guard side (a strike plus removing the resident entry) arrives with the immediate-strike step; until then the entry is left to recover().
+        override fun diedWhileLoaded(guardModel: String, backend: String, exit: BackendGuard.LastExit) {}
+    }
+
+    /**
+     * `:live` before `:batch` (AD-01): runs before every `Open` in `:batch`, also when `:batch` is already bound and idle. The embedder stops
+     * taking work and unloads without waiting for a running call, then the `:live` process is shut down and its death awaited (a kill after
+     * `liveShutdownMs`). A cheap state check when `:live` is not bound. Blocks, so worker threads only; `MemoryService` still calls [suspend]
+     * first and this is the safety net.
+     */
+    fun stopLive() {
+        embedder?.suspendNow()
+        (hosts[EngineRole.LIVE] as? RemoteEngineHost)?.stopForBatch()
+    }
 
     /**
      * Part of `AppLog.clear()` in main: the hosts' own log files go too. Best effort and it never binds a host. A bound host is asked with

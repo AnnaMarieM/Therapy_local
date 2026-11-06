@@ -1,11 +1,11 @@
 package com.therapylocal.app.models
 
 import android.app.ActivityManager
-import android.app.ApplicationExitInfo
 import android.content.Context
 import android.os.Build
 import android.os.PowerManager
 import com.therapylocal.app.BuildConfig
+import com.therapylocal.app.engine.ExitReasons
 import com.therapylocal.app.log.AppLog
 import com.therapylocal.app.log.LogCtx
 
@@ -168,52 +168,25 @@ object Backends {
         return "${BuildConfig.VERSION_NAME}/$installed/${Build.FINGERPRINT}"
     }
 
-    /** The newest exit decides the strikes; the last few are all logged, since a pattern (killed every time it loads) only shows in a row. */
+    /**
+     * The newest exit of the MAIN process decides the strikes (a host's exit is judged by its own record, never as a main death); the last few
+     * are all logged, since a pattern (killed every time it loads) only shows in a row. Hosts that stop on idle fill the system's list with
+     * their own records, so all of them are fetched and filtered by process name.
+     */
     private fun lastExit(context: Context): BackendGuard.LastExit? {
         val am = context.getSystemService(ActivityManager::class.java) ?: return null
-        val exits = runCatching { am.getHistoricalProcessExitReasons(context.packageName, 0, 5) }
+        val all = runCatching { am.getHistoricalProcessExitReasons(context.packageName, 0, 0) }
             .onFailure { AppLog.w(TAG, "exit_reasons_unavailable", LogCtx.NONE, "reason" to it.message) }.getOrNull().orEmpty()
-        exits.forEachIndexed { i, x ->
+        val exits = all.map(ExitReasons::of).filter { it.processName == context.packageName }
+        exits.take(5).forEachIndexed { i, x ->
             AppLog.i(
-                TAG, "process_exit", LogCtx.NONE, "index" to i, "at" to x.timestamp, "reason" to x.reason, "reason_name" to reasonName(x.reason), "status" to x.status,
-                "importance" to x.importance, "pss_mb" to x.pss / 1024, "rss_mb" to x.rss / 1024, "process" to x.processName, "pid" to x.pid, "description" to x.description,
+                TAG, "process_exit", LogCtx.NONE, "index" to i, "at" to x.timestamp, "reason" to x.reason, "reason_name" to ExitReasons.reasonName(x.reason), "status" to x.status,
+                "importance" to x.importance, "pss_mb" to x.pssKb / 1024, "rss_mb" to x.rssKb / 1024, "process" to x.processName, "pid" to x.pid, "description" to x.description,
             )
         }
         val info = exits.firstOrNull() ?: return null
-        val kind = when (info.reason) {
-            ApplicationExitInfo.REASON_LOW_MEMORY -> BackendGuard.ExitKind.KILLED_FOR_MEMORY
-            // Without low-memory-kill reports the low-memory killer shows up as a plain SIGKILL.
-            ApplicationExitInfo.REASON_SIGNALED ->
-                if (info.status == 9 && !ActivityManager.isLowMemoryKillReportSupported()) BackendGuard.ExitKind.KILLED_FOR_MEMORY else BackendGuard.ExitKind.UNKNOWN
-            ApplicationExitInfo.REASON_CRASH_NATIVE -> BackendGuard.ExitKind.NATIVE_CRASH
-            ApplicationExitInfo.REASON_CRASH -> BackendGuard.ExitKind.CRASH
-            ApplicationExitInfo.REASON_ANR -> BackendGuard.ExitKind.ANR
-            ApplicationExitInfo.REASON_EXIT_SELF, ApplicationExitInfo.REASON_USER_REQUESTED, ApplicationExitInfo.REASON_USER_STOPPED,
-            ApplicationExitInfo.REASON_PERMISSION_CHANGE, ApplicationExitInfo.REASON_PACKAGE_STATE_CHANGE, ApplicationExitInfo.REASON_PACKAGE_UPDATED,
-            -> BackendGuard.ExitKind.BENIGN
-            else -> BackendGuard.ExitKind.UNKNOWN
-        }
+        val kind = ExitReasons.map(info, ActivityManager.isLowMemoryKillReportSupported()).kind
         val foreground = info.importance <= ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND_SERVICE
-        return BackendGuard.LastExit(kind, foreground, "${reasonName(info.reason)} status=${info.status} ${info.description ?: ""}".trim())
-    }
-
-    private fun reasonName(reason: Int) = when (reason) {
-        ApplicationExitInfo.REASON_EXIT_SELF -> "exit_self"
-        ApplicationExitInfo.REASON_SIGNALED -> "signaled"
-        ApplicationExitInfo.REASON_LOW_MEMORY -> "low_memory"
-        ApplicationExitInfo.REASON_CRASH -> "crash"
-        ApplicationExitInfo.REASON_CRASH_NATIVE -> "crash_native"
-        ApplicationExitInfo.REASON_ANR -> "anr"
-        ApplicationExitInfo.REASON_INITIALIZATION_FAILURE -> "initialization_failure"
-        ApplicationExitInfo.REASON_PERMISSION_CHANGE -> "permission_change"
-        ApplicationExitInfo.REASON_EXCESSIVE_RESOURCE_USAGE -> "excessive_resource_usage"
-        ApplicationExitInfo.REASON_USER_REQUESTED -> "user_requested"
-        ApplicationExitInfo.REASON_USER_STOPPED -> "user_stopped"
-        ApplicationExitInfo.REASON_DEPENDENCY_DIED -> "dependency_died"
-        ApplicationExitInfo.REASON_OTHER -> "other"
-        ApplicationExitInfo.REASON_FREEZER -> "freezer"
-        ApplicationExitInfo.REASON_PACKAGE_STATE_CHANGE -> "package_state_change"
-        ApplicationExitInfo.REASON_PACKAGE_UPDATED -> "package_updated"
-        else -> "unknown_$reason"
+        return BackendGuard.LastExit(kind, foreground, ExitReasons.describe(info))
     }
 }

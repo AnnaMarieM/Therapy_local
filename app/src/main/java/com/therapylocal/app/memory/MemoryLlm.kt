@@ -3,6 +3,7 @@ package com.therapylocal.app.memory
 import android.content.Context
 import com.therapylocal.app.config.BackendPolicy
 import com.therapylocal.app.embed.Engines
+import com.therapylocal.app.engine.EngineDied
 import com.therapylocal.app.engine.EngineHost
 import com.therapylocal.app.engine.EngineKind
 import com.therapylocal.app.engine.EngineOp
@@ -97,7 +98,10 @@ class MemoryLlm(
             // Noted per device; failing on prompts again and again strikes the backend and marks this engine unhealthy, so the pool reloads
             // it on the next backend. Types and code locations only, never the message: an inference error can quote the prompt.
             val r = runCatching { guard()?.inferenceFailed(spec.id, backend, BackendLadder.name(t)) }.getOrNull()
-            if (r != null) healthy = false
+            // The host ended under this handle (a death, or an idle stop): the handle is gone, so the pool must reload.
+            if (r != null || t is EngineDied) healthy = false
+            // The connection's registry already settled this handle in the guard; the pool's close() must not settle it again (unloaded would reset strikes).
+            if (t is EngineDied) handle = null
             runCatching {
                 AppLog.eRedacted(
                     TAG, "llm_call_failed", LogCtx.NONE, t, "backend" to backend, "model" to spec.id, "constrained" to (schema != null),

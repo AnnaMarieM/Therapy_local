@@ -1,5 +1,6 @@
 package com.therapylocal.app.engine
 
+import android.app.ActivityManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -14,236 +15,86 @@ import com.therapylocal.app.config.EngineTuning
 import com.therapylocal.app.engine.wire.EngineCodec
 import com.therapylocal.app.log.AppLog
 import com.therapylocal.app.log.LogCtx
-import com.therapylocal.app.models.BackendGuard
+import com.therapylocal.app.perf.PerfStats
+import java.io.File
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.CountDownLatch
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import java.util.concurrent.ScheduledThreadPoolExecutor
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * The engines of one role (`:live` or `:batch`) in their own process, reached over Binder. The same [EngineHost] contract as
  * [LocalEngineHost]; the host-side [EngineServer] is the same too.
  *
- * Threads: binding, the connection callbacks and the death recipient run on a single-thread executor of their own (`engine-conn-<role>`),
- * never on the main looper or a binder thread, so a worker waiting for the bind never depends on a free main thread. [call] must not run on
- * the main thread. [closeAsync] hands the close to a second executor (`engine-close-<role>`) and returns.
+ * This class is the platform half. The logic (generations, death, exit reasons, restart, timeouts, idle stop, the handle registry) is in
+ * [EngineConnection], which runs on a fake binding in the JVM tests. Here: the Binder binding with one `ServiceConnection` per
+ * generation, the executors, and the production seams.
  *
- * This is the basic connection: one bind per generation, a death is an [EngineDied] without exit lookup, a transport error is
- * [EngineUnavailable]. No restart or timeout logic yet (EngineConnection adds those). A `RemoteException` never leaves this class.
+ * Threads: `engine-conn-<role>` runs every connection callback, the death recipient and the connection's timers; `engine-close-<role>`
+ * runs closes, so a hung close never delays a death callback. [call] must not run on the main thread; [closeAsync] and [release] may.
  */
 class RemoteEngineHost(
     context: Context,
     override val role: EngineRole,
     private val tuning: EngineTuning = EngineConfig.DEFAULT,
+    beforeOpen: () -> Unit = {},
+    settler: HandleSettler = HandleSettler.None,
 ) : EngineHost {
     private val app = context.applicationContext
-    private val tag = "Engine"
-    private val connExecutor: ExecutorService = daemon("engine-conn-${role.proc}")
-    private val closeExecutor: ExecutorService = daemon("engine-close-${role.proc}")
-    private val bindLock = Any()
-    private val generations = AtomicInteger(0)
-    private val clientToken = Binder()
+    private val connExecutor = ScheduledThreadPoolExecutor(1) { r -> Thread(r, "engine-conn-${role.proc}").apply { isDaemon = true } }
+        .apply { removeOnCancelPolicy = true }
+    private val closeExecutor: ExecutorService = Executors.newSingleThreadExecutor { r -> Thread(r, "engine-close-${role.proc}").apply { isDaemon = true } }
+    private val binding = AndroidBinding()
 
-    /** `req` to the sink of the call in flight, so the host's phase callbacks reach the right ladder attempt. */
-    private val phaseSinks = ConcurrentHashMap<String, PhaseSink>()
-
-    /** Handle to the generation it was opened on (a minimal stand-in for the per-generation registry). */
-    private val handleGen = ConcurrentHashMap<Int, Int>()
-
-    @Volatile private var conn: Conn? = null
-
-    private val events = object : IEngineEvents.Stub() {
-        override fun phase(req: String, loadId: String?, model: String, backend: String, phase: String) {
-            val sink = phaseSinks[req] ?: return
-            runCatching { sink.phase(CallTag(req, loadId, "open"), model, backend, phase) }
-        }
-    }
-
-    /** One bound connection. The `ServiceConnection` is per generation, so a callback of an older one can be told from the current one. */
-    private inner class Conn(val gen: Int) : android.content.ServiceConnection {
-        val latch = CountDownLatch(1)
-        @Volatile var host: IEngineHost? = null
-        @Volatile var failure: String? = null
-        @Volatile var ended = false
-        val death = IBinder.DeathRecipient { onGone(this, "binder_died") }
-
-        override fun onServiceConnected(name: ComponentName, service: IBinder) {
-            if (ended) return
-            try {
-                val h = IEngineHost.Stub.asInterface(service)
-                service.linkToDeath(death, 0)
-                h.attach(clientToken, events, Process.myPid(), AppLog.sid)
-                host = h
-                AppLog.i(tag, EngineEvents.CONNECTED, LogCtx.NONE, "role" to role.proc, "gen" to gen)
-            } catch (e: Exception) {
-                failure = "attach_failed"
-                runCatching { AppLog.w(tag, EngineEvents.BIND_TIMEOUT, LogCtx.NONE, "role" to role.proc, "gen" to gen, "why" to "attach_failed", "err" to e.javaClass.simpleName) }
-            } finally {
-                latch.countDown()
+    val connection = EngineConnection(
+        role = role,
+        binding = binding,
+        clock = SystemEngineClock,
+        scheduler = object : EngineScheduler {
+            override fun execute(task: Runnable) { connExecutor.execute(task) }
+            override fun schedule(delayMs: Long, task: Runnable): Cancelable {
+                val f = connExecutor.schedule(task, delayMs, TimeUnit.MILLISECONDS)
+                return Cancelable { f.cancel(false) }
             }
-        }
-
-        override fun onServiceDisconnected(name: ComponentName) = onGone(this, "disconnected")
-        override fun onBindingDied(name: ComponentName) {
-            failure = failure ?: "binding_died"
-            onGone(this, "binding_died")
-        }
-        override fun onNullBinding(name: ComponentName) {
-            failure = "null_binding"
-            latch.countDown()
-        }
-
-        fun alive(): Boolean = !ended && host?.asBinder()?.isBinderAlive == true
-    }
-
-    private fun onGone(c: Conn, reason: String) {
-        if (conn !== c) {
-            AppLog.d(tag, EngineEvents.STALE_CALLBACK, LogCtx.NONE, "role" to role.proc, "conn_gen" to c.gen, "gen_now" to conn?.gen)
-            return
-        }
-        endConn(c, reason)
-    }
-
-    private fun endConn(c: Conn, reason: String) {
-        synchronized(bindLock) {
-            if (c.ended) return
-            c.ended = true
-            if (conn === c) conn = null
-        }
-        runCatching { c.host?.asBinder()?.unlinkToDeath(c.death, 0) }
-        runCatching { app.unbindService(c) }
-        c.latch.countDown()
-        AppLog.i(tag, EngineEvents.UNBOUND, LogCtx.NONE, "role" to role.proc, "gen" to c.gen, "reason" to reason)
-    }
-
-    /** Binds if needed and waits (bounded) for the connection. Never on the main thread. */
-    private fun ensureBound(): Conn {
-        check(Looper.getMainLooper() == null || Looper.myLooper() !== Looper.getMainLooper()) { "engine bind on the main thread" }
-        val c: Conn
-        synchronized(bindLock) {
-            val cur = conn
-            if (cur != null && !cur.ended && cur.latch.count == 0L && cur.alive()) return cur
-            if (cur != null && !cur.ended && cur.latch.count > 0L) {
-                c = cur // somebody else is binding: wait on the same attempt below
-            } else {
-                if (cur != null) endConn(cur, "stale")
-                c = Conn(generations.incrementAndGet())
-                conn = c
-                val intent = Intent(app, if (role == EngineRole.LIVE) EngineHostLive::class.java else EngineHostBatch::class.java)
-                AppLog.i(tag, EngineEvents.BIND, LogCtx.NONE, "role" to role.proc, "gen" to c.gen, "flags" to "auto_create|not_perceptible")
-                val ok = try {
-                    app.bindService(intent, android.content.Context.BIND_AUTO_CREATE or android.content.Context.BIND_NOT_PERCEPTIBLE, connExecutor, c)
-                } catch (e: SecurityException) {
-                    false
-                }
-                if (!ok) {
-                    c.failure = "refused"
-                    endConn(c, "refused")
-                }
-            }
-        }
-        val connected = c.latch.await(tuning.bindTimeoutMs, TimeUnit.MILLISECONDS)
-        val why = c.failure ?: if (!connected) "timeout" else if (c.host == null) "binding_died" else null
-        if (why != null) {
-            AppLog.w(tag, EngineEvents.BIND_TIMEOUT, LogCtx.NONE, "role" to role.proc, "gen" to c.gen, "why" to why, "timeout_ms" to tuning.bindTimeoutMs)
-            endConn(c, "bind_$why")
-            throw EngineUnavailable(role, "bind_$why", 0)
-        }
-        return c
-    }
+        },
+        exits = ExitReasons.source(app),
+        cpuTime = CpuTime { pid -> runCatching { ExitReasons.cpuMsFromStat(File("/proc/$pid/stat").readText(), clockTicks) }.getOrNull() },
+        mainImportance = {
+            val i = ActivityManager.RunningAppProcessInfo()
+            ActivityManager.getMyMemoryState(i)
+            i.importance
+        },
+        tuning = tuning,
+        log = AppLogSink,
+        processName = "${app.packageName}:${role.proc}",
+        settler = settler,
+        lowMemoryKillReports = runCatching { ActivityManager.isLowMemoryKillReportSupported() }.getOrDefault(false),
+        closeExecutor = closeExecutor,
+        beforeOpen = beforeOpen,
+        decodeTps = { PerfStats.live.value?.decodeTokS ?: 0.0 },
+        sysMemory = {
+            val mi = ActivityManager.MemoryInfo().also { app.getSystemService(ActivityManager::class.java)?.getMemoryInfo(it) }
+            listOf("sys_avail_mb" to (mi.availMem shr 20), "sys_total_mb" to (mi.totalMem shr 20), "sys_low" to mi.lowMemory)
+        },
+        onView = { EngineState.publish(role, it) },
+    )
 
     override fun call(op: EngineOp, phases: PhaseSink): EngineReply {
-        val req = op.tag.requestId
-        phaseSinks[req] = phases
-        var encoded: android.os.Bundle? = null
-        try {
-            val c = ensureBound()
-            checkHandle(op, c)
-            val b = EngineCodec.encode(op).also { encoded = it }
-            val raw = try {
-                c.host!!.call(b)
-            } catch (e: RemoteException) {
-                val alive = c.alive()
-                val ex = RemoteFailures.toException(e, alive, role, c.gen, op.tag.op, sizeOf(b))
-                if (ex is EngineDied) endConn(c, "died_in_call")
-                throw ex
-            }
-            val reply = EngineCodec.decodeReply(raw)
-            if (reply is EngineReply.Opened) handleGen[reply.handle] = c.gen
-            if (op is EngineOp.Close) handleGen.remove(op.handle)
-            return reply
-        } finally {
-            phaseSinks.remove(req)
-            encoded?.let { EngineCodec.release(it) }
-        }
+        check(Looper.getMainLooper() == null || Looper.myLooper() !== Looper.getMainLooper()) { "engine call on the main thread" }
+        return connection.call(op, phases)
     }
 
-    /** A handle opened on an earlier generation is never sent to a newer process (the registry per generation arrives with EngineConnection). */
-    private fun checkHandle(op: EngineOp, c: Conn) {
-        val handle = when (op) {
-            is EngineOp.Ask -> op.handle
-            is EngineOp.EmbedText -> op.handle
-            is EngineOp.EmbedAudio -> op.handle
-            is EngineOp.Transcribe -> op.handle
-            is EngineOp.Close -> op.handle
-            else -> return
-        }
-        val had = handleGen[handle] ?: return
-        if (had != c.gen) {
-            if (op is EngineOp.Close) handleGen.remove(handle)
-            AppLog.w(tag, EngineEvents.CALL_FAILED, LogCtx.NONE, "role" to role.proc, "op" to op.tag.op, "why" to "stale_handle", "gen_had" to had, "gen_now" to c.gen)
-            throw EngineDied(role, had, BackendGuard.LastExit(BackendGuard.ExitKind.UNKNOWN, false, "handle from an earlier host process"), null, op.tag.op)
-        }
-    }
-
-    /**
-     * Never blocks the caller. Only an existing connection is used: a close never starts a host, and a handle of a process that is gone needs
-     * no close (the process ending was the unload).
-     */
-    override fun closeAsync(op: EngineOp.Close) {
-        val c = conn?.takeIf { it.alive() }
-        if (c == null) {
-            handleGen.remove(op.handle)
-            return
-        }
-        runCatching {
-            closeExecutor.execute {
-                try {
-                    if (c.alive()) {
-                        val b = EngineCodec.encode(op)
-                        try {
-                            EngineCodec.decodeReply(c.host!!.call(b))
-                        } finally {
-                            EngineCodec.release(b)
-                        }
-                    }
-                } catch (t: Throwable) {
-                    runCatching { AppLog.w(tag, EngineEvents.CALL_FAILED, LogCtx.NONE, "role" to role.proc, "op" to "close", "req" to op.tag.requestId, "err" to t.javaClass.simpleName) }
-                } finally {
-                    handleGen.remove(op.handle)
-                }
-            }
-        }
-    }
+    override fun closeAsync(op: EngineOp.Close) = connection.closeAsync(op)
 
     /**
      * Asks a bound host to delete its own log files. False when no host is bound (the caller deletes the files itself) or the host did not
      * answer in `closeTimeoutMs`. Never binds.
      */
     fun clearLogsIfBound(): Boolean {
-        val c = conn?.takeIf { it.alive() } ?: return false
         val op = EngineOp.ClearLogs(CallTag(java.util.UUID.randomUUID().toString().take(8), null, "clear_logs"))
         val f = try {
-            closeExecutor.submit<Boolean> {
-                val b = EngineCodec.encode(op)
-                try {
-                    EngineCodec.decodeReply(c.host!!.call(b)) is EngineReply.Done
-                } finally {
-                    EngineCodec.release(b)
-                }
-            }
+            closeExecutor.submit<Boolean> { connection.callIfBound(op) is EngineReply.Done }
         } catch (_: Throwable) {
             return false
         }
@@ -256,27 +107,154 @@ class RemoteEngineHost(
     }
 
     /** Whether a host is bound right now. */
-    val isBound: Boolean get() = conn?.alive() == true
+    val isBound: Boolean get() = connection.isBound
 
-    /** Unbinds. The host process ends itself when its last client unbinds. */
-    fun release() {
-        val c = conn ?: return
-        endConn(c, "release")
-    }
+    /** Ends the host without waiting; it exits when its client unbinds. Never blocks. */
+    fun release() = connection.release()
 
-    private fun sizeOf(b: android.os.Bundle): Int {
-        val p = Parcel.obtain()
-        return try {
-            p.writeBundle(b)
-            p.dataSize()
-        } catch (_: Throwable) {
-            -1
-        } finally {
-            p.recycle()
+    /** `:live` before `:batch`: shuts the host down and waits (bounded) for its process to be gone, killing it after that. */
+    fun stopForBatch(): Boolean = connection.shutdownAndAwait("batch_starting")
+
+    /** The platform half of the connection: one `ServiceConnection` per generation, all callbacks on `engine-conn-<role>`. */
+    private inner class AndroidBinding : EngineBinding {
+        override lateinit var listener: EngineBinding.Listener
+        private val convs = ConcurrentHashMap<Int, Conn>()
+        private val clientToken = Binder()
+
+        private val events = object : IEngineEvents.Stub() {
+            override fun phase(req: String, loadId: String?, model: String, backend: String, phase: String) {
+                runCatching { listener.phase(req, loadId, model, backend, phase) }
+            }
         }
+
+        private inner class Conn(val gen: Int) : android.content.ServiceConnection {
+            @Volatile var host: IEngineHost? = null
+            @Volatile var unbound = false
+            val death = IBinder.DeathRecipient { connExecutor.execute { listener.binderDied(gen) } }
+
+            override fun onServiceConnected(name: ComponentName, service: IBinder) {
+                val pid: Int
+                try {
+                    val h = IEngineHost.Stub.asInterface(service)
+                    service.linkToDeath(death, 0)
+                    h.attach(clientToken, events, Process.myPid(), AppLog.sid)
+                    pid = hostPid(h)
+                    host = h
+                } catch (e: Exception) {
+                    listener.attachFailed(gen, "attach_failed")
+                    return
+                }
+                listener.connected(gen, pid)
+            }
+
+            override fun onServiceDisconnected(name: ComponentName) = listener.disconnected(gen)
+            override fun onBindingDied(name: ComponentName) = listener.bindingDied(gen)
+            override fun onNullBinding(name: ComponentName) = listener.nullBinding(gen)
+        }
+
+        /** The host's pid, from its `Status` (the platform does not hand it to a bound client otherwise). */
+        private fun hostPid(h: IEngineHost): Int {
+            val op = EngineOp.Status(CallTag("attach", null, "status"))
+            val b = EngineCodec.encode(op)
+            try {
+                return (EngineCodec.decodeReply(h.call(b)) as EngineReply.HostStatus).pid
+            } finally {
+                EngineCodec.release(b)
+            }
+        }
+
+        override fun bind(gen: Int): Boolean {
+            val c = Conn(gen)
+            convs[gen] = c
+            val intent = Intent(app, if (role == EngineRole.LIVE) EngineHostLive::class.java else EngineHostBatch::class.java)
+            val ok = try {
+                app.bindService(intent, Context.BIND_AUTO_CREATE or Context.BIND_NOT_PERCEPTIBLE, connExecutor, c)
+            } catch (e: SecurityException) {
+                false
+            }
+            if (!ok) {
+                runCatching { app.unbindService(c) }
+                convs.remove(gen)
+            }
+            return ok
+        }
+
+        override fun unbind(gen: Int) {
+            val c = convs[gen] ?: return
+            if (c.unbound) return
+            c.unbound = true
+            runCatching { app.unbindService(c) }
+        }
+
+        override fun release(gen: Int) {
+            val c = convs.remove(gen) ?: return
+            runCatching { c.host?.asBinder()?.unlinkToDeath(c.death, 0) }
+            if (!c.unbound) {
+                c.unbound = true
+                runCatching { app.unbindService(c) }
+            }
+        }
+
+        override fun call(gen: Int, op: EngineOp): EngineReply {
+            val h = convs[gen]?.host ?: throw BindingFailure(BindingFailure.Kind.DEATH)
+            val b = EngineCodec.encode(op)
+            try {
+                val raw = try {
+                    h.call(b)
+                } catch (e: RemoteException) {
+                    val kind = when (RemoteFailures.classify(e, h.asBinder().isBinderAlive)) {
+                        RemoteFailures.Failure.Death -> BindingFailure.Kind.DEATH
+                        RemoteFailures.Failure.TooLarge -> BindingFailure.Kind.TOO_LARGE
+                        RemoteFailures.Failure.Transport -> BindingFailure.Kind.TRANSPORT
+                    }
+                    throw BindingFailure(kind, sizeOf(b))
+                }
+                return EngineCodec.decodeReply(raw)
+            } finally {
+                EngineCodec.release(b)
+            }
+        }
+
+        override fun shutdown(gen: Int, reason: String) {
+            runCatching { convs[gen]?.host?.shutdown(reason) }
+        }
+
+        override fun kill(pid: Int) = Process.killProcess(pid)
+
+        override fun pidAlive(pid: Int): Boolean = File("/proc/$pid").exists()
     }
 
     private companion object {
-        fun daemon(name: String): ExecutorService = Executors.newSingleThreadExecutor { r -> Thread(r, name).apply { isDaemon = true } }
+        /** `_SC_CLK_TCK` is 100 on Android's kernels. */
+        const val clockTicks = 100L
+
+        fun sizeOf(b: android.os.Bundle): Int {
+            val p = Parcel.obtain()
+            return try {
+                p.writeBundle(b)
+                p.dataSize()
+            } catch (_: Throwable) {
+                -1
+            } finally {
+                p.recycle()
+            }
+        }
     }
+}
+
+/** Connection lines into AppLog (which adds `proc=` and `pid=`). */
+object AppLogSink : EngineLog {
+    private const val TAG = "Engine"
+
+    override fun log(level: Char, event: String, fields: List<Pair<String, Any?>>) {
+        val f = fields.toTypedArray()
+        when (level) {
+            'd' -> AppLog.d(TAG, event, LogCtx.NONE, *f)
+            'w' -> AppLog.w(TAG, event, LogCtx.NONE, *f)
+            'e' -> AppLog.e(TAG, event, LogCtx.NONE, null, *f)
+            else -> AppLog.i(TAG, event, LogCtx.NONE, *f)
+        }
+    }
+
+    override fun flush() = AppLog.flush()
 }
