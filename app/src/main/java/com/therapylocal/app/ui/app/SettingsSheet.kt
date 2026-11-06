@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
@@ -55,6 +56,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
@@ -122,6 +124,7 @@ fun SettingsSheet(
     val bar = rememberChoiceState()
     val list = rememberLazyListState()
     val technicalSheet = rememberSheetState()
+    val changePasswordSheet = rememberSheetState()
     val keepScreenAwake by DisplayConfig.keepScreenAwake.collectAsStateWithLifecycle()
     var tick by remember { mutableIntStateOf(0) }
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { tick++ }
@@ -133,7 +136,7 @@ fun SettingsSheet(
         Column(
             Modifier
                 .fillMaxSize()
-                .recede(listOf(technicalSheet), LocalReducedMotion.current)
+                .recede(listOf(technicalSheet, changePasswordSheet), LocalReducedMotion.current)
                 .statusBarsPadding()
                 .navigationBarsPadding()
                 .axisDrag(sheetDrag(sheet, bar, onBack = onClose))
@@ -195,6 +198,16 @@ fun SettingsSheet(
                         }
                     }
                 }
+                item {
+                    Row2(
+                        stringResource(R.string.settings_change_password_title),
+                        stringResource(R.string.settings_change_password_body, stringResource(R.string.app_name)),
+                        stringResource(R.string.settings_change_password_action),
+                    ) {
+                        haptics.confirm()
+                        changePasswordSheet.open()
+                    }
+                }
 
                 item { Group(stringResource(R.string.settings_group_notifications)) }
                 item {
@@ -247,6 +260,14 @@ fun SettingsSheet(
                 onClose = { technicalSheet.close() },
                 notice = notice,
                 onReprocess = onReprocess,
+            )
+        }
+
+        PageShift(changePasswordSheet, onBack = { changePasswordSheet.close() }) {
+            ChangePasswordSheet(
+                sheet = changePasswordSheet,
+                onClose = { changePasswordSheet.close() },
+                notice = notice,
             )
         }
     }
@@ -568,6 +589,108 @@ private fun HardwareModel(m: BackendGuard.ModelView) {
                 }
             }
         }
+    }
+}
+
+/**
+ * Changing the password from Settings while authenticated.
+ */
+@Composable
+fun ChangePasswordSheet(
+    sheet: SheetState,
+    onClose: () -> Unit,
+    notice: NoticeState,
+) {
+    val ctx = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val haptics = rememberHaptics()
+    val bar = rememberChoiceState()
+    var password by remember { mutableStateOf("") }
+    var confirm by remember { mutableStateOf("") }
+    var busy by remember { mutableStateOf(false) }
+    var error by remember { mutableStateOf<String?>(null) }
+    val longEnough = password.length >= MIN_PASSWORD
+    val matches = password == confirm
+    val valid = longEnough && matches && confirm.isNotEmpty()
+    val (shake, kick) = rememberShake()
+    val focus = remember { FocusRequester() }
+    androidx.compose.runtime.LaunchedEffect(Unit) { kotlinx.coroutines.delay(320); runCatching { focus.requestFocus() } }
+
+    val save: () -> Unit = save@{
+        if (busy) return@save
+        if (!valid) {
+            haptics.reject()
+            scope.launch { kick() }
+            error = if (!longEnough) ctx.resources.getQuantityString(R.plurals.gate_pw_min, MIN_PASSWORD, MIN_PASSWORD) else ctx.getString(R.string.gate_pw_mismatch)
+            return@save
+        }
+        busy = true
+        val chars = password.toCharArray()
+        scope.launch {
+            try {
+                withContext(Dispatchers.Default) { Vault.changePassword(ctx, chars) }
+                haptics.confirm()
+                notice.show(ctx.getString(R.string.settings_password_changed))
+                onClose()
+            } catch (e: Exception) {
+                error = ctx.getString(R.string.gate_change_pw_failed)
+                busy = false
+            } finally {
+                chars.fill('\u0000')
+            }
+        }
+    }
+
+    Column(
+        Modifier
+            .fillMaxSize()
+            .statusBarsPadding()
+            .navigationBarsPadding()
+            .imePadding()
+            .axisDrag(sheetDrag(sheet, bar, onBack = onClose, onForward = { save() }, canForward = { valid && !busy }))
+    ) {
+        Column(
+            Modifier
+                .weight(1f)
+                .verticalScroll(rememberScrollState())
+                .padding(start = 26.dp, end = 26.dp, top = 24.dp, bottom = hintsClearance())
+        ) {
+            Label(stringResource(R.string.settings_change_password_kicker))
+            Spacer(Modifier.height(14.dp))
+            Text(stringResource(R.string.settings_change_password_title), style = Type.Hero, color = Palette.Ink)
+            Spacer(Modifier.height(14.dp))
+            Text(stringResource(R.string.settings_change_password_body, stringResource(R.string.app_name)), style = Type.Body, color = Palette.InkSoft)
+            Spacer(Modifier.height(30.dp))
+            Column(Modifier.offset { IntOffset(shake.value.roundToInt(), 0) }) {
+                PaperField(
+                    password,
+                    { password = it; error = null },
+                    pluralStringResource(R.plurals.gate_pw_hint, MIN_PASSWORD, MIN_PASSWORD),
+                    secret = true,
+                    enabled = !busy,
+                    imeAction = ImeAction.Next,
+                    modifier = Modifier.focusRequester(focus),
+                )
+                Spacer(Modifier.height(22.dp))
+                PaperField(
+                    confirm,
+                    { confirm = it; error = null },
+                    stringResource(R.string.gate_pw_confirm_hint),
+                    secret = true,
+                    enabled = !busy,
+                    error = confirm.isNotEmpty() && !matches && confirm.length >= password.length,
+                    onIme = save,
+                )
+            }
+            Spacer(Modifier.height(12.dp))
+            Label(error ?: if (busy) stringResource(R.string.gate_securing) else " ", color = if (error != null) Palette.Rec else Palette.InkSoft)
+        }
+        SwipeHints(
+            bar,
+            back = Way(stringResource(R.string.settings_go_back)) { onClose() },
+            forward = Way(stringResource(R.string.settings_change_password_save), enabled = !busy) { save() },
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 10.dp),
+        )
     }
 }
 
