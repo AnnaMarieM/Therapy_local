@@ -35,6 +35,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -54,6 +55,7 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.therapylocal.app.config.ChunkConfig
+import com.therapylocal.app.config.DisplayConfig
 import com.therapylocal.app.i18n.LocaleStore
 import com.therapylocal.app.log.AppLog
 import com.therapylocal.app.models.ModelSetup
@@ -61,6 +63,7 @@ import com.therapylocal.app.models.SetupState
 import com.therapylocal.app.memory.DevHarness
 import com.therapylocal.app.memory.MemoryService
 import com.therapylocal.app.session.RecordingService
+import com.therapylocal.app.session.SessionController
 import com.therapylocal.app.ui.app.MindVault
 import com.therapylocal.app.vault.Vault
 
@@ -77,6 +80,7 @@ class MainActivity : FragmentActivity() {
         // Patient names and notes must not end up in screenshots or the recents preview. (Not in the qa build: its vault holds only test
         // data, and screenshots are how its screens are checked.)
         if (BuildConfig.SECURE_WINDOW) window.setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE)
+        if (DisplayConfig.keepScreenAwake.value) window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         memoryLabRequested = isMemoryLabRequested(intent)
         // The AI files are not patient data: the download starts right away, even before the vault is unlocked.
         ModelSetup.start(applicationContext)
@@ -84,6 +88,22 @@ class MainActivity : FragmentActivity() {
         if (intent?.getBooleanExtra(RecordingService.EXTRA_OPEN_SESSION, false) == true) openSession.intValue++
         setContent {
             val unlocked by Vault.unlocked.collectAsStateWithLifecycle()
+            val session by SessionController.state.collectAsStateWithLifecycle()
+            val keepScreenAwake by DisplayConfig.keepScreenAwake.collectAsStateWithLifecycle()
+            val keepOn = session.active || keepScreenAwake
+
+            DisposableEffect(keepOn) {
+                if (keepOn) {
+                    window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                } else {
+                    window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                }
+                AppLog.i("Display", "keep_screen_on", com.therapylocal.app.log.LogCtx.NONE, "enabled" to keepOn, "session_active" to session.active, "pref" to keepScreenAwake)
+                onDispose {
+                    window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                }
+            }
+
             var showDebugScreen by rememberSaveable { mutableStateOf(MainViewModel.skipPrepare) }
 
             LaunchedEffect(unlocked) {

@@ -5,6 +5,7 @@ import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
 import androidx.compose.foundation.background
+import com.therapylocal.app.config.DisplayConfig
 import com.therapylocal.app.i18n.LocaleStore
 import com.therapylocal.app.i18n.Languages
 import androidx.compose.ui.semantics.selected
@@ -111,6 +112,7 @@ fun SettingsSheet(
     val bar = rememberChoiceState()
     val list = rememberLazyListState()
     val setup by ModelSetup.progress.collectAsStateWithLifecycle()
+    val keepScreenAwake by DisplayConfig.keepScreenAwake.collectAsStateWithLifecycle()
     var tick by remember { mutableIntStateOf(0) }
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { tick++ }
     var bio by remember(tick) { mutableStateOf(Vault.isBiometricEnabled(ctx)) }
@@ -127,6 +129,18 @@ fun SettingsSheet(
 
             item { Group(stringResource(R.string.settings_group_language)) }
             item { LanguageChoice(activity) }
+
+            item { Group(stringResource(R.string.settings_group_display)) }
+            item {
+                Toggle(
+                    stringResource(R.string.settings_keep_screen_on_title),
+                    stringResource(R.string.settings_keep_screen_on_body, stringResource(R.string.app_name)),
+                    checked = keepScreenAwake,
+                    enabled = true,
+                ) { on ->
+                    DisplayConfig.setKeepScreenAwake(ctx, on)
+                }
+            }
 
             item { Group(stringResource(R.string.settings_group_privacy)) }
             item {

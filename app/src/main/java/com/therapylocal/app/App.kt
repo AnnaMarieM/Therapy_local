@@ -3,6 +3,7 @@ package com.therapylocal.app
 import android.app.Application
 import android.content.ComponentCallbacks2
 import android.content.Context
+import com.therapylocal.app.config.DisplayConfig
 import com.therapylocal.app.embed.Engines
 import com.therapylocal.app.i18n.LocaleStore
 import com.therapylocal.app.log.AppLog
@@ -18,6 +19,7 @@ class App : Application() {
         AppLog.installCrashHandler()
         System.loadLibrary("sqlcipher") // before anything opens a database
         DeviceFacts.logStartup(this)
+        DisplayConfig.init(this)
         AppLog.logMemory(this, tag = "Memory", evt = "app_start")
     }
 
