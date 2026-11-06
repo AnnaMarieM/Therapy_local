@@ -11,6 +11,9 @@ interface Llm : AutoCloseable {
     /** True if the audio encoder is loaded with the text model (only speech recognition needs it). */
     val hasAudio: Boolean get() = false
 
+    /** False once the engine keeps failing on real prompts: [ModelPool] then loads the model again, on the next backend. */
+    val healthy: Boolean get() = true
+
     /** [schema] switches on constrained decoding for this call only. Returns the reply text. */
     fun ask(system: String, user: String, schema: String?, maxOutputTokens: Int, temperature: Double, topK: Int): String
 }

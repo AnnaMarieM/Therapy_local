@@ -67,7 +67,7 @@ class SherpaCanaryAsr(private val context: Context, private val language: Speech
             val audioSec = Pcm.seconds(pcm)
             val samples = Pcm.toFloats(pcm)
             val start = SystemClock.elapsedRealtime()
-            val text = AppLog.span(TAG, "asr_transcribe", ctx, "engine" to engineName, "model" to modelName, "backend" to backend, "audio_sec" to "%.2f".format(audioSec)) { span ->
+            val text = AppLog.spanRedacted(TAG, "asr_transcribe", ctx, "engine" to engineName, "model" to modelName, "backend" to backend, "audio_sec" to "%.2f".format(audioSec)) { span ->
                 val stream = r.createStream()
                 try {
                     stream.acceptWaveform(samples, Pcm.SAMPLE_RATE)

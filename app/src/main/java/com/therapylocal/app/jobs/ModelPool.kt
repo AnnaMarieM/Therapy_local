@@ -54,7 +54,7 @@ class ModelPool(
 
     /** The text LLM, loaded with the context [refresh] counted for the open work (an engine loaded for speech recognition is used as it is). */
     fun llm(): Llm {
-        llm?.takeIf { it.hasAudio || it.contextTokens >= needed }?.let { return it }
+        llm?.takeIf { it.healthy && (it.hasAudio || it.contextTokens >= needed) }?.let { return it }
         closeLlm()
         closeEmbed()
         closeWhisper()
@@ -63,7 +63,7 @@ class ModelPool(
 
     /** The LLM with its audio encoder, for Gemma speech recognition. A text-only engine is replaced (nothing can be using it then). */
     private fun audioLlm(): Llm {
-        llm?.takeIf { it.hasAudio }?.let { return it }
+        llm?.takeIf { it.hasAudio && it.healthy }?.let { return it }
         closeLlm()
         closeEmbed()
         closeWhisper()
@@ -134,27 +134,30 @@ class ModelPool(
         if (!needs.embed) closeEmbed()
         val loaded = llm ?: return
         // An engine with the audio encoder is only for speech recognition; a text-only one only for the text jobs.
-        val keep = if (loaded.hasAudio) needs.asr else needs.llm && loaded.contextTokens >= needed
+        val keep = loaded.healthy && if (loaded.hasAudio) needs.asr else needs.llm && loaded.contextTokens >= needed
         if (!keep) closeLlm()
     }
 
-    /** The speech recogniser first when it runs on the LLM's engine. */
+    /** The speech recogniser first when it runs on the LLM's engine. A close that throws still forgets the engine: it is never handed out again. */
     private fun closeLlm() {
         if (asrOnEngine) closeAsr()
-        llm?.close()
+        val l = llm
         llm = null
+        l?.close()
     }
 
     private fun closeEmbed() {
-        embed?.close()
+        val e = embed
         embed = null
+        e?.close()
     }
 
     private fun closeAsr() {
-        asr?.close()
+        val a = asr
         asr = null
         asrOnEngine = false
         asrLanguage = null
+        a?.close()
     }
 
     /** A recogniser with its own model (Whisper) only; one that runs on the LLM's engine goes with it. */

@@ -26,6 +26,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
@@ -401,6 +402,7 @@ private fun ModelChoice(notice: NoticeState) {
 private fun HardwareStatus(resumeTick: Int, notice: NoticeState) {
     val ctx = LocalContext.current
     var tick by remember { mutableIntStateOf(0) }
+    var confirmReset by remember { mutableStateOf(false) }
     val models = remember(resumeTick, tick) { Backends.overview(ctx) }
     Column(Modifier.padding(vertical = 10.dp)) {
         Text(stringResource(R.string.settings_hardware_intro, stringResource(R.string.app_name)), style = Type.BodySmall, color = Palette.InkSoft)
@@ -409,13 +411,19 @@ private fun HardwareStatus(resumeTick: Int, notice: NoticeState) {
             Text(stringResource(R.string.settings_hardware_none), style = Type.BodySmall, color = Palette.InkFaint)
         }
         models.forEach { m -> HardwareModel(m) }
-        if (models.isNotEmpty()) TextAction(stringResource(R.string.settings_hardware_reset), {
-            Backends.reset(ctx)
-            tick++
-            notice.show(ctx.getString(R.string.settings_hardware_reset_done))
-        }, color = Palette.InkSoft)
+        if (models.isNotEmpty()) TextAction(stringResource(R.string.settings_hardware_reset), { confirmReset = true }, color = Palette.InkSoft)
     }
     Hairline()
+    if (confirmReset) ConfirmDialog(
+        stringResource(R.string.settings_hardware_reset_title), stringResource(R.string.settings_hardware_reset_body), stringResource(R.string.settings_hardware_reset_confirm),
+        onConfirm = {
+            Backends.reset(ctx)
+            confirmReset = false
+            tick++
+            notice.show(ctx.getString(R.string.settings_hardware_reset_done))
+        },
+        onDismiss = { confirmReset = false }, destructive = false,
+    )
 }
 
 @Composable
@@ -435,7 +443,9 @@ private fun HardwareModel(m: BackendGuard.ModelView) {
         Text(
             when {
                 m.selected == null -> stringResource(R.string.settings_hardware_not_loaded)
-                m.selectedAt != null -> stringResource(R.string.settings_hardware_running_on_since, m.selected, android.text.format.DateUtils.getRelativeTimeSpanString(m.selectedAt).toString())
+                m.selected == BackendGuard.NONE -> stringResource(R.string.settings_hardware_none_loaded)
+                // A clock set back would read "in 3 hours".
+                m.selectedAt != null -> stringResource(R.string.settings_hardware_running_on_since, m.selected, android.text.format.DateUtils.getRelativeTimeSpanString(minOf(m.selectedAt, System.currentTimeMillis())).toString())
                 else -> stringResource(R.string.settings_hardware_running_on, m.selected)
             },
             style = Type.BodySmall, color = Palette.Ink,
@@ -451,6 +461,8 @@ private fun HardwareModel(m: BackendGuard.ModelView) {
                 null -> stringResource(R.string.settings_hardware_state_skipped)
             }
             val strikes = record?.strikes?.takeIf { it > 0 }?.let { " · " + stringResource(R.string.settings_hardware_failures, it) } ?: ""
+            // Said in words, not only in colour.
+            val current = if (backend == m.selected) " · " + stringResource(R.string.settings_hardware_current) else ""
             // The technical reason stays in English, as in the logs: it is what a support request quotes.
             val detail = when {
                 skip != null && record?.state != BackendGuard.State.PROVEN -> skip.reason
@@ -458,9 +470,9 @@ private fun HardwareModel(m: BackendGuard.ModelView) {
                 else -> null
             }
             Row(Modifier.fillMaxWidth().padding(top = 4.dp)) {
-                Label(backend, color = if (backend == m.selected) Palette.Ink else Palette.InkFaint, modifier = Modifier.width(44.dp))
+                Label(backend, color = if (backend == m.selected) Palette.Ink else Palette.InkFaint, modifier = Modifier.widthIn(min = 44.dp).padding(end = 8.dp))
                 Column(Modifier.weight(1f)) {
-                    Text(state + strikes, style = Type.BodySmall, color = if (record?.state == BackendGuard.State.BLOCKED) Palette.Ink else Palette.InkSoft)
+                    Text(state + current + strikes, style = Type.BodySmall, color = if (record?.state == BackendGuard.State.BLOCKED) Palette.Ink else Palette.InkSoft)
                     if (detail != null) Text(detail, style = Type.BodySmall.copy(fontSize = 12.sp, lineHeight = 15.sp), color = Palette.InkFaint)
                 }
             }

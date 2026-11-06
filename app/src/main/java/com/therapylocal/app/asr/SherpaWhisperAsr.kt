@@ -66,11 +66,11 @@ class SherpaWhisperAsr(private val context: Context, size: String, private val l
             val audioSec = Pcm.seconds(pcm)
             val samples = AppLog.span(TAG, "audio_to_float", ctx, "samples" to pcm.size, "audio_sec" to "%.2f".format(audioSec)) { Pcm.toFloats(pcm) }
             val start = SystemClock.elapsedRealtime()
-            val text = AppLog.span(TAG, "asr_transcribe", ctx, "engine" to engineName, "model" to modelName, "backend" to backend, "audio_sec" to "%.2f".format(audioSec)) { span ->
+            val text = AppLog.spanRedacted(TAG, "asr_transcribe", ctx, "engine" to engineName, "model" to modelName, "backend" to backend, "audio_sec" to "%.2f".format(audioSec)) { span ->
                 val stream = r.createStream()
                 try {
                     stream.acceptWaveform(samples, Pcm.SAMPLE_RATE)
-                    AppLog.span(TAG, "whisper_decode", ctx) { r.decode(stream) }
+                    AppLog.spanRedacted(TAG, "whisper_decode", ctx) { r.decode(stream) }
                     val result = r.getResult(stream)
                     val out = result.text.trim()
                     val wall = SystemClock.elapsedRealtime() - start

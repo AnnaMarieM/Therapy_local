@@ -12,7 +12,7 @@ import org.junit.Test
 class AcceleratorsTest {
     @After
     fun cleanUp() {
-        Accelerators.all().filter { it.id !in setOf("NPU", "GPU", "CPU") }.forEach { Accelerators.unregister(it.id) }
+        Accelerators.all().filter { it.id !in setOf("NPU", "GPU", "NNAPI", "CPU") }.forEach { Accelerators.unregister(it.id) }
     }
 
     @Test

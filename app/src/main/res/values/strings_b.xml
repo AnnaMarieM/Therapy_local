@@ -161,8 +161,8 @@
     <string name="settings_group_hardware">On this device</string>
     <string name="settings_hardware_intro">Which part of this phone runs each model. %1$s tries the NPU first, then the GPU, then the CPU, keeps the first one that passes a test, and remembers what this phone can do.</string>
     <string name="settings_hardware_none">No model has run on this phone yet. This fills in once a session is processed or live cues start.</string>
-    <string name="settings_hardware_running_on">Runs on %1$s</string>
-    <string name="settings_hardware_running_on_since">Runs on %1$s · %2$s</string>
+    <string name="settings_hardware_running_on">Last ran on %1$s</string>
+    <string name="settings_hardware_running_on_since">Last ran on %1$s · %2$s</string>
     <string name="settings_hardware_not_loaded">Not loaded yet</string>
     <string name="settings_hardware_role_llm">Reads sessions</string>
     <string name="settings_hardware_role_llm_audio">Reads sessions and recognises speech</string>
@@ -178,4 +178,9 @@
     <string name="settings_hardware_failures">failures: %1$d</string>
     <string name="settings_hardware_reset">Test everything again</string>
     <string name="settings_hardware_reset_done">Every part is tested again the next time a model loads.</string>
+    <string name="settings_hardware_none_loaded">Could not load on any part of this phone. The reasons are below.</string>
+    <string name="settings_hardware_current">used last</string>
+    <string name="settings_hardware_reset_title">Test everything again?</string>
+    <string name="settings_hardware_reset_body">Every part of the phone is tried again, including ones turned off because they failed. If one makes the app close, it is turned off again by itself.</string>
+    <string name="settings_hardware_reset_confirm">Test again</string>
 </resources>

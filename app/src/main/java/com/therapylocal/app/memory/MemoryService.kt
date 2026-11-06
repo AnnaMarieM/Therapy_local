@@ -101,7 +101,7 @@ class MemoryService : Service() {
                 } while (runner.hasWork()) // a session enqueued just as the run ended
                 if (debugJob) DevHarness.markDone(app)
             } catch (t: Throwable) {
-                AppLog.e(MemoryLlm.TAG, "memory_lab_failed", LogCtx.NONE, t)
+                AppLog.eRedacted(MemoryLlm.TAG, "memory_lab_failed", LogCtx.NONE, t)
                 // Stack traces can quote patient text (e.g. JSON parse errors), so they are only written for the developer harness, never in app mode.
                 if (debugJob) java.io.File(MemoryFiles.devRoot(app), "out/ERROR").apply { parentFile?.mkdirs() }.writeText(t.stackTraceToString())
             } finally {

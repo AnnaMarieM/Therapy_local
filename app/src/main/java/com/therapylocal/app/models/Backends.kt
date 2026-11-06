@@ -36,9 +36,28 @@ object Backends {
                     BackendLadder.Level.WARN -> if (t == null) AppLog.w(tag, evt, LogCtx.NONE, *fields) else AppLog.e(tag, evt, LogCtx.NONE, t, *fields)
                     BackendLadder.Level.ERROR -> AppLog.e(tag, evt, LogCtx.NONE, t, *fields)
                 }
+                // The next step may kill the process natively: this line must be on disk first.
+                if (evt == "backend_attempting") AppLog.flush()
             },
             memory = { com.therapylocal.app.memory.DeviceMemory.memorySnapshot(app) + thermal(app) },
+            memoryLight = { memoryLight(app) },
         )
+    }
+
+    /**
+     * Before each native step of an attempt ("create", "initialize", "test"): noted in the guard, so a kill on the next start names the step,
+     * and logged and flushed to disk before the step runs. Never throws.
+     */
+    fun phase(context: Context, tag: String, model: String, backend: String, phase: String) {
+        runCatching { guard(context).phase(model, backend, phase) }
+        AppLog.i(tag, "backend_phase", LogCtx.NONE, "model" to model, "backend_try" to backend, "phase" to phase, *memoryLight(context))
+        AppLog.flush()
+    }
+
+    /** What the system says without walking the process's memory: cheap enough for every line. */
+    fun memoryLight(context: Context): Array<Pair<String, Any?>> {
+        val (available, low) = com.therapylocal.app.memory.LlmMemory.available(context)
+        return arrayOf("sys_avail_mb" to (available shr 20), "sys_low_mem" to low)
     }
 
     /** Thermal state and battery saver: a hot or throttled phone loads and fails differently, and that only shows in the field. */
@@ -60,14 +79,18 @@ object Backends {
         AppLog.w(TAG, "backend_guard_reset_by_user", LogCtx.NONE)
     }
 
-    /** From [com.therapylocal.app.App.onCreate], before any model loads. Never throws: a broken guard must not stop the app. */
+    /**
+     * From [com.therapylocal.app.App.onCreate], before any model loads. Never throws: a broken guard must not stop the app. The recovery
+     * itself is synchronous (it must happen before a load); the device profile is logged on a background thread.
+     */
     fun recoverAtStartup(context: Context) {
-        runCatching { logAcceleratorProfile(context) }.onFailure { AppLog.e(TAG, "accelerator_profile_failed", LogCtx.NONE, it) }
+        val app = context.applicationContext
+        Thread({ runCatching { logAcceleratorProfile(app) }.onFailure { AppLog.e(TAG, "accelerator_profile_failed", LogCtx.NONE, it) } }, "accelerator-profile").apply { isDaemon = true }.start()
         runCatching {
             val g = guard(context)
             val exit = lastExit(context)
             AppLog.i(TAG, "last_exit", LogCtx.NONE, "kind" to exit?.kind?.name?.lowercase(), "foreground" to exit?.foreground, "description" to exit?.description)
-            g.recover(exit).forEach { log(it, warn = true) }
+            g.recover(exit).forEach { log(it, warn = it.evt != "backend_attempt_interrupted") }
             g.all().forEach { log(it, warn = false) }
             overview(context).forEach { m ->
                 AppLog.i(
@@ -106,7 +129,7 @@ object Backends {
     fun log(e: BackendGuard.Event, warn: Boolean) {
         val f = arrayOf<Pair<String, Any?>>(
             "model" to e.model, "backend" to e.backend, "state" to e.record?.state?.name?.lowercase(), "strikes" to e.record?.strikes,
-            "ever_proven" to e.record?.everProven, "at" to e.record?.at, "reason" to e.record?.reason,
+            "ever_proven" to e.record?.everProven, "at" to e.record?.at, "reason" to e.record?.reason, "detail" to e.detail,
         )
         if (warn) AppLog.w(TAG, e.evt, LogCtx.NONE, *f) else AppLog.i(TAG, e.evt, LogCtx.NONE, *f)
     }
@@ -121,6 +144,11 @@ object Backends {
                 ed.commit() // synchronous on purpose: the next step may be the kill this note is about
             }
             override fun keys(): Set<String> = prefs.all.keys
+            override fun putAll(values: Map<String, String?>) {
+                val ed = prefs.edit()
+                values.forEach { (k, v) -> if (v == null) ed.remove(k) else ed.putString(k, v) }
+                ed.commit()
+            }
         }
         return BackendGuard(store, buildKey(context))
     }

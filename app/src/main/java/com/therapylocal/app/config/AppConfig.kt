@@ -120,15 +120,18 @@ object BackendPolicy {
     @Volatile
     var override: String = "auto"
 
-    fun allows(backend: String) = override == "auto" || override.equals(backend, ignoreCase = true)
+    /** "auto" in any case, and a blank override, which names no accelerator. */
+    private fun isAuto(override: String) = override.isBlank() || override.trim().equals("auto", ignoreCase = true)
+
+    fun allows(backend: String) = isAuto(override) || override.trim().equals(backend, ignoreCase = true)
 
     /**
      * The order to try: [preferred] as it is on "auto", otherwise the forced accelerator first. The fallback (CPU) stays last whenever
      * [preferred] has it, so forcing one the phone cannot run falls back instead of failing.
      */
     fun order(preferred: List<String>, override: String = this.override): List<String> {
-        if (override.equals("auto", ignoreCase = true)) return preferred
-        val forced = override.uppercase()
+        if (isAuto(override)) return preferred
+        val forced = override.trim().uppercase()
         val fallback = preferred.filter { com.therapylocal.app.models.Accelerators.isFallback(it) }.map { it.uppercase() }
         return (listOf(forced) + fallback).distinct()
     }

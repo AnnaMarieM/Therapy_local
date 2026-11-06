@@ -85,8 +85,16 @@ class Embedder(
     /** Whether [embedText] and [embedAudio] can run now. */
     val usable: Boolean get() = !suspended
 
-    /** A [close] asked for during the load (a settings change, the system asking for memory) is carried out as soon as it is done. */
+    /**
+     * A [close] asked for during the load (a settings change, the system asking for memory) is carried out as soon as it is done. While
+     * [suspended] nothing is loaded: the session LLM may hold the GPU, and both on it at once is what gets the app killed. It loads on first
+     * use after [resume].
+     */
     suspend fun load() = lock.withLock {
+        if (suspended) {
+            AppLog.i(TAG, "embed_load_deferred", LogCtx.NONE, "reason" to "suspended_while_sessions_are_processed")
+            return@withLock
+        }
         try {
             loadLocked()
         } finally {
@@ -118,12 +126,15 @@ class Embedder(
                 )
                 engine = loaded.engine
                 backend = loaded.backend
-                span.put("load_id", loaded.loadId)
-                span.put("backend", backend)
-                span.put("audio_backend", audioBackendName())
-                span.put("fallbacks_failed", loaded.skipped.size)
-                AppLog.i(TAG, "backend_selected", LogCtx.NONE, "engine" to "embeddinggemma", "backend" to backend, "audio_backend" to audioBackendName(), "model_file" to file.name, "model_bytes" to file.length(), "skipped" to loaded.skipped.joinToString("; "))
-                AppLog.logMemory(context, TAG, "embed_ready", extra = arrayOf("backend" to backend))
+                // Only logging from here on: nothing may throw past the point where the engine is ours.
+                runCatching {
+                    span.put("load_id", loaded.loadId)
+                    span.put("backend", backend)
+                    span.put("audio_backend", audioBackendName())
+                    span.put("fallbacks_failed", loaded.skipped.size)
+                    AppLog.i(TAG, "backend_selected", LogCtx.NONE, "engine" to "embeddinggemma", "load_id" to loaded.loadId, "backend" to backend, "audio_backend" to audioBackendName(), "model_file" to file.name, "model_bytes" to file.length(), "skipped" to loaded.skipped.joinToString("; "))
+                    AppLog.logMemory(context, TAG, "embed_ready", extra = arrayOf("backend" to backend))
+                }
             }
         }
     }
@@ -139,7 +150,7 @@ class Embedder(
         Accelerators.unavailable(context, name, EmbeddingConfig.MODEL_ID, ModelRuntime.LITERT)?.let { return it }
         if (Accelerators.get(name)?.takesSystemMemory != true) return null
         if (SystemClock.elapsedRealtime() < cpuOnlyUntil) return "CPU only for a while after the system asked for memory"
-        if (name == Accelerators.GPU.id && !forced && !com.therapylocal.app.memory.DeviceMemory.allowEmbedderGpu(context)) return "memory safety: Tensor/Mali GPU or not enough RAM"
+        if (Accelerators.get(name)?.graphicsMemory == true && !forced && !com.therapylocal.app.memory.DeviceMemory.allowEmbedderGpu(context)) return "memory safety: Tensor/Mali GPU or not enough RAM"
         val (available, low) = LlmMemory.available(context)
         val bytes = ModelRegistry.EMBED.totalBytes
         if (!LlmMemory.gpuFits(bytes, available, low)) return "not enough free memory (${available shr 20} MB free, ${LlmMemory.gpuNeeds(bytes) shr 20} MB needed)"
@@ -148,6 +159,8 @@ class Embedder(
 
     /** Creates, initialises and self-tests an engine on [name]; one that fails on the way is closed here, so its memory is free for the next try. */
     private fun open(file: File, name: String): EmbeddingEngine {
+        // Each native step is noted and flushed before it runs: after a kill, the log and the next start both name the step that caused it.
+        Backends.phase(context, TAG, guardModel, name, "create")
         val created = AppLog.span(TAG, "embed_engine_init", LogCtx.NONE, "backend_try" to name, "audio_backend" to audioBackendName()) {
             EmbeddingEngine(
                 EmbeddingEngineConfig(
@@ -160,7 +173,9 @@ class Embedder(
             )
         }
         try {
+            Backends.phase(context, TAG, guardModel, name, "initialize")
             AppLog.span(TAG, "embed_engine_initialize", LogCtx.NONE, "backend_try" to name) { created.initialize() }
+            Backends.phase(context, TAG, guardModel, name, "test")
             selfTest(created, name)
             return created
         } catch (t: Throwable) {
@@ -219,7 +234,7 @@ class Embedder(
         val wav = AppLog.span(TAG, "audio_wav_encode", ctx, "samples" to pcm.size, "audio_sec" to "%.2f".format(audioSec)) { span ->
             Pcm.toWav(pcm).also { span.put("wav_bytes", it.size) }
         }
-        return AppLog.span(TAG, "embed", ctx, "modality" to "audio", "model" to EmbeddingConfig.MODEL_ID, "backend" to backend, "audio_backend" to "CPU", "role" to role, "audio_sec" to "%.2f".format(audioSec)) { span ->
+        return AppLog.spanRedacted(TAG, "embed", ctx, "modality" to "audio", "model" to EmbeddingConfig.MODEL_ID, "backend" to backend, "audio_backend" to "CPU", "role" to role, "audio_sec" to "%.2f".format(audioSec)) { span ->
             val t0 = System.nanoTime()
             val v = e.computeEmbedding(listOf(InputData.Audio(wav)), options()).embedding
             val ms = (System.nanoTime() - t0) / 1_000_000.0
@@ -229,7 +244,7 @@ class Embedder(
     }
 
     private fun runText(e: EmbeddingEngine, text: String, query: Boolean, ctx: LogCtx): FloatArray =
-        AppLog.span(TAG, "embed", ctx, "modality" to "text", "model" to EmbeddingConfig.MODEL_ID, "backend" to backend, "role" to if (query) "query" else "document", "text_chars" to text.length) { span ->
+        AppLog.spanRedacted(TAG, "embed", ctx, "modality" to "text", "model" to EmbeddingConfig.MODEL_ID, "backend" to backend, "role" to if (query) "query" else "document", "text_chars" to text.length) { span ->
             val prefixed = (if (query) EmbeddingConfig.QUERY_PREFIX else EmbeddingConfig.DOC_PREFIX) + text.trim()
             finish(e.computeEmbedding(listOf(InputData.Text(prefixed)), options()).embedding, span)
         }
@@ -284,7 +299,7 @@ class Embedder(
      * does not take the same GPU/NPU memory again straight away.
      */
     fun releaseForMemory() {
-        if (backend != "CPU" && backend != "none") cpuOnlyUntil = SystemClock.elapsedRealtime() + MemoryConfig.LOW_MEMORY_CPU_COOLDOWN_MS
+        if (backend != "none" && !Accelerators.isFallback(backend)) cpuOnlyUntil = SystemClock.elapsedRealtime() + MemoryConfig.LOW_MEMORY_CPU_COOLDOWN_MS
         AppLog.w(TAG, "embed_release_for_memory", LogCtx.NONE, "backend" to backend, "cpu_only_for_ms" to (cpuOnlyUntil - SystemClock.elapsedRealtime()).coerceAtLeast(0))
         close()
     }

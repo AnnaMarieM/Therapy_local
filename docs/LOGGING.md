@@ -60,14 +60,16 @@ Model and backend events (tag `Memory` for the LLM, `Embed` for the embedder, `A
 | `backend_skipped` | `reason` (missing library, `not enough free memory (… MB free, … MB needed)`, cooldown, Tensor/Mali rule) |
 | `backend_skipped_blocked` | the record that blocked it: state, strikes, when, why |
 | `backend_attempting` | `note=attempting`, attempt n of m, record before, memory before |
-| `*_engine_create`, `*_engine_initialize`, `*_engine_test_reply`, `embed_selftest`, `asr_recognizer_create` (spans) | one span per native phase: after a native kill, the last `span_start` in the log is the phase that killed it |
+| `backend_phase` | `phase` (create, initialize, test), free memory. Written and **flushed to disk** before each native step, so after a native kill it is the last line. The step is also in the next start's `backend_died_while_loading` |
+| `backend_open_slow` | every 30 s while an attempt is still running: `elapsed_ms`, free memory (a hang looks different from a kill) |
+| `backend_skipped_demoted` | the backend failed on real prompts earlier in this run |
 | `backend_proven` | `note="proven on this device"`, `first_time`, `open_ms`, record after, memory after |
 | `backend_failed` (error, with stack trace) | `open_ms`, `error`, `reason`, `cause_chain`, `is_oom`, `next`, record after (strikes, blocked?), memory after |
 | `backend_blocked` | the backend is off on this phone from now on |
 | `ladder_done` / `ladder_failed` | `summary` (e.g. `NPU=skipped;GPU=failed(IllegalStateException,812ms);CPU=proven(2140ms)`), `total_ms` |
 | `memory_llm_unloaded`, `embed_unloaded`, `asr_unloaded` | clean unloads (they clear strikes); `embed_close_deferred` when a call was still running |
 | `embed_release_for_memory`, `proactive_embedder_unload` | the system asked for memory back; `cpu_only_for_ms` |
-| `llm_call_failed` | an inference error: backend, sizes, `error`, `cause_chain` and `frames` with **types and code locations only** (an inference message can quote patient text), memory and thermal |
+| `llm_call_failed` | an inference error: backend, sizes, `err`, `cause_chain` and `frames` with **types and code locations only** (an inference message can quote patient text), `demoted`, memory and thermal |
 
 Memory fields on these lines come from `DeviceMemory.memorySnapshot` (system available/low/threshold, process PSS/RSS, graphics, Java and native heap, RAM tier) plus `thermal_status`, `thermal_headroom_10s` and `power_save`.
 
@@ -79,7 +81,11 @@ At start-up (tag `Backend`):
 - `backend_record` for every stored record.
 - `backend_model_summary` for every model: the same view as the settings screen.
 
-`job_failed` carries the error type, `cause_chain` (types only), `frames` and `is_oom`.
+`job_failed` carries the error type, `cause_chain` (types only), `frames` and `is_oom`. Failures in stages that handle patient text (`embed`, `asr_transcribe`, `whisper_decode`, `live_cue_tick`, `memory_lab_failed`) are written the same way (`AppLog.spanRedacted` / `eRedacted`): no message, no stack trace.
+
+At start-up, `backend_attempt_interrupted` means an attempt was open when the process ended for a reason that may not be the backend's fault. It counts only if it happens again.
+
+**`backend.log`.** Every INFO-or-above line with a `load_id`, and every `Backend` line, is also written to `files/logs/backend.log`. That file is never rotated with the others; past 400 KB its older half is dropped. So which hardware each model ran on, and why, survives hours of recording. Outside debug builds, DEBUG lines (span starts) go to logcat only, not to the files.
 
 Start-up events log device facts once: `startup` (SoC, Android, RAM, storage, app version), `backend_hints`, and `model_files` with sizes.
 

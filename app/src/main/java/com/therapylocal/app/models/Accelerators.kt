@@ -33,6 +33,13 @@ data class Accelerator(
     val litert: Boolean = false,
     /** The ONNX Runtime execution provider name sherpa-onnx is given for it, or null if ONNX models cannot use it. */
     val onnxProvider: String? = null,
+    /** Tried on its own in the automatic order; false keeps it for explicit requests (an evaluation, the debug override) only. */
+    val auto: Boolean = true,
+    /**
+     * Shares the phone's graphics memory the way a mobile GPU does, so the embedder's device rule (no GPU on Tensor/Mali or under ~10 GB, see
+     * DeviceMemory.allowEmbedderGpu) applies to it too.
+     */
+    val graphicsMemory: Boolean = false,
 ) {
     init {
         require(id.isNotBlank() && id == id.uppercase()) { "Accelerator id must be non-blank upper case: '$id'" }
@@ -55,10 +62,12 @@ object Accelerators {
         available = { ctx -> if (NpuRuntime.available(ctx)) null else "dispatch library missing (${NpuRuntime.DISPATCH_LIB})" },
         litert = true,
     )
-    val GPU = Accelerator(id = "GPU", priority = 200, litert = true)
+    val GPU = Accelerator(id = "GPU", priority = 200, litert = true, graphicsMemory = true)
+    /** Android's NNAPI through ONNX Runtime: deprecated and not faster than the CPU for our speech models (WhisperEvalTest), so opt-in only. */
+    val NNAPI = Accelerator(id = "NNAPI", priority = 150, onnxProvider = "nnapi", auto = false)
     val CPU = Accelerator(id = "CPU", priority = 1000, fallback = true, litert = true, onnxProvider = "cpu")
 
-    private val registered = CopyOnWriteArrayList(listOf(NPU, GPU, CPU))
+    private val registered = CopyOnWriteArrayList(listOf(NPU, GPU, NNAPI, CPU))
 
     /** Adds [a], or replaces the one with its id. Call it before models load (Application.onCreate). */
     @Synchronized
@@ -81,14 +90,14 @@ object Accelerators {
 
     val fallback: Accelerator get() = registered.first { it.fallback }
 
-    /** The fallback, and also any id this build does not know (an old record): neither is ever blocked. */
-    fun isFallback(id: String) = get(id)?.fallback ?: id.equals(fallback.id, ignoreCase = true)
+    /** The fallback (the CPU) is never blocked. An id this build does not know is not the fallback: it can be blocked like any accelerator. */
+    fun isFallback(id: String) = get(id)?.fallback == true
 
     /** Where [id] sorts: by priority, the fallback last, unknown ids after the known ones. */
     fun rank(id: String): Int = get(id)?.let { if (it.fallback) Int.MAX_VALUE - 1 else it.priority } ?: (Int.MAX_VALUE - 2)
 
-    /** The order to try for [model] on [runtime]: every accelerator that serves the model and that the runtime can bind, fallback last. */
-    fun order(model: String, runtime: ModelRuntime): List<String> = all().filter { it.serves(model) && it.supports(runtime) }.map { it.id }
+    /** The order to try for [model] on [runtime]: every automatic accelerator that serves the model and that the runtime can bind, fallback last. */
+    fun order(model: String, runtime: ModelRuntime): List<String> = all().filter { (it.auto || it.fallback) && it.serves(model) && it.supports(runtime) }.map { it.id }
 
     /** Why [id] is not tried for [model] on [runtime] now, apart from memory; null when it can be. Never throws. */
     fun unavailable(context: Context, id: String, model: String, runtime: ModelRuntime): String? {

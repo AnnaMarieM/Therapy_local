@@ -61,9 +61,12 @@ object DeviceModels {
         }
     }
 
-    /** On CPU: the LLM holds the GPU, and both on the GPU at once can run out of memory on phones. Text only: the audio encoder stays unloaded. */
+    /**
+     * Its own engine, on the best backend the gates allow: [ModelPool] unloads the LLM before it loads this, so the two never share the GPU.
+     * Text only: the audio encoder stays unloaded.
+     */
     private fun embed(context: Context): Embed {
-        val embedder = Embedder(context, forcedBackend = "CPU", textOnly = true)
+        val embedder = Embedder(context, textOnly = true)
         runBlocking { embedder.load() }
         return object : Embed {
             override val model = EmbeddingConfig.MODEL_ID

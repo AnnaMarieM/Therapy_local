@@ -47,6 +47,11 @@ class MemoryLlm(private val context: Context, private val maxTokens: Int, privat
 
     override val contextTokens: Int get() = maxTokens
 
+    /** Turned false when the backend failed on [BackendGuard.INFERENCE_STRIKE] prompts in a row: the pool then reloads, on the next backend. */
+    @Volatile
+    override var healthy: Boolean = true
+        private set
+
     /**
      * [order] (by default every [Accelerators] entry that serves this model on LiteRT-LM) is tried in turn, through [BackendPolicy.order] so
      * the debug override goes first and the CPU stays the fallback; each backend is
@@ -77,8 +82,12 @@ class MemoryLlm(private val context: Context, private val maxTokens: Int, privat
         )
         engine = loaded.engine
         backend = loaded.backend
-        AppLog.i(TAG, "memory_llm_loaded", LogCtx.NONE, "load_id" to loaded.loadId, "backend" to backend, "max_tokens" to maxTokens, "audio" to audio, "skipped" to loaded.skipped.joinToString("; "))
-        AppLog.logMemory(context, TAG, "memory_llm_ready", extra = arrayOf("load_id" to loaded.loadId, "backend" to backend, "model" to spec.id))
+        healthy = true
+        // Only logging from here on: nothing may throw past the point where the engine is ours, or it would never be closed.
+        runCatching {
+            AppLog.i(TAG, "memory_llm_loaded", LogCtx.NONE, "load_id" to loaded.loadId, "backend" to backend, "max_tokens" to maxTokens, "audio" to audio, "skipped" to loaded.skipped.joinToString("; "))
+            AppLog.logMemory(context, TAG, "memory_llm_ready", extra = arrayOf("load_id" to loaded.loadId, "backend" to backend, "model" to spec.id))
+        }
     }
 
     /** Why [name] is not tried now, or null. Accelerators that take the model's memory from the system (GPU, NPU) need it free. */
@@ -98,10 +107,13 @@ class MemoryLlm(private val context: Context, private val maxTokens: Int, privat
     private fun open(path: String, name: String): Engine {
         val be: Backend = LiteRtBindings.backend(context, name)
         val config = EngineConfig(modelPath = path, backend = be, audioBackend = if (audio) Backend.CPU() else null, visionBackend = null, maxNumTokens = maxTokens, cacheDir = context.cacheDir.path)
-        // Each phase on its own line: a native kill leaves the last phase that started as the final line in the log.
+        // Each native step is noted and flushed before it runs: after a kill, the log and the next start both name the step that caused it.
+        Backends.phase(context, TAG, guardModel, name, "create")
         val e = AppLog.span(TAG, "memory_llm_engine_create", LogCtx.NONE, "backend_try" to name) { Engine(config) }
         try {
+            Backends.phase(context, TAG, guardModel, name, "initialize")
             AppLog.span(TAG, "memory_llm_engine_initialize", LogCtx.NONE, "backend_try" to name, "max_tokens" to maxTokens, "audio" to audio) { e.initialize() }
+            Backends.phase(context, TAG, guardModel, name, "test")
             AppLog.span(TAG, "memory_llm_engine_test_reply", LogCtx.NONE, "backend_try" to name) { span ->
                 val reply = e.createConversation().use { it.sendMessage("Reply with OK.") }.toString()
                 span.put("reply_chars", reply.length)
@@ -145,19 +157,22 @@ class MemoryLlm(private val context: Context, private val maxTokens: Int, privat
                         b.lastDecodeTokensPerSecond.toDouble(), (System.nanoTime() - t0) / 1_000_000,
                     ),
                 )
+                runCatching { Backends.guard(context).inferenceOk(guardModel, backend) }
                 return msg.toString()
             }
         } catch (t: Throwable) {
-            // Noted per device, so a GPU/NPU that loads but then fails on real prompts shows up in the backend records. Types and code
-            // locations only, never the message: an inference error can quote the prompt, which is patient text.
+            // Noted per device; failing on prompts again and again strikes the backend and marks this engine unhealthy, so the pool reloads
+            // it on the next backend. Types and code locations only, never the message: an inference error can quote the prompt.
             val r = runCatching { Backends.guard(context).inferenceFailed(guardModel, backend, t.javaClass.simpleName) }.getOrNull()
-            AppLog.e(
-                TAG, "llm_call_failed", LogCtx.NONE, null, "backend" to backend, "model" to guardModel, "constrained" to (schema != null),
-                "system_chars" to system.length, "user_chars" to user.length, "max_output_tokens" to maxOutputTokens, "context_tokens" to maxTokens,
-                "wall_ms" to (System.nanoTime() - t0) / 1_000_000, "error" to t.javaClass.name, "cause_chain" to BackendLadder.causeChain(t, messages = false),
-                "frames" to BackendLadder.frames(t), "is_oom" to (t is OutOfMemoryError), "record_state" to r?.state?.name?.lowercase(),
-                *com.therapylocal.app.memory.DeviceMemory.memorySnapshot(context), *Backends.thermal(context),
-            )
+            if (r != null) healthy = false
+            runCatching {
+                AppLog.eRedacted(
+                    TAG, "llm_call_failed", LogCtx.NONE, t, "backend" to backend, "model" to guardModel, "constrained" to (schema != null),
+                    "system_chars" to system.length, "user_chars" to user.length, "max_output_tokens" to maxOutputTokens, "context_tokens" to maxTokens,
+                    "wall_ms" to (System.nanoTime() - t0) / 1_000_000, "demoted" to (r != null), "record_state" to r?.state?.name?.lowercase(),
+                    "record_strikes" to r?.strikes, *com.therapylocal.app.memory.DeviceMemory.memorySnapshot(context), *Backends.thermal(context),
+                )
+            }
             throw t
         } finally {
             ExperimentalFlags.enableConversationConstrainedDecoding = false

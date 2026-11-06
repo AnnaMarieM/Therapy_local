@@ -170,8 +170,8 @@
     <string name="settings_group_hardware">Na tomto zařízení</string>
     <string name="settings_hardware_intro">Která část telefonu pohání který model. %1$s zkouší nejdřív NPU, potom GPU, potom CPU, ponechá první, která projde testem, a pamatuje si, co tento telefon zvládá.</string>
     <string name="settings_hardware_none">Na tomto telefonu zatím žádný model neběžel. Doplní se po zpracování sezení nebo spuštění živých nápověd.</string>
-    <string name="settings_hardware_running_on">Běží na %1$s</string>
-    <string name="settings_hardware_running_on_since">Běží na %1$s · %2$s</string>
+    <string name="settings_hardware_running_on">Naposledy běželo na %1$s</string>
+    <string name="settings_hardware_running_on_since">Naposledy běželo na %1$s · %2$s</string>
     <string name="settings_hardware_not_loaded">Zatím nenačteno</string>
     <string name="settings_hardware_role_llm">Čte sezení</string>
     <string name="settings_hardware_role_llm_audio">Čte sezení a rozpoznává řeč</string>
@@ -187,4 +187,9 @@
     <string name="settings_hardware_failures">selhání: %1$d</string>
     <string name="settings_hardware_reset">Otestovat vše znovu</string>
     <string name="settings_hardware_reset_done">Při příštím načtení modelu se vše otestuje znovu.</string>
+    <string name="settings_hardware_none_loaded">Nepodařilo se načíst na žádné části telefonu. Důvody jsou níže.</string>
+    <string name="settings_hardware_current">použito naposledy</string>
+    <string name="settings_hardware_reset_title">Otestovat vše znovu?</string>
+    <string name="settings_hardware_reset_body">Znovu se vyzkouší každá část telefonu, i ty vypnuté kvůli selhání. Pokud některá aplikaci ukončí, sama se opět vypne.</string>
+    <string name="settings_hardware_reset_confirm">Otestovat znovu</string>
 </resources>

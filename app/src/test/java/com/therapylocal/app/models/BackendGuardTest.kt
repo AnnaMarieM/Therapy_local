@@ -20,7 +20,8 @@ class BackendGuardTest {
     }
 
     private val store = MapStore()
-    private fun guard(build: String = "1/100/fp") = BackendGuard(store, build) { 42L }.also { it.recover(null) }
+    private var clock = 42L
+    private fun guard(build: String = "1/100/fp") = BackendGuard(store, build) { clock }.also { it.recover(null) }
 
     private val killedForMemory = LastExit(ExitKind.KILLED_FOR_MEMORY, foreground = true, "lmkd")
     private val userSwipe = LastExit(ExitKind.BENIGN, foreground = false, "user")
@@ -28,7 +29,7 @@ class BackendGuardTest {
     /** A process that dies with the attempt open: the next start finds the note. */
     private fun dieWhileLoading(build: String = "1/100/fp", exit: LastExit? = killedForMemory) {
         guard(build).attempting("gemma", "GPU")
-        BackendGuard(store, build).recover(exit)
+        BackendGuard(store, build) { clock }.recover(exit)
     }
 
     @Test
@@ -129,5 +130,70 @@ class BackendGuardTest {
         assertTrue(g.blocked("gemma", "GPU"))
         assertFalse(g.blocked("gemma", "NPU"))
         assertFalse(g.blocked("gemma+audio", "GPU"))
+    }
+
+    @Test
+    fun twoLoadsOpenAtOnceAreBothRememberedSoAKillDuringEitherCounts() {
+        val g = guard()
+        g.attempting("gemma", "GPU")
+        g.attempting("embed", "GPU")
+        g.proven("embed", "GPU") // the embedder finished first: the LLM's attempt must still be open
+        val events = BackendGuard(store, "1/100/fp").recover(killedForMemory)
+        assertEquals(listOf("gemma" to "GPU"), events.filter { it.evt == "backend_died_while_loading" }.map { it.model to it.backend })
+        assertEquals(1, guard().record("gemma", "GPU")!!.strikes)
+        assertEquals(0, guard().record("embed", "GPU")!!.strikes)
+    }
+
+    @Test
+    fun aKillIsReportedWithTheNativeStepItHappenedIn() {
+        val g = guard()
+        g.attempting("gemma", "GPU")
+        g.phase("gemma", "GPU", "initialize")
+        val e = BackendGuard(store, "1/100/fp").recover(killedForMemory).single()
+        assertEquals("phase=initialize", e.detail)
+        assertTrue(guard().record("gemma", "GPU")!!.reason.contains("in initialize"))
+    }
+
+    @Test
+    fun aBlockOnAProvenBackendGetsOneMoreTryAWeekLater() {
+        val g = guard()
+        g.attempting("gemma", "GPU"); g.proven("gemma", "GPU"); g.loaded("gemma", "GPU"); g.unloaded("gemma", "GPU")
+        repeat(BackendGuard.BLOCK_PROVEN) { dieWhileLoading() }
+        assertTrue(guard().blocked("gemma", "GPU"))
+        clock += BackendGuard.BLOCK_RETRY_MS
+        assertFalse(guard().blocked("gemma", "GPU"))
+        dieWhileLoading()
+        assertTrue("failing the retry blocks it again", guard().blocked("gemma", "GPU"))
+    }
+
+    @Test
+    fun aNeverProvenBlockDoesNotExpire() {
+        repeat(BackendGuard.BLOCK_UNPROVEN) { dieWhileLoading() }
+        clock += 10 * BackendGuard.BLOCK_RETRY_MS
+        assertTrue(guard().blocked("gemma", "GPU"))
+    }
+
+    @Test
+    fun testingEverythingAgainKeepsAnAttemptInFlightSoAKillRightAfterStillCounts() {
+        val g = guard()
+        g.attempting("gemma", "GPU")
+        g.reset()
+        assertTrue(BackendGuard(store, "1/100/fp").recover(killedForMemory).any { it.evt == "backend_died_while_loading" })
+    }
+
+    @Test
+    fun aLoadThatFoundNoBackendShowsAsNoneAndASkipIsOnlyWrittenWhenItsReasonChanges() {
+        val g = guard()
+        g.selectedNone("gemma")
+        assertEquals(BackendGuard.NONE, g.overview().single().selected)
+        var writes = 0
+        val counting = object : BackendGuard.Store by store {
+            override fun put(key: String, value: String?) { writes++; store.put(key, value) }
+        }
+        val c = BackendGuard(counting, "1/100/fp") { clock }
+        repeat(10) { c.skipped("gemma", "NPU", "dispatch library missing") }
+        assertEquals(1, writes)
+        c.skipped("gemma", "NPU", "something else")
+        assertEquals(2, writes)
     }
 }

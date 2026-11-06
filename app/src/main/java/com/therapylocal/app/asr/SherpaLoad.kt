@@ -35,13 +35,39 @@ internal object SherpaLoad {
             gate = { id -> if (Accelerators.get(id) == null) null else Accelerators.unavailable(context, id, spec.id, ModelRuntime.ONNX) },
             open = { backend ->
                 val onnx = Accelerators.get(backend)?.onnxProvider ?: backend.lowercase()
-                AppLog.span(tag, "asr_recognizer_create", LogCtx.NONE, "engine" to engine, "backend_try" to backend, "onnx_provider" to onnx, "threads" to config.modelConfig.numThreads) {
+                Backends.phase(context, tag, spec.id, backend, "create")
+                val r = AppLog.span(tag, "asr_recognizer_create", LogCtx.NONE, "engine" to engine, "backend_try" to backend, "onnx_provider" to onnx, "threads" to config.modelConfig.numThreads) {
                     OfflineRecognizer(config = config.copy(modelConfig = config.modelConfig.copy(provider = onnx)))
+                }
+                try {
+                    Backends.phase(context, tag, spec.id, backend, "test")
+                    selfTest(tag, engine, backend, r)
+                    r
+                } catch (t: Throwable) {
+                    runCatching { r.release() }
+                    throw t
                 }
             },
             close = { runCatching { it.release() } },
         )
         return Opened(loaded.engine, loaded.backend, loaded.loadId)
+    }
+
+    /**
+     * Decodes one second of silence: an execution provider can construct fine and fail at the first decode, and "proven on this device" must
+     * mean it decoded.
+     */
+    private fun selfTest(tag: String, engine: String, backend: String, r: OfflineRecognizer) {
+        AppLog.span(tag, "asr_selftest", LogCtx.NONE, "engine" to engine, "backend_try" to backend) { span ->
+            val stream = r.createStream()
+            try {
+                stream.acceptWaveform(FloatArray(Pcm.SAMPLE_RATE), Pcm.SAMPLE_RATE)
+                r.decode(stream)
+                span.put("chars", r.getResult(stream).text.length)
+            } finally {
+                stream.release()
+            }
+        }
     }
 
     /** Releases and notes that it was a clean unload. */

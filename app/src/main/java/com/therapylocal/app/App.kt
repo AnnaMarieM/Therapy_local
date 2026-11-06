@@ -44,7 +44,8 @@ class App : Application() {
         AppLog.w("Memory", "system_trim_memory", LogCtx.NONE, "level" to levelName, "level_code" to level)
         AppLog.logMemory(this, tag = "Memory", evt = "trim_snapshot", extra = arrayOf("trim_level" to levelName))
         if (level >= ComponentCallbacks2.TRIM_MEMORY_RUNNING_LOW) {
-            Engines.onLowMemory()
+            // UI_HIDDEN and BACKGROUND (the only levels from API 34) mean the app left the screen, not that memory is short.
+            Engines.onLowMemory(critical = level == ComponentCallbacks2.TRIM_MEMORY_RUNNING_CRITICAL || level == ComponentCallbacks2.TRIM_MEMORY_COMPLETE)
         }
     }
 
@@ -52,6 +53,6 @@ class App : Application() {
         super.onLowMemory()
         AppLog.e("Memory", "system_on_low_memory", LogCtx.NONE)
         AppLog.logMemory(this, tag = "Memory", evt = "low_memory_snapshot")
-        Engines.onLowMemory()
+        Engines.onLowMemory(critical = true)
     }
 }
