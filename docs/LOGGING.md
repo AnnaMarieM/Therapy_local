@@ -7,7 +7,7 @@ Every stage of the app writes structured `key=value` lines, so a recording can b
 | Sink | How to read it |
 |---|---|
 | logcat, tag `TL` | `adb logcat -s TL` |
-| Rotating file on the phone (1.5 MB x 5) | `/sdcard/Android/data/com.therapylocal.app/files/logs/tl.log`, pulled via `adb pull /sdcard/Android/data/com.therapylocal.app/files/logs/ .` |
+| Rotating file on the phone (1.5 MB x 5) | `/sdcard/Android/data/com.therapylocal.app/files/logs/tl.log`, pulled via `adb pull /sdcard/Android/data/com.therapylocal.app/files/logs/ .`. Each process writes its own file: `tl.log` (main), `engine-live.log`, `engine-batch.log` (same rotation); every line carries `proc=` and `pid=` |
 | In-app viewer | Logs tab: Refresh, Copy, Share, Clear |
 
 ## Line format
