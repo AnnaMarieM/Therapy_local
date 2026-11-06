@@ -24,6 +24,16 @@ object Engines {
     private fun host(context: Context, role: EngineRole): EngineHost =
         hosts.getOrPut(role) { LocalEngineHost(context.applicationContext, role) }
 
+    /**
+     * Part of `AppLog.clear()` in main: the hosts' own log files go too. Best effort and it never binds a host. A bound host is asked with
+     * `EngineOp.ClearLogs` (S8 adds that for `RemoteEngineHost`); the files of roles that are not bound are deleted through [deleteFiles].
+     * Until the remote hosts exist every host is in-process and no role is bound, so only the files are deleted. A running host that lost its
+     * file re-opens a new one on its next line.
+     */
+    fun clearHostLogs(deleteFiles: (EngineRole) -> Unit) {
+        for (role in listOf(EngineRole.LIVE, EngineRole.BATCH)) runCatching { deleteFiles(role) }
+    }
+
     fun embedder(context: Context): Embedder =
         embedder ?: synchronized(this) { embedder ?: Embedder(context.applicationContext, host = liveHost(context)).also { embedder = it } }
 

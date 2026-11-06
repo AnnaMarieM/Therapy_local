@@ -16,7 +16,16 @@ object Backends {
     @Volatile
     private var instance: BackendGuard? = null
 
-    fun guard(context: Context): BackendGuard =
+    fun guard(context: Context): BackendGuard {
+        // The guard's prefs are not multi-process safe: an engine host must never write them (it reports phases to main instead).
+        if (!com.therapylocal.app.engine.EngineProcess.isMain) {
+            AppLog.e(TAG, "backend_guard_in_engine_process", LogCtx.NONE)
+            throw IllegalStateException("BackendGuard is for the main process only")
+        }
+        return guardInMain(context)
+    }
+
+    private fun guardInMain(context: Context): BackendGuard =
         instance ?: synchronized(this) { instance ?: create(context.applicationContext).also { instance = it } }
 
     /**

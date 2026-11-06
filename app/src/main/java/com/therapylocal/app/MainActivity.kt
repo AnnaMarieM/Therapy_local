@@ -309,10 +309,10 @@ private fun RecordingsTab(s: UiState, vm: MainViewModel) {
 private fun LogsTab() {
     val context = LocalContext.current
     val clipboard = LocalClipboardManager.current
-    var text by remember { mutableStateOf(AppLog.tail(300)) }
+    var text by remember { mutableStateOf(AppLog.tailAll(300)) }
     Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            OutlinedButton(onClick = { text = AppLog.tail(300) }) { Text("Refresh", fontSize = 12.sp) }
+            OutlinedButton(onClick = { text = AppLog.tailAll(300) }) { Text("Refresh", fontSize = 12.sp) }
             OutlinedButton(onClick = { clipboard.setText(AnnotatedString(text)) }) { Text("Copy", fontSize = 12.sp) }
             OutlinedButton(onClick = {
                 val send = Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, text)

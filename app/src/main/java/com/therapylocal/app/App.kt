@@ -5,6 +5,7 @@ import android.content.ComponentCallbacks2
 import android.content.Context
 import com.therapylocal.app.config.DisplayConfig
 import com.therapylocal.app.embed.Engines
+import com.therapylocal.app.engine.EngineProcess
 import com.therapylocal.app.i18n.LocaleStore
 import com.therapylocal.app.log.AppLog
 import com.therapylocal.app.log.DeviceFacts
@@ -17,8 +18,15 @@ class App : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        AppLog.init(this)
-        AppLog.installCrashHandler()
+        val role = EngineProcess.current()
+        AppLog.init(this, role?.proc ?: "main")
+        // An engine process holds patient text: its crash lines carry types and frames only.
+        AppLog.installCrashHandler(redacted = role != null)
+        if (role != null) {
+            // A host needs no SQLCipher, device facts, startup recovery, display config, speech migration or vault: main owns them.
+            AppLog.logMemory(this, tag = "Memory", evt = "app_start")
+            return
+        }
         System.loadLibrary("sqlcipher") // before anything opens a database
         // Logging only: a device that answers oddly must not stop the app from starting.
         runCatching { DeviceFacts.logStartup(this) }.onFailure { AppLog.e("Device", "startup_facts_failed", LogCtx.NONE, it) }
@@ -46,6 +54,8 @@ class App : Application() {
         }
         AppLog.w("Memory", "system_trim_memory", LogCtx.NONE, "level" to levelName, "level_code" to level)
         AppLog.logMemory(this, tag = "Memory", evt = "trim_snapshot", extra = arrayOf("trim_level" to levelName))
+        // In a host only log: unloading there would leave main believing in a handle the host dropped. lmkd or main's idle logic decides.
+        if (!EngineProcess.isMain) return
         if (level >= ComponentCallbacks2.TRIM_MEMORY_RUNNING_LOW) {
             // UI_HIDDEN and BACKGROUND (the only levels from API 34) mean the app left the screen, not that memory is short.
             Engines.onLowMemory(critical = level == ComponentCallbacks2.TRIM_MEMORY_RUNNING_CRITICAL || level == ComponentCallbacks2.TRIM_MEMORY_COMPLETE)
@@ -56,6 +66,6 @@ class App : Application() {
         super.onLowMemory()
         AppLog.e("Memory", "system_on_low_memory", LogCtx.NONE)
         AppLog.logMemory(this, tag = "Memory", evt = "low_memory_snapshot")
-        Engines.onLowMemory(critical = true)
+        if (EngineProcess.isMain) Engines.onLowMemory(critical = true)
     }
 }
