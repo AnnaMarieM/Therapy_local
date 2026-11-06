@@ -137,6 +137,8 @@ fun PaperField(
     style: TextStyle = Type.Title,
     keyboardType: KeyboardType = if (secret) KeyboardType.Password else KeyboardType.Text,
     capitalization: KeyboardCapitalization = KeyboardCapitalization.None,
+    onFocusChanged: ((Boolean) -> Unit)? = null,
+    trailing: (@Composable () -> Unit)? = null,
 ) {
     var visible by remember { mutableStateOf(false) }
     var focused by remember { mutableStateOf(false) }
@@ -159,13 +161,19 @@ fun PaperField(
                 keyboardOptions = KeyboardOptions(capitalization = capitalization, keyboardType = keyboardType, imeAction = imeAction, autoCorrectEnabled = !secret),
                 keyboardActions = KeyboardActions(onAny = { onIme() }),
                 modifier = Modifier.weight(1f).padding(vertical = 8.dp)
-                    .onFocusChanged { focused = it.isFocused }
+                    .onFocusChanged {
+                        focused = it.isFocused
+                        onFocusChanged?.invoke(it.isFocused)
+                    }
                     .semantics { contentDescription = label },
             )
             if (secret) {
                 Box(Modifier.size(48.dp).pressable({ visible = !visible }, label = if (visible) hideLabel else showLabel), contentAlignment = Alignment.Center) {
                     Icon(if (visible) Icons.Rounded.VisibilityOff else Icons.Rounded.Visibility, contentDescription = if (visible) hidePw else showPw, tint = Palette.InkSoft)
                 }
+            }
+            if (trailing != null) {
+                trailing()
             }
         }
         val line = when {
