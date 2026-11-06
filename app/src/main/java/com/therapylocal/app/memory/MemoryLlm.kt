@@ -63,12 +63,14 @@ class MemoryLlm(
             "order" to preferred.joinToString(","), "order_from" to if (order == null) "accelerators" else "caller",
             "override" to BackendPolicy.override, "respect_blocks" to respectBlocks,
         )
+        val loadId = BackendLadder.newLoadId()
         val loaded = ladder().load(
+            loadId = loadId,
             model = spec.id,
             candidates = BackendPolicy.order(preferred),
             respectBlocks = respectBlocks,
             gate = gate,
-            open = { name -> proxy.open(EngineKind.LLM, spec.id, spec.id, name, maxTokens = maxTokens, textOnly = true) },
+            open = { name -> proxy.open(EngineKind.LLM, spec.id, spec.id, name, loadId = loadId, maxTokens = maxTokens, textOnly = true) },
             close = { runCatching { proxy.closeNow(it.handle) } },
         )
         handle = loaded.engine.handle

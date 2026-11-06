@@ -53,8 +53,8 @@ class BackendLadder(
         respectBlocks: Boolean = true,
         open: (backend: String) -> T,
         close: (T) -> Unit,
+        loadId: String = newLoadId(),
     ): Loaded<T> {
-        val loadId = UUID.randomUUID().toString().take(8)
         val order = candidates.map { it.trim().uppercase() }.filter { it.isNotEmpty() }.distinct()
         val t0 = clock()
         val reasons = ArrayList<String>()
@@ -190,6 +190,9 @@ class BackendLadder(
     }
 
     companion object {
+        /** A caller that sends the id to a host (the call tag) makes it first and passes it to [load]. */
+        fun newLoadId(): String = UUID.randomUUID().toString().take(8)
+
         /** Longest error message kept on a line or in [NoBackend]: a native wrapper can put kilobytes there. */
         const val MAX_MESSAGE = 1000
 

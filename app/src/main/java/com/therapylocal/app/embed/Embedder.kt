@@ -124,11 +124,13 @@ class Embedder(
                     "override" to BackendPolicy.override, "candidates" to candidates.joinToString(","), "max_tokens" to maxTokens,
                     "cpu_only_for_ms" to (cpuOnlyUntil - SystemClock.elapsedRealtime()).coerceAtLeast(0),
                 )
+                val loadId = BackendLadder.newLoadId()
                 val loaded = ladder().load(
+                    loadId = loadId,
                     model = guardModel,
                     candidates = candidates,
                     gate = { name -> gateFn(name, forced) },
-                    open = { name -> proxy.open(EngineKind.EMBED, EmbeddingConfig.MODEL_ID, guardModel, name, maxTokens = EmbeddingConfig.MAX_TOKENS, textOnly = textOnly) },
+                    open = { name -> proxy.open(EngineKind.EMBED, EmbeddingConfig.MODEL_ID, guardModel, name, loadId = loadId, maxTokens = EmbeddingConfig.MAX_TOKENS, textOnly = textOnly) },
                     close = { runCatching { proxy.closeNow(it.handle) } },
                 )
                 handle = loaded.engine.handle

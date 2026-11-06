@@ -56,11 +56,13 @@ class SpeechRecogniser(
                 checkFiles()
                 // The provider asked for (an evaluation's "nnapi") goes first, then every accelerator with an ONNX binding that serves this model.
                 val asked = Accelerators.all().firstOrNull { it.onnxProvider == provider }?.id ?: provider.uppercase()
+                val loadId = BackendLadder.newLoadId()
                 val loaded = ladder().load(
+                    loadId = loadId,
                     model = spec.id,
                     candidates = listOf(asked) + Accelerators.order(spec.id, ModelRuntime.ONNX),
                     gate = { id -> if (Accelerators.get(id) == null) null else Accelerators.unavailable(context, id, spec.id, ModelRuntime.ONNX) },
-                    open = { name -> proxy.open(EngineKind.ASR, spec.id, spec.id, name, language = language.code) },
+                    open = { name -> proxy.open(EngineKind.ASR, spec.id, spec.id, name, loadId = loadId, language = language.code) },
                     close = { runCatching { proxy.closeNow(it.handle) } },
                 )
                 handle = loaded.engine.handle

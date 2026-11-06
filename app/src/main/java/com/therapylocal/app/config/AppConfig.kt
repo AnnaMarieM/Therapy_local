@@ -153,7 +153,7 @@ object LiveCueConfig {
     const val TOP_K = 10
 }
 
-/** How the engines run (AD-01). The remote tuning and the inline limit are added with the remote host (S8). */
+/** How the engines run (AD-01). Constants here; every timing is in [EngineTuning]. */
 object EngineConfig {
     /** The emergency switch from AD-01: forces `LocalEngineHost` everywhere. */
     val IN_PROCESS: Boolean = com.therapylocal.app.BuildConfig.ENGINE_IN_PROCESS
@@ -163,4 +163,16 @@ object EngineConfig {
 
     /** Debug check on a finished Bundle (a parcelled String is UTF-16, so inline strings count double); the binder limit is about 1 MB. */
     const val BUNDLE_DEBUG_MAX_BYTES = 768 * 1024
+
+    val DEFAULT = EngineTuning()
 }
+
+/** Every timing the engine connection uses. Production uses [EngineConfig.DEFAULT]; only androidTest (through the lab wiring) passes another. */
+data class EngineTuning(
+    val bindTimeoutMs: Long = 10_000, val openTimeoutMs: Long = 300_000, val askMinTimeoutMs: Long = 600_000,
+    val embedTimeoutMs: Long = 60_000, val transcribeTimeoutMs: Long = 180_000, val closeTimeoutMs: Long = 5_000,
+    val hangNoProgressMs: Long = 60_000, val hardCapFactor: Int = 3, val exitLookupMs: Long = 2_000,
+    val backoffMs: List<Long> = listOf(0, 500, 1000, 2000, 4000), val backoffCapMs: Long = 10_000,
+    val stormDeaths: Int = 6, val stormWindowMs: Long = 120_000, val stableMs: Long = 60_000,
+    val idleMs: Long = 120_000, val liveShutdownMs: Long = 5_000, val statusTimeoutMs: Long = 1_000,
+)

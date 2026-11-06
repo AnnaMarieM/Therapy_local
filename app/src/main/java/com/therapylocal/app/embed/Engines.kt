@@ -3,7 +3,10 @@ package com.therapylocal.app.embed
 import android.content.Context
 import com.therapylocal.app.engine.EngineHost
 import com.therapylocal.app.engine.EngineRole
+import com.therapylocal.app.config.EngineConfig
+import com.therapylocal.app.config.EngineTuning
 import com.therapylocal.app.engine.LocalEngineHost
+import com.therapylocal.app.engine.RemoteEngineHost
 
 /**
  * The process-wide [Embedder]. A recording outlives the screen that started it (see SessionController), so live cues and search share one
@@ -15,23 +18,32 @@ object Engines {
 
     private val hosts = java.util.concurrent.ConcurrentHashMap<EngineRole, EngineHost>()
 
-    /** The host for live cues and search (EmbeddingGemma with its audio encoder). In-process until the remote hosts arrive (S8); `EngineConfig.IN_PROCESS` forces this later too. */
+    /** The host for live cues and search (EmbeddingGemma with its audio encoder): the `:live` process, or in-process under `EngineConfig.IN_PROCESS`. */
     fun liveHost(context: Context): EngineHost = host(context, EngineRole.LIVE)
 
     /** The host for the text LLM, the text embedder and Canary. */
     fun batchHost(context: Context): EngineHost = host(context, EngineRole.BATCH)
 
+    /** Every timing the remote hosts use. */
+    val tuning: EngineTuning = EngineConfig.DEFAULT
+
     private fun host(context: Context, role: EngineRole): EngineHost =
-        hosts.getOrPut(role) { LocalEngineHost(context.applicationContext, role) }
+        hosts.getOrPut(role) {
+            val app = context.applicationContext
+            if (EngineConfig.IN_PROCESS) LocalEngineHost(app, role) else RemoteEngineHost(app, role, tuning)
+        }
 
     /**
      * Part of `AppLog.clear()` in main: the hosts' own log files go too. Best effort and it never binds a host. A bound host is asked with
-     * `EngineOp.ClearLogs` (S8 adds that for `RemoteEngineHost`); the files of roles that are not bound are deleted through [deleteFiles].
-     * Until the remote hosts exist every host is in-process and no role is bound, so only the files are deleted. A running host that lost its
-     * file re-opens a new one on its next line.
+     * `EngineOp.ClearLogs`; the files of roles that are not bound (or did not answer) are deleted through [deleteFiles]. A `LocalEngineHost`
+     * is never asked: its ClearLogs would run `AppLog.clear` in this very process again. A running host that lost its file re-opens a new
+     * one on its next line.
      */
     fun clearHostLogs(deleteFiles: (EngineRole) -> Unit) {
-        for (role in listOf(EngineRole.LIVE, EngineRole.BATCH)) runCatching { deleteFiles(role) }
+        for (role in listOf(EngineRole.LIVE, EngineRole.BATCH)) {
+            val asked = (hosts[role] as? RemoteEngineHost)?.let { runCatching { it.clearLogsIfBound() }.getOrDefault(false) } == true
+            if (!asked) runCatching { deleteFiles(role) }
+        }
     }
 
     fun embedder(context: Context): Embedder =
@@ -40,6 +52,7 @@ object Engines {
     /** Unloads the shared embedder (if it was created) while sessions are processed. Live cues and search skip it until [resume]. */
     suspend fun suspend() {
         embedder?.suspend()
+        (hosts[EngineRole.LIVE] as? RemoteEngineHost)?.release()
     }
 
     fun resume() {
