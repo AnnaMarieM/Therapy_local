@@ -51,9 +51,11 @@ class SherpaWhisperAsr(private val context: Context, size: String, private val l
                     ),
                     decodingMethod = "greedy_search",
                 )
-                recognizer = OfflineRecognizer(config = config)
-                backend = provider.uppercase()
+                val opened = SherpaLoad.open(context, TAG, engineName, spec, provider, config)
+                recognizer = opened.recognizer
+                backend = opened.backend
                 span.put("backend", backend)
+                span.put("load_id", opened.loadId)
             }
         }
     }
@@ -88,8 +90,9 @@ class SherpaWhisperAsr(private val context: Context, size: String, private val l
     }
 
     override fun close() {
-        recognizer?.release()
+        val r = recognizer ?: return
         recognizer = null
+        SherpaLoad.release(context, TAG, engineName, spec, backend, r)
         backend = "none"
     }
 

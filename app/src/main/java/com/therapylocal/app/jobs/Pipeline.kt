@@ -174,7 +174,7 @@ class Pipeline(
             val reply = try {
                 llm.ask(system, user, if (attempt == 3) FactSchemas.EXTRACT_STRICT else null, MemoryConfig.EXTRACT_MAX_OUTPUT_TOKENS, MemoryConfig.EXTRACT_TEMPERATURE, MemoryConfig.EXTRACT_TOP_K)
             } catch (t: Throwable) {
-                AppLog.w(JobRunner.TAG, "extract_attempt_failed", LogCtx.NONE, "attempt" to attempt, "type" to t.javaClass.simpleName)
+                AppLog.w(JobRunner.TAG, "extract_attempt_failed", LogCtx.NONE, "attempt" to attempt, "type" to t.javaClass.simpleName, "constrained" to (attempt == 3), "frames" to com.therapylocal.app.models.BackendLadder.frames(t, 4))
                 continue
             }
             answered = true
@@ -240,7 +240,7 @@ class Pipeline(
         val reply = try {
             llm.ask(system, user, null, MemoryConfig.REVIEW_MAX_OUTPUT_TOKENS, MemoryConfig.REVIEW_TEMPERATURE, MemoryConfig.REVIEW_TOP_K)
         } catch (t: Throwable) {
-            AppLog.w(JobRunner.TAG, "review_failed", LogCtx.NONE, "type" to t.javaClass.simpleName)
+            AppLog.w(JobRunner.TAG, "review_failed", LogCtx.NONE, "type" to t.javaClass.simpleName, "frames" to com.therapylocal.app.models.BackendLadder.frames(t, 4))
             return null
         }
         return FactParser.verdict(reply, known.size)?.also { store.putReviewVerdict(session, key, it.encode()) }

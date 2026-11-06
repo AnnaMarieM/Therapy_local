@@ -12,8 +12,10 @@ object LlmMemory {
     /** False if the system reports low memory or has less than [gpuNeeds] available. */
     fun gpuFits(modelBytes: Long, availableBytes: Long, lowMemory: Boolean): Boolean = !lowMemory && availableBytes >= gpuNeeds(modelBytes)
 
+    /** Available bytes and the system's low-memory flag. If the system will not say, it counts as low memory: GPU and NPU are skipped, the CPU runs. */
     fun available(context: Context): Pair<Long, Boolean> {
-        val info = ActivityManager.MemoryInfo().also { context.getSystemService(ActivityManager::class.java).getMemoryInfo(it) }
-        return info.availMem to info.lowMemory
+        val am = context.getSystemService(ActivityManager::class.java) ?: return 0L to true
+        val info = ActivityManager.MemoryInfo()
+        return runCatching { am.getMemoryInfo(info); info.availMem to info.lowMemory }.getOrDefault(0L to true)
     }
 }

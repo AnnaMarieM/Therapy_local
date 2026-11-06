@@ -51,7 +51,35 @@ Values with spaces or `=` are double-quoted.
 
 Voice and text queries have no recording id: they carry `cid=q<N>` (one counter per app session). A voice query is embedded as audio and is **never transcribed**, so its trace has an `embed modality=audio role=query` span and no `asr_transcribe`.
 
-Model and backend events: `model_info` (what the model bundle itself declares: modalities, supported backends per modality, NPU brand), `backend_selected` and `backend_failed` (with `reason`), and `npu_skipped reason=dispatch_library_missing`. NPU is attempted only when `libLiteRtDispatch_Qualcomm.so` is present in the native library dir (see `NpuRuntime`); the `litertlm-android` AAR does not ship it, so on this build the NPU is never used and the logs say so.
+Model and backend events (tag `Memory` for the LLM, `Embed` for the embedder, `ASR` for Sherpa; `engine=` names which). Phones differ most here and the field logs are all we get, so every load is logged as one story under one `load_id`:
+
+| Event | Fields |
+|---|---|
+| `memory_llm_load_request`, `embed_load_request` | model, file size, context, audio, order asked for, debug override, cooldown left |
+| `ladder_start` | `candidates`, `history` (every backend's state/strikes/proven before, e.g. `GPU=proven/0/proven_before`), full memory and thermal picture |
+| `backend_skipped` | `reason` (missing library, `not enough free memory (… MB free, … MB needed)`, cooldown, Tensor/Mali rule) |
+| `backend_skipped_blocked` | the record that blocked it: state, strikes, when, why |
+| `backend_attempting` | `note=attempting`, attempt n of m, record before, memory before |
+| `*_engine_create`, `*_engine_initialize`, `*_engine_test_reply`, `embed_selftest`, `asr_recognizer_create` (spans) | one span per native phase: after a native kill, the last `span_start` in the log is the phase that killed it |
+| `backend_proven` | `note="proven on this device"`, `first_time`, `open_ms`, record after, memory after |
+| `backend_failed` (error, with stack trace) | `open_ms`, `error`, `reason`, `cause_chain`, `is_oom`, `next`, record after (strikes, blocked?), memory after |
+| `backend_blocked` | the backend is off on this phone from now on |
+| `ladder_done` / `ladder_failed` | `summary` (e.g. `NPU=skipped;GPU=failed(IllegalStateException,812ms);CPU=proven(2140ms)`), `total_ms` |
+| `memory_llm_unloaded`, `embed_unloaded`, `asr_unloaded` | clean unloads (they clear strikes); `embed_close_deferred` when a call was still running |
+| `embed_release_for_memory`, `proactive_embedder_unload` | the system asked for memory back; `cpu_only_for_ms` |
+| `llm_call_failed` | an inference error: backend, sizes, `error`, `cause_chain` and `frames` with **types and code locations only** (an inference message can quote patient text), memory and thermal |
+
+Memory fields on these lines come from `DeviceMemory.memorySnapshot` (system available/low/threshold, process PSS/RSS, graphics, Java and native heap, RAM tier) plus `thermal_status`, `thermal_headroom_10s` and `power_save`.
+
+At start-up (tag `Backend`):
+- `accelerator_profile`: SoC, board, hardware, fingerprint, kernel, ABIs, RAM class, GLES and Vulkan versions, whether the NPU runtime library is in the app, the app's native libraries, whether the system reports low-memory kills, thermal state.
+- `process_exit` for each of the last five exits: reason, status, importance, PSS/RSS, description.
+- `last_exit`.
+- `backend_died_while_loading`, `backend_died_while_loaded` and `backend_blocked` for strikes from crashes and kills.
+- `backend_record` for every stored record.
+- `backend_model_summary` for every model: the same view as the settings screen.
+
+`job_failed` carries the error type, `cause_chain` (types only), `frames` and `is_oom`.
 
 Start-up events log device facts once: `startup` (SoC, Android, RAM, storage, app version), `backend_hints`, and `model_files` with sizes.
 

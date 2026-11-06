@@ -22,18 +22,19 @@ import kotlinx.coroutines.runBlocking
 object DeviceModels {
     /** [contextNeeded]: the context the open work needs, counted from its prompts before the LLM is loaded (see [com.therapylocal.app.jobs.Pipeline.requiredContext]). */
     fun pool(context: Context, contextNeeded: () -> Int = { MemoryConfig.LLM_MAX_TOKENS }): ModelPool = ModelPool(
-        loadLlm = { audio, ctx -> MemoryLlm(context, ctx, ModelSetup.gemma(context)).apply { load(MemoryConfig.LLM_BACKENDS, withAudio = audio) } },
+        loadLlm = { audio, ctx -> MemoryLlm(context, ctx, ModelSetup.gemma(context)).apply { load(withAudio = audio) } },
         loadEmbed = { embed(context) },
         loadAsr = { llm, language -> asr(context, llm, language) },
         llmModel = { ModelSetup.gemma(context).id },
         asrOnLlm = { context.getSharedPreferences("settings", Context.MODE_PRIVATE).getString("engine", ModelRegistry.DEFAULT_ENGINE) == "gemma" },
         contextNeeded = contextNeeded,
         baseContext = MemoryConfig.LLM_MAX_TOKENS,
+        onAsrLlmFailed = { t -> AppLog.w(TAG, "gemma_asr_load_failed", LogCtx.NONE, "error" to t.javaClass.simpleName, "reason" to t.message, "fallback" to "canary") },
     )
 
     /**
      * The engine chosen in the settings: Canary (the default), Whisper or Gemma, for the client's [language]. Gemma runs on the LLM's engine;
-     * a Gemma build without audio input falls back to Canary.
+     * a Gemma build without audio input, or one that could not be loaded (see [ModelPool.asr]), falls back to Canary.
      */
     private fun asr(context: Context, llm: () -> Llm?, language: String): Asr {
         val prefs = context.getSharedPreferences("settings", Context.MODE_PRIVATE)

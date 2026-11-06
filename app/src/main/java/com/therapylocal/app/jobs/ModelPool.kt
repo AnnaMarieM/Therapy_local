@@ -37,6 +37,8 @@ class ModelPool(
     private val contextNeeded: () -> Int = { 0 },
     /** The context the LLM is loaded with at least, and for speech recognition (no prompt to count there). */
     private val baseContext: Int = 0,
+    /** Gemma speech recognition could not load its engine; [loadAsr] then gets no LLM and uses its own model. */
+    private val onAsrLlmFailed: (Throwable) -> Unit = {},
 ) : AutoCloseable {
     private val chosenLlm = llmModel
     private var llm: Llm? = null
@@ -92,8 +94,17 @@ class ModelPool(
         closeAsr()
         closeEmbed()
         if (asrOnLlm()) {
-            // The engine without an audio encoder cannot hear: it is not kept next to the recogniser that takes its place.
-            if (!audioLlm().hasAudio) closeLlm()
+            // Gemma that cannot be loaded with its audio encoder (memory, every backend failed) is not the end: the recogniser with its own
+            // model takes over. The engine without an audio encoder cannot hear: it is not kept next to the recogniser that takes its place.
+            val heard = try {
+                audioLlm()
+            } catch (e: ModelSwitched) {
+                throw e
+            } catch (t: Throwable) {
+                onAsrLlmFailed(t)
+                null
+            }
+            if (heard?.hasAudio != true) closeLlm()
         } else {
             closeLlm()
         }

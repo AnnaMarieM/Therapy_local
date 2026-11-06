@@ -72,6 +72,48 @@ The client profile has a search field: the query is embedded with `QUERY_PREFIX`
 ## Model choice
 `ModelChoice` resolves the `gemma_variant` setting to Gemma 4 E2B (default) or E4B. The settings suggest E4B on phones with about 12 GB of RAM or more (our own threshold), show the download size, ask before downloading and offer to remove the unused model. While the new model downloads, jobs that need it wait instead of failing.
 
+## Accelerators and fallback
+Every model is loaded through `BackendLadder` (`models/BackendLadder.kt`) over the accelerators in `models/Accelerators.kt` (built in: NPU, then GPU, then CPU). The ladder keeps the first backend that loads *and* passes a test (the LLM answers "Reply with OK.", the embedder runs its similarity self-test). Nothing a backend throws escapes: it is closed and the next one is tried. The CPU is always last, also when a backend is forced from the developer screen (`BackendPolicy.order`). The Sherpa recognisers (Canary, Whisper) go through the same ladder: the provider asked for (CPU in the app, NNAPI in the evaluations), then the CPU.
+
+A backend is skipped without being tried when:
+- its runtime is missing (NPU: `libLiteRtDispatch_Qualcomm.so`, see `NpuRuntime`);
+- there is not enough free memory for it (`LlmMemory.gpuFits`: model size plus 1 GiB), for the LLM and the embedder alike;
+- the embedder GPU on Tensor/Mali or phones under ~10 GB (`DeviceMemory.allowEmbedderGpu`), unless forced;
+- the system asked for memory back in the last 5 minutes (embedder, `MemoryConfig.LOW_MEMORY_CPU_COOLDOWN_MS`);
+- this phone has blocked it (below).
+
+**What this phone has shown it can do** (`BackendGuard`, kept in the `backend_guard` preferences with synchronous writes):
+- Before a load starts its record says `attempting`; after the test passes, `proven on this device`.
+- A caught load failure is a strike.
+- The low-memory killer and native crashes cannot be caught, so on the next start `Backends.recoverAtStartup` also counts these as strikes:
+  - an attempt that never finished (unless the last exit was the user or the app itself);
+  - a GPU/NPU engine that was loaded when the system killed the foreground app for memory, or the app crashed natively.
+- Blocking:
+  - a backend never proven on this build is blocked after 2 strikes ("this device cannot do this");
+  - a proven one only after 3, since its failures are more likely transient.
+- Strikes are cleared when the app unloads the engine itself (it survived its work), not when it merely loads.
+- An inference error on a loaded engine is only noted, never a strike: a bad prompt fails everywhere.
+- The CPU is never blocked.
+- An app or system update forgets everything.
+
+**Adding an accelerator** (a vendor NPU, an ONNX execution provider, a chip one model was compiled for) is one registration in `Application.onCreate`, plus its runtime binding:
+
+```kotlin
+Accelerators.register(Accelerator(id = "MTK_APU", priority = 50, models = setOf("gemma-4-e2b"), litert = true,
+    available = { ctx -> if (File(ctx.applicationInfo.nativeLibraryDir, "libLiteRtDispatch_MediaTek.so").exists()) null else "dispatch library missing" }))
+LiteRtBindings.bind("MTK_APU") { ctx -> Backend.NPU(nativeLibraryDir = ctx.applicationInfo.nativeLibraryDir) }
+// or, for the Sherpa/ONNX models: Accelerator(id = "QNN_HTP", priority = 80, onnxProvider = "qnn")
+```
+
+- `priority` sets the order; lower is tried first (NPU 100, GPU 200, CPU last).
+- `models` limits it to the models it serves; null serves every model.
+- `takesSystemMemory` (on unless `fallback`) applies the free-memory gate.
+- From that one registration the new chip gets everything else: the ordered try with the CPU behind it, the attempting / proven / blocked history per device, the **On this device** settings rows, the debug override chip, and every log line.
+
+The settings screen shows all of this under **On this device**: per model, what it runs on and each backend's state with the technical reason, and **Test everything again** (`Backends.reset`). QA probes (`MemProbeActivity`) ignore blocks but still record their outcome.
+
+The embedder is never closed underneath a running call: `Embedder.close()` takes the lock or, if a call is in flight, defers the close to the end of that call. If loading Gemma with its audio encoder fails, speech recognition falls back to Canary (`ModelPool.asr`).
+
 ## Developer harness (debug builds)
 - Put `job.json`, `prompts/*.txt` (from `demo/prompts/`) and text transcripts in `in/` under `/sdcard/Android/data/com.therapylocal.app/files/memory/`. `job.json`: `{"resetProfiles": false, "stripLabels": false, "sessions": [{"file": "<client>_<n>.md", "date": "yyyy-MM-dd"}]}`. A prompt file there overrides the one shipped in the app.
 - Unlock the app, then start from the Memory tab or `adb shell am start -n com.therapylocal.app/.MainActivity --ez memory_lab true`. Each transcript becomes a session whose segments are its non-blank lines, queued from the window job on. `out/DONE` marks the end of the run. Use synthetic transcripts only.

@@ -64,6 +64,8 @@ import com.therapylocal.app.R
 import com.therapylocal.app.config.LiveCueSettings
 import com.therapylocal.app.config.liveCueSettings
 import com.therapylocal.app.config.saveLiveCueSettings
+import com.therapylocal.app.models.BackendGuard
+import com.therapylocal.app.models.Backends
 import com.therapylocal.app.models.GemmaVariant
 import com.therapylocal.app.models.SpeechLanguage
 import com.therapylocal.app.models.SpeechLanguages
@@ -214,6 +216,8 @@ fun SettingsSheet(
             item { CueKnobs() }
             item { Group(stringResource(R.string.settings_group_memory_model)) }
             item { ModelChoice(notice) }
+            item { Group(stringResource(R.string.settings_group_hardware)) }
+            item { HardwareStatus(tick, notice) }
 
             if (onDeveloper != null) {
                 item { Group(stringResource(R.string.settings_group_developer)) }
@@ -386,6 +390,81 @@ private fun ModelChoice(notice: NoticeState) {
             stringResource(R.string.settings_model_download_title, v.title), stringResource(R.string.settings_model_download_body, ModelSetup.formatBytes(ctx, spec.missingBytes(ctx))), stringResource(R.string.settings_model_download_confirm),
             onConfirm = { ModelSetup.selectGemma(ctx, v); confirm = null; tick++ }, onDismiss = { confirm = null }, destructive = false,
         )
+    }
+}
+
+/**
+ * What each model runs on here (NPU, GPU or CPU) and what every part of the phone has shown: proven on this device, failed, or turned off
+ * after it kept failing or the app was stopped while using it. Read from [Backends] each time the screen is shown.
+ */
+@Composable
+private fun HardwareStatus(resumeTick: Int, notice: NoticeState) {
+    val ctx = LocalContext.current
+    var tick by remember { mutableIntStateOf(0) }
+    val models = remember(resumeTick, tick) { Backends.overview(ctx) }
+    Column(Modifier.padding(vertical = 10.dp)) {
+        Text(stringResource(R.string.settings_hardware_intro, stringResource(R.string.app_name)), style = Type.BodySmall, color = Palette.InkSoft)
+        if (models.isEmpty()) {
+            Spacer(Modifier.height(12.dp))
+            Text(stringResource(R.string.settings_hardware_none), style = Type.BodySmall, color = Palette.InkFaint)
+        }
+        models.forEach { m -> HardwareModel(m) }
+        if (models.isNotEmpty()) TextAction(stringResource(R.string.settings_hardware_reset), {
+            Backends.reset(ctx)
+            tick++
+            notice.show(ctx.getString(R.string.settings_hardware_reset_done))
+        }, color = Palette.InkSoft)
+    }
+    Hairline()
+}
+
+@Composable
+private fun HardwareModel(m: BackendGuard.ModelView) {
+    val base = m.model.substringBefore('+')
+    val audio = m.model.endsWith("+audio")
+    val title = remember(base) { runCatching { ModelRegistry.byId(base).title.substringBefore(" (") }.getOrDefault(base) }
+    val role = when {
+        base.startsWith("gemma") -> if (audio) R.string.settings_hardware_role_llm_audio else R.string.settings_hardware_role_llm
+        base == ModelRegistry.EMBED.id -> if (audio) R.string.settings_hardware_role_embed_audio else R.string.settings_hardware_role_embed
+        else -> R.string.settings_hardware_role_asr
+    }
+    Column(Modifier.fillMaxWidth().padding(top = 16.dp).semantics(mergeDescendants = true) {}) {
+        Text(title, style = Type.Body, color = Palette.Ink)
+        Text(stringResource(role), style = Type.BodySmall, color = Palette.InkFaint)
+        Spacer(Modifier.height(6.dp))
+        Text(
+            when {
+                m.selected == null -> stringResource(R.string.settings_hardware_not_loaded)
+                m.selectedAt != null -> stringResource(R.string.settings_hardware_running_on_since, m.selected, android.text.format.DateUtils.getRelativeTimeSpanString(m.selectedAt).toString())
+                else -> stringResource(R.string.settings_hardware_running_on, m.selected)
+            },
+            style = Type.BodySmall, color = Palette.Ink,
+        )
+        m.backends.forEach { (backend, v) ->
+            val (record, skip) = v
+            val state = when (record?.state) {
+                BackendGuard.State.PROVEN -> stringResource(R.string.settings_hardware_state_proven)
+                BackendGuard.State.ATTEMPTING -> stringResource(R.string.settings_hardware_state_attempting)
+                BackendGuard.State.FAILED -> stringResource(R.string.settings_hardware_state_failed)
+                BackendGuard.State.DIED -> stringResource(R.string.settings_hardware_state_died)
+                BackendGuard.State.BLOCKED -> stringResource(R.string.settings_hardware_state_blocked)
+                null -> stringResource(R.string.settings_hardware_state_skipped)
+            }
+            val strikes = record?.strikes?.takeIf { it > 0 }?.let { " · " + stringResource(R.string.settings_hardware_failures, it) } ?: ""
+            // The technical reason stays in English, as in the logs: it is what a support request quotes.
+            val detail = when {
+                skip != null && record?.state != BackendGuard.State.PROVEN -> skip.reason
+                record != null && record.state != BackendGuard.State.PROVEN -> record.reason
+                else -> null
+            }
+            Row(Modifier.fillMaxWidth().padding(top = 4.dp)) {
+                Label(backend, color = if (backend == m.selected) Palette.Ink else Palette.InkFaint, modifier = Modifier.width(44.dp))
+                Column(Modifier.weight(1f)) {
+                    Text(state + strikes, style = Type.BodySmall, color = if (record?.state == BackendGuard.State.BLOCKED) Palette.Ink else Palette.InkSoft)
+                    if (detail != null) Text(detail, style = Type.BodySmall.copy(fontSize = 12.sp, lineHeight = 15.sp), color = Palette.InkFaint)
+                }
+            }
+        }
     }
 }
 

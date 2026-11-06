@@ -219,7 +219,7 @@ private fun RecordTab(s: UiState, vm: MainViewModel, hasMic: () -> Boolean, requ
         if (s.engine == "whisper") {
             Chips("Whisper", listOf("tiny", "base", "small", "medium", "turbo", "large-v3"), s.whisperSize, !locked, vm::setWhisperSize)
         }
-        if (BuildConfig.DEBUG) Chips("Backend", listOf("auto", "npu", "gpu", "cpu"), s.backendOverride, !locked, vm::setBackendOverride)
+        if (BuildConfig.DEBUG) Chips("Backend", listOf("auto") + com.therapylocal.app.models.Accelerators.all().map { it.id.lowercase() }, s.backendOverride, !locked, vm::setBackendOverride)
         Text("Embeddings: embeddinggemma-2 ${s.embedBackend}", fontSize = 12.sp, fontFamily = FontFamily.Monospace)
         Text("Chunking: ${ChunkConfig.describe()}", fontSize = 12.sp, fontFamily = FontFamily.Monospace)
         Divider()

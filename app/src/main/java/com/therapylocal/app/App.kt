@@ -9,6 +9,7 @@ import com.therapylocal.app.i18n.LocaleStore
 import com.therapylocal.app.log.AppLog
 import com.therapylocal.app.log.DeviceFacts
 import com.therapylocal.app.log.LogCtx
+import com.therapylocal.app.models.Backends
 
 class App : Application() {
     override fun attachBaseContext(base: Context) = super.attachBaseContext(LocaleStore.wrap(base))
@@ -18,7 +19,10 @@ class App : Application() {
         AppLog.init(this)
         AppLog.installCrashHandler()
         System.loadLibrary("sqlcipher") // before anything opens a database
-        DeviceFacts.logStartup(this)
+        // Logging only: a device that answers oddly must not stop the app from starting.
+        runCatching { DeviceFacts.logStartup(this) }.onFailure { AppLog.e("Device", "startup_facts_failed", LogCtx.NONE, it) }
+        // Before any model loads: turns a load the last process died in into a strike, so a backend that kills this phone is not retried forever.
+        Backends.recoverAtStartup(this)
         DisplayConfig.init(this)
         AppLog.logMemory(this, tag = "Memory", evt = "app_start")
     }

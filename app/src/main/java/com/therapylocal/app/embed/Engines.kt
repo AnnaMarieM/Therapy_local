@@ -22,11 +22,14 @@ object Engines {
         embedder?.resume()
     }
 
-    /** Proactively frees the embedder if idle when the system reports memory pressure. */
+    /**
+     * Frees the embedder when the system reports memory pressure, unless a session is recording (live cues need it). A call in flight finishes
+     * first ([Embedder.close] never closes the engine underneath it), and reloads stay on the CPU for a while.
+     */
     fun onLowMemory() {
         embedder?.let { e ->
             if (!com.therapylocal.app.jobs.JobRunner.recordingActive) {
-                e.close()
+                e.releaseForMemory()
                 com.therapylocal.app.log.AppLog.w("Memory", "proactive_embedder_unload", com.therapylocal.app.log.LogCtx.NONE)
             }
         }

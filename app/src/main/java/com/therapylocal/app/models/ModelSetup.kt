@@ -72,7 +72,7 @@ object ModelSetup {
     }
 
     fun suggestedGemma(context: Context): GemmaVariant {
-        val mem = ActivityManager.MemoryInfo().also { context.getSystemService(ActivityManager::class.java).getMemoryInfo(it) }
+        val mem = ActivityManager.MemoryInfo().also { m -> context.getSystemService(ActivityManager::class.java)?.let { runCatching { it.getMemoryInfo(m) } } }
         return ModelChoice.suggested(mem.totalMem)
     }
 
