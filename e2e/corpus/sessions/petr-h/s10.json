@@ -1,0 +1,132 @@
+{
+ "client": "petr-h",
+ "session": "s10",
+ "lang": "cs",
+ "date": "2026-03-12",
+ "turns": [
+  {
+   "who": "therapist",
+   "text": "Dobrý den, pojďte dál. Jak se vám vedlo od minula?"
+  },
+  {
+   "who": "client",
+   "text": "Některé dny jsou lepší než jiné a snažím se si to připomínat, když je těžko."
+  },
+  {
+   "who": "therapist",
+   "text": "Hm. Pokračujte."
+  },
+  {
+   "who": "client",
+   "text": "Klára souhlasila, že se přestěhuje se mnou do Brna, ona může pracovat na dálku."
+  },
+  {
+   "who": "therapist",
+   "text": "A jak vám z toho bylo?"
+  },
+  {
+   "who": "client",
+   "text": "Je zvláštní sedět tady a říkat to všechno nahlas, ale trochu to pomáhá. Není snadné o tom mluvit."
+  },
+  {
+   "who": "therapist",
+   "text": "Hm. Pokračujte."
+  },
+  {
+   "who": "client",
+   "text": "Dal jsem výpověď a Ondřej na mě jen nevěřícně koukal."
+  },
+  {
+   "who": "therapist",
+   "text": "Jaké to pro vás bylo?"
+  },
+  {
+   "who": "client",
+   "text": "Něco mám poznamenané na papíře, ale teď si polovinu z toho nepamatuju. Není snadné o tom mluvit."
+  },
+  {
+   "who": "therapist",
+   "text": "A jak vám z toho bylo?"
+  },
+  {
+   "who": "client",
+   "text": "Mám pocit, že se mi hlava zase srovnala a spím šest hodin v kuse."
+  },
+  {
+   "who": "therapist",
+   "text": "A co se stalo potom?"
+  },
+  {
+   "who": "client",
+   "text": "Dnes ráno mi ujel autobus, takže to bylo na poslední chvíli. Ano, přesně tak to bylo."
+  },
+  {
+   "who": "therapist",
+   "text": "A co se stalo potom?"
+  },
+  {
+   "who": "client",
+   "text": "Včerejšek byl dlouhý den a večer už mi nezbyly žádné síly, byla jen televize a gauč."
+  },
+  {
+   "who": "therapist",
+   "text": "Řekněte mi o tom víc."
+  },
+  {
+   "who": "client",
+   "text": "Přijal jsem nabídku z Brna a nastupuji prvního dubna."
+  },
+  {
+   "who": "therapist",
+   "text": "A jak vám z toho bylo?"
+  },
+  {
+   "who": "client",
+   "text": "Cesta sem trvá dlouho, ale aspoň je čas si trochu srovnat myšlenky. Asi ano."
+  },
+  {
+   "who": "therapist",
+   "text": "A co se stalo potom?"
+  },
+  {
+   "who": "client",
+   "text": "Nevím, kde začít, v hlavě mi teď běží spousta věcí najednou."
+  },
+  {
+   "who": "therapist",
+   "text": "Za chvíli nám končí čas. Chcete ještě něco dodat?"
+  },
+  {
+   "who": "client",
+   "text": "Děkuji, uvidíme se příští týden."
+  }
+ ],
+ "expected": {
+  "facts": [
+   {
+    "id": "s10.f1",
+    "heading": "Přijal nabídku",
+    "said": "Přijal jsem nabídku z Brna a nastupuji prvního dubna.",
+    "repeat_of": null
+   },
+   {
+    "id": "s10.f2",
+    "heading": "Stěhování s Klárou",
+    "said": "Klára souhlasila, že se přestěhuje se mnou do Brna, ona může pracovat na dálku.",
+    "repeat_of": null
+   },
+   {
+    "id": "s10.f3",
+    "heading": "Výpověď Ondřejovi",
+    "said": "Dal jsem výpověď a Ondřej na mě jen nevěřícně koukal.",
+    "repeat_of": "s06.f3"
+   },
+   {
+    "id": "s10.f4",
+    "heading": "Hlava je klidnější",
+    "said": "Mám pocit, že se mi hlava zase srovnala a spím šest hodin v kuse.",
+    "repeat_of": "s01.f1"
+   }
+  ]
+ }
+}

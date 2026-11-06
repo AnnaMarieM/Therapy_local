@@ -1,0 +1,132 @@
+{
+ "client": "emma-k",
+ "session": "s07",
+ "lang": "en",
+ "date": "2026-02-19",
+ "turns": [
+  {
+   "who": "therapist",
+   "text": "Hello, come in. How have you been since last time?"
+  },
+  {
+   "who": "client",
+   "text": "It has been a grey week, and the weather does not help my mood much, to be honest."
+  },
+  {
+   "who": "therapist",
+   "text": "I see. Can you say a bit more?"
+  },
+  {
+   "who": "client",
+   "text": "I only checked Oliver's breathing twice last night, that is a big improvement."
+  },
+  {
+   "who": "therapist",
+   "text": "How did that feel for you?"
+  },
+  {
+   "who": "client",
+   "text": "I am not sure where to begin, there are so many things going round in my head at the moment. I do not know, it is hard to explain."
+  },
+  {
+   "who": "therapist",
+   "text": "Take your time."
+  },
+  {
+   "who": "client",
+   "text": "I am thinking of asking the school to extend my leave until January."
+  },
+  {
+   "who": "therapist",
+   "text": "I see. Can you say a bit more?"
+  },
+  {
+   "who": "client",
+   "text": "I wrote a few notes before coming here, but now I cannot remember half of what I wanted to say. I do not know, it is hard to explain."
+  },
+  {
+   "who": "therapist",
+   "text": "And how was that for you?"
+  },
+  {
+   "who": "client",
+   "text": "It is strange to sit here and say all of this out loud, but it does help a little."
+  },
+  {
+   "who": "therapist",
+   "text": "Tell me more about that."
+  },
+  {
+   "who": "client",
+   "text": "I am still waiting for the CBT start date, the team said it should arrive soon."
+  },
+  {
+   "who": "therapist",
+   "text": "And how was that for you?"
+  },
+  {
+   "who": "client",
+   "text": "The train was late again this morning, so I almost did not make it on time today. That is how it was."
+  },
+  {
+   "who": "therapist",
+   "text": "And how was that for you?"
+  },
+  {
+   "who": "client",
+   "text": "I made myself a cup of tea this morning and just stood by the window for a while."
+  },
+  {
+   "who": "therapist",
+   "text": "What went through your mind then?"
+  },
+  {
+   "who": "client",
+   "text": "I went to a baby group at the library and spoke to another mum called Sophie."
+  },
+  {
+   "who": "therapist",
+   "text": "Take your time."
+  },
+  {
+   "who": "client",
+   "text": "I had a long day yesterday and I was so tired in the evening that I just sat in front of the television. I think so, yes."
+  },
+  {
+   "who": "therapist",
+   "text": "Let us stop here for today."
+  },
+  {
+   "who": "client",
+   "text": "Thank you, see you next week."
+  }
+ ],
+ "expected": {
+  "facts": [
+   {
+    "id": "s07.f1",
+    "heading": "Stopped checking breathing most nights",
+    "said": "I only checked Oliver's breathing twice last night, that is a big improvement.",
+    "repeat_of": null
+   },
+   {
+    "id": "s07.f2",
+    "heading": "Joined baby group",
+    "said": "I went to a baby group at the library and spoke to another mum called Sophie.",
+    "repeat_of": null
+   },
+   {
+    "id": "s07.f3",
+    "heading": "Considering extending maternity leave",
+    "said": "I am thinking of asking the school to extend my leave until January.",
+    "repeat_of": null
+   },
+   {
+    "id": "s07.f4",
+    "heading": "Waiting on CBT start",
+    "said": "I am still waiting for the CBT start date, the team said it should arrive soon.",
+    "repeat_of": "s04.f2"
+   }
+  ]
+ }
+}

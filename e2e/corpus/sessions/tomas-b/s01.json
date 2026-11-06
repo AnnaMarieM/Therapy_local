@@ -1,0 +1,116 @@
+{
+ "client": "tomas-b",
+ "session": "s01",
+ "lang": "cs",
+ "date": "2026-01-10",
+ "turns": [
+  {
+   "who": "therapist",
+   "text": "Dobrý den, pojďte dál. Jak se vám vedlo od minula?"
+  },
+  {
+   "who": "client",
+   "text": "Je zvláštní sedět tady a říkat to všechno nahlas, ale trochu to pomáhá."
+  },
+  {
+   "who": "therapist",
+   "text": "A jak vám z toho bylo?"
+  },
+  {
+   "who": "client",
+   "text": "Moje manželka Barbora je těhotná ve čtvrtém měsíci a já se bojím, že jí a dítěti ublížím."
+  },
+  {
+   "who": "therapist",
+   "text": "A co se stalo potom?"
+  },
+  {
+   "who": "client",
+   "text": "Byl to šedivý týden a to počasí mi na náladě moc nepřidává, po pravdě řečeno. Pořád se k tomu vracím."
+  },
+  {
+   "who": "therapist",
+   "text": "A jak vám z toho bylo?"
+  },
+  {
+   "who": "client",
+   "text": "Pracuji jako elektrikář v Olomouci a bojím se, že kvůli své hlavě jednou udělám chybu."
+  },
+  {
+   "who": "therapist",
+   "text": "Nespěchejte."
+  },
+  {
+   "who": "client",
+   "text": "Dnes ráno mi ujel autobus, takže to bylo na poslední chvíli. Nevím, těžko se to vysvětluje."
+  },
+  {
+   "who": "therapist",
+   "text": "Jaké to pro vás bylo?"
+  },
+  {
+   "who": "client",
+   "text": "Začalo to před dvěma lety, kdy hořelo u sousedů a my se museli evakuovat."
+  },
+  {
+   "who": "therapist",
+   "text": "Jaké to pro vás bylo?"
+  },
+  {
+   "who": "client",
+   "text": "Některé dny jsou lepší než jiné a snažím se si to připomínat, když je těžko. Ano, přesně tak to bylo."
+  },
+  {
+   "who": "therapist",
+   "text": "A jak vám z toho bylo?"
+  },
+  {
+   "who": "client",
+   "text": "Třicetkrát za večer kontroluji, jestli jsem zamkl dveře a vypnul sporák, a trvá mi to hodinu, než odejdu z bytu."
+  },
+  {
+   "who": "therapist",
+   "text": "Co se vám v tu chvíli honilo hlavou?"
+  },
+  {
+   "who": "client",
+   "text": "Dnes ráno byl jen čaj a chvíle u okna. Pořád se k tomu vracím."
+  },
+  {
+   "who": "therapist",
+   "text": "Pro dnešek tady skončíme."
+  },
+  {
+   "who": "client",
+   "text": "Děkuji, uvidíme se příští týden."
+  }
+ ],
+ "expected": {
+  "facts": [
+   {
+    "id": "s01.f1",
+    "heading": "Nutkavé kontrolování",
+    "said": "Třicetkrát za večer kontroluji, jestli jsem zamkl dveře a vypnul sporák, a trvá mi to hodinu, než odejdu z bytu.",
+    "repeat_of": null
+   },
+   {
+    "id": "s01.f2",
+    "heading": "Pracuje jako elektrikář",
+    "said": "Pracuji jako elektrikář v Olomouci a bojím se, že kvůli své hlavě jednou udělám chybu.",
+    "repeat_of": null
+   },
+   {
+    "id": "s01.f3",
+    "heading": "Začalo po požáru",
+    "said": "Začalo to před dvěma lety, kdy hořelo u sousedů a my se museli evakuovat.",
+    "repeat_of": null
+   },
+   {
+    "id": "s01.f4",
+    "heading": "Manželka Barbora",
+    "said": "Moje manželka Barbora je těhotná ve čtvrtém měsíci a já se bojím, že jí a dítěti ublížím.",
+    "repeat_of": null
+   }
+  ]
+ }
+}

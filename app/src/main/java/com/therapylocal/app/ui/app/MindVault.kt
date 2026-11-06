@@ -342,6 +342,7 @@ private fun Main(viewModel: MainViewModel, openSessionRequest: Int, onDeveloper:
                 requestMic = { askMic.launch(Manifest.permission.RECORD_AUDIO) },
                 onClose = closeProfile,
                 onRecord = { from -> record(p, from) },
+                onLanguage = { l -> scope.launch { withContext(Dispatchers.IO) { clientsVm.repo.setLanguage(p.id, l) }; clientsVm.refresh() } },
                 onDeleteClient = { deleteClient(p) },
                 onDeleteSession = { s ->
                     scope.launch {
@@ -360,9 +361,9 @@ private fun Main(viewModel: MainViewModel, openSessionRequest: Int, onDeveloper:
         }
 
         PageShift(addSheet, onBack = { addSheet.close() }) {
-            AddClientSheet(addSheet, onCancel = { addSheet.close() }, onAdd = { name ->
+            AddClientSheet(addSheet, onCancel = { addSheet.close() }, onAdd = { name, language ->
                 scope.launch {
-                    val p = withContext(Dispatchers.IO) { runCatching { clientsVm.repo.createClient(name) }.getOrNull() }
+                    val p = withContext(Dispatchers.IO) { runCatching { clientsVm.repo.createClient(name, language) }.getOrNull() }
                     if (p == null) { notice.show(t.str(R.string.mindvault_client_add_failed)); return@launch }
                     haptics.confirm()
                     clientsVm.refresh()

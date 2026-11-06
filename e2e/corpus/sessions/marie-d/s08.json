@@ -1,0 +1,124 @@
+{
+ "client": "marie-d",
+ "session": "s08",
+ "lang": "cs",
+ "date": "2026-03-03",
+ "turns": [
+  {
+   "who": "therapist",
+   "text": "Dobrý den, pojďte dál. Jak se vám vedlo od minula?"
+  },
+  {
+   "who": "client",
+   "text": "Dnes ráno mi ujel autobus, takže to bylo na poslední chvíli."
+  },
+  {
+   "who": "therapist",
+   "text": "Hm. Pokračujte."
+  },
+  {
+   "who": "client",
+   "text": "Chci s Jakubem mluvit o tom, že chci zůstat doma, dokud to půjde."
+  },
+  {
+   "who": "therapist",
+   "text": "Jaké to pro vás bylo?"
+  },
+  {
+   "who": "client",
+   "text": "Nevím, kde začít, v hlavě mi teď běží spousta věcí najednou. Nevím, těžko se to vysvětluje."
+  },
+  {
+   "who": "therapist",
+   "text": "A jak vám z toho bylo?"
+  },
+  {
+   "who": "client",
+   "text": "Napekla jsem buchty a připravila Jakubovi pokoj, aby tu byl jako doma."
+  },
+  {
+   "who": "therapist",
+   "text": "A jak vám z toho bylo?"
+  },
+  {
+   "who": "client",
+   "text": "Cesta sem trvá dlouho, ale aspoň je čas si trochu srovnat myšlenky. Nevím, těžko se to vysvětluje."
+  },
+  {
+   "who": "therapist",
+   "text": "Rozumím. Můžete to trochu rozvést?"
+  },
+  {
+   "who": "client",
+   "text": "Je zvláštní sedět tady a říkat to všechno nahlas, ale trochu to pomáhá."
+  },
+  {
+   "who": "therapist",
+   "text": "A co se stalo potom?"
+  },
+  {
+   "who": "client",
+   "text": "Strašně se mi ulevilo, že to nejspíš není demence, ale přirozené stárnutí."
+  },
+  {
+   "who": "therapist",
+   "text": "Co se vám v tu chvíli honilo hlavou?"
+  },
+  {
+   "who": "client",
+   "text": "Byl to šedivý týden a to počasí mi na náladě moc nepřidává, po pravdě řečeno. Asi ano."
+  },
+  {
+   "who": "therapist",
+   "text": "A co se stalo potom?"
+  },
+  {
+   "who": "client",
+   "text": "Výsledek rezonance je dobrý, žádné závažné změny, jen lehké stařecké změny."
+  },
+  {
+   "who": "therapist",
+   "text": "Nespěchejte."
+  },
+  {
+   "who": "client",
+   "text": "Něco mám poznamenané na papíře, ale teď si polovinu z toho nepamatuju. Ano, přesně tak to bylo."
+  },
+  {
+   "who": "therapist",
+   "text": "Pro dnešek tady skončíme."
+  },
+  {
+   "who": "client",
+   "text": "Ne, myslím, že je to všechno. Děkuji."
+  }
+ ],
+ "expected": {
+  "facts": [
+   {
+    "id": "s08.f1",
+    "heading": "Výsledek MR",
+    "said": "Výsledek rezonance je dobrý, žádné závažné změny, jen lehké stařecké změny.",
+    "repeat_of": null
+   },
+   {
+    "id": "s08.f2",
+    "heading": "Úleva",
+    "said": "Strašně se mi ulevilo, že to nejspíš není demence, ale přirozené stárnutí.",
+    "repeat_of": "s01.f1"
+   },
+   {
+    "id": "s08.f3",
+    "heading": "Příprava na Jakubův příjezd",
+    "said": "Napekla jsem buchty a připravila Jakubovi pokoj, aby tu byl jako doma.",
+    "repeat_of": null
+   },
+   {
+    "id": "s08.f4",
+    "heading": "Rozhovor o budoucnosti",
+    "said": "Chci s Jakubem mluvit o tom, že chci zůstat doma, dokud to půjde.",
+    "repeat_of": "s04.f4"
+   }
+  ]
+ }
+}

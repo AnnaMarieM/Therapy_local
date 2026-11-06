@@ -1,0 +1,124 @@
+{
+ "client": "lucie-s",
+ "session": "s04",
+ "lang": "cs",
+ "date": "2026-01-30",
+ "turns": [
+  {
+   "who": "therapist",
+   "text": "Dobrý den, pojďte dál. Jak se vám vedlo od minula?"
+  },
+  {
+   "who": "client",
+   "text": "Byl to šedivý týden a to počasí mi na náladě moc nepřidává, po pravdě řečeno."
+  },
+  {
+   "who": "therapist",
+   "text": "Rozumím. Můžete to trochu rozvést?"
+  },
+  {
+   "who": "client",
+   "text": "Nemám jasno, jestli dům prodat, nebo ho nechat a pronajímat."
+  },
+  {
+   "who": "therapist",
+   "text": "Hm. Pokračujte."
+  },
+  {
+   "who": "client",
+   "text": "Dnes ráno mi ujel autobus, takže to bylo na poslední chvíli. Ano, přesně tak to bylo."
+  },
+  {
+   "who": "therapist",
+   "text": "A co se stalo potom?"
+  },
+  {
+   "who": "client",
+   "text": "Jela jsem do domu sama a seděla jsem hodinu v maminčině křesle."
+  },
+  {
+   "who": "therapist",
+   "text": "Rozumím. Můžete to trochu rozvést?"
+  },
+  {
+   "who": "client",
+   "text": "Je zvláštní sedět tady a říkat to všechno nahlas, ale trochu to pomáhá. Nevím, těžko se to vysvětluje."
+  },
+  {
+   "who": "therapist",
+   "text": "A co se stalo potom?"
+  },
+  {
+   "who": "client",
+   "text": "Kamarádka z práce Hana říká, že jsem hubená jako vrabec, a nutí mě jíst obědy."
+  },
+  {
+   "who": "therapist",
+   "text": "Nespěchejte."
+  },
+  {
+   "who": "client",
+   "text": "Některé dny jsou lepší než jiné a snažím se si to připomínat, když je těžko. Pořád se k tomu vracím."
+  },
+  {
+   "who": "therapist",
+   "text": "Jaké to pro vás bylo?"
+  },
+  {
+   "who": "client",
+   "text": "Nevím, kde začít, v hlavě mi teď běží spousta věcí najednou."
+  },
+  {
+   "who": "therapist",
+   "text": "Rozumím. Můžete to trochu rozvést?"
+  },
+  {
+   "who": "client",
+   "text": "Ondra mi zavolal poprvé po měsíci a řekl, že na pohřbu nebyl schopen mluvit."
+  },
+  {
+   "who": "therapist",
+   "text": "Řekněte mi o tom víc."
+  },
+  {
+   "who": "client",
+   "text": "Včerejšek byl dlouhý den a večer už mi nezbyly žádné síly, byla jen televize a gauč. Nevím, těžko se to vysvětluje."
+  },
+  {
+   "who": "therapist",
+   "text": "Pro dnešek tady skončíme."
+  },
+  {
+   "who": "client",
+   "text": "Ne, myslím, že je to všechno. Děkuji."
+  }
+ ],
+ "expected": {
+  "facts": [
+   {
+    "id": "s04.f1",
+    "heading": "Návštěva domu",
+    "said": "Jela jsem do domu sama a seděla jsem hodinu v maminčině křesle.",
+    "repeat_of": null
+   },
+   {
+    "id": "s04.f2",
+    "heading": "Co s domem",
+    "said": "Nemám jasno, jestli dům prodat, nebo ho nechat a pronajímat.",
+    "repeat_of": "s01.f4"
+   },
+   {
+    "id": "s04.f3",
+    "heading": "Ondra volal",
+    "said": "Ondra mi zavolal poprvé po měsíci a řekl, že na pohřbu nebyl schopen mluvit.",
+    "repeat_of": null
+   },
+   {
+    "id": "s04.f4",
+    "heading": "Hubnutí",
+    "said": "Kamarádka z práce Hana říká, že jsem hubená jako vrabec, a nutí mě jíst obědy.",
+    "repeat_of": "s03.f4"
+   }
+  ]
+ }
+}

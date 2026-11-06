@@ -1,0 +1,70 @@
+client: emma-k | Emma K. | en
+
+s01 2026-01-08
+ f1 | Postnatal anxiety | My son Oliver is five months old and I have been anxious every single day since he was born.
+ f2 | Checks baby breathing at night | I get up six or seven times a night just to check that Oliver is still breathing.
+ f3 | Husband Tom works night shifts | My husband Tom is a paramedic and works night shifts, so I am alone with the baby most nights.
+ f4 | Mother lives far away | My mum lives in Aberdeen and I am in Bristol, so she cannot just pop round.
+
+s02 2026-01-15
+ f1 | Stopped breastfeeding | I stopped breastfeeding last week and I feel like a failure because of it.
+ f2 | Health visitor Priya | The health visitor, Priya, was kind and told me many mothers feel exactly like this.
+ f3 = s01.f2 | Still checking breathing | I still check Oliver's breathing at night, last night it was five times.
+ f4 | Avoids leaving house | I have not been out of the flat for anything except the clinic in nine days.
+
+s03 2026-01-22
+ f1 | Intrusive thought about dropping baby | I have an awful thought that I will drop Oliver down the stairs, and it comes out of nowhere.
+ f2 | Was a primary school teacher | Before maternity leave I was a primary school teacher and I loved my class.
+ f3 | Afraid to tell Tom | I have not told Tom about the stair thoughts because I am afraid he will think I am dangerous.
+ f4 = s01.f4 | Wants her mother near | I wish my mum lived closer, I feel so alone in the afternoons.
+
+s04 2026-01-29
+ f1 | Told Tom about thoughts | I told Tom about the thoughts on the stairs and he just held me and said they are common.
+ f2 | GP referral to perinatal team | My GP referred me to the perinatal mental health team, the appointment is on the twelfth of February.
+ f3 | Mum is visiting | Mum is coming down from Aberdeen on the sixth of February for a week.
+ f4 = s02.f4 | Walked to the park | I managed to walk to the park with the pram on Wednesday, only for fifteen minutes.
+
+s05 2026-02-05
+ f1 | Mum's visit helped | Having Mum here gave me my first full night of sleep in five months.
+ f2 | Worried about returning to work | I am supposed to go back to school in September and the thought makes my stomach turn.
+ f3 = s03.f1 | Thought about stairs fading | The stair thought comes less often now, maybe twice this week.
+ f4 | Argument with Tom about money | Tom and I argued about money, because his night shift pay is not enough with only my maternity pay.
+
+s06 2026-02-12
+ f1 | Perinatal team assessment | The perinatal team assessed me today and said I have postnatal anxiety with some obsessive thoughts.
+ f2 | Offered CBT | They offered me cognitive behavioural therapy starting in March, eight weekly sessions.
+ f3 = s01.f3 | Alone at night | Tom has four night shifts this week so I am by myself with Oliver again.
+ f4 | Oliver began sleeping longer | Oliver started sleeping five hours in a row, which is new.
+
+s07 2026-02-19
+ f1 | Stopped checking breathing most nights | I only checked Oliver's breathing twice last night, that is a big improvement.
+ f2 | Joined baby group | I went to a baby group at the library and spoke to another mum called Sophie.
+ f3 | Considering extending maternity leave | I am thinking of asking the school to extend my leave until January.
+ f4 = s04.f2 | Waiting on CBT start | I am still waiting for the CBT start date, the team said it should arrive soon.
+
+s08 2026-02-26
+ f1 | Friendship with Sophie | Sophie and I went for coffee after the group and her baby is the same age as Oliver.
+ f2 | School agreed to extension | The headteacher agreed to extend my maternity leave until the January term.
+ f3 = s05.f4 | Money still tight | The money worry is still there, we may need to cut our car insurance and the gym.
+ f4 | Tom's own exhaustion | Tom told me he is exhausted too and wants us to share the mornings more.
+
+s09 2026-03-04
+ f1 | CBT started | My first CBT session was on Monday and the therapist, Rachel, gave me a worry diary.
+ f2 = s02.f1 | Guilt about formula | I still feel guilty about the formula, although Oliver is growing well.
+ f3 | Went swimming with baby | We went to a baby swimming class and Oliver loved the water.
+ f4 = s03.f3 | Telling Tom things | I tell Tom about the scary thoughts now, he says it makes him feel closer to me.
+
+s10 2026-03-11
+ f1 | Left Oliver with Tom for an hour | I left Oliver with Tom for an hour on Saturday and went to the shop alone.
+ f2 = s01.f1 | Anxiety lower | The anxiety is much lower, I would say four out of ten instead of nine.
+ f3 | Plans a holiday in Aberdeen | We booked a trip to Aberdeen at Easter so Mum can meet Oliver properly.
+ f4 = s05.f2 | Dread about September gone | I am less afraid about going back to work now that I have until January.
+
+q | scary thoughts about baby | s03.f1 s05.f3
+q | support from her mother | s01.f4 s04.f3 s05.f1
+q | treatment she received | s04.f2 s06.f1 s06.f2 s09.f1
+q | husband's job | s01.f3 s06.f3
+q | breastfeeding | s02.f1 s09.f2
+q | return to teaching | s03.f2 s05.f2 s08.f2
+neg | gambling problem
+neg | brother in prison

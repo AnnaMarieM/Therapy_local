@@ -1,0 +1,124 @@
+{
+ "client": "emma-k",
+ "session": "s03",
+ "lang": "en",
+ "date": "2026-01-22",
+ "turns": [
+  {
+   "who": "therapist",
+   "text": "Good to see you again. Where would you like to start today?"
+  },
+  {
+   "who": "client",
+   "text": "Some days are better than others, and I try to remind myself of that when things get heavy."
+  },
+  {
+   "who": "therapist",
+   "text": "Mm-hm. Go on."
+  },
+  {
+   "who": "client",
+   "text": "I have not told Tom about the stair thoughts because I am afraid he will think I am dangerous."
+  },
+  {
+   "who": "therapist",
+   "text": "What went through your mind then?"
+  },
+  {
+   "who": "client",
+   "text": "The train was late again this morning, so I almost did not make it on time today. It is not easy to talk about."
+  },
+  {
+   "who": "therapist",
+   "text": "What happened next?"
+  },
+  {
+   "who": "client",
+   "text": "I had a long day yesterday and I was so tired in the evening that I just sat in front of the television."
+  },
+  {
+   "who": "therapist",
+   "text": "What went through your mind then?"
+  },
+  {
+   "who": "client",
+   "text": "Before maternity leave I was a primary school teacher and I loved my class."
+  },
+  {
+   "who": "therapist",
+   "text": "Tell me more about that."
+  },
+  {
+   "who": "client",
+   "text": "I made myself a cup of tea this morning and just stood by the window for a while. I think so, yes."
+  },
+  {
+   "who": "therapist",
+   "text": "I see. Can you say a bit more?"
+  },
+  {
+   "who": "client",
+   "text": "I wish my mum lived closer, I feel so alone in the afternoons."
+  },
+  {
+   "who": "therapist",
+   "text": "Take your time."
+  },
+  {
+   "who": "client",
+   "text": "It has been a grey week, and the weather does not help my mood much, to be honest. Yes, it was like that."
+  },
+  {
+   "who": "therapist",
+   "text": "Mm-hm. Go on."
+  },
+  {
+   "who": "client",
+   "text": "I have an awful thought that I will drop Oliver down the stairs, and it comes out of nowhere."
+  },
+  {
+   "who": "therapist",
+   "text": "I see. Can you say a bit more?"
+  },
+  {
+   "who": "client",
+   "text": "It is strange to sit here and say all of this out loud, but it does help a little. Yes, it was like that."
+  },
+  {
+   "who": "therapist",
+   "text": "We are nearly out of time. Is there anything you want to add?"
+  },
+  {
+   "who": "client",
+   "text": "No, I think that is everything. Thank you."
+  }
+ ],
+ "expected": {
+  "facts": [
+   {
+    "id": "s03.f1",
+    "heading": "Intrusive thought about dropping baby",
+    "said": "I have an awful thought that I will drop Oliver down the stairs, and it comes out of nowhere.",
+    "repeat_of": null
+   },
+   {
+    "id": "s03.f2",
+    "heading": "Was a primary school teacher",
+    "said": "Before maternity leave I was a primary school teacher and I loved my class.",
+    "repeat_of": null
+   },
+   {
+    "id": "s03.f3",
+    "heading": "Afraid to tell Tom",
+    "said": "I have not told Tom about the stair thoughts because I am afraid he will think I am dangerous.",
+    "repeat_of": null
+   },
+   {
+    "id": "s03.f4",
+    "heading": "Wants her mother near",
+    "said": "I wish my mum lived closer, I feel so alone in the afternoons.",
+    "repeat_of": "s01.f4"
+   }
+  ]
+ }
+}

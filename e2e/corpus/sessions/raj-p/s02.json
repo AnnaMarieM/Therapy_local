@@ -1,0 +1,124 @@
+{
+ "client": "raj-p",
+ "session": "s02",
+ "lang": "en",
+ "date": "2026-01-19",
+ "turns": [
+  {
+   "who": "therapist",
+   "text": "Good to see you again. Where would you like to start today?"
+  },
+  {
+   "who": "client",
+   "text": "Some days are better than others, and I try to remind myself of that when things get heavy."
+  },
+  {
+   "who": "therapist",
+   "text": "What happened next?"
+  },
+  {
+   "who": "client",
+   "text": "My father used to bet on horses and my mother never forgave him."
+  },
+  {
+   "who": "therapist",
+   "text": "What went through your mind then?"
+  },
+  {
+   "who": "client",
+   "text": "I wrote a few notes before coming here, but now I cannot remember half of what I wanted to say. I do not know, it is hard to explain."
+  },
+  {
+   "who": "therapist",
+   "text": "How did that feel for you?"
+  },
+  {
+   "who": "client",
+   "text": "The journey here took a while, but at least I had time to gather my thoughts."
+  },
+  {
+   "who": "therapist",
+   "text": "And how was that for you?"
+  },
+  {
+   "who": "client",
+   "text": "My son Arjun turns eight on the thirtieth of January and I cannot afford the party."
+  },
+  {
+   "who": "therapist",
+   "text": "Take your time."
+  },
+  {
+   "who": "client",
+   "text": "I had a long day yesterday and I was so tired in the evening that I just sat in front of the television. It is not easy to talk about."
+  },
+  {
+   "who": "therapist",
+   "text": "What went through your mind then?"
+  },
+  {
+   "who": "client",
+   "text": "I deleted three betting apps on Sunday but reinstalled one on Tuesday."
+  },
+  {
+   "who": "therapist",
+   "text": "I see. Can you say a bit more?"
+  },
+  {
+   "who": "client",
+   "text": "I am not sure where to begin, there are so many things going round in my head at the moment. I think so, yes."
+  },
+  {
+   "who": "therapist",
+   "text": "What happened next?"
+  },
+  {
+   "who": "client",
+   "text": "Meera asked about the savings and I said we are saving for a new kitchen."
+  },
+  {
+   "who": "therapist",
+   "text": "Mm-hm. Go on."
+  },
+  {
+   "who": "client",
+   "text": "I made myself a cup of tea this morning and just stood by the window for a while. It is not easy to talk about."
+  },
+  {
+   "who": "therapist",
+   "text": "Let us stop here for today."
+  },
+  {
+   "who": "client",
+   "text": "No, I think that is everything. Thank you."
+  }
+ ],
+ "expected": {
+  "facts": [
+   {
+    "id": "s02.f1",
+    "heading": "Deleted betting apps",
+    "said": "I deleted three betting apps on Sunday but reinstalled one on Tuesday.",
+    "repeat_of": null
+   },
+   {
+    "id": "s02.f2",
+    "heading": "Lying to Meera",
+    "said": "Meera asked about the savings and I said we are saving for a new kitchen.",
+    "repeat_of": "s01.f2"
+   },
+   {
+    "id": "s02.f3",
+    "heading": "Son Arjun's birthday",
+    "said": "My son Arjun turns eight on the thirtieth of January and I cannot afford the party.",
+    "repeat_of": null
+   },
+   {
+    "id": "s02.f4",
+    "heading": "Father was also a gambler",
+    "said": "My father used to bet on horses and my mother never forgave him.",
+    "repeat_of": null
+   }
+  ]
+ }
+}

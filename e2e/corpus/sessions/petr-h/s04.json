@@ -1,0 +1,124 @@
+{
+ "client": "petr-h",
+ "session": "s04",
+ "lang": "cs",
+ "date": "2026-01-29",
+ "turns": [
+  {
+   "who": "therapist",
+   "text": "Dobrý den, pojďte dál. Jak se vám vedlo od minula?"
+  },
+  {
+   "who": "client",
+   "text": "Něco mám poznamenané na papíře, ale teď si polovinu z toho nepamatuju."
+  },
+  {
+   "who": "therapist",
+   "text": "Hm. Pokračujte."
+  },
+  {
+   "who": "client",
+   "text": "Kolega Jirka mi řekl, že trpí stejně, a poprvé jsem se nestyděl o tom mluvit."
+  },
+  {
+   "who": "therapist",
+   "text": "Nespěchejte."
+  },
+  {
+   "who": "client",
+   "text": "Je zvláštní sedět tady a říkat to všechno nahlas, ale trochu to pomáhá. Ano, přesně tak to bylo."
+  },
+  {
+   "who": "therapist",
+   "text": "Hm. Pokračujte."
+  },
+  {
+   "who": "client",
+   "text": "Snížil jsem kávu na dvě denně a energetické nápoje jsem vyhodil, bolí mě z toho hlava."
+  },
+  {
+   "who": "therapist",
+   "text": "A jak vám z toho bylo?"
+  },
+  {
+   "who": "client",
+   "text": "Dnes ráno mi ujel autobus, takže to bylo na poslední chvíli. Není snadné o tom mluvit."
+  },
+  {
+   "who": "therapist",
+   "text": "Řekněte mi o tom víc."
+  },
+  {
+   "who": "client",
+   "text": "Ondřej mi poslal v sobotu v noci úkol a chtěl ho do rána."
+  },
+  {
+   "who": "therapist",
+   "text": "Řekněte mi o tom víc."
+  },
+  {
+   "who": "client",
+   "text": "Dnes ráno byl jen čaj a chvíle u okna. Ano, přesně tak to bylo."
+  },
+  {
+   "who": "therapist",
+   "text": "Rozumím. Můžete to trochu rozvést?"
+  },
+  {
+   "who": "client",
+   "text": "Naučil jsem se dýchat do břicha podle videa a zkusil to v tramvaji, trochu to pomohlo."
+  },
+  {
+   "who": "therapist",
+   "text": "Hm. Pokračujte."
+  },
+  {
+   "who": "client",
+   "text": "Cesta sem trvá dlouho, ale aspoň je čas si trochu srovnat myšlenky. Pořád se k tomu vracím."
+  },
+  {
+   "who": "therapist",
+   "text": "Řekněte mi o tom víc."
+  },
+  {
+   "who": "client",
+   "text": "Včerejšek byl dlouhý den a večer už mi nezbyly žádné síly, byla jen televize a gauč."
+  },
+  {
+   "who": "therapist",
+   "text": "Za chvíli nám končí čas. Chcete ještě něco dodat?"
+  },
+  {
+   "who": "client",
+   "text": "Děkuji, uvidíme se příští týden."
+  }
+ ],
+ "expected": {
+  "facts": [
+   {
+    "id": "s04.f1",
+    "heading": "Omezil kofein",
+    "said": "Snížil jsem kávu na dvě denně a energetické nápoje jsem vyhodil, bolí mě z toho hlava.",
+    "repeat_of": null
+   },
+   {
+    "id": "s04.f2",
+    "heading": "Dýchací cvičení",
+    "said": "Naučil jsem se dýchat do břicha podle videa a zkusil to v tramvaji, trochu to pomohlo.",
+    "repeat_of": null
+   },
+   {
+    "id": "s04.f3",
+    "heading": "Víkendová práce",
+    "said": "Ondřej mi poslal v sobotu v noci úkol a chtěl ho do rána.",
+    "repeat_of": "s02.f1"
+   },
+   {
+    "id": "s04.f4",
+    "heading": "Kolega Jirka",
+    "said": "Kolega Jirka mi řekl, že trpí stejně, a poprvé jsem se nestyděl o tom mluvit.",
+    "repeat_of": null
+   }
+  ]
+ }
+}

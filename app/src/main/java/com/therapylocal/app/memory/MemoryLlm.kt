@@ -35,14 +35,30 @@ class MemoryLlm(private val context: Context, private val maxTokens: Int, privat
     private var engine: Engine? = null
     private var audio = false
 
-    /** [order] is tried in turn; each backend is validated with a small reply because GPU/NPU can fail only at the first inference. */
-    fun load(order: List<String>) {
+    override val hasAudio: Boolean get() = audio
+
+    override val contextTokens: Int get() = maxTokens
+
+    /**
+     * [order] is tried in turn; each backend is validated with a small reply because GPU/NPU can fail only at the first inference.
+     * Only the text model is loaded unless [withAudio] (speech recognition): the audio encoder and the image encoder cost memory for nothing in
+     * the text jobs.
+     */
+    fun load(order: List<String>, withAudio: Boolean = false) {
         ExperimentalFlags.enableBenchmark = true
         val file = spec.file(context, spec.files.first())
         // Audio-stripped builds exist: the bundle says whether it can hear (as the embedder checks too).
-        audio = runCatching { ModelInfo.from(file.path).use { it.inputModalities().audio } }.getOrDefault(false)
+        audio = withAudio && runCatching { ModelInfo.from(file.path).use { it.inputModalities().audio } }.getOrDefault(false)
         val failures = ArrayList<String>()
         for (name in order) {
+            if (name.uppercase() != "CPU") {
+                val (available, low) = LlmMemory.available(context)
+                if (!LlmMemory.gpuFits(spec.totalBytes, available, low)) {
+                    AppLog.w(TAG, "backend_skipped_low_memory", LogCtx.NONE, "backend_try" to name, "available_mb" to (available shr 20), "needed_mb" to (LlmMemory.gpuNeeds(spec.totalBytes) shr 20), "low_memory" to low)
+                    failures += "$name: not enough free memory"
+                    continue
+                }
+            }
             val be: Backend = when (name.uppercase()) {
                 "NPU" -> {
                     if (!NpuRuntime.available(context)) {
@@ -56,7 +72,7 @@ class MemoryLlm(private val context: Context, private val maxTokens: Int, privat
                 else -> Backend.CPU()
             }
             try {
-                val config = EngineConfig(modelPath = file.path, backend = be, audioBackend = if (audio) Backend.CPU() else null, maxNumTokens = maxTokens, cacheDir = context.cacheDir.path)
+                val config = EngineConfig(modelPath = file.path, backend = be, audioBackend = if (audio) Backend.CPU() else null, visionBackend = null, maxNumTokens = maxTokens, cacheDir = context.cacheDir.path)
                 val e = Engine(config)
                 e.initialize()
                 e.createConversation().use { it.sendMessage("Reply with OK.") }

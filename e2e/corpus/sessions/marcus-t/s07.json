@@ -1,0 +1,132 @@
+{
+ "client": "marcus-t",
+ "session": "s07",
+ "lang": "en",
+ "date": "2026-02-20",
+ "turns": [
+  {
+   "who": "therapist",
+   "text": "Hello, come in. How have you been since last time?"
+  },
+  {
+   "who": "client",
+   "text": "I am not sure where to begin, there are so many things going round in my head at the moment."
+  },
+  {
+   "who": "therapist",
+   "text": "What went through your mind then?"
+  },
+  {
+   "who": "client",
+   "text": "On Wednesday I slept in the bed for the first time since June."
+  },
+  {
+   "who": "therapist",
+   "text": "And how was that for you?"
+  },
+  {
+   "who": "client",
+   "text": "Some days are better than others, and I try to remind myself of that when things get heavy. It is not easy to talk about."
+  },
+  {
+   "who": "therapist",
+   "text": "How did that feel for you?"
+  },
+  {
+   "who": "client",
+   "text": "Biscuit could hardly get up the stairs, and I carried him to bed."
+  },
+  {
+   "who": "therapist",
+   "text": "I see. Can you say a bit more?"
+  },
+  {
+   "who": "client",
+   "text": "The journey here took a while, but at least I had time to gather my thoughts. I do not know, it is hard to explain."
+  },
+  {
+   "who": "therapist",
+   "text": "And how was that for you?"
+  },
+  {
+   "who": "client",
+   "text": "It is strange to sit here and say all of this out loud, but it does help a little."
+  },
+  {
+   "who": "therapist",
+   "text": "And how was that for you?"
+  },
+  {
+   "who": "client",
+   "text": "Joy flew home on Monday and the house felt even emptier for a day."
+  },
+  {
+   "who": "therapist",
+   "text": "How did that feel for you?"
+  },
+  {
+   "who": "client",
+   "text": "The train was late again this morning, so I almost did not make it on time today. I do not know, it is hard to explain."
+  },
+  {
+   "who": "therapist",
+   "text": "Mm-hm. Go on."
+  },
+  {
+   "who": "client",
+   "text": "I made myself a cup of tea this morning and just stood by the window for a while."
+  },
+  {
+   "who": "therapist",
+   "text": "How did that feel for you?"
+  },
+  {
+   "who": "client",
+   "text": "I did my first Tuesday shift at the food bank, sorting tins and tea bags."
+  },
+  {
+   "who": "therapist",
+   "text": "And how was that for you?"
+  },
+  {
+   "who": "client",
+   "text": "I had a long day yesterday and I was so tired in the evening that I just sat in front of the television. It is not easy to talk about."
+  },
+  {
+   "who": "therapist",
+   "text": "We are nearly out of time. Is there anything you want to add?"
+  },
+  {
+   "who": "client",
+   "text": "Thank you, see you next week."
+  }
+ ],
+ "expected": {
+  "facts": [
+   {
+    "id": "s07.f1",
+    "heading": "Joy returned to Atlanta",
+    "said": "Joy flew home on Monday and the house felt even emptier for a day.",
+    "repeat_of": null
+   },
+   {
+    "id": "s07.f2",
+    "heading": "Slept in the bed",
+    "said": "On Wednesday I slept in the bed for the first time since June.",
+    "repeat_of": "s02.f2"
+   },
+   {
+    "id": "s07.f3",
+    "heading": "Started at food bank",
+    "said": "I did my first Tuesday shift at the food bank, sorting tins and tea bags.",
+    "repeat_of": null
+   },
+   {
+    "id": "s07.f4",
+    "heading": "Biscuit had a bad week",
+    "said": "Biscuit could hardly get up the stairs, and I carried him to bed.",
+    "repeat_of": null
+   }
+  ]
+ }
+}

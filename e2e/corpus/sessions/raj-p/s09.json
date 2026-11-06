@@ -1,0 +1,124 @@
+{
+ "client": "raj-p",
+ "session": "s09",
+ "lang": "en",
+ "date": "2026-03-09",
+ "turns": [
+  {
+   "who": "therapist",
+   "text": "Hello, come in. How have you been since last time?"
+  },
+  {
+   "who": "client",
+   "text": "It is strange to sit here and say all of this out loud, but it does help a little."
+  },
+  {
+   "who": "therapist",
+   "text": "How did that feel for you?"
+  },
+  {
+   "who": "client",
+   "text": "For the first time I think that I might survive this."
+  },
+  {
+   "who": "therapist",
+   "text": "How did that feel for you?"
+  },
+  {
+   "who": "client",
+   "text": "I wrote a few notes before coming here, but now I cannot remember half of what I wanted to say. I keep coming back to it."
+  },
+  {
+   "who": "therapist",
+   "text": "What happened next?"
+  },
+  {
+   "who": "client",
+   "text": "I opened a betting site and looked at odds for ten minutes before closing it."
+  },
+  {
+   "who": "therapist",
+   "text": "Take your time."
+  },
+  {
+   "who": "client",
+   "text": "It has been a grey week, and the weather does not help my mood much, to be honest. It is not easy to talk about."
+  },
+  {
+   "who": "therapist",
+   "text": "How did that feel for you?"
+  },
+  {
+   "who": "client",
+   "text": "Gareth was supportive and offered to pay for me to see a counsellor through the firm."
+  },
+  {
+   "who": "therapist",
+   "text": "How did that feel for you?"
+  },
+  {
+   "who": "client",
+   "text": "I had a long day yesterday and I was so tired in the evening that I just sat in front of the television. It is not easy to talk about."
+  },
+  {
+   "who": "therapist",
+   "text": "And how was that for you?"
+  },
+  {
+   "who": "client",
+   "text": "Some days are better than others, and I try to remind myself of that when things get heavy."
+  },
+  {
+   "who": "therapist",
+   "text": "And how was that for you?"
+  },
+  {
+   "who": "client",
+   "text": "I go to the Thursday Gamblers Anonymous meetings every week, and Frank is now my sponsor."
+  },
+  {
+   "who": "therapist",
+   "text": "And how was that for you?"
+  },
+  {
+   "who": "client",
+   "text": "The journey here took a while, but at least I had time to gather my thoughts. I do not know, it is hard to explain."
+  },
+  {
+   "who": "therapist",
+   "text": "Let us stop here for today."
+  },
+  {
+   "who": "client",
+   "text": "No, I think that is everything. Thank you."
+  }
+ ],
+ "expected": {
+  "facts": [
+   {
+    "id": "s09.f1",
+    "heading": "Boss was supportive",
+    "said": "Gareth was supportive and offered to pay for me to see a counsellor through the firm.",
+    "repeat_of": null
+   },
+   {
+    "id": "s09.f2",
+    "heading": "Relapse thought",
+    "said": "I opened a betting site and looked at odds for ten minutes before closing it.",
+    "repeat_of": null
+   },
+   {
+    "id": "s09.f3",
+    "heading": "Second GA meeting",
+    "said": "I go to the Thursday Gamblers Anonymous meetings every week, and Frank is now my sponsor.",
+    "repeat_of": "s05.f1"
+   },
+   {
+    "id": "s09.f4",
+    "heading": "Hope",
+    "said": "For the first time I think that I might survive this.",
+    "repeat_of": "s01.f4"
+   }
+  ]
+ }
+}

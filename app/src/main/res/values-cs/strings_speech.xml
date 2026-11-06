@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The language clients speak in sessions (picks the speech recogniser). Not the language of the app itself. -->
+    <string name="speech_kicker">Klienti</string>
+    <string name="speech_title">Jakým jazykem\nmluví vaši klienti?</string>
+    <string name="speech_body">Sezení se zapisují v tomto jazyce. Je to jen výchozí volba: každý klient může mít svůj vlastní.</string>
+    <string name="speech_speaks">Mluví</string>
+    <string name="speech_profile_note">Nové nahrávky se zapisují v tomto jazyce.</string>
+    <string name="speech_default_group">Jazyk klientů</string>
+    <string name="speech_default_body">Noví klienti začínají s tímto jazykem. Stávající klienti si ponechají svůj.</string>
+</resources>

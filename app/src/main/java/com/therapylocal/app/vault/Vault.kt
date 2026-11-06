@@ -226,6 +226,7 @@ object Vault {
         runCatching { keyStore().deleteEntry(BIOMETRIC_ALIAS) }
         (MindStore.LEGACY + MindStore.NAME).forEach { context.deleteDatabase(it) }
         MemoryFiles.secureRoot(context).deleteRecursively()
+        com.therapylocal.app.data.DebugAudio.deleteAll(context)
         File(MemoryFiles.devRoot(context), "in").deleteRecursively()
         File(MemoryFiles.devRoot(context), "out").deleteRecursively()
         AppLog.i(TAG, "vault_erased", LogCtx.NONE)

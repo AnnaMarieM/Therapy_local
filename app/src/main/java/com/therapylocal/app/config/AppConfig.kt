@@ -85,6 +85,14 @@ object MemoryConfig {
     const val LLM_MAX_TOKENS = 6144
     val LLM_BACKENDS = listOf("NPU", "GPU", "CPU")
 
+    /**
+     * The GPU and NPU take the model's memory from the system and Android cannot reclaim it (measured: E4B took 3,469 MiB for a 3,490 MiB file, E2B
+     * 1,669 MiB for 2,468 MiB), so they are only used when this fraction of the file plus [GPU_HEADROOM_BYTES] is free. On the CPU the model is mapped
+     * from storage and Android can reclaim it under pressure, so the CPU is the fallback: slower, but the app is not killed.
+     */
+    const val GPU_MEMORY_FACTOR = 1.0
+    const val GPU_HEADROOM_BYTES = 1L shl 30
+
     /** Transcript windows, in estimated tokens: each is embedded for search and read by the LLM once. */
     const val WINDOW_TOKENS = 1000
     const val WINDOW_OVERLAP_TOKENS = 50

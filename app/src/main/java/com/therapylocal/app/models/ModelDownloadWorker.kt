@@ -16,10 +16,7 @@ import com.therapylocal.app.log.LogCtx
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
-import java.io.FileOutputStream
 import java.io.IOException
-import java.net.HttpURLConnection
-import java.net.URL
 import java.security.MessageDigest
 
 /**
@@ -124,44 +121,17 @@ class ModelDownloadWorker(private val context: Context, params: WorkerParameters
     }
 
     private suspend fun downloadFile(spec: ModelSpec, f: ModelFile, doneBefore: Long) {
-        val part = spec.part(context, f)
-        val have = if (part.exists()) part.length() else 0L
-        val conn = (URL(f.url).openConnection() as HttpURLConnection).apply {
-            connectTimeout = 20_000
-            readTimeout = 30_000
-            if (have > 0) setRequestProperty("Range", "bytes=$have-")
-        }
-        try {
-            val resumed = conn.responseCode == HttpURLConnection.HTTP_PARTIAL
-            if (!resumed && conn.responseCode != HttpURLConnection.HTTP_OK) throw IOException("HTTP ${conn.responseCode}")
-            AppLog.i(TAG, "download_file_start", LogCtx.NONE, "model" to spec.id, "file" to f.name, "bytes" to f.size, "resumed_from" to if (resumed) have else 0L)
-            var done = if (resumed) have else 0L
-            var lastReport = 0L
-            var lastPct = -1
-            FileOutputStream(part, resumed).use { out ->
-                conn.inputStream.use { input ->
-                    val buf = ByteArray(256 * 1024)
-                    while (true) {
-                        val n = input.read(buf)
-                        if (n < 0) break
-                        out.write(buf, 0, n)
-                        done += n
-                        val now = System.currentTimeMillis()
-                        if (now - lastReport > 500) {
-                            lastReport = now
-                            report(PHASE_DOWNLOADING, doneBefore + done)
-                            val pct = (done * 100 / f.size).toInt()
-                            if (pct / 10 != lastPct / 10) {
-                                lastPct = pct
-                                AppLog.d(TAG, "download_progress", LogCtx.NONE, "model" to spec.id, "file" to f.name, "pct" to pct)
-                            }
-                        }
-                    }
-                }
+        var lastPct = -1
+        ResumableDownload.fetch(
+            f.url, spec.part(context, f), f.size,
+            log = { event, fields -> AppLog.i(TAG, "download_$event", LogCtx.NONE, "model" to spec.id, "file" to f.name, *fields.map { it.key to it.value }.toTypedArray()) },
+        ) { done ->
+            report(PHASE_DOWNLOADING, doneBefore + done)
+            val pct = (done * 100 / f.size).toInt()
+            if (pct / 10 != lastPct / 10) {
+                lastPct = pct
+                AppLog.d(TAG, "download_progress", LogCtx.NONE, "model" to spec.id, "file" to f.name, "pct" to pct)
             }
-            if (done != f.size) throw IOException("Short download: $done of ${f.size}")
-        } finally {
-            conn.disconnect()
         }
     }
 

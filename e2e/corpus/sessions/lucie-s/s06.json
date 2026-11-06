@@ -1,0 +1,132 @@
+{
+ "client": "lucie-s",
+ "session": "s06",
+ "lang": "cs",
+ "date": "2026-02-13",
+ "turns": [
+  {
+   "who": "therapist",
+   "text": "Rád vás zase vidím. Kde byste dnes chtěla začít?"
+  },
+  {
+   "who": "client",
+   "text": "Dnes ráno mi ujel autobus, takže to bylo na poslední chvíli."
+  },
+  {
+   "who": "therapist",
+   "text": "Co se vám v tu chvíli honilo hlavou?"
+  },
+  {
+   "who": "client",
+   "text": "S Ondrou jsme se dohodli, že dům nechceme prodat letos, a necháme si čas do léta."
+  },
+  {
+   "who": "therapist",
+   "text": "Nespěchejte."
+  },
+  {
+   "who": "client",
+   "text": "Cesta sem trvá dlouho, ale aspoň je čas si trochu srovnat myšlenky. Ano, přesně tak to bylo."
+  },
+  {
+   "who": "therapist",
+   "text": "Rozumím. Můžete to trochu rozvést?"
+  },
+  {
+   "who": "client",
+   "text": "Je zvláštní sedět tady a říkat to všechno nahlas, ale trochu to pomáhá."
+  },
+  {
+   "who": "therapist",
+   "text": "Nespěchejte."
+  },
+  {
+   "who": "client",
+   "text": "Michal pochopil, že na úklid ještě není čas, a omluvil se, že na mě tlačil."
+  },
+  {
+   "who": "therapist",
+   "text": "Jaké to pro vás bylo?"
+  },
+  {
+   "who": "client",
+   "text": "Včerejšek byl dlouhý den a večer už mi nezbyly žádné síly, byla jen televize a gauč. Nevím, těžko se to vysvětluje."
+  },
+  {
+   "who": "therapist",
+   "text": "Řekněte mi o tom víc."
+  },
+  {
+   "who": "client",
+   "text": "Nevím, kde začít, v hlavě mi teď běží spousta věcí najednou."
+  },
+  {
+   "who": "therapist",
+   "text": "Co se vám v tu chvíli honilo hlavou?"
+  },
+  {
+   "who": "client",
+   "text": "Dnes v noci se mi zdálo, že mi maminka z kuchyně něco řekla, ale nerozuměla jsem."
+  },
+  {
+   "who": "therapist",
+   "text": "Nespěchejte."
+  },
+  {
+   "who": "client",
+   "text": "Dnes ráno byl jen čaj a chvíle u okna. Není snadné o tom mluvit."
+  },
+  {
+   "who": "therapist",
+   "text": "A co se stalo potom?"
+  },
+  {
+   "who": "client",
+   "text": "Byla jsem poprvé u psycholožky Mgr. Horákové a hodinu jsem jen plakala."
+  },
+  {
+   "who": "therapist",
+   "text": "A co se stalo potom?"
+  },
+  {
+   "who": "client",
+   "text": "Byl to šedivý týden a to počasí mi na náladě moc nepřidává, po pravdě řečeno. Není snadné o tom mluvit."
+  },
+  {
+   "who": "therapist",
+   "text": "Za chvíli nám končí čas. Chcete ještě něco dodat?"
+  },
+  {
+   "who": "client",
+   "text": "Ne, myslím, že je to všechno. Děkuji."
+  }
+ ],
+ "expected": {
+  "facts": [
+   {
+    "id": "s06.f1",
+    "heading": "První sezení u psycholožky",
+    "said": "Byla jsem poprvé u psycholožky Mgr. Horákové a hodinu jsem jen plakala.",
+    "repeat_of": null
+   },
+   {
+    "id": "s06.f2",
+    "heading": "Sny o mamince jsou jiné",
+    "said": "Dnes v noci se mi zdálo, že mi maminka z kuchyně něco řekla, ale nerozuměla jsem.",
+    "repeat_of": "s03.f2"
+   },
+   {
+    "id": "s06.f3",
+    "heading": "Rozhodnutí o domě",
+    "said": "S Ondrou jsme se dohodli, že dům nechceme prodat letos, a necháme si čas do léta.",
+    "repeat_of": null
+   },
+   {
+    "id": "s06.f4",
+    "heading": "Michal trpělivý",
+    "said": "Michal pochopil, že na úklid ještě není čas, a omluvil se, že na mě tlačil.",
+    "repeat_of": null
+   }
+  ]
+ }
+}

@@ -1,0 +1,140 @@
+{
+ "client": "jana-n",
+ "session": "s09",
+ "lang": "cs",
+ "date": "2026-03-04",
+ "turns": [
+  {
+   "who": "therapist",
+   "text": "Rád vás zase vidím. Kde byste dnes chtěla začít?"
+  },
+  {
+   "who": "client",
+   "text": "Včerejšek byl dlouhý den a večer už mi nezbyly žádné síly, byla jen televize a gauč."
+  },
+  {
+   "who": "therapist",
+   "text": "A jak vám z toho bylo?"
+  },
+  {
+   "who": "client",
+   "text": "Rozvodové řízení u soudu začne dvacátého března a já se na to hrozně nechci dívat."
+  },
+  {
+   "who": "therapist",
+   "text": "A co se stalo potom?"
+  },
+  {
+   "who": "client",
+   "text": "Dnes ráno byl jen čaj a chvíle u okna. Není snadné o tom mluvit."
+  },
+  {
+   "who": "therapist",
+   "text": "Řekněte mi o tom víc."
+  },
+  {
+   "who": "client",
+   "text": "Radek se při předání dětí choval slušně a poprvé mi řekl, že je mu to líto."
+  },
+  {
+   "who": "therapist",
+   "text": "Nespěchejte."
+  },
+  {
+   "who": "client",
+   "text": "Nevím, kde začít, v hlavě mi teď běží spousta věcí najednou. Ano, přesně tak to bylo."
+  },
+  {
+   "who": "therapist",
+   "text": "A co se stalo potom?"
+  },
+  {
+   "who": "client",
+   "text": "Některé dny jsou lepší než jiné a snažím se si to připomínat, když je těžko."
+  },
+  {
+   "who": "therapist",
+   "text": "Co se vám v tu chvíli honilo hlavou?"
+  },
+  {
+   "who": "client",
+   "text": "Podepsala jsem rezervační smlouvu na byt v Králově Poli za čtyři miliony dvě stě tisíc."
+  },
+  {
+   "who": "therapist",
+   "text": "Řekněte mi o tom víc."
+  },
+  {
+   "who": "client",
+   "text": "Byl to šedivý týden a to počasí mi na náladě moc nepřidává, po pravdě řečeno. Ano, přesně tak to bylo."
+  },
+  {
+   "who": "therapist",
+   "text": "A jak vám z toho bylo?"
+  },
+  {
+   "who": "client",
+   "text": "Je zvláštní sedět tady a říkat to všechno nahlas, ale trochu to pomáhá."
+  },
+  {
+   "who": "therapist",
+   "text": "A jak vám z toho bylo?"
+  },
+  {
+   "who": "client",
+   "text": "Tu vinu už necítím tak silně, děti vypadají v pohodě a hlavně spolu mluví."
+  },
+  {
+   "who": "therapist",
+   "text": "A jak vám z toho bylo?"
+  },
+  {
+   "who": "client",
+   "text": "Něco mám poznamenané na papíře, ale teď si polovinu z toho nepamatuju. Pořád se k tomu vracím."
+  },
+  {
+   "who": "therapist",
+   "text": "Řekněte mi o tom víc."
+  },
+  {
+   "who": "client",
+   "text": "Cesta sem trvá dlouho, ale aspoň je čas si trochu srovnat myšlenky."
+  },
+  {
+   "who": "therapist",
+   "text": "Pro dnešek tady skončíme."
+  },
+  {
+   "who": "client",
+   "text": "Děkuji, uvidíme se příští týden."
+  }
+ ],
+ "expected": {
+  "facts": [
+   {
+    "id": "s09.f1",
+    "heading": "Podepsaná smlouva o koupi bytu",
+    "said": "Podepsala jsem rezervační smlouvu na byt v Králově Poli za čtyři miliony dvě stě tisíc.",
+    "repeat_of": null
+   },
+   {
+    "id": "s09.f2",
+    "heading": "Rozvod u soudu",
+    "said": "Rozvodové řízení u soudu začne dvacátého března a já se na to hrozně nechci dívat.",
+    "repeat_of": "s01.f1"
+   },
+   {
+    "id": "s09.f3",
+    "heading": "Radek byl hodný",
+    "said": "Radek se při předání dětí choval slušně a poprvé mi řekl, že je mu to líto.",
+    "repeat_of": null
+   },
+   {
+    "id": "s09.f4",
+    "heading": "Vina ustupuje",
+    "said": "Tu vinu už necítím tak silně, děti vypadají v pohodě a hlavně spolu mluví.",
+    "repeat_of": "s04.f1"
+   }
+  ]
+ }
+}

@@ -1,0 +1,70 @@
+client: daniel-r | Daniel R. | en
+
+s01 2026-01-07
+ f1 | Burnout at logistics firm | I work as a project manager at a logistics company and I have been completely burned out since October.
+ f2 | Father diagnosed with Parkinson's | My father was diagnosed with Parkinson's disease in the autumn, and I am the one who drives him to the hospital in Leeds.
+ f3 | Sleeping about four hours | Most nights I sleep about four hours, I wake up at three in the morning and cannot fall back asleep.
+ f4 | Sister Hannah lives in Canada | My younger sister Hannah lives in Toronto, so all the care for our father falls on me.
+
+s02 2026-01-14
+ f1 | Stopped running | I stopped running two months ago, and I used to run ten kilometres every Saturday morning.
+ f2 | Boss Mr Peterson sends late emails | My boss Peterson sends emails at eleven at night and expects an answer before breakfast.
+ f3 = s01.f3 | Still waking at three | I woke at three again every night this week and just stare at the ceiling.
+ f4 | Fear of being fired | I am afraid the company will let me go in the spring restructuring.
+
+s03 2026-01-21
+ f1 | Panic attack on the train | On Tuesday I had a panic attack on the train to Manchester, my hands went numb and I had to get off at Stalybridge.
+ f2 | Girlfriend Claire is patient | My girlfriend Claire has been very patient, she makes me tea and does not push me to talk.
+ f3 = s01.f2 | Father's hospital appointments | Dad has another neurology appointment in Leeds next week and I have to take the day off again.
+ f4 | Drinking more wine | I have started drinking two glasses of wine every evening to switch my head off.
+
+s04 2026-01-28
+ f1 | Cut wine to weekends | I decided to only drink wine at the weekend, it has been five days without any.
+ f2 | Started meditation app | I downloaded a meditation app and I do ten minutes before bed, though I often skip it.
+ f3 = s02.f2 | Peterson's night emails | Peterson wrote to me at midnight again and wanted the shipping report by seven.
+ f4 | Grandfather was a miner | I keep thinking about my grandfather who worked in the mines in Yorkshire and never complained about anything.
+
+s05 2026-02-04
+ f1 | Told Claire about the panic attack | I finally told Claire about the panic attack on the train and she hugged me and cried.
+ f2 | Doctor prescribed sertraline | My GP prescribed sertraline, fifty milligrams, and I am nervous about the side effects.
+ f3 = s02.f1 | Missing the Saturday runs | I really miss running on Saturdays, my legs feel restless and heavy.
+ f4 | Hannah offered to fly over | Hannah called and said she will fly over from Toronto in March for two weeks to help with Dad.
+
+s06 2026-02-11
+ f1 | Nausea from sertraline | The sertraline made me nauseous for the first week, but it is getting better.
+ f2 | Spoke to HR about workload | I spoke with the HR manager Linda about my workload and she agreed to move two projects to a colleague.
+ f3 = s01.f4 | Care falls on me | Hannah is far away, so everything with Dad is on my shoulders, the pills, the appointments, the shopping.
+ f4 | Went for a short jog | On Sunday I went for a short jog of three kilometres and felt alive for the first time in months.
+
+s07 2026-02-18
+ f1 | Father fell at home | Dad fell in the kitchen on Thursday and bruised his hip, thank God nothing was broken.
+ f2 = s04.f1 | Alcohol still limited | I am still keeping wine to the weekend and last Saturday I only had one glass.
+ f3 | Considering a four-day week | I asked Linda if I could move to a four-day week, she is checking with the director.
+ f4 | Dream about the mines | I dreamt about my grandfather in the mine and woke up with my heart racing.
+
+s08 2026-02-25
+ f1 | Four-day week approved | The director approved the four-day week starting in April, with a pay cut of twenty percent.
+ f2 = s01.f3 | Sleep improving to six hours | Now I sleep about six hours and I do not wake at three as often.
+ f3 | Nursing home discussion | Dad's doctor suggested we start looking at nursing homes near Leeds, and I cried in the car afterwards.
+ f4 | Running ten kilometres again goal | My goal is to run the ten kilometres again by June, there is a charity race in Roundhay Park.
+
+s09 2026-03-04
+ f1 | Hannah arrives next week | Hannah lands on the eleventh of March and I am both relieved and anxious about it.
+ f2 = s03.f1 | No panic attacks since February | I have not had another panic attack on the train since early February.
+ f3 | Visited a nursing home | Claire and I visited Oakwood nursing home and the staff were kind, but Dad refused to go inside.
+ f4 | Guilt about father | I feel guilty that I even think about putting Dad in a home.
+
+s10 2026-03-11
+ f1 | Hannah and Daniel argued | Hannah and I had an argument at the airport because she thinks I am exaggerating how bad Dad is.
+ f2 = s02.f4 | Less afraid of job loss | I am less afraid of losing my job now that the four-day week is settled.
+ f3 | Registered for Roundhay race | I registered for the charity race at Roundhay Park on the fourteenth of June.
+ f4 = s09.f4 | Still guilty about the nursing home | The guilt about the nursing home is still there, it sits in my chest.
+
+q | what is wrong with the father's health | s01.f2 s07.f1
+q | who helps with caring for his father | s01.f4 s05.f4 s10.f1
+q | work stress and the boss | s02.f2 s04.f3 s06.f2
+q | medication | s05.f2 s06.f1
+q | running and exercise | s02.f1 s06.f4 s08.f4 s10.f3
+q | feelings about nursing home | s08.f3 s09.f3 s09.f4
+neg | trouble with children at school
+neg | cat died

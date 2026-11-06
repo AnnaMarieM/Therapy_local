@@ -1,0 +1,132 @@
+{
+ "client": "daniel-r",
+ "session": "s05",
+ "lang": "en",
+ "date": "2026-02-04",
+ "turns": [
+  {
+   "who": "therapist",
+   "text": "Hello, come in. How have you been since last time?"
+  },
+  {
+   "who": "client",
+   "text": "The journey here took a while, but at least I had time to gather my thoughts."
+  },
+  {
+   "who": "therapist",
+   "text": "Tell me more about that."
+  },
+  {
+   "who": "client",
+   "text": "I finally told Claire about the panic attack on the train and she hugged me and cried."
+  },
+  {
+   "who": "therapist",
+   "text": "I see. Can you say a bit more?"
+  },
+  {
+   "who": "client",
+   "text": "The train was late again this morning, so I almost did not make it on time today. That is how it was."
+  },
+  {
+   "who": "therapist",
+   "text": "And how was that for you?"
+  },
+  {
+   "who": "client",
+   "text": "I am not sure where to begin, there are so many things going round in my head at the moment."
+  },
+  {
+   "who": "therapist",
+   "text": "What went through your mind then?"
+  },
+  {
+   "who": "client",
+   "text": "My GP prescribed sertraline, fifty milligrams, and I am nervous about the side effects."
+  },
+  {
+   "who": "therapist",
+   "text": "And how was that for you?"
+  },
+  {
+   "who": "client",
+   "text": "It is strange to sit here and say all of this out loud, but it does help a little. I keep coming back to it."
+  },
+  {
+   "who": "therapist",
+   "text": "Take your time."
+  },
+  {
+   "who": "client",
+   "text": "Hannah called and said she will fly over from Toronto in March for two weeks to help with Dad."
+  },
+  {
+   "who": "therapist",
+   "text": "Take your time."
+  },
+  {
+   "who": "client",
+   "text": "I made myself a cup of tea this morning and just stood by the window for a while. It is not easy to talk about."
+  },
+  {
+   "who": "therapist",
+   "text": "Take your time."
+  },
+  {
+   "who": "client",
+   "text": "I had a long day yesterday and I was so tired in the evening that I just sat in front of the television."
+  },
+  {
+   "who": "therapist",
+   "text": "What happened next?"
+  },
+  {
+   "who": "client",
+   "text": "I really miss running on Saturdays, my legs feel restless and heavy."
+  },
+  {
+   "who": "therapist",
+   "text": "How did that feel for you?"
+  },
+  {
+   "who": "client",
+   "text": "Some days are better than others, and I try to remind myself of that when things get heavy. I keep coming back to it."
+  },
+  {
+   "who": "therapist",
+   "text": "Let us stop here for today."
+  },
+  {
+   "who": "client",
+   "text": "Thank you, see you next week."
+  }
+ ],
+ "expected": {
+  "facts": [
+   {
+    "id": "s05.f1",
+    "heading": "Told Claire about the panic attack",
+    "said": "I finally told Claire about the panic attack on the train and she hugged me and cried.",
+    "repeat_of": null
+   },
+   {
+    "id": "s05.f2",
+    "heading": "Doctor prescribed sertraline",
+    "said": "My GP prescribed sertraline, fifty milligrams, and I am nervous about the side effects.",
+    "repeat_of": null
+   },
+   {
+    "id": "s05.f3",
+    "heading": "Missing the Saturday runs",
+    "said": "I really miss running on Saturdays, my legs feel restless and heavy.",
+    "repeat_of": "s02.f1"
+   },
+   {
+    "id": "s05.f4",
+    "heading": "Hannah offered to fly over",
+    "said": "Hannah called and said she will fly over from Toronto in March for two weeks to help with Dad.",
+    "repeat_of": null
+   }
+  ]
+ }
+}

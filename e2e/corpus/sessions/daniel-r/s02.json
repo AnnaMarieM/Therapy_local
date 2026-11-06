@@ -1,0 +1,140 @@
+{
+ "client": "daniel-r",
+ "session": "s02",
+ "lang": "en",
+ "date": "2026-01-14",
+ "turns": [
+  {
+   "who": "therapist",
+   "text": "Hello, come in. How have you been since last time?"
+  },
+  {
+   "who": "client",
+   "text": "I made myself a cup of tea this morning and just stood by the window for a while."
+  },
+  {
+   "who": "therapist",
+   "text": "I see. Can you say a bit more?"
+  },
+  {
+   "who": "client",
+   "text": "I stopped running two months ago, and I used to run ten kilometres every Saturday morning."
+  },
+  {
+   "who": "therapist",
+   "text": "How did that feel for you?"
+  },
+  {
+   "who": "client",
+   "text": "I am not sure where to begin, there are so many things going round in my head at the moment. Yes, it was like that."
+  },
+  {
+   "who": "therapist",
+   "text": "I see. Can you say a bit more?"
+  },
+  {
+   "who": "client",
+   "text": "The train was late again this morning, so I almost did not make it on time today."
+  },
+  {
+   "who": "therapist",
+   "text": "Tell me more about that."
+  },
+  {
+   "who": "client",
+   "text": "My boss Peterson sends emails at eleven at night and expects an answer before breakfast."
+  },
+  {
+   "who": "therapist",
+   "text": "What went through your mind then?"
+  },
+  {
+   "who": "client",
+   "text": "It is strange to sit here and say all of this out loud, but it does help a little. I think so, yes."
+  },
+  {
+   "who": "therapist",
+   "text": "What happened next?"
+  },
+  {
+   "who": "client",
+   "text": "Some days are better than others, and I try to remind myself of that when things get heavy."
+  },
+  {
+   "who": "therapist",
+   "text": "How did that feel for you?"
+  },
+  {
+   "who": "client",
+   "text": "I woke at three again every night this week and just stare at the ceiling."
+  },
+  {
+   "who": "therapist",
+   "text": "How did that feel for you?"
+  },
+  {
+   "who": "client",
+   "text": "I had a long day yesterday and I was so tired in the evening that I just sat in front of the television. I think so, yes."
+  },
+  {
+   "who": "therapist",
+   "text": "And how was that for you?"
+  },
+  {
+   "who": "client",
+   "text": "The journey here took a while, but at least I had time to gather my thoughts."
+  },
+  {
+   "who": "therapist",
+   "text": "Mm-hm. Go on."
+  },
+  {
+   "who": "client",
+   "text": "I am afraid the company will let me go in the spring restructuring."
+  },
+  {
+   "who": "therapist",
+   "text": "Tell me more about that."
+  },
+  {
+   "who": "client",
+   "text": "It has been a grey week, and the weather does not help my mood much, to be honest. It is not easy to talk about."
+  },
+  {
+   "who": "therapist",
+   "text": "Let us stop here for today."
+  },
+  {
+   "who": "client",
+   "text": "No, I think that is everything. Thank you."
+  }
+ ],
+ "expected": {
+  "facts": [
+   {
+    "id": "s02.f1",
+    "heading": "Stopped running",
+    "said": "I stopped running two months ago, and I used to run ten kilometres every Saturday morning.",
+    "repeat_of": null
+   },
+   {
+    "id": "s02.f2",
+    "heading": "Boss Mr Peterson sends late emails",
+    "said": "My boss Peterson sends emails at eleven at night and expects an answer before breakfast.",
+    "repeat_of": null
+   },
+   {
+    "id": "s02.f3",
+    "heading": "Still waking at three",
+    "said": "I woke at three again every night this week and just stare at the ceiling.",
+    "repeat_of": "s01.f3"
+   },
+   {
+    "id": "s02.f4",
+    "heading": "Fear of being fired",
+    "said": "I am afraid the company will let me go in the spring restructuring.",
+    "repeat_of": null
+   }
+  ]
+ }
+}

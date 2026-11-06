@@ -1,0 +1,140 @@
+{
+ "client": "emma-k",
+ "session": "s01",
+ "lang": "en",
+ "date": "2026-01-08",
+ "turns": [
+  {
+   "who": "therapist",
+   "text": "Good to see you again. Where would you like to start today?"
+  },
+  {
+   "who": "client",
+   "text": "I made myself a cup of tea this morning and just stood by the window for a while."
+  },
+  {
+   "who": "therapist",
+   "text": "I see. Can you say a bit more?"
+  },
+  {
+   "who": "client",
+   "text": "My husband Tom is a paramedic and works night shifts, so I am alone with the baby most nights."
+  },
+  {
+   "who": "therapist",
+   "text": "Mm-hm. Go on."
+  },
+  {
+   "who": "client",
+   "text": "The journey here took a while, but at least I had time to gather my thoughts. It is not easy to talk about."
+  },
+  {
+   "who": "therapist",
+   "text": "What happened next?"
+  },
+  {
+   "who": "client",
+   "text": "Some days are better than others, and I try to remind myself of that when things get heavy."
+  },
+  {
+   "who": "therapist",
+   "text": "What happened next?"
+  },
+  {
+   "who": "client",
+   "text": "I get up six or seven times a night just to check that Oliver is still breathing."
+  },
+  {
+   "who": "therapist",
+   "text": "And how was that for you?"
+  },
+  {
+   "who": "client",
+   "text": "It is strange to sit here and say all of this out loud, but it does help a little. It is not easy to talk about."
+  },
+  {
+   "who": "therapist",
+   "text": "How did that feel for you?"
+  },
+  {
+   "who": "client",
+   "text": "My son Oliver is five months old and I have been anxious every single day since he was born."
+  },
+  {
+   "who": "therapist",
+   "text": "And how was that for you?"
+  },
+  {
+   "who": "client",
+   "text": "I had a long day yesterday and I was so tired in the evening that I just sat in front of the television. I think so, yes."
+  },
+  {
+   "who": "therapist",
+   "text": "What went through your mind then?"
+  },
+  {
+   "who": "client",
+   "text": "I wrote a few notes before coming here, but now I cannot remember half of what I wanted to say."
+  },
+  {
+   "who": "therapist",
+   "text": "What went through your mind then?"
+  },
+  {
+   "who": "client",
+   "text": "My mum lives in Aberdeen and I am in Bristol, so she cannot just pop round."
+  },
+  {
+   "who": "therapist",
+   "text": "Tell me more about that."
+  },
+  {
+   "who": "client",
+   "text": "I am not sure where to begin, there are so many things going round in my head at the moment. It is not easy to talk about."
+  },
+  {
+   "who": "therapist",
+   "text": "Tell me more about that."
+  },
+  {
+   "who": "client",
+   "text": "The train was late again this morning, so I almost did not make it on time today."
+  },
+  {
+   "who": "therapist",
+   "text": "We are nearly out of time. Is there anything you want to add?"
+  },
+  {
+   "who": "client",
+   "text": "No, I think that is everything. Thank you."
+  }
+ ],
+ "expected": {
+  "facts": [
+   {
+    "id": "s01.f1",
+    "heading": "Postnatal anxiety",
+    "said": "My son Oliver is five months old and I have been anxious every single day since he was born.",
+    "repeat_of": null
+   },
+   {
+    "id": "s01.f2",
+    "heading": "Checks baby breathing at night",
+    "said": "I get up six or seven times a night just to check that Oliver is still breathing.",
+    "repeat_of": null
+   },
+   {
+    "id": "s01.f3",
+    "heading": "Husband Tom works night shifts",
+    "said": "My husband Tom is a paramedic and works night shifts, so I am alone with the baby most nights.",
+    "repeat_of": null
+   },
+   {
+    "id": "s01.f4",
+    "heading": "Mother lives far away",
+    "said": "My mum lives in Aberdeen and I am in Bristol, so she cannot just pop round.",
+    "repeat_of": null
+   }
+  ]
+ }
+}

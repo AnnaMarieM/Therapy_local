@@ -1,0 +1,140 @@
+{
+ "client": "marcus-t",
+ "session": "s05",
+ "lang": "en",
+ "date": "2026-02-06",
+ "turns": [
+  {
+   "who": "therapist",
+   "text": "Good to see you again. Where would you like to start today?"
+  },
+  {
+   "who": "client",
+   "text": "I made myself a cup of tea this morning and just stood by the window for a while."
+  },
+  {
+   "who": "therapist",
+   "text": "I see. Can you say a bit more?"
+  },
+  {
+   "who": "client",
+   "text": "Walter says the food bank needs volunteers on Tuesdays and Thursdays."
+  },
+  {
+   "who": "therapist",
+   "text": "Take your time."
+  },
+  {
+   "who": "client",
+   "text": "I had a long day yesterday and I was so tired in the evening that I just sat in front of the television. Yes, it was like that."
+  },
+  {
+   "who": "therapist",
+   "text": "What happened next?"
+  },
+  {
+   "who": "client",
+   "text": "I am not sure where to begin, there are so many things going round in my head at the moment."
+  },
+  {
+   "who": "therapist",
+   "text": "What happened next?"
+  },
+  {
+   "who": "client",
+   "text": "I told Joy on the phone that I am not fine, and she said she is booking a flight."
+  },
+  {
+   "who": "therapist",
+   "text": "Mm-hm. Go on."
+  },
+  {
+   "who": "client",
+   "text": "It has been a grey week, and the weather does not help my mood much, to be honest. Yes, it was like that."
+  },
+  {
+   "who": "therapist",
+   "text": "Take your time."
+  },
+  {
+   "who": "client",
+   "text": "I wrote a few notes before coming here, but now I cannot remember half of what I wanted to say."
+  },
+  {
+   "who": "therapist",
+   "text": "How did that feel for you?"
+  },
+  {
+   "who": "client",
+   "text": "Joy arrives on the fourteenth of February and will stay for ten days."
+  },
+  {
+   "who": "therapist",
+   "text": "I see. Can you say a bit more?"
+  },
+  {
+   "who": "client",
+   "text": "The train was late again this morning, so I almost did not make it on time today. It is not easy to talk about."
+  },
+  {
+   "who": "therapist",
+   "text": "And how was that for you?"
+  },
+  {
+   "who": "client",
+   "text": "I poured out half the whisky bottle and I am down to one glass a night."
+  },
+  {
+   "who": "therapist",
+   "text": "What went through your mind then?"
+  },
+  {
+   "who": "client",
+   "text": "Some days are better than others, and I try to remind myself of that when things get heavy. I do not know, it is hard to explain."
+  },
+  {
+   "who": "therapist",
+   "text": "And how was that for you?"
+  },
+  {
+   "who": "client",
+   "text": "The journey here took a while, but at least I had time to gather my thoughts."
+  },
+  {
+   "who": "therapist",
+   "text": "We are nearly out of time. Is there anything you want to add?"
+  },
+  {
+   "who": "client",
+   "text": "Thank you, see you next week."
+  }
+ ],
+ "expected": {
+  "facts": [
+   {
+    "id": "s05.f1",
+    "heading": "Told Joy the truth",
+    "said": "I told Joy on the phone that I am not fine, and she said she is booking a flight.",
+    "repeat_of": null
+   },
+   {
+    "id": "s05.f2",
+    "heading": "Joy visiting in February",
+    "said": "Joy arrives on the fourteenth of February and will stay for ten days.",
+    "repeat_of": null
+   },
+   {
+    "id": "s05.f3",
+    "heading": "Whisky less",
+    "said": "I poured out half the whisky bottle and I am down to one glass a night.",
+    "repeat_of": "s04.f1"
+   },
+   {
+    "id": "s05.f4",
+    "heading": "Considering volunteering",
+    "said": "Walter says the food bank needs volunteers on Tuesdays and Thursdays.",
+    "repeat_of": null
+   }
+  ]
+ }
+}
