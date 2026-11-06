@@ -83,9 +83,15 @@ object Windows {
 
     fun focus(): String = Shell.out("dumpsys window | grep -E \"mCurrentFocus|mFocusedApp\"")
 
+    /**
+     * Fails only for an error dialog about OUR app: a slow CI emulator often shows "System UI isn't responding" or a launcher dialog, which
+     * says nothing about the engine processes. The message carries the whole focus text on one line, so a CI log shows what matched.
+     */
     fun assertNoErrorDialog() {
         val f = focus()
-        if (BAD.containsMatchIn(f)) throw AssertionError("an error dialog has focus: $f")
+        val one = f.trim().replace(Regex("\\s*\\n\\s*"), " | ")
+        if (BAD.containsMatchIn(f) && f.contains("therapylocal")) throw AssertionError("an error dialog of our app has focus: $one")
+        if (BAD.containsMatchIn(f)) android.util.Log.w("StressChecks", "error dialog of another app has focus (ignored): $one")
     }
 }
 
