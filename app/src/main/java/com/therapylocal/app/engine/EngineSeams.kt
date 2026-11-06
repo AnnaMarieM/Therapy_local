@@ -111,4 +111,6 @@ data class HostView(
     val lastExit: BackendGuard.LastExit?,
     val loaded: List<String>,
     val pssKb: Long?,
+    /** Wall-clock time of [lastExit], 0 when there was none. */
+    val lastExitAtMs: Long = 0,
 )

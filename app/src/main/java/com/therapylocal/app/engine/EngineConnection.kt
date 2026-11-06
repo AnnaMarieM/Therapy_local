@@ -110,6 +110,7 @@ class EngineConnection(
     private var idleTimer: Cancelable? = null
     private var watchdog: Cancelable? = null
     private var lastExit: BackendGuard.LastExit? = null
+    private var lastExitAtMs = 0L
     private var pssKb: Long? = null
     private var sinceMs = 0L
 
@@ -460,6 +461,7 @@ class EngineConnection(
             g.end = End(exit, false)
             ends[g.n] = g.end!!
             lastExit = exit
+            lastExitAtMs = clock.wallMs()
             g.phase = P.ENDED
             bump()
         }
@@ -567,6 +569,7 @@ class EngineConnection(
             g.end = End(exit, hang, expected == null || expected.why == "idle" || expected.why == "close_timeout")
             ends[g.n] = g.end!!
             lastExit = exit
+            lastExitAtMs = clock.wallMs()
             g.phase = P.ENDED
             idleTimer?.cancel()
             idleTimer = null
@@ -794,7 +797,7 @@ class EngineConnection(
         }
         return HostView(
             state, g?.pid ?: 0, g?.n ?: 0, sinceMs, deaths.size, lastExit,
-            loaded.values.filter { !it.settled }.map { "${it.guardModel}@${it.backend}" }, pssKb,
+            loaded.values.filter { !it.settled }.map { "${it.guardModel}@${it.backend}" }, pssKb, lastExitAtMs,
         )
     }
 

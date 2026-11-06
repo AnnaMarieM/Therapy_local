@@ -28,6 +28,18 @@ object Engines {
     /** The host for the text LLM, the text embedder and Canary. */
     fun batchHost(context: Context): EngineHost = host(context, EngineRole.BATCH)
 
+    /** What the settings screen shows of the hosts, published by their connections. Reading it never binds a host. */
+    val state get() = com.therapylocal.app.engine.EngineState.views
+
+    /**
+     * Refreshes the PSS of a host that already exists and is bound, on IO with the `statusTimeoutMs` bound. Never creates or binds a host
+     * and never runs on the main thread (the caller is a coroutine; this switches to IO itself).
+     */
+    suspend fun refreshPss(role: EngineRole) {
+        val host = hosts[role] as? RemoteEngineHost ?: return
+        com.therapylocal.app.engine.EngineState.refreshPss(host, tuning.statusTimeoutMs)
+    }
+
     /** Every timing the remote hosts use. */
     val tuning: EngineTuning = EngineConfig.DEFAULT
 
