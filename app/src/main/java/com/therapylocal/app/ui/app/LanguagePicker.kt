@@ -10,6 +10,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.therapylocal.app.models.SpeechLanguage
 import com.therapylocal.app.ui.design.Palette
@@ -20,12 +21,13 @@ import com.therapylocal.app.ui.design.Type
 fun LanguagePicker(selected: SpeechLanguage, onSelect: (SpeechLanguage) -> Unit, modifier: Modifier = Modifier) {
     Column(modifier) {
         SpeechLanguage.entries.forEach { l ->
+            val label = stringResource(l.labelRes)
             Row(
-                Modifier.fillMaxWidth().pressable({ if (l != selected) onSelect(l) }, label = l.title, depth = 0.015f).padding(vertical = 14.dp),
+                Modifier.fillMaxWidth().pressable({ if (l != selected) onSelect(l) }, label = label, depth = 0.015f).padding(vertical = 14.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Box(Modifier.width(22.dp)) { if (l == selected) Label("●", color = Palette.Ink) else Label("○", color = Palette.InkFaint) }
-                Text(l.title, style = Type.Body, color = Palette.Ink)
+                Text(label, style = Type.Body, color = Palette.Ink)
             }
             Hairline()
         }
