@@ -529,6 +529,11 @@ private fun HardwareStatus(resumeTick: Int, notice: NoticeState) {
             Text(stringResource(R.string.settings_hardware_none), style = Type.BodySmall, color = Palette.InkFaint)
         }
         models.forEach { m -> HardwareModel(m) }
+        val unexpected = remember(resumeTick, tick) { runCatching { com.therapylocal.app.models.ModelsInventory.scan(ctx).unknown.size }.getOrDefault(0) }
+        if (unexpected > 0) {
+            Spacer(Modifier.height(12.dp))
+            Text(stringResource(R.string.settings_models_unexpected, unexpected), style = Type.BodySmall, color = Palette.InkFaint)
+        }
         if (models.isNotEmpty()) TextAction(stringResource(R.string.settings_hardware_reset), { confirmReset = true }, color = Palette.InkSoft)
         EngineProcesses(resumeTick)
     }

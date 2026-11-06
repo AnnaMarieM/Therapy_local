@@ -48,7 +48,8 @@ class EngineConnection(
 ) {
     private enum class P { BINDING, BOUND, DYING, STOPPING, ENDED }
 
-    private class Expected(val kind: ExitKind, val why: String, val desc: String?, val hang: Boolean)
+    /** [stop]: we asked this host to end (release, idle, batch_starting). A crash record still wins over such an expectation. */
+    private class Expected(val kind: ExitKind, val why: String, val desc: String?, val hang: Boolean, val stop: Boolean = false)
     /** [retryOk]: the end was not one we asked for to keep a host away (a requested shutdown must not be undone by a retry). */
     private class End(val exit: BackendGuard.LastExit, val hang: Boolean, val retryOk: Boolean = true)
 
@@ -605,8 +606,10 @@ class EngineConnection(
         val foreground = importance <= ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND_SERVICE
         val expected = lock.withLock { g.expected }
         // What we caused wins over the record: a timeout kill is SIGNALED 9 in the record and must not read as a memory kill.
-        val kind = expected?.kind ?: mapped?.kind ?: ExitKind.UNKNOWN
-        val exit = BackendGuard.LastExit(kind, foreground, expected?.desc ?: rec?.let(ExitReasons::describe) ?: "exit record not found")
+        // A requested stop is expected, but a host that crashed on the way out (java crash 13, native signal 100+N, crash records) is a crash.
+        val crashedInStop = expected?.stop == true && (mapped?.kind == ExitKind.CRASH || mapped?.kind == ExitKind.NATIVE_CRASH)
+        val kind = if (crashedInStop) mapped!!.kind else expected?.kind ?: mapped?.kind ?: ExitKind.UNKNOWN
+        val exit = BackendGuard.LastExit(kind, foreground, (if (crashedInStop) null else expected?.desc) ?: rec?.let(ExitReasons::describe) ?: "exit record not found")
         val hang = expected?.hang == true
         val now = clock.nowMs()
         val counted = kind != ExitKind.BENIGN
@@ -620,10 +623,12 @@ class EngineConnection(
             entries = loaded.values.filter { it.gen == g.n && !it.settled }.onEach { it.settled = true }
         }
         val first = calls.firstOrNull()
-        if (kind == ExitKind.BENIGN && calls.isEmpty()) {
+        // The in-flight close of a host that we asked to stop is the shutdown itself, not a call the death interrupted.
+        val onlyOurClose = expected?.stop == true && calls.all { it.opName == "close" }
+        if (kind == ExitKind.BENIGN && (calls.isEmpty() || onlyOurClose)) {
             ev(
                 'i', EngineEvents.EXIT, "gen" to g.n, "host_pid" to g.pid, "reason" to (mapped?.reasonName ?: expected?.why ?: source),
-                "why" to (expected?.why ?: mapped?.why), "status" to rec?.status,
+                "why" to (expected?.why ?: mapped?.why), "status" to rec?.status, "source" to source, "calls" to calls.size.takeIf { it > 0 },
             )
         } else {
             ev(
@@ -713,7 +718,7 @@ class EngineConnection(
     private fun beginStopLocked(g: Gen, reason: String) {
         g.phase = P.STOPPING
         // A kill already chosen (a hang) keeps its verdict: asking for a stop on top of it must not turn the strike into a benign end.
-        if (g.expected == null) g.expected = Expected(ExitKind.BENIGN, reason, null, false)
+        if (g.expected == null) g.expected = Expected(ExitKind.BENIGN, reason, null, false, stop = true)
         g.stopDeadline = clock.nowMs() + tuning.liveShutdownMs
         idleTimer?.cancel()
         idleTimer = null
