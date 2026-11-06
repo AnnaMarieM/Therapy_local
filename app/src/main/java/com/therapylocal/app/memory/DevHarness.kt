@@ -8,7 +8,6 @@ import com.therapylocal.app.data.MindStore
 import com.therapylocal.app.data.PendingAudio
 import com.therapylocal.app.log.AppLog
 import com.therapylocal.app.log.LogCtx
-import com.therapylocal.app.models.SpeechMigration
 import kotlinx.coroutines.runBlocking
 import com.therapylocal.app.data.SegmentRow
 import com.therapylocal.app.facts.TranscriptWindows
@@ -29,6 +28,9 @@ import java.io.File
  * A leftover job.json is never read by the app itself, so it cannot reset clients or re-run old sessions.
  */
 object DevHarness {
+    /** Speech-engine settings from before Canary became the only recogniser (docs/AD/AD-02.md); a dev job.json that still sets them is ignored. */
+    private val LEGACY_SETTINGS = setOf("engine", "whisper_size")
+
     fun start(context: Context) = MemoryService.start(context.applicationContext, debugJob = true)
 
     /** Clients in order and each client's sessions by date, after deleting those clients first if `resetProfiles` is set. */
@@ -38,7 +40,7 @@ object DevHarness {
         val listed = (job.optJSONArray("sessions") ?: JSONArray()).let { a -> (0 until a.length()).map { a.getJSONObject(it).let { s -> s.getString("file") to s.optString("date", "") } } }
         val sessions = listed.sortedWith(compareBy({ it.first.substringBefore('_') }, { it.second }))
         job.optJSONObject("settings")?.let { st ->
-            val (ignored, kept) = st.keys().asSequence().toList().partition { it in SpeechMigration.LEGACY_PREFS }
+            val (ignored, kept) = st.keys().asSequence().toList().partition { it in LEGACY_SETTINGS }
             ignored.forEach { AppLog.w(MemoryLlm.TAG, "dev_setting_ignored", LogCtx.NONE, "key" to it, "reason" to "speech_engine_removed") }
             context.getSharedPreferences("settings", Context.MODE_PRIVATE).edit().apply { kept.forEach { putString(it, st.getString(it)) } }.apply()
         }

@@ -125,7 +125,7 @@ class ClientLanguageTest {
         prefs.edit().putString("default_language", "cs").putStringSet("client_languages", setOf("en")).commit()
         assertEquals("Czech and English clients still need only Canary", setOf("canary-1b-v2"), speech())
 
-        // The old engine settings are gone (SpeechMigration); a stale value changes nothing.
+        // The old engine settings are gone ; a stale value changes nothing.
         prefs.edit().putString("engine", "whisper").putString("whisper_size", "base").commit()
         assertEquals(setOf("canary-1b-v2"), speech())
     }
