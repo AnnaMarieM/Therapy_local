@@ -13,6 +13,10 @@ import androidx.test.platform.app.InstrumentationRegistry
 import com.therapylocal.app.MainActivity
 import com.therapylocal.app.config.EngineConfig
 import com.therapylocal.app.engine.EngineRole
+import com.therapylocal.app.engine.ExitReasons
+import com.therapylocal.app.engine.ExitRecord
+import com.therapylocal.app.engine.HostExit
+import com.therapylocal.app.models.BackendGuard
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -59,9 +63,16 @@ class ProbeTest {
         val segv = killAndRead("SEGV", OsConstants.SIGSEGV)
         val abrt = killAndRead("ABRT", OsConstants.SIGABRT)
         val kill = killAndRead("KILL", OsConstants.SIGKILL)
-        // The only hard facts: a native signal that debuggerd handles is CRASH_NATIVE. The SIGKILL mapping is data (lmkd lanes differ).
-        assertEquals("SEGV", ApplicationExitInfo.REASON_CRASH_NATIVE, segv.getInt("reason"))
-        assertEquals("ABRT", ApplicationExitInfo.REASON_CRASH_NATIVE, abrt.getInt("reason"))
+        // The hard facts (AD-04): the host's own handler ends it with _exit(100 + signal), so the system records EXIT_SELF with that status
+        // (no tombstone, no crash report) and the mapping reads it as a native crash of that signal. The raw facts stay in lane_caps.json. The
+        // SIGKILL mapping is data (lmkd lanes differ).
+        for ((n, r, sig) in listOf(Triple("SEGV", segv, OsConstants.SIGSEGV), Triple("ABRT", abrt, OsConstants.SIGABRT))) {
+            assertEquals("$n: quiet exit, not a platform crash report: $r", ApplicationExitInfo.REASON_EXIT_SELF, r.getInt("reason"))
+            assertEquals("$n: status is 100 + signal", HostExit.NATIVE_BASE + sig, r.getInt("status"))
+            val rec = ExitRecord(r.getInt("reason"), r.getInt("status"), 0, "", 0, r.getInt("importance"), 0, 0, null)
+            assertEquals("$n: mapped as a native crash", BackendGuard.ExitKind.NATIVE_CRASH, ExitReasons.map(rec, false).kind)
+            assertEquals("$n: described as the signal", "signal $sig", ExitReasons.describe(rec))
+        }
         LaneCaps.put("p01_segv", segv)
         LaneCaps.put("p01_abrt", abrt)
         LaneCaps.put("p01_kill", kill)
@@ -140,10 +151,21 @@ class ProbeTest {
         assertTrue("inline calls up to ${EngineConfig.INLINE_MAX_BYTES} bytes succeed (max seen $maxOk)", maxOk >= EngineConfig.INLINE_MAX_BYTES)
     }
 
+    /** Any window or dialog record of our package that reads as the system crash dialog, else null. */
+    private fun crashDialog(): String? {
+        val dump = Shell.out("dumpsys window windows") + "\n" + Shell.out("dumpsys activity activities | grep -i -E 'AppErrorDialog|Application Error'")
+        val pkg = Regex.escape(ctx.packageName)
+        return dump.lineSequence().firstOrNull {
+            Regex("Application Error|keeps stopping|has stopped|AppErrorDialog", RegexOption.IGNORE_CASE).containsMatchIn(it) &&
+                Regex(pkg).containsMatchIn(it)
+        }
+    }
+
     /**
      * Crashes `:batch` three times within 60 s with `MainActivity` in front and records whether Android shows a "keeps stopping" dialog and
-     * whether a rebind still works. F01 and K14 `Assume` on `p05_dialog == false`. The crash is a SIGSEGV delivered to the bare host; the
-     * `host_start` fault plan (S11) would crash it earlier in its life, which changes nothing about the dialog question.
+     * whether a rebind still works. F01 and K14 `Assume` on `p05_dialog == false`. The crash is a SIGSEGV delivered to the bare host. With
+     * AD-04 it must never show: the window dump is polled every 250 ms from before the signal until the host is gone and then for 3 s more
+     * (the dialog is posted a moment after the death), and one hit at any poll fails the test. A single look at one instant proves nothing.
      */
     @Test
     @Case("P-05")
@@ -151,27 +173,41 @@ class ProbeTest {
         LaneCaps.ensure()
         val inst = InstrumentationRegistry.getInstrumentation()
         val activity = inst.startActivitySync(Intent(ctx, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        var dialog: String? = null
+        var polls = 0
+        fun watch(untilMs: Long, stop: () -> Boolean = { false }) {
+            while (SystemClock.elapsedRealtime() < untilMs && !stop()) {
+                polls++
+                dialog = dialog ?: crashDialog()
+                SystemClock.sleep(250) // a poll interval, not a wait for an effect
+            }
+        }
         try {
             val t0 = SystemClock.elapsedRealtime()
             repeat(3) {
                 val h = BareHost.start(EngineRole.BATCH)
+                dialog = dialog ?: crashDialog() // before the crash too: a leftover dialog would hide the check
                 Process.sendSignal(h.pid, OsConstants.SIGSEGV)
-                assertTrue("crash ${it + 1}: host died", h.awaitGone())
+                var gone = false
+                watch(SystemClock.elapsedRealtime() + 10_000) { h.awaitGone(1).also { g -> gone = g } }
+                assertTrue("crash ${it + 1}: host died", gone)
+                watch(SystemClock.elapsedRealtime() + 3_000)
                 h.unbind()
+                assertEquals("crash ${it + 1}: the system showed a crash dialog for our app: $dialog", null, dialog)
             }
             val within = SystemClock.elapsedRealtime() - t0
-            val windows = Shell.out("dumpsys window windows") + Shell.out("dumpsys activity activities | grep -i AppErrorDialog")
-            val dialog = Regex("keeps stopping|has stopped|Application Error|AppErrorDialog", RegexOption.IGNORE_CASE).containsMatchIn(windows)
             val r0 = SystemClock.elapsedRealtime()
             val again = BareHost.start(EngineRole.BATCH)
             val rebindMs = SystemClock.elapsedRealtime() - r0
             val pid = again.pid
             again.unbind()
             assertTrue("a rebind still works (pid $pid)", pid > 0)
-            LaneCaps.put("p05_dialog", dialog)
+            LaneCaps.put("p05_dialog", dialog != null)
+            LaneCaps.put("p05_polls", polls)
             LaneCaps.put("p05_rebind_ms", rebindMs)
             LaneCaps.put("p05_three_crashes_ms", within)
             record.timing("restart_to_connected", rebindMs)
+            assertTrue("the dialog was polled during and after each crash ($polls polls)", polls >= 3 * 3)
         } finally {
             activity.finish()
         }

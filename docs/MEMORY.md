@@ -55,6 +55,7 @@ Queue rules (`JobQueue`):
 - **D5. The CI emulator runs debug builds with an `x86_64` ABI added** (debug and androidTest only). The end-to-end tests use fake `Llm`, `Embed` and `Asr` ports and never load the LiteRT or sherpa native libraries.
 - **D6. Model inference runs in separate processes** (`:live` for live cues and search, `:batch` for the session pipeline). They are stateless model servers; the queue, vault, database, ladder and guard stay in the app process, so a model crash never closes the app. Full record: [AD-01](AD/AD-01.md).
 - **D7. One model per role: Canary 1B v2 is the only speech recogniser** (chosen for its Czech). Gemma 4 is text only and processes the transcribed chunks, and EmbeddingGemma 2 still embeds audio. Whisper, Parakeet and Gemma speech recognition are removed. Full record: [AD-02](AD/AD-02.md).
+- **D8. An engine host that crashes exits quietly** (native signal handler `_exit(100 + signal)`, Java crash `halt(13)`), so the system shows no "keeps stopping" dialog and writes no tombstone for a background host. Full record: [AD-04](AD/AD-04.md).
 
 ## Live cues
 During a session `LiveCues` embeds the last seconds of audio directly (EmbeddingGemma audio, no transcript) and compares them with the client's fact embeddings. Scores are averaged over ticks per fact, and the top 10 above the floor are shown by heading. Audio stays in an in-memory ring of `LiveCueConfig.MAX_LOOKBACK_S` (327 s) and is never written. Settings are read at session start, from "Knobs for nerds" in the settings (`LiveCueSettings`, values clamped):

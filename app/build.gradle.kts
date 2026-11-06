@@ -11,10 +11,54 @@ plugins {
 // The one place the app's name lives: the launcher label, notifications and every screen read it as @string/app_name.
 val appName = "MnemoThera"
 
+// AD-04: libquietcrash.so, the native handler that makes an engine host exit quietly on a fatal signal. One C file, compiled with the pinned
+// NDK clang by the tasks below (no CMake: see docker/Dockerfile for why). Same flags and the fixed /workspace path give the same bytes on x86_64
+// and arm64 builders. arm64-v8a goes in every APK; x86_64 only in debug (the CI emulator).
+val quietNdkVersion = "27.2.12479018" // keep equal to NDK_VERSION in docker/Dockerfile
+val quietOut = layout.buildDirectory.dir("quietcrash")
+val quietTasks = listOf("arm64-v8a" to "aarch64-linux-android31", "x86_64" to "x86_64-linux-android31").map { (abi, triple) ->
+    tasks.register<Exec>("buildQuietCrash_$abi") {
+        val sdk = System.getenv("ANDROID_HOME") ?: System.getenv("ANDROID_SDK_ROOT") ?: ""
+        val clang = File(sdk, "ndk/$quietNdkVersion/toolchains/llvm/prebuilt/linux-x86_64/bin/clang")
+        val src = file("src/main/cpp/quietcrash.c")
+        // debug-only ABIs go in their own folder so the main source set never carries them into a release APK
+        val outFile = quietOut.get().dir(if (abi == "x86_64") "debugOnly/$abi" else "main/$abi").file("libquietcrash.so").asFile
+        val obj = File(quietOut.get().asFile, "obj/$abi/quietcrash.o")
+        inputs.file(src)
+        inputs.property("abi", abi)
+        inputs.property("ndk", quietNdkVersion)
+        outputs.file(outFile)
+        workingDir = projectDir
+        doFirst {
+            check(clang.canExecute()) { "NDK $quietNdkVersion not found at $clang: build with scripts/build.sh (the pinned image has it)" }
+            outFile.parentFile.mkdirs()
+            obj.parentFile.mkdirs()
+        }
+        // Two steps: with compile and link in one clang call the driver starts the compiler as a child process, which the x86_64 launcher
+        // trick under qemu-user (arm64 builders) cannot do. A separate -c runs the compiler inside the driver process.
+        executable = "sh"
+        args(
+            "-c", "\"\$0\" \"\$@\" -c -o \"\$OBJ\" && \"\$0\" --target=$triple -shared -Wl,--build-id=none -Wl,-soname,libquietcrash.so " +
+                "-Wl,-z,max-page-size=16384 -Wl,-z,noexecstack -Wl,--no-undefined -s -o \"\$OUT\" \"\$OBJ\"",
+            clang.path,
+            "--target=$triple", "-fPIC", "-O2", "-std=c11", "-Wall", "-Wextra", "-Werror", "-fvisibility=hidden", "-fno-ident", "-g0",
+            "-ffile-prefix-map=${rootDir.path}=/workspace", "src/main/cpp/quietcrash.c",
+        )
+        environment("OBJ", obj.path)
+        environment("OUT", outFile.path)
+    }
+}
+
+// AGP does not follow builtBy of a srcDir, so everything that reads the jniLibs folders waits for the library explicitly.
+tasks.configureEach {
+    if (name.endsWith("JniLibFolders") || name.startsWith("lint")) dependsOn(quietTasks)
+}
+
 android {
     namespace = "com.therapylocal.app"
     compileSdk = 34
     buildToolsVersion = "35.0.0" // the build tools of docker/Dockerfile (BUILD_TOOLS), so the pinned image never downloads another
+    ndkVersion = quietNdkVersion // the NDK of docker/Dockerfile (NDK_VERSION); compiles libquietcrash.so (AD-04)
 
     defaultConfig {
         applicationId = "com.therapylocal.app"
@@ -69,6 +113,8 @@ android {
     }
     // jvmTarget is set via the kotlin { compilerOptions } block below
     // The memory prompts ship in the app (assets/prompts/), so processing works on a fresh install without pushing files.
+    sourceSets.getByName("main").jniLibs.srcDir(files(quietOut.map { it.dir("main") }).builtBy(quietTasks[0]))
+    sourceSets.getByName("debug").jniLibs.srcDir(files(quietOut.map { it.dir("debugOnly") }).builtBy(quietTasks[1]))
     sourceSets.getByName("main").assets.srcDir(layout.buildDirectory.dir("generated/promptAssets"))
     // The fault seam: debug has the real Faults (src/debug); every other build type gets the no-op copy.
     for (bt in listOf("release", "feel", "qa")) sourceSets.getByName(bt).java.srcDir("src/noFaults/java")
@@ -91,7 +137,8 @@ android {
             "StateFlowValueCalledInComposition", "UnrememberedMutableState",
         )
     }
-    packaging { jniLibs { useLegacyPackaging = true } }
+    // Keep the libraries as they come: no stripping with the NDK (the prebuilt ones were never stripped here), so adding the NDK changes none of them.
+    packaging { jniLibs { useLegacyPackaging = true; keepDebugSymbols += "**/*.so" } }
     // JVM tests run code that logs through AppLog (android.util.Log); the stubs then return defaults instead of throwing.
     testOptions { unitTests.isReturnDefaultValues = true }
 

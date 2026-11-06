@@ -80,35 +80,43 @@ object AppLog {
     }
 
     /**
-     * Writes any uncaught exception to the log file before the process dies, then lets Android handle it as usual. With [redacted] (engine
-     * processes, whose code holds patient text) only exception types, cause types and frames are written, never messages. Nothing here reads
-     * `ApplicationExitInfo.getTraceInputStream()`.
+     * Writes any uncaught exception to the log file before the process dies. With [redacted] (engine processes, whose code holds patient text)
+     * only exception types, cause types and frames are written, never messages. Nothing here reads `ApplicationExitInfo.getTraceInputStream()`.
+     *
+     * Main (no [haltCode]) then lets Android handle the crash as usual. An engine host passes [haltCode] and ends itself with
+     * `halt(haltCode)` once the line is flushed: the platform handler would report the crash to the system, which shows "keeps stopping" for
+     * the whole app and writes a DropBox entry, although only a background host died (AD-04). Main learns of the death from the exit record.
      */
-    fun installCrashHandler(redacted: Boolean = false) {
-        val previous = Thread.getDefaultUncaughtExceptionHandler()
-        Thread.setDefaultUncaughtExceptionHandler { thread, t ->
-            try {
-                val head = "ts=${timeFormat.get()!!.format(Date())} lvl=E tag=CRASH sid=$sessionId proc=$proc pid=$pid evt=uncaught thread=${format(thread.name)} err=${format(t.javaClass.name)}"
-                val text = if (redacted) {
-                    head + redactedFields(t).joinToString("") { (k, v) -> " $k=${format(v)}" }
-                } else {
-                    head + "\n" + Log.getStackTraceString(t)
-                }
-                Log.println(Log.ERROR, LOGCAT_TAG, text)
-                if (dir != null) {
-                    executor.submit {
-                        try {
-                            log?.write(text)
-                        } catch (_: Throwable) {
-                        }
-                    }.get(2, java.util.concurrent.TimeUnit.SECONDS)
-                }
-            } catch (_: Throwable) {
-                // the crash handler must never hide the original crash
+    fun installCrashHandler(redacted: Boolean = false, haltCode: Int? = null, halt: (Int) -> Unit = { Runtime.getRuntime().halt(it) }) {
+        Thread.setDefaultUncaughtExceptionHandler(crashHandler(redacted, haltCode, halt, Thread.getDefaultUncaughtExceptionHandler()))
+    }
+
+    internal fun crashHandler(
+        redacted: Boolean, haltCode: Int?, halt: (Int) -> Unit, previous: Thread.UncaughtExceptionHandler?,
+    ) = Thread.UncaughtExceptionHandler { thread, t ->
+        try {
+            val head = "ts=${timeFormat.get()!!.format(Date())} lvl=E tag=CRASH sid=$sessionId proc=$proc pid=$pid evt=uncaught thread=${format(thread.name)} err=${format(t.javaClass.name)}"
+            val text = if (redacted) {
+                head + redactedFields(t).joinToString("") { (k, v) -> " $k=${format(v)}" }
+            } else {
+                head + "\n" + Log.getStackTraceString(t)
             }
-            // The platform handler prints the message and stack to logcat and DropBox. In a process that holds patient text, hand it a copy with
-            // the class name and the frames only, so an exception message that quotes a prompt or transcript never reaches them.
-            previous?.uncaughtException(thread, if (redacted) RuntimeException(t.javaClass.name).also { it.stackTrace = t.stackTrace } else t)
+            Log.println(Log.ERROR, LOGCAT_TAG, text)
+            if (dir != null) {
+                executor.submit {
+                    try {
+                        log?.write(text)
+                    } catch (_: Throwable) {
+                    }
+                }.get(2, java.util.concurrent.TimeUnit.SECONDS)
+            }
+        } catch (_: Throwable) {
+            // the crash handler must never hide the original crash
+        }
+        if (haltCode != null) {
+            halt(haltCode)
+        } else {
+            previous?.uncaughtException(thread, t)
         }
     }
 

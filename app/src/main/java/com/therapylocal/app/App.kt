@@ -21,8 +21,11 @@ class App : Application() {
         AppLog.init(this, role?.proc ?: "main")
         if (role != null) com.therapylocal.app.engine.Faults.hostStart(this, role)
         // An engine process holds patient text: its crash lines carry types and frames only.
-        AppLog.installCrashHandler(redacted = role != null)
+        // and ends itself quietly (halt) after logging: a crash reported to the system would show "keeps stopping" for the whole app (AD-04).
+        AppLog.installCrashHandler(redacted = role != null, haltCode = if (role != null) com.therapylocal.app.engine.HostExit.JAVA_CRASH.code else null)
         if (role != null) {
+            // Fatal native signals end the host with _exit(100 + signal) instead of a tombstone and the system crash dialog (AD-04).
+            com.therapylocal.app.engine.NativeQuietCrash.installLogged()
             // A host needs no SQLCipher, device facts, startup recovery, display config, speech migration or vault: main owns them.
             AppLog.logMemory(this, tag = "Memory", evt = "app_start")
             return
