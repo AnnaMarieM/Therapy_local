@@ -491,7 +491,7 @@ private fun ModelChoice(notice: NoticeState) {
                     .padding(vertical = 14.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Box(Modifier.width(22.dp)) { if (v == variant) Label("â—", color = Palette.Ink) else Label("â—‹", color = Palette.InkFaint) }
+                Box(Modifier.width(22.dp)) { if (v == variant) Label("●", color = Palette.Ink) else Label("○", color = Palette.InkFaint) }
                 Text(v.title, style = Type.Body, color = Palette.Ink, modifier = Modifier.weight(1f))
                 Label(ModelSetup.formatBytes(ctx, spec.totalBytes))
             }
