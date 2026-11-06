@@ -1,14 +1,47 @@
 name: Stress nightly
 
 # The extra lanes of the engine stress lab (catalogue section 5): other API levels, small RAM, slow CPUs, forced backends, big resident fakes
-# and the host-script lane. Nightly, on demand, and on a pull request carrying the label `stress`. The required PR checks stay in ci.yml.
+# and the host-script lane. Nightly, on demand, on a pull request carrying the label `stress`, and AUTOMATICALLY on any pull request that touches
+# code that runs, hosts, configures or tests the models (the `paths` list below: add a path there when a new model-running area appears).
+# The required PR checks stay in ci.yml; these lanes are not required checks, so the path filter can never leave a required check pending.
 # Each lane is under 40 min (the reusable workflow sets the limit). Every lane uploads `stress-<lane>`; the last job renders them together.
 on:
   schedule:
     - cron: "0 2 * * *"
   workflow_dispatch:
   pull_request:
-    types: [labeled]
+    types: [opened, synchronize, reopened, labeled]
+    paths:
+      # where models load, run, are hosted, gated, struck or queued
+      - "app/src/main/java/com/therapylocal/app/engine/**"
+      - "app/src/main/java/com/therapylocal/app/models/**"
+      - "app/src/main/java/com/therapylocal/app/memory/**"
+      - "app/src/main/java/com/therapylocal/app/embed/**"
+      - "app/src/main/java/com/therapylocal/app/asr/**"
+      - "app/src/main/java/com/therapylocal/app/jobs/**"
+      - "app/src/main/java/com/therapylocal/app/config/AppConfig.kt"
+      - "app/src/main/java/com/therapylocal/app/log/**"
+      - "app/src/main/java/com/therapylocal/app/App.kt"
+      - "app/src/main/aidl/**"
+      - "app/src/*/AndroidManifest.xml"
+      - "app/src/debug/**"
+      - "app/src/noFaults/**"
+      - "app/src/qa/**"
+      # build, packaging, native libraries
+      - "app/build.gradle.kts"
+      - "build.gradle.kts"
+      - "gradle/**"
+      - "docker/**"
+      - "scripts/build.sh"
+      # the tests and lanes themselves
+      - "app/src/androidTest/**/engine/**"
+      - "app/src/sharedTest/**"
+      - "qa/stress/**"
+      - "qa/run-device-tests.sh"
+      - "qa/run-host-stress.sh"
+      - ".github/workflows/stress-nightly.yml"
+      - ".github/workflows/emulator-lane.yml"
+      - ".github/workflows/ci.yml"
 
 concurrency:
   group: stress-nightly-${{ github.ref }}
@@ -19,7 +52,7 @@ env:
 
 jobs:
   build:
-    if: github.event_name != 'pull_request' || github.event.label.name == 'stress'
+    if: github.event_name != 'pull_request' || github.event.action != 'labeled' || github.event.label.name == 'stress'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -40,7 +73,7 @@ jobs:
             dist/Therapy-main.apk.sha256
           retention-days: 3
 
-  # Nightly and with the label
+  # Nightly, with the label, and on every pull request that touches model-running code (the `paths` list above)
   labelled:
     needs: build
     strategy:
@@ -85,7 +118,7 @@ jobs:
       ram: ${{ matrix.ram }}
       args: ${{ matrix.args }}
 
-  # The nine host-script rows (adb root on the google_apis image); nightly and with the label
+  # The nine host-script rows (adb root on the google_apis image); same triggers as `labelled`
   host-stress:
     needs: build
     uses: ./.github/workflows/emulator-lane.yml
@@ -95,8 +128,8 @@ jobs:
       script: OUT_DIR=out LANE=host-stress APK=dist/Therapy-main.apk qa/run-host-stress.sh
 
   stress-report:
-    needs: [labelled, nightly, host-stress]
-    if: always() && github.event_name != 'pull_request' || always() && github.event.label.name == 'stress'
+    needs: [build, labelled, nightly, host-stress]
+    if: always() && needs.build.result != 'skipped'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
