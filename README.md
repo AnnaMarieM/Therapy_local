@@ -43,19 +43,19 @@ MindVault operates **100% locally on the therapist's phone**:
    git clone https://github.com/AnnaMarieM/Therapy_local.git
    cd Therapy_local
    ```
-2. **Configure SDK Path:**
-   Create `local.properties` in the project root:
+2. **Install Docker** (Docker Desktop on Mac/Windows). Builds run in a pinned container, identical locally and in CI; no local JDK or Android SDK is needed.
+   Only if you also open the project in Android Studio, create `local.properties` in the project root (the container ignores it):
    ```properties
    sdk.dir=/path/to/your/Android/Sdk
    # Example Windows: sdk.dir=C\:\\Users\\<username>\\AppData\\Local\\Android\\Sdk
    ```
-3. **Build the Debug APK:**
+3. **Build the Debug APK** (output: `dist/Therapy-main.apk`):
    ```bash
-   ./gradlew :app:assembleDebug
+   scripts/build.sh fast        # Windows: .\scripts\build.ps1 fast
    ```
 4. **Install on Phone via ADB:**
    ```bash
-   adb install -r app/build/outputs/apk/debug/app-debug.apk
+   adb install -r dist/Therapy-main.apk
    adb shell am start -n com.therapylocal.app/.MainActivity
    ```
 5. **Initial Model Download:**

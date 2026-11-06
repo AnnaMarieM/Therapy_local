@@ -1,19 +1,20 @@
 #!/usr/bin/env bash
-# The one build script. Developers and CI both run it, so the APK comes from the same pinned environment.
-# Usage: scripts/build.sh            lint, unit tests, debug APK -> dist/Therapy-main.apk (+ .sha256)
-#        scripts/build.sh --no-test  skip lint and unit tests
+# The one way to build. Developers and every CI job run this, so every APK comes from the same pinned container.
+# Usage: scripts/build.sh [full|fast]
+#   full (default)  clean, lint, unit tests, debug APK and test APK
+#   fast            clean and the two APKs only
+# Output: dist/Therapy-main.apk, dist/Therapy-main-androidTest.apk, dist/Therapy-main.apk.sha256
+# Windows: use scripts/build.ps1 (same container, same docker/inside.sh).
 set -euo pipefail
 
+mode="${1:-full}"
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 image="therapy-builder:$(sha256sum "$root/docker/Dockerfile" | cut -c1-12)"
 gradle_home="${GRADLE_USER_HOME_HOST:-$HOME/.gradle-therapy-builder}"
 
-tasks=(clean lint :app:testDebugUnitTest assembleDebug)
-[[ "${1:-}" == "--no-test" ]] && tasks=(clean assembleDebug)
-
 # A developer's local.properties points at their own SDK; hide it so the image SDK is always used.
 mask=()
-[[ -f "$root/local.properties" ]] && mask=(-v /dev/null:/workspace/local.properties:ro)
+[[ -f "$root/local.properties" ]] && mask=(-v "$(mktemp):/workspace/local.properties:ro")
 
 docker build -q -t "$image" "$root/docker" >/dev/null
 mkdir -p "$gradle_home" "$root/dist"
@@ -36,7 +37,4 @@ docker run --rm \
   "${mask[@]}" \
   -w /workspace \
   "$image" \
-  bash -c 'mkdir -p "$HOME" && ./gradlew --no-daemon --console=plain -Pandroid.aapt2FromMavenOverride=/opt/aapt2/aapt2 "$@"' _ "${tasks[@]}"
-
-cp "$root/app/build/outputs/apk/debug/app-debug.apk" "$root/dist/Therapy-main.apk"
-(cd "$root/dist" && sha256sum Therapy-main.apk | tee Therapy-main.apk.sha256)
+  bash docker/inside.sh "$mode"

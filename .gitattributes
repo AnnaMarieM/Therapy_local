@@ -1,0 +1,6 @@
+# LF everywhere so a Windows checkout builds the same bytes and the container scripts run
+* text=auto eol=lf
+*.bat text eol=crlf
+*.png binary
+*.jpg binary
+*.keystore binary

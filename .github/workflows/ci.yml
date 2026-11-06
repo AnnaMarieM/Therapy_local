@@ -37,6 +37,7 @@ jobs:
           name: app-debug
           path: |
             dist/Therapy-main.apk
+            dist/Therapy-main-androidTest.apk
             dist/Therapy-main.apk.sha256
           retention-days: 14
 
@@ -52,24 +53,37 @@ jobs:
           name: app-debug
           path: x86
       - name: Build on arm64
-        run: scripts/build.sh --no-test
+        run: scripts/build.sh fast
       - name: Compare with the x86_64 build
         run: |
           echo "x86_64: $(cut -d' ' -f1 x86/Therapy-main.apk.sha256)"
           echo "arm64 : $(cut -d' ' -f1 dist/Therapy-main.apk.sha256)"
           diff <(cut -d' ' -f1 x86/Therapy-main.apk.sha256) <(cut -d' ' -f1 dist/Therapy-main.apk.sha256)
 
+  # Linux containers do not run on GitHub's Windows runners, so only the PowerShell entry point's syntax is checked here.
+  powershell-syntax:
+    runs-on: windows-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - shell: pwsh
+        run: |
+          $errors = $null
+          [System.Management.Automation.Language.Parser]::ParseFile("$PWD/scripts/build.ps1", [ref]$null, [ref]$errors) | Out-Null
+          if ($errors) { $errors | Out-String | Write-Error; exit 1 }
+
   # End-to-end tests on an emulator. Required: a failing instrumented test fails the PR.
   android-test:
+    needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-java@v5
+      # The APKs the pinned builder produced: the tests run against exactly what gets released
+      - uses: actions/download-artifact@v4
         with:
-          distribution: temurin
-          java-version: 17
-      - uses: gradle/actions/setup-gradle@v4
+          name: app-debug
+          path: dist
       # Hardware acceleration for the emulator on GitHub's Linux runners
       - name: Enable KVM
         run: |
@@ -84,13 +98,7 @@ jobs:
           target: google_apis
           disable-animations: true
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
-          script: ./gradlew :app:connectedDebugAndroidTest
-      - uses: actions/upload-artifact@v4
-        if: failure()
-        with:
-          name: android-test-report
-          path: app/build/reports/androidTests/connected
-          retention-days: 7
+          script: SKIP_BUILD=1 qa/run-device-tests.sh
 
   # Rolling "main" prerelease holding the latest APK. Reuses the APK built above and
   # waits for unit and emulator tests, so the build runs in parallel with them.

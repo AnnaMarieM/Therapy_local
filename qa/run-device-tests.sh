@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# Builds the app and its instrumented tests, installs both with adb and runs them on the connected phone.
+# Builds the app and its instrumented tests with scripts/build.sh, installs both with adb and runs them on the connected phone.
 #   qa/run-device-tests.sh                 all instrumented tests
 #   qa/run-device-tests.sh language        only tests in the language package
 #   qa/run-device-tests.sh ClientLanguageTest[#method]   one class or method
 #   SKIP_BUILD=1 qa/run-device-tests.sh    reuse the last build
-# Gradle's own device bridge is not used: it tries the SDK's x86 adb and fails here.
+# The APKs come from scripts/build.sh (the pinned builder); Gradle's own device bridge is not used.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -13,26 +13,14 @@ ADB="${ADB:-$(command -v adb)}"
 APP_ID=com.therapylocal.app
 RUNNER=androidx.test.runner.AndroidJUnitRunner
 
-# Gradle 8.10 cannot run on JDK 25: use JAVA_HOME if it is 17-21, else the JDK 17 tarball from ~/dl-android (unpacked to /tmp/jdk17).
-java_major() { "$1/bin/java" -version 2>&1 | sed -n '1s/.*"\([0-9]*\).*/\1/p'; }
-if [[ -z "${JAVA_HOME:-}" ]] || ! [[ "$(java_major "$JAVA_HOME" 2>/dev/null || echo 0)" =~ ^(17|18|19|20|21)$ ]]; then
-  JDK="$(ls -d /tmp/jdk17/jdk-17* 2>/dev/null | head -1 || true)"
-  if [[ -z "$JDK" && -f "$HOME/dl-android/jdk.tgz" ]]; then
-    mkdir -p /tmp/jdk17 && tar xzf "$HOME/dl-android/jdk.tgz" -C /tmp/jdk17
-    JDK="$(ls -d /tmp/jdk17/jdk-17* | head -1)"
-  fi
-  [[ -n "$JDK" ]] || { echo "No JDK 17-21 found. Set JAVA_HOME." >&2; exit 2; }
-  export JAVA_HOME="$JDK"
-fi
-
 "$ADB" get-state >/dev/null 2>&1 || { echo "No phone connected (adb devices)." >&2; exit 2; }
 
 if [[ -z "${SKIP_BUILD:-}" ]]; then
   echo "== build"
-  (cd "$ROOT" && ./gradlew :app:assembleDebug :app:assembleDebugAndroidTest --offline -q 2>&1 | grep -v '^WARNING' || true)
+  "$ROOT/scripts/build.sh" fast
 fi
-APK="$ROOT/app/build/outputs/apk/debug/app-debug.apk"
-TEST_APK="$ROOT/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk"
+APK="$ROOT/dist/Therapy-main.apk"
+TEST_APK="$ROOT/dist/Therapy-main-androidTest.apk"
 [[ -f "$APK" && -f "$TEST_APK" ]] || { echo "Build failed: APKs missing." >&2; exit 1; }
 
 echo "== install"
