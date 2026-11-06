@@ -73,6 +73,8 @@ class SpeechRecogniser(
                     AppLog.w(TAG, "model_too_large_for_device", LogCtx.NONE, "model" to spec.id, "load_id" to loadId, "when" to "before_load")
                     throw JobFailure.modelTooLarge()
                 }
+                // Canary's predecessor (the LLM, the embedder) may still be closing: wait for it before the open.
+                proxy.awaitPendingCloses()
                 val loaded = try {
                     ladder().load(
                         loadId = loadId,
@@ -141,8 +143,8 @@ class SpeechRecogniser(
     override fun close() {
         val h = handle ?: return
         handle = null
-        proxy.close(h)
-        runCatching { guard()?.unloaded(spec.id, backend) }
+        val b = backend
+        proxy.close(h) { acked -> if (acked) runCatching { guard()?.unloaded(spec.id, b) } }
         AppLog.i(TAG, "asr_unloaded", LogCtx.NONE, "engine" to engineName, "model" to spec.id, "backend" to backend)
         backend = "none"
     }

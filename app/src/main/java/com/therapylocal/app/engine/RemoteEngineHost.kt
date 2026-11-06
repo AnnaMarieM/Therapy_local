@@ -87,6 +87,12 @@ class RemoteEngineHost(
 
     override fun closeAsync(op: EngineOp.Close) = connection.closeAsync(op)
 
+    override fun closeAsync(op: EngineOp.Close, onClosed: (acked: Boolean) -> Unit) = connection.closeAsync(op, onClosed)
+
+    override fun awaitPendingCloses() = connection.awaitPendingCloses()
+
+    override fun statusIfBound(): EngineReply.HostStatus? = connection.statusIfBound()
+
     /**
      * Asks a bound host to delete its own log files. False when no host is bound (the caller deletes the files itself) or the host did not
      * answer in `closeTimeoutMs`. Never binds.

@@ -148,6 +148,8 @@ class Embedder(
                     AppLog.w(TAG, "model_too_large_for_device", LogCtx.NONE, "model" to guardModel, "load_id" to loadId, "when" to "before_load")
                     throw JobFailure.modelTooLarge()
                 }
+                // The model before this one may still be closing (see MemoryLlm.load): wait for it before the memory gate and the open.
+                proxy.awaitPendingCloses()
                 val loaded = try {
                     ladder().load(
                         loadId = loadId,
@@ -178,7 +180,7 @@ class Embedder(
                     span.put("audio_backend", loaded.engine.audioBackend ?: audioBackendName())
                     span.put("fallbacks_failed", loaded.skipped.size)
                     AppLog.i(TAG, "backend_selected", LogCtx.NONE, "engine" to "embeddinggemma", "load_id" to loaded.loadId, "backend" to backend, "audio_backend" to (loaded.engine.audioBackend ?: audioBackendName()), "model_file" to fileInfo?.first, "model_bytes" to fileInfo?.second, "skipped" to loaded.skipped.joinToString("; "))
-                    AppLog.logMemory(context, TAG, "embed_ready", extra = arrayOf("backend" to backend, "host_pss_kb" to proxy.status()?.pssKb))
+                    AppLog.logMemory(context, TAG, "embed_ready", extra = arrayOf("backend" to backend, "host_pss_kb" to proxy.statusIfBound()?.pssKb))
                 }
             }
         }
@@ -317,8 +319,9 @@ class Embedder(
         handle = null
         val t0 = System.nanoTime()
         // Never blocks, so this stays safe from the main thread (App.onTrimMemory).
-        proxy.close(h)
-        runCatching { guard()?.unloaded(guardModel, backend) }
+        val gm = guardModel
+        val b = backend
+        proxy.close(h) { acked -> if (acked) runCatching { guard()?.unloaded(gm, b) } }
         AppLog.i(TAG, "embed_unloaded", LogCtx.NONE, "model" to guardModel, "backend" to backend, "close_ms" to (System.nanoTime() - t0) / 1_000_000, "cpu_only_for_ms" to (cpuOnlyUntil - SystemClock.elapsedRealtime()).coerceAtLeast(0))
         backend = "none"
     }

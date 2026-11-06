@@ -215,4 +215,43 @@ class JobRunnerTest {
         assertEquals(1, job(id).attempts)
         assertEquals("model_too_large_for_device", job(id).errorCode)
     }
+
+    // An engine death in a job is not the job's failure: no attempt, a bounded number of retries
+
+    private fun died(kind: com.therapylocal.app.models.BackendGuard.ExitKind = com.therapylocal.app.models.BackendGuard.ExitKind.NATIVE_CRASH) =
+        com.therapylocal.app.engine.EngineDied(
+            com.therapylocal.app.engine.EngineRole.BATCH, 1, com.therapylocal.app.models.BackendGuard.LastExit(kind, true, "test"), null, "ask",
+        )
+
+    @Test
+    fun aJobWhoseHostDiesSeveralTimesIsRetriedWithoutCountingAttempts() {
+        val id = q.enqueue("work", "a_1")
+        var n = 0
+        val result = runner { _, _ -> if (++n <= 4) throw died() }.drain() // more deaths than the job has attempts (3)
+        assertEquals(DrainResult.Finished, result)
+        assertEquals(5, n)
+        assertEquals(JobStatus.Done, job(id).status)
+        assertEquals(0, job(id).attempts)
+    }
+
+    @Test
+    fun aBenignEndOfTheHostInsideAJobAlsoCostsNoAttempt() {
+        val id = q.enqueue("work", "a_1")
+        var n = 0
+        runner { _, _ -> if (++n == 1) throw died(com.therapylocal.app.models.BackendGuard.ExitKind.BENIGN) }.drain()
+        assertEquals(JobStatus.Done, job(id).status)
+        assertEquals(0, job(id).attempts)
+    }
+
+    @Test
+    fun aHostThatKeepsDyingEndsTheJobAfterTheBoundedRetries() {
+        val id = q.enqueue("work", "a_1")
+        var n = 0
+        runner { _, _ -> n++; throw died() }.drain()
+        // five free retries, then the deaths count as attempts like any failure
+        assertEquals(JobRunner.MAX_DIED_RETRIES + JobQueue.MAX_ATTEMPTS, n)
+        assertEquals(JobQueue.MAX_ATTEMPTS, job(id).attempts)
+        assertEquals(JobStatus.Failed, job(id).status)
+        assertEquals("EngineDied", job(id).errorCode)
+    }
 }

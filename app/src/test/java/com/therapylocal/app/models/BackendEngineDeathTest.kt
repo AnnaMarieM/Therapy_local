@@ -47,14 +47,29 @@ class BackendEngineDeathTest {
     }
 
     @Test
-    fun aPlainCrashOrAnUnknownReasonCountsAsACaughtFailureNotACrash() {
+    fun aPlainCrashOrAnUnknownReasonCountsOnlyTheSecondTimeInARowLikeTheNextStartDoes() {
         for (k in listOf(ExitKind.CRASH, ExitKind.UNKNOWN)) {
             store.map.clear()
             val g = BackendGuard(store, build).also { it.recover(null) }
             g.attempting("m", "GPU", "batch")
-            assertTrue(g.died("m", "GPU", "test", exit(k)).struck)
+            val first = g.died("m", "GPU", "test", exit(k))
+            assertFalse("for $k", first.struck)
+            assertEquals("for $k", 0, g.record("m", "GPU")?.strikes ?: 0)
+            assertTrue("the pending note goes either way", BackendGuard(store, build).recover(null).isEmpty())
+            g.attempting("m", "GPU", "batch")
+            assertTrue("for $k", g.died("m", "GPU", "test", exit(k)).struck)
             assertEquals("for $k", State.FAILED, g.record("m", "GPU")!!.state)
         }
+    }
+
+    @Test
+    fun aProvenLoadResetsTheRunOfPlainCrashes() {
+        guard.attempting("m", "GPU", "batch")
+        assertFalse(guard.died("m", "GPU", "test", exit(ExitKind.UNKNOWN)).struck)
+        guard.attempting("m", "GPU", "batch")
+        guard.proven("m", "GPU")
+        guard.attempting("m", "GPU", "batch")
+        assertFalse(guard.died("m", "GPU", "test", exit(ExitKind.CRASH)).struck)
     }
 
     @Test

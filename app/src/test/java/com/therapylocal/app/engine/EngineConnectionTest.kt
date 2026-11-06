@@ -631,7 +631,8 @@ class EngineConnectionTest {
         while (r.log.count(EngineEvents.EXIT) + r.log.count(EngineEvents.DIED) == 0 && j++ < 10_000) { r.time.advance(50); Thread.yield() }
         assertEquals(0, r.conn.view.deaths)
         assertTrue(r.settler.died.isEmpty())
-        assertTrue(r.settler.unloaded.isEmpty()) // the proxy settled it itself when it asked for the close
+        // the close never got its ack: the registry settled the entry itself, as a benign end (the proxy does not, see MemoryLlm.close)
+        assertEquals(1, r.settler.unloaded.size)
     }
 
     // --- N25: threads, N14, view

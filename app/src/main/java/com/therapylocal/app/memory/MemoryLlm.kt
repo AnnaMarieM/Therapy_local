@@ -76,6 +76,9 @@ class MemoryLlm(
             AppLog.w(TAG, "model_too_large_for_device", LogCtx.NONE, "model" to spec.id, "load_id" to loadId, "when" to "before_load")
             throw JobFailure.modelTooLarge()
         }
+        // The model before this one (Canary, the embedder) may still be closing: the memory gate must see its memory freed and the host must
+        // not hold two models. Bounded, so a stuck close only delays the load.
+        proxy.awaitPendingCloses()
         val loaded = try {
             ladder().load(
                 loadId = loadId,
@@ -99,7 +102,7 @@ class MemoryLlm(
         healthy = true
         // Only logging from here on: nothing may throw past the point where the engine is ours, or it would never be closed.
         runCatching {
-            val pss = proxy.status()?.pssKb
+            val pss = proxy.statusIfBound()?.pssKb
             AppLog.i(TAG, "memory_llm_loaded", LogCtx.NONE, "load_id" to loaded.loadId, "backend" to backend, "max_tokens" to maxTokens, "skipped" to loaded.skipped.joinToString("; "))
             AppLog.logMemory(context, TAG, "memory_llm_ready", extra = arrayOf("load_id" to loaded.loadId, "backend" to backend, "model" to spec.id, "host_pss_kb" to pss))
         }
@@ -141,11 +144,12 @@ class MemoryLlm(
         val h = handle ?: return
         handle = null
         val t0 = System.nanoTime()
-        proxy.close(h)
-        runCatching { guard()?.unloaded(spec.id, backend) }
+        val b = backend
+        // The guard hears `unloaded` once the host acknowledged the close, not when it was only asked: a death in between is a death.
+        proxy.close(h) { acked -> if (acked) runCatching { guard()?.unloaded(spec.id, b) } }
         AppLog.i(TAG, "memory_llm_unloaded", LogCtx.NONE, "model" to spec.id, "backend" to backend, "close_ms" to (System.nanoTime() - t0) / 1_000_000)
         runCatching {
-            AppLog.logMemory(context, TAG, "memory_llm_after_unload", extra = arrayOf("backend" to backend, "model" to spec.id, "host_pss_kb" to proxy.status()?.pssKb))
+            AppLog.logMemory(context, TAG, "memory_llm_after_unload", extra = arrayOf("backend" to backend, "model" to spec.id, "host_pss_kb" to proxy.statusIfBound()?.pssKb))
         }
         backend = "none"
     }

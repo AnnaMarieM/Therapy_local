@@ -126,6 +126,7 @@ class MemoryService : Service() {
                     postDeferred()
                     RetryProcessingWorker.schedule(app, retryIn)
                 } else {
+                    RetryProcessingWorker.resetDeferrals()
                     postResult()
                 }
                 wakeLock?.takeIf { it.isHeld }?.release()

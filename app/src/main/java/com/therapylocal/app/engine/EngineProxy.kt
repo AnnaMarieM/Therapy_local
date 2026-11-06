@@ -78,13 +78,24 @@ class EngineProxy(
     }
 
     /** Never blocks: [EngineHost.closeAsync]. The one operation main-thread code may call. Failures are logged, never thrown. */
-    fun close(handle: Int, loadId: String? = null) {
-        runCatching { host().closeAsync(EngineOp.Close(newTag("close", loadId), handle)) }
-            .onFailure { runCatching { AppLog.e(tag, EngineEvents.CALL_FAILED, LogCtx.NONE, it, "engine" to engine, "op" to "close", "handle" to handle) } }
+    fun close(handle: Int, loadId: String? = null, onClosed: (acked: Boolean) -> Unit = {}) {
+        runCatching { host().closeAsync(EngineOp.Close(newTag("close", loadId), handle), onClosed) }
+            .onFailure {
+                runCatching { AppLog.e(tag, EngineEvents.CALL_FAILED, LogCtx.NONE, it, "engine" to engine, "op" to "close", "handle" to handle) }
+                runCatching { onClosed(false) }
+            }
     }
 
-    /** The host's PSS and handles; null if it cannot say. */
+    /** Waits (bounded) for the closes submitted so far, before a memory gate or an `Open`. For worker threads. */
+    fun awaitPendingCloses() {
+        runCatching { host().awaitPendingCloses() }
+    }
+
+    /** The host's PSS and handles; null if it cannot say. Binds a host if none is. Logging calls use [statusIfBound]. */
     fun status(): EngineReply.HostStatus? = runCatching { call<EngineReply.HostStatus>(EngineOp.Status(newTag("status"))) }.getOrNull()
+
+    /** [status] of a host that is bound now; never binds one (for logging after an unload). */
+    fun statusIfBound(): EngineReply.HostStatus? = runCatching { host().statusIfBound() }.getOrNull()
 
     /** Checks a Vector reply: [expectedDim] long and every value finite, else `IllegalStateException("bad embedding")`. */
     fun vector(reply: EngineReply.Vector, expectedDim: Int): FloatArray {

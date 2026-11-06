@@ -336,9 +336,9 @@ object AppLog {
         }
         if (isMainProc) {
             val d = dir ?: return
-            executor.execute {
-                runCatching { com.therapylocal.app.embed.Engines.clearHostLogs { role -> RotatingLog.deleteBase(d, baseOf(role.proc)) } }
-            }
+            // Asking a bound host to clear its files can take seconds (it waits for the answer): never on the single writer thread, which every log line needs.
+            Thread({ runCatching { com.therapylocal.app.embed.Engines.clearHostLogs { role -> RotatingLog.deleteBase(d, baseOf(role.proc)) } } }, "applog-clear-hosts")
+                .apply { isDaemon = true }.start()
         }
     }
 }

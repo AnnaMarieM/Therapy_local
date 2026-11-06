@@ -67,6 +67,9 @@ class EngineConnection(
 
     private class Loaded(val outer: Int, val gen: Int, val host: Int, val model: String, val guardModel: String, val backend: String, val loadId: String?) {
         var settled = false
+
+        /** A Close was submitted and is not acknowledged yet: the entry stays, so a death before the ack still settles it (as a death). */
+        var closing = false
     }
 
     private class Flight(
@@ -99,6 +102,7 @@ class EngineConnection(
     private val flights = ArrayList<Flight>()
     private val loaded = LinkedHashMap<Int, Loaded>()
     private var nextOuter = 1
+    private var pendingCloses = 0
     private val ends = object : LinkedHashMap<Int, End>() {
         override fun removeEldestEntry(eldest: MutableMap.MutableEntry<Int, End>?): Boolean = size > 32
     }
@@ -130,6 +134,8 @@ class EngineConnection(
 
     /** Throws what the engine threw, [EngineDied], [EngineUnavailable] or [ReplyTooLarge]. Never on the main thread (the host wrapper checks). */
     fun call(op: EngineOp, phases: PhaseSink = PhaseSink { _, _, _, _ -> }): EngineReply {
+        // The previous model must be gone before the next one opens, or two are resident in the host.
+        if (op is EngineOp.Open) awaitPendingCloses()
         if (role == EngineRole.BATCH && op is EngineOp.Open) {
             // The safety net must not turn a failed :live shutdown into a failed open: the kill path inside it already covers a stuck host.
             runCatching { beforeOpen() }.onFailure { ev('e', EngineEvents.CALL_FAILED, "op" to "before_open", "err" to it.javaClass.simpleName) }
@@ -150,32 +156,92 @@ class EngineConnection(
                 }
                 throw d
             } finally {
+                // A synchronous Close forgets its entry whatever came back; a death in between was settled by the registry already.
+                if (op is EngineOp.Close) lock.withLock { loaded.remove(op.handle) }
                 finish(step.f)
             }
         }
     }
 
-    /** Never blocks. A close of a handle whose generation ended needs nothing (the process ending was the unload). */
-    fun closeAsync(op: EngineOp.Close) {
-        // Removed when submitted: the proxy has already settled its guard entry, so a death in between must not settle it again.
-        val entry = lock.withLock { loaded.remove(op.handle) } ?: return
-        if (entry.settled) return
-        runCatching {
-            closeExecutor.execute {
-                try {
-                    val f = lock.withLock {
-                        val g = cur
-                        if (g == null || g.n != entry.gen || g.phase != P.BOUND) null else register(op, g, PhaseSink { _, _, _, _ -> }, entry, activity = true)
-                    } ?: return@execute
+    /**
+     * Never blocks. A close of a handle whose generation ended needs nothing (the process ending was the unload). The entry stays in `loaded`,
+     * marked closing, until the host acknowledged the Close: a death in between settles it as a death. [onClosed] runs once, after the close
+     * finished: `true` when the host acknowledged it (the entry is settled here, the caller tells the guard `unloaded`), `false` when the host
+     * ended first or the close failed (the registry settles the entry, the caller must not).
+     */
+    fun closeAsync(op: EngineOp.Close, onClosed: (acked: Boolean) -> Unit = {}) {
+        val entry = lock.withLock {
+            loaded[op.handle]?.takeIf { !it.settled && !it.closing }?.also {
+                it.closing = true
+                pendingCloses++
+            }
+        }
+        if (entry == null) {
+            runCatching { onClosed(false) }
+            return
+        }
+        val task = Runnable {
+            var acked = false
+            try {
+                val f = lock.withLock {
+                    val g = cur
+                    if (g == null || g.n != entry.gen || g.phase != P.BOUND) null else register(op, g, PhaseSink { _, _, _, _ -> }, entry, activity = true)
+                }
+                if (f != null) {
                     try {
                         transact(f, op.copy(handle = entry.host))
+                        acked = true
                     } finally {
                         finish(f)
                     }
-                } catch (t: Throwable) {
-                    runCatching { ev('w', EngineEvents.CALL_FAILED, "op" to "close", "req" to op.tag.requestId, "err" to t.javaClass.simpleName) }
+                }
+            } catch (t: Throwable) {
+                runCatching { ev('w', EngineEvents.CALL_FAILED, "op" to "close", "req" to op.tag.requestId, "err" to t.javaClass.simpleName) }
+            }
+            try {
+                // An ack that raced a death is not ours to settle: the death already did.
+                val ours = lock.withLock {
+                    entry.closing = false
+                    if (acked && !entry.settled) {
+                        entry.settled = true
+                        loaded.remove(entry.outer)
+                        true
+                    } else false
+                }
+                runCatching { onClosed(ours) }
+            } finally {
+                lock.withLock {
+                    pendingCloses--
+                    bump()
                 }
             }
+        }
+        if (runCatching { closeExecutor.execute(task) }.isFailure) {
+            lock.withLock {
+                entry.closing = false
+                pendingCloses--
+                bump()
+            }
+            runCatching { onClosed(false) }
+        }
+    }
+
+    /** Waits, bounded by [EngineTuning.closeTimeoutMs], until every submitted close has finished. Worker threads only. */
+    fun awaitPendingCloses() {
+        val deadline = clock.nowMs() + tuning.closeTimeoutMs
+        while (true) {
+            var v = 0L
+            val n = lock.withLock {
+                v = version
+                pendingCloses
+            }
+            if (n == 0) return
+            val left = deadline - clock.nowMs()
+            if (left <= 0) {
+                ev('w', EngineEvents.CALL_FAILED, "op" to "close", "why" to "close_wait_timeout", "pending" to n)
+                return
+            }
+            waitVersion(v, left)
         }
     }
 
@@ -225,7 +291,8 @@ class EngineConnection(
             val c = cur
             if (c == null || c.n != entry.gen || c.phase != P.BOUND) {
                 if (op is EngineOp.Close) {
-                    loaded.remove(h)
+                    // An entry whose generation is still ending stays: the end settles it (as a death if it was one).
+                    if (entry.settled) loaded.remove(h)
                     return Step.Done(EngineReply.Done)
                 }
                 // That generation is still ending (its exit is not known yet), unless it is old enough to have left the table: a newer one only
@@ -244,7 +311,6 @@ class EngineConnection(
         }
         when (g?.phase) {
             P.BOUND -> {
-                if (op is EngineOp.Close) loaded.remove(h)
                 val f = register(op, g, phases, entry, activity = true)
                 return Step.Got(f, if (entry != null) op.withHandle(entry.host) else op)
             }
@@ -380,7 +446,20 @@ class EngineConnection(
                 watchdog = null
             }
         }
-        if (f.activity) armIdle()
+        if (f.activity) armIdle() else armIdleIfMissing()
+    }
+
+    /**
+     * A flight that is not activity (a status poll) leaves the timer alone, unless the check ran during it and dropped the timer
+     * (`idleCheck` returns while a flight exists): then it is armed again for what is left of the idle time.
+     */
+    private fun armIdleIfMissing() {
+        lock.withLock {
+            val g = cur
+            if (idleTimer == null && g != null && g.phase == P.BOUND) {
+                idleTimer = scheduler.schedule((lastActivityMs + tuning.idleMs - clock.nowMs()).coerceAtLeast(1)) { idleCheck() }
+            }
+        }
     }
 
     private fun trimLoadedLocked() {
@@ -633,7 +712,8 @@ class EngineConnection(
     /** Under the lock. A call that starts after this waits for the old process to be gone and rebinds. */
     private fun beginStopLocked(g: Gen, reason: String) {
         g.phase = P.STOPPING
-        g.expected = Expected(ExitKind.BENIGN, reason, null, false)
+        // A kill already chosen (a hang) keeps its verdict: asking for a stop on top of it must not turn the strike into a benign end.
+        if (g.expected == null) g.expected = Expected(ExitKind.BENIGN, reason, null, false)
         g.stopDeadline = clock.nowMs() + tuning.liveShutdownMs
         idleTimer?.cancel()
         idleTimer = null
@@ -813,7 +893,7 @@ class EngineConnection(
         }
         return HostView(
             state, g?.pid ?: 0, g?.n ?: 0, sinceMs, deaths.size, lastExit,
-            loaded.values.filter { !it.settled }.map { "${it.guardModel}@${it.backend}" }, pssKb, lastExitAtMs,
+            loaded.values.filter { !it.settled && !it.closing }.map { "${it.guardModel}@${it.backend}" }, pssKb, lastExitAtMs,
         )
     }
 

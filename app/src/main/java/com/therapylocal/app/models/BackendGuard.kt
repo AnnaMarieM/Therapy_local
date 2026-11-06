@@ -292,8 +292,8 @@ class BackendGuard(private val store: Store, private val build: String, private 
     /**
      * The host process died during [phase] of an attempt on [backend] (the ladder caught an `EngineDied`): the strike is recorded now, with the
      * exit kind, so the next backend is tried at once and the next start does not count it again (the pending entry goes). A memory kill,
-     * a native crash or a hang is the backend's doing (`DIED`); a plain crash or an unknown reason counts as a caught failure (`FAILED`),
-     * as at the next start; an end the app or the host chose (BENIGN: idle stop, shutdown, a close that timed out) is never a strike.
+     * a native crash or a hang is the backend's doing (`DIED`); a plain crash or an unknown reason may not be (a Java crash elsewhere, an exit
+     * record not found), so it counts only after [INTERRUPTED_STRIKE] in a row (`FAILED`), the same rule [recover] applies; an end the app or the host chose (BENIGN: idle stop, shutdown, a close that timed out) is never a strike.
      */
     @Synchronized
     fun died(model: String, backend: String, phase: String?, exit: LastExit): Died {
@@ -307,7 +307,14 @@ class BackendGuard(private val store: Store, private val build: String, private 
             if (exit.kind == ExitKind.KILLED_FOR_MEMORY) noteMemoryKill(model, backend)
             strike(model, backend, State.DIED, "process died while loading, in $where ($text)")
         } else {
-            strike(model, backend, State.FAILED, "$text, in $where")
+            val key = INTERRUPTED + pair(model, backend)
+            val n = (store.get(key)?.toIntOrNull() ?: 0) + 1
+            if (n < INTERRUPTED_STRIKE) {
+                store.put(key, n.toString())
+                return Died(record(model, backend), null, struck = false)
+            }
+            store.put(key, null)
+            strike(model, backend, State.FAILED, "$text, in $where (repeated $n times)")
         }
         return Died(r, tooLargeEvent(model, backend), struck = true)
     }

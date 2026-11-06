@@ -137,11 +137,14 @@ class EngineServer(private val context: Context, private val role: EngineRole, p
         return EngineReply.Done
     }
 
-    /** Process end: closes every handle (a failing close never stops the rest). */
-    fun closeAll() {
+    /**
+     * Process end: closes every handle (a failing close never stops the rest). Each close takes the runner's lock like [close] does, so it never
+     * runs under a call still using the engine; a call that does not let go within [lockWaitMs] is left to the process ending.
+     */
+    fun closeAll(lockWaitMs: Long = CLOSE_ALL_LOCK_WAIT_MS) {
         for (h in handles.keys.toList()) {
             val r = handles.remove(h) ?: continue
-            runCatching { r.close(CallTag("shutdown", null, "close")) }
+            withMonitor(r, lockWaitMs) { runCatching { r.close(CallTag("shutdown", null, "close")) } }
         }
     }
 
@@ -154,5 +157,28 @@ class EngineServer(private val context: Context, private val role: EngineRole, p
 
     private companion object {
         const val TAG = "Engine"
+        const val CLOSE_ALL_LOCK_WAIT_MS = 2_000L
     }
+}
+
+/**
+ * Runs [block] holding [lock]'s monitor, as `synchronized(lock)` does, but gives up when the monitor is not free within [waitMs]: false then,
+ * and [block] never runs (a late acquisition finds the attempt abandoned and lets go at once). Java has no timed monitor, so a helper thread
+ * waits for it.
+ */
+internal fun withMonitor(lock: Any, waitMs: Long, block: () -> Unit): Boolean {
+    val state = java.util.concurrent.atomic.AtomicInteger(0) // 0 waiting, 1 running, 2 abandoned
+    val entered = java.util.concurrent.CountDownLatch(1)
+    val done = java.util.concurrent.CountDownLatch(1)
+    Thread({
+        synchronized(lock) {
+            if (state.compareAndSet(0, 1)) {
+                entered.countDown()
+                try { block() } finally { done.countDown() }
+            }
+        }
+    }, "engine-close-all").apply { isDaemon = true }.start()
+    if (!entered.await(waitMs, java.util.concurrent.TimeUnit.MILLISECONDS) && state.compareAndSet(0, 2)) return false
+    done.await()
+    return true
 }

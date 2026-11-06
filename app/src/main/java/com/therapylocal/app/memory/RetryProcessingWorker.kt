@@ -45,9 +45,25 @@ class RetryProcessingWorker(private val context: Context, params: WorkerParamete
 
         /** One retry at a time: a later deferral replaces the earlier one. */
         fun schedule(context: Context, retryInMs: Long) {
-            val request = OneTimeWorkRequestBuilder<RetryProcessingWorker>().setInitialDelay(retryInMs.coerceAtLeast(0), TimeUnit.MILLISECONDS).build()
+            val delay = delayFor(retryInMs, consecutive.incrementAndGet())
+            val request = OneTimeWorkRequestBuilder<RetryProcessingWorker>().setInitialDelay(delay, TimeUnit.MILLISECONDS).build()
             WorkManager.getInstance(context.applicationContext).enqueueUniqueWork(WORK_NAME, ExistingWorkPolicy.REPLACE, request)
-            AppLog.i(TAG, "retry_scheduled", LogCtx.NONE, "retry_in_ms" to retryInMs)
+            AppLog.i(TAG, "retry_scheduled", LogCtx.NONE, "retry_in_ms" to delay, "asked_ms" to retryInMs, "deferrals" to consecutive.get())
+        }
+
+        /** A run finished without a deferral: the next deferral starts at the floor again. */
+        fun resetDeferrals() = consecutive.set(0)
+
+        /** Deferrals in a row in this process. */
+        private val consecutive = java.util.concurrent.atomic.AtomicInteger(0)
+
+        const val MIN_DELAY_MS = 30_000L
+        const val MAX_DELAY_MS = 15 * 60_000L
+
+        /** The delay before the [n]th deferral in a row (from 1): at least [MIN_DELAY_MS] whatever the engine asked for, doubling each time, capped at [MAX_DELAY_MS]. */
+        internal fun delayFor(retryInMs: Long, n: Int): Long {
+            val grown = maxOf(retryInMs, MIN_DELAY_MS) shl (n - 1).coerceIn(0, 10)
+            return grown.coerceAtMost(MAX_DELAY_MS)
         }
     }
 }

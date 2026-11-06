@@ -73,6 +73,23 @@ interface EngineHost {
      * executor bounded by `closeTimeoutMs`. Safe from the main thread.
      */
     fun closeAsync(op: EngineOp.Close)
+
+    /**
+     * [closeAsync], then [onClosed] once the close is settled: `true` when the host acknowledged the Close (the caller may now tell the guard
+     * the engine was unloaded), `false` when the host ended first or the close failed (the connection's registry settled the handle itself, as
+     * a death or a benign end, so the caller must not). The default closes inline, so it is always acknowledged.
+     */
+    fun closeAsync(op: EngineOp.Close, onClosed: (acked: Boolean) -> Unit) {
+        closeAsync(op)
+        onClosed(true)
+    }
+
+    /** Waits (bounded by `closeTimeoutMs`) until the closes submitted so far have finished, so a load never overlaps the unload before it. */
+    fun awaitPendingCloses() {}
+
+    /** The host's status if one is bound now, else null. Never binds a host (the default host has nothing to bind). */
+    fun statusIfBound(): EngineReply.HostStatus? =
+        runCatching { call(EngineOp.Status(CallTag(java.util.UUID.randomUUID().toString().take(8), null, "status"))) as? EngineReply.HostStatus }.getOrNull()
 }
 
 /** How a host process ends on purpose: Runtime.getRuntime().halt(code), giving EXIT_SELF with this status. */

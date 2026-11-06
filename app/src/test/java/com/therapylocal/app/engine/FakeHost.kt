@@ -145,4 +145,27 @@ internal class FakeHost(override val role: EngineRole = EngineRole.BATCH) : Engi
     override fun closeAsync(op: EngineOp.Close) {
         closed += op.handle
     }
+
+    /** With [deferClose] the close is acknowledged only when the test calls [ackCloses] (a real host answers later, on its close thread). */
+    @Volatile var deferClose = false
+    private val deferred = CopyOnWriteArrayList<(Boolean) -> Unit>()
+
+    /** What happened around the closes, in order: `close`, `await`, for ordering assertions. */
+    val order = CopyOnWriteArrayList<String>()
+
+    override fun closeAsync(op: EngineOp.Close, onClosed: (acked: Boolean) -> Unit) {
+        closeAsync(op)
+        order += "close"
+        if (deferClose) deferred += onClosed else onClosed(true)
+    }
+
+    fun ackCloses(acked: Boolean = true) {
+        val l = deferred.toList()
+        deferred.clear()
+        l.forEach { it(acked) }
+    }
+
+    override fun awaitPendingCloses() {
+        order += "await"
+    }
 }
