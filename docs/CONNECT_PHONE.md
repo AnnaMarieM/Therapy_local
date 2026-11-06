@@ -62,8 +62,8 @@ The pairing port is different from the connect port, and it changes every time t
 ## Install and run this app
 
 ```bash
-./gradlew :app:assembleDebug        # run as a background command, takes minutes
-adb install -r app/build/outputs/apk/debug/app-debug.apk
+scripts/build.sh fast              # pinned Docker builder; run as a background command, takes minutes (Windows: .\scripts\build.ps1 fast)
+adb install -r dist/Therapy-main.apk
 adb shell am start -n com.therapylocal.app/.MainActivity
 adb logcat -s ModelDownload LlmEngine MainViewModel
 ```
