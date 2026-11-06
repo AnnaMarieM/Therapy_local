@@ -108,6 +108,7 @@ fun SettingsSheet(
     onDeveloper: (() -> Unit)?,
     onClose: () -> Unit,
     notice: NoticeState,
+    onReprocess: () -> Unit,
 ) {
     val ctx = LocalContext.current
     val activity = remember(ctx) { ctx.findFragmentActivity() }
@@ -232,6 +233,7 @@ fun SettingsSheet(
                 onDeveloper = onDeveloper,
                 onClose = { technicalSheet.close() },
                 notice = notice,
+                onReprocess = onReprocess,
             )
         }
     }
@@ -246,6 +248,7 @@ private fun TechnicalSettingsSheet(
     onDeveloper: (() -> Unit)?,
     onClose: () -> Unit,
     notice: NoticeState,
+    onReprocess: () -> Unit,
 ) {
     val ctx = LocalContext.current
     val haptics = rememberHaptics()
@@ -286,6 +289,9 @@ private fun TechnicalSettingsSheet(
             if (failedSessions > 0) item {
                 Row2(pluralStringResource(R.plurals.settings_failed_sessions, failedSessions, failedSessions), stringResource(R.string.settings_failed_body), stringResource(R.string.settings_failed_retry), onRetryFailed)
             }
+
+            item { Group(stringResource(R.string.settings_group_reprocess)) }
+            item { Row2(stringResource(R.string.settings_reprocess_title), stringResource(R.string.settings_reprocess_body), stringResource(R.string.settings_reprocess_action), onReprocess) }
 
             item { Group(stringResource(R.string.settings_group_memory_model)) }
             item { ModelChoice(notice) }

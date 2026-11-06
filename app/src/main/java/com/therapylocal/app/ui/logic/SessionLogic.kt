@@ -90,7 +90,7 @@ object SessionLogic {
         val step = t.str(R.string.progress_step, stepNo, s.total)
         val audioMin = e.audioMs[s.sessionId]?.takeIf { it > 0 }?.let { it / 60_000.0 }
         val whole = e.perMinute?.let { m -> audioMin?.let { (it * m.processingMs * Progress.PADDING).toLong() } }
-        val noHistory = t.str(R.string.sessionlogic_no_history, com.therapylocal.app.perf.PerfStats.MIN_SESSIONS, e.measured)
+        val noHistory = t.str(R.string.sessionlogic_no_history)
         if (!s.running) {
             val first = when {
                 s.blocked > 0 -> t.str(R.string.sessionlogic_waits_retry, step)

@@ -1,4 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="settings_group_language">Language</string>
+    <string name="settings_group_reprocess">Read again</string>
+    <string name="settings_reprocess_title">Read earlier sessions again</string>
+    <string name="settings_reprocess_body">Writes the facts of earlier sessions again in the app\'s language, using the saved transcripts. Best run overnight.</string>
+    <string name="settings_reprocess_action">Check</string>
+    <string name="reprocess_up_to_date">Every session is already up to date</string>
+    <string name="reprocess_title">Read earlier sessions again?</string>
+    <plurals name="reprocess_body">
+        <item quantity="one">%1$d session can be read again so its facts are written in the app\'s language. Estimated time: %2$s. Best run overnight, with the phone plugged in.</item>
+        <item quantity="other">%1$d sessions can be read again so their facts are written in the app\'s language. Estimated time: %2$s. Best run overnight, with the phone plugged in.</item>
+    </plurals>
+    <plurals name="reprocess_body_unknown">
+        <item quantity="one">%1$d session can be read again so its facts are written in the app\'s language. The time is not known yet: it is measured once a first session has been processed. Best run overnight, with the phone plugged in.</item>
+        <item quantity="other">%1$d sessions can be read again so their facts are written in the app\'s language. The time is not known yet: it is measured once a first session has been processed. Best run overnight, with the phone plugged in.</item>
+    </plurals>
+    <string name="reprocess_confirm">Read again</string>
+    <string name="reprocess_later">Not now</string>
+    <string name="reprocess_started">Reading the sessions again in the background</string>
 </resources>

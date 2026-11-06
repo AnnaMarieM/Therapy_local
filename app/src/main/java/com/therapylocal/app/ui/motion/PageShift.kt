@@ -4,7 +4,10 @@ import androidx.activity.compose.PredictiveBackHandler
 import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Stable
@@ -65,10 +68,14 @@ val LocalPageFrame = staticCompositionLocalOf<Frame?> { null }
  */
 @Stable
 class SheetState internal constructor(private val scope: CoroutineScope, width: Float) {
+    private var width by mutableStateOf(width)
+
+    internal fun resize(w: Float) { if (w != width) width = w }
+
     val progress = Animatable(0f)
 
     /** How far the content travels between away and here, in px. A sideways drag of this much is the whole way. */
-    val shiftPx: Float = (width * SHIFT_SHARE).coerceAtLeast(1f)
+    val shiftPx: Float get() = (width * SHIFT_SHARE).coerceAtLeast(1f)
 
     /** Where it should go: true while arriving or here. */
     var target by mutableStateOf(false)
@@ -129,14 +136,19 @@ class SheetState internal constructor(private val scope: CoroutineScope, width: 
 }
 
 @Composable
-fun rememberSheetState(): SheetState {
+fun rememberSheetState(widthDp: Int? = null): SheetState {
     val scope = rememberCoroutineScope()
-    val width = LocalConfiguration.current.screenWidthDp * LocalDensity.current.density
-    return remember { SheetState(scope, width) }
+    // A page never travels further than it would on a large phone: on a tablet a 40% slide is a long way to watch, and it has to match
+    // the swipe that arms the action (96-150 dp), which does not grow with the screen.
+    val width = minOf(widthDp ?: LocalConfiguration.current.screenWidthDp, MAX_TRAVEL_BASIS_DP) * LocalDensity.current.density
+    return remember { SheetState(scope, width) }.also { it.resize(width) }
 }
 
 /** Share of the screen width a page's content travels on its way in or out. */
 const val SHIFT_SHARE = 0.4f
+
+/** Wider than this, a page's travel stops growing (600 dp x 40% = 240 dp). */
+const val MAX_TRAVEL_BASIS_DP = 600
 
 /** How much paper has come over what is underneath: it is covered by the time the new content starts to show, so two pages never mix. */
 internal fun paperIn(q: Float) = GestureMath.smoothstep(0.2f, 0.6f, q)
@@ -172,10 +184,14 @@ fun PageShift(
         }
     }
     val frame = remember { Frame() }
-    Box(modifier.fillMaxSize().drawBehind { drawPaper(if (reduced) state.progress.value else paperIn(state.progress.value)) }) {
+    Box(
+        modifier.fillMaxSize().drawBehind { drawPaper(if (reduced) state.progress.value else paperIn(state.progress.value)) },
+        contentAlignment = androidx.compose.ui.Alignment.TopCenter,
+    ) {
         CompositionLocalProvider(LocalPageFrame provides frame) {
             Box(
-                Modifier.fillMaxSize()
+                // On wide windows a page is a centred column, so lines of text stay readable.
+                Modifier.fillMaxHeight().widthIn(max = com.therapylocal.app.ui.design.Adaptive.ReadingWidth).fillMaxWidth()
                     .graphicsLayer {
                         val q = state.progress.value
                         if (reduced) {

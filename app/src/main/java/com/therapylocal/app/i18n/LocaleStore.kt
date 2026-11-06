@@ -40,8 +40,20 @@ object LocaleStore {
         }
     }
 
+    /** Set when the language was switched, until the main screen has offered to read the sessions again in it. */
+    private const val KEY_OFFER = "offer_reprocess"
+
+    /** True once after a language switch; the activity is recreated by it, so the answer outlives the screen that asked. */
+    fun takeReprocessOffer(ctx: Context): Boolean {
+        val prefs = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        return prefs.getBoolean(KEY_OFFER, false).also { if (it) prefs.edit().remove(KEY_OFFER).apply() }
+    }
+
     /** Switches the app to [tag] now: Android 13+ recreates the activity itself, Android 12 needs it done here. */
     fun choose(activity: Activity, tag: String) {
+        if (Languages.byTag(tag) != null && !tag.equals(current(activity).tag, ignoreCase = true)) {
+            activity.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putBoolean(KEY_OFFER, true).apply()
+        }
         set(activity, tag)
         if (Build.VERSION.SDK_INT < 33) activity.recreate()
     }

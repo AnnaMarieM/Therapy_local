@@ -75,6 +75,8 @@ class MainActivity : FragmentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Phones stay in portrait; windows from 600dp up (tablets, unfolded) rotate freely.
+        requestedOrientation = if (resources.getBoolean(R.bool.portrait_lock)) android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT else android.content.pm.ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
         // Edge to edge: the app draws behind the system bars and pads by their insets itself.
         enableEdgeToEdge()
         // Patient names and notes must not end up in screenshots or the recents preview. (Not in the qa build: its vault holds only test

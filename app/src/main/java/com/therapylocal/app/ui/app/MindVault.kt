@@ -7,6 +7,10 @@ import android.os.SystemClock
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -51,6 +55,7 @@ import com.therapylocal.app.session.SessionController
 import com.therapylocal.app.session.SessionPhase
 import com.therapylocal.app.ui.data.ClientsViewModel
 import com.therapylocal.app.ui.design.Palette
+import com.therapylocal.app.ui.design.PaneDivider
 import com.therapylocal.app.ui.design.PaperTheme
 import com.therapylocal.app.ui.design.paper
 import com.therapylocal.app.ui.design.rememberChoiceState
@@ -73,6 +78,7 @@ import com.therapylocal.app.vault.Vault
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import com.therapylocal.app.i18n.LocaleStore
 
 /**
  * The whole app after the gate: the client reel, with every other surface a page shifted in over it on the same paper (see [PageShift]).
@@ -87,7 +93,9 @@ fun MindVault(viewModel: () -> MainViewModel, openSession: Int, onDeveloper: (()
         val unlocked by Vault.unlocked.collectAsStateWithLifecycle()
         var passed by rememberSaveable { mutableStateOf(false) }
         Box(Modifier.fillMaxSize().paper()) {
-            if (!unlocked || !passed) Gate(onOpen = { passed = true })
+            if (!unlocked || !passed) Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
+                Box(Modifier.fillMaxHeight().widthIn(max = com.therapylocal.app.ui.design.Adaptive.ReadingWidth).fillMaxWidth()) { Gate(onOpen = { passed = true }) }
+            }
             else Main(remember { viewModel() }, openSession, onDeveloper)
         }
     }
@@ -117,10 +125,14 @@ private fun Main(viewModel: MainViewModel, openSessionRequest: Int, onDeveloper:
     val notice = remember { NoticeState() }
     val bar = rememberChoiceState()
     val refs = remember { HomeRefs() }
-    val profileSheet = rememberSheetState()
-    val sessionSheet = rememberSheetState()
-    val settingsSheet = rememberSheetState()
-    val addSheet = rememberSheetState()
+    val winW = com.therapylocal.app.ui.design.windowWidthDp()
+    val twoPane = com.therapylocal.app.ui.design.rememberTwoPane()
+    val listW = if (twoPane) com.therapylocal.app.ui.design.Adaptive.listPaneDp(winW) else 0
+    val pageW = winW - listW
+    val profileSheet = rememberSheetState(pageW)
+    val sessionSheet = rememberSheetState(pageW)
+    val settingsSheet = rememberSheetState(pageW)
+    val addSheet = rememberSheetState(pageW)
     var profileId by rememberSaveable { mutableStateOf<String?>(null) }
     var focus by remember { mutableStateOf<String?>(null) }
     var hint by remember { mutableStateOf(!prefs.getBoolean(KNOWS_REEL, false)) }
@@ -128,12 +140,23 @@ private fun Main(viewModel: MainViewModel, openSessionRequest: Int, onDeveloper:
     var confirmDiscard by remember { mutableStateOf(false) }
     var confirmShort by remember { mutableStateOf(false) }
 
+    // Sessions that can be read again in the app's language, offered after a language switch or from the settings.
+    var reprocess by remember { mutableStateOf<Pair<com.therapylocal.app.jobs.Reprocess.Plan, Long?>?>(null) }
+    val offerReprocess = { asked: Boolean ->
+        scope.launch {
+            val offer = withContext(Dispatchers.IO) { com.therapylocal.app.jobs.Reprocess.plan(ctx).let { it to it.estimateMs(ctx) } }
+            if (offer.first.sessions.isNotEmpty()) reprocess = offer else if (asked) notice.show(t.str(R.string.reprocess_up_to_date))
+        }
+        Unit
+    }
+    LaunchedEffect(Unit) { if (LocaleStore.takeReprocessOffer(ctx)) offerReprocess(false) }
+
     // The client's name travels between the reel and the top of their page while that page comes and goes. Only when both ends are known
     // and in sight (the page's title can be scrolled away); otherwise the page just shifts in like any other.
     val reduced = com.therapylocal.app.ui.design.LocalReducedMotion.current
     val titleRef = remember { BoundsRef() }
     val nameTravels = {
-        !reduced && profileSheet.visible && profileId != null && refs.nameOf == profileId &&
+        !reduced && !twoPane && profileSheet.visible && profileId != null && refs.nameOf == profileId &&
             refs.name.rect != Rect.Zero && titleRef.rect != Rect.Zero && titleRef.present
     }
     refs.lent = nameTravels
@@ -169,7 +192,12 @@ private fun Main(viewModel: MainViewModel, openSessionRequest: Int, onDeveloper:
     val llmModel = remember(perfVersion) { ModelSetup.gemma(ctx).id }
     val audioMs by produceState(emptyMap<String, Long>(), queue.sessions.map { it.sessionId }) {
         value = withContext(Dispatchers.IO) {
-            runCatching { MindStore.get(ctx).recordings().filter { it.sessionId != null }.groupBy { it.sessionId!! }.mapValues { e -> e.value.sumOf { it.durationMs } } }.getOrDefault(emptyMap())
+            // A session whose recording is gone (read again from its transcript) is as long as its transcript.
+            runCatching {
+                val store = MindStore.get(ctx)
+                val recorded = store.recordings().filter { it.sessionId != null }.groupBy { it.sessionId!! }.mapValues { e -> e.value.sumOf { it.durationMs } }
+                queue.sessions.associate { s -> s.sessionId to (recorded[s.sessionId] ?: store.transcriptLengthMs(s.sessionId)) }
+            }.getOrDefault(emptyMap())
         }
     }
     val evidence = Evidence(
@@ -255,7 +283,9 @@ private fun Main(viewModel: MainViewModel, openSessionRequest: Int, onDeveloper:
         val s = if (p != null) profileSheet else addSheet
         if (!s.target) {
             if (p != null) showProfile(p)
-            s.follow((-dx).coerceAtLeast(0f) / s.shiftPx)
+            // The pull is measured against the list the finger is on, not the (much wider) pane the page opens in.
+            val travel = (if (twoPane) listW else winW) * density.density * com.therapylocal.app.ui.motion.SHIFT_SHARE
+            s.follow((-dx).coerceAtLeast(0f) / travel)
         }
     }
     val unpeek = { p: Patient? -> (if (p != null) profileSheet else addSheet).let { if (!it.target) it.close() } }
@@ -295,6 +325,11 @@ private fun Main(viewModel: MainViewModel, openSessionRequest: Int, onDeveloper:
     CompositionLocalProvider(LocalIdle provides idle, LocalDockInset provides dockInset) {
     Box(Modifier.fillMaxSize().watchIdle(idle)) {
         val overHome = listOf(profileSheet, addSheet, settingsSheet, sessionSheet)
+        // Wide windows: the client list stays on the left and every page opens in the pane on the right.
+        val pageMod = if (twoPane) Modifier.padding(start = listW.dp) else Modifier
+        if (twoPane) {
+            Box(Modifier.padding(start = listW.dp).fillMaxSize().paper())
+        }
         Home(
             clients = clients,
             statusOf = statusOf,
@@ -315,10 +350,10 @@ private fun Main(viewModel: MainViewModel, openSessionRequest: Int, onDeveloper:
                 peek = peek,
                 unpeek = unpeek,
             ),
-            modifier = Modifier.recede(overHome, reduced),
+            modifier = if (twoPane) Modifier.width(listW.dp).fillMaxHeight() else Modifier.recede(overHome, reduced),
         )
 
-        PageShift(profileSheet, onBack = closeProfile, under = listOf(sessionSheet)) {
+        PageShift(profileSheet, onBack = closeProfile, under = listOf(sessionSheet), modifier = pageMod) {
             val p = clients.firstOrNull { it.id == profileId }
             if (p != null) ProfileSheet(
                 sheet = profileSheet,
@@ -360,7 +395,7 @@ private fun Main(viewModel: MainViewModel, openSessionRequest: Int, onDeveloper:
             TravellingName(p.name, profileSheet, refs.name, titleRef, nameMoving)
         }
 
-        PageShift(addSheet, onBack = { addSheet.close() }) {
+        PageShift(addSheet, onBack = { addSheet.close() }, modifier = pageMod) {
             AddClientSheet(addSheet, onCancel = { addSheet.close() }, onAdd = { name, language ->
                 scope.launch {
                     val p = withContext(Dispatchers.IO) { runCatching { clientsVm.repo.createClient(name, language) }.getOrNull() }
@@ -374,8 +409,8 @@ private fun Main(viewModel: MainViewModel, openSessionRequest: Int, onDeveloper:
             })
         }
 
-        PageShift(settingsSheet, onBack = { settingsSheet.close() }) {
-            SettingsSheet(settingsSheet, failedTotal, retryFailed, lock, onDeveloper, onClose = { settingsSheet.close() }, notice = notice)
+        PageShift(settingsSheet, onBack = { settingsSheet.close() }, modifier = pageMod) {
+            SettingsSheet(settingsSheet, failedTotal, retryFailed, lock, onDeveloper, onClose = { settingsSheet.close() }, notice = notice, onReprocess = { offerReprocess(true) })
         }
 
         // ---- the order of layers, bottom to top ----
@@ -386,8 +421,8 @@ private fun Main(viewModel: MainViewModel, openSessionRequest: Int, onDeveloper:
         if (dockShown || (session.active && sessionSheet.progress.isRunning)) {
             SessionPill(
                 session.client.takeIf { it.isNotEmpty() }?.let(clientName), session.phase == SessionPhase.Paused, elapsed, refs.pill, openSession,
-                Modifier.align(Alignment.BottomCenter).recede(listOf(sessionSheet), reduced)
-                    .fillMaxWidth().navigationBarsPadding().imePadding().padding(horizontal = 14.dp, vertical = 14.dp)
+                Modifier.align(if (twoPane) Alignment.BottomStart else Alignment.BottomCenter)
+                    .let { if (twoPane) it.width(listW.dp) else it.recede(listOf(sessionSheet), reduced).fillMaxWidth() }.navigationBarsPadding().imePadding().padding(horizontal = 14.dp, vertical = 14.dp)
                     .onSizeChanged { if (dockShown) dockPx = it.height },
             )
         }
@@ -395,7 +430,7 @@ private fun Main(viewModel: MainViewModel, openSessionRequest: Int, onDeveloper:
             SideEffect { dockPx = 0 }
         }
 
-        PageShift(sessionSheet, onBack = minimise) {
+        PageShift(sessionSheet, onBack = minimise, modifier = pageMod) {
             SessionSheet(
                 sheet = sessionSheet,
                 session = session,
@@ -413,7 +448,10 @@ private fun Main(viewModel: MainViewModel, openSessionRequest: Int, onDeveloper:
             )
         }
 
-        NoticeHost(notice, Modifier.align(Alignment.TopCenter))
+        if (twoPane) PaneDivider(Modifier.offset(x = (listW - 1).dp))
+
+        // A notice is a toast, not a bar: on a wide window it keeps the width of a page.
+        Box(Modifier.align(Alignment.TopCenter).widthIn(max = com.therapylocal.app.ui.design.Adaptive.ReadingWidth)) { NoticeHost(notice) }
     }
     }
 
@@ -421,6 +459,17 @@ private fun Main(viewModel: MainViewModel, openSessionRequest: Int, onDeveloper:
         stringResource(R.string.mindvault_lock_title, stringResource(R.string.app_name)), stringResource(R.string.mindvault_lock_body), stringResource(R.string.mindvault_lock_confirm),
         onConfirm = { confirmLock = false; activity?.let(Vault::lock) }, onDismiss = { confirmLock = false }, destructive = false,
     )
+    reprocess?.let { (plan, estimate) ->
+        ReprocessDialog(
+            t, plan, estimate,
+            onStart = {
+                reprocess = null
+                scope.launch(Dispatchers.IO) { com.therapylocal.app.jobs.Reprocess.start(ctx, plan) }
+                notice.show(t.str(R.string.reprocess_started))
+            },
+            onDismiss = { reprocess = null },
+        )
+    }
     if (confirmDiscard) {
         val e = session.ended
         ConfirmDialog(

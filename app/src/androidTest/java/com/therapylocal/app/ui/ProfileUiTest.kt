@@ -168,7 +168,7 @@ class ProfileUiTest {
     @Test
     fun theLookbackSliderSavesItsSetting() {
         prefs().edit().remove(LiveCueSettings.KEY_LOOKBACK_S).commit()
-        compose.setContent { PaperTheme { SettingsSheet(rememberSheetState(), 0, {}, {}, null, {}, remember { NoticeState() }) } }
+        compose.setContent { PaperTheme { SettingsSheet(rememberSheetState(), 0, {}, {}, null, {}, remember { NoticeState() }, {}) } }
 
         compose.onAllNodes(hasScrollToNodeAction()).onFirst().performScrollToNode(hasText("Technical settings"))
         compose.onNode(hasText("Technical settings")).performClick()

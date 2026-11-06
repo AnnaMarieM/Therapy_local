@@ -65,18 +65,26 @@ class ProgressTest {
         assertEquals("Step 3/5 · 3/10 passages · about 3 min left", lines[0])
         assertEquals("Reading 1,240 tokens/s · writing 14 tokens/s", lines[1])
         assertEquals("About 7,700 tokens left to read", lines[2])
-        assertEquals("Time left: after 2 sessions are measured (1 so far)", lines[3])
+        assertEquals("Time left: shown once the first session has been processed", lines[3])
     }
 
     @Test
     fun aWaitingSessionGetsItsTimeFromItsInterviewLengthOnlyOnceThereIsHistory() {
         val s = SessionProgress("s2", "ben", 0, total = 5, done = 0, failed = 0, blocked = 0, running = false)
         val none = SessionLogic.evidenceLines(EnglishTexts, s, 1, null, Evidence(measured = 0, audioMs = mapOf("s2" to 600_000)))
-        assertEquals(listOf("Step 1/5 · starts after 1 session", "Time left: after 2 sessions are measured (0 so far)"), none)
+        assertEquals(listOf("Step 1/5 · starts after 1 session", "Time left: shown once the first session has been processed"), none)
         // 10 min of interview at 30 s of processing a minute, padded: 6 min.
         val known = SessionLogic.evidenceLines(EnglishTexts, s, 0, null, Evidence(perMinute = PerMinute(3, 30_000.0, 900.0, 60.0), measured = 3, audioMs = mapOf("s2" to 600_000)))
         assertEquals("Step 1/5 · starts next", known[0])
         assertEquals("10 min of interview · about 6 min to process once started", known[1])
         assertTrue(known.size == 2)
+    }
+
+    @Test
+    fun rereadingTimeIsCallsPerMinuteTimesTimePerCall() {
+        // 2 calls a minute at 15 s each: a 10 min transcript takes 5 min.
+        val m = PerMinute(1, 30_000.0, 900.0, 60.0, callsPerMinute = 2.0, msPerCall = 15_000.0)
+        assertEquals(300_000L, m.rereadMs(600_000))
+        assertEquals(null, PerMinute(1, 30_000.0, 900.0, 60.0).rereadMs(600_000))
     }
 }

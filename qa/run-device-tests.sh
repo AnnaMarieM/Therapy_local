@@ -23,6 +23,9 @@ APK="$ROOT/dist/Therapy-main.apk"
 TEST_APK="$ROOT/dist/Therapy-main-androidTest.apk"
 [[ -f "$APK" && -f "$TEST_APK" ]] || { echo "Build failed: APKs missing." >&2; exit 1; }
 
+# A sleeping screen means no activity can resume and every Compose test fails with "No compose hierarchies found".
+"$ADB" shell input keyevent KEYCODE_WAKEUP >/dev/null 2>&1; "$ADB" shell wm dismiss-keyguard >/dev/null 2>&1
+
 echo "== install"
 "$ADB" install -r -t "$APK" >/dev/null
 "$ADB" install -r -t "$TEST_APK" >/dev/null
