@@ -83,7 +83,7 @@ jobs:
           - { lane: lmk-33,      api: 33, profile: pixel_4,     ram: "1536", args: "-e annotation com.therapylocal.app.engine.stress.Lmk,com.therapylocal.app.engine.stress.Core" }
           # The catalogue calls the profile small_phone; pixel_2 is the smallest stock avdmanager device with a phone screen.
           - { lane: api31-small, api: 31, profile: pixel_2,     ram: "2048", args: "-e annotation com.therapylocal.app.engine.stress.Full,com.therapylocal.app.engine.stress.Lmk" }
-          - { lane: api35-fold,  api: 35, profile: pixel_fold,  ram: "",     args: "-e annotation com.therapylocal.app.engine.stress.Full" }
+          - { lane: api35-tablet, api: 35, profile: pixel_tablet, ram: "",     args: "-e annotation com.therapylocal.app.engine.stress.Full" }
           - { lane: slow-34,     api: 34, profile: pixel_6,     ram: "2048", cores: 2, args: "-e annotation com.therapylocal.app.engine.stress.Full,com.therapylocal.app.engine.stress.Slow -e scale 4" }
     uses: ./.github/workflows/emulator-lane.yml
     with:
