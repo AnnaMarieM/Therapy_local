@@ -92,5 +92,22 @@ interface EngineHost {
         runCatching { call(EngineOp.Status(CallTag(java.util.UUID.randomUUID().toString().take(8), null, "status"))) as? EngineReply.HostStatus }.getOrNull()
 }
 
-/** How a host process ends on purpose: Runtime.getRuntime().halt(code), giving EXIT_SELF with this status. */
-enum class HostExit(val code: Int, val why: String) { CLIENT_DIED(10, "client_died"), UNBIND(11, "unbind"), SHUTDOWN(12, "shutdown") }
+/**
+ * How a host process ends itself: `Runtime.getRuntime().halt(code)` (or `_exit` in the native handler), giving EXIT_SELF with this status.
+ * 10..12 are on purpose ([benign]). [JAVA_CRASH] is an uncaught exception that was logged (AD-04). [NATIVE_BASE] + signal number is a fatal
+ * native signal caught by `quietcrash` (AD-04), so [nativeSignal] reads a status back.
+ */
+enum class HostExit(val code: Int, val why: String, val benign: Boolean = true) {
+    CLIENT_DIED(10, "client_died"), UNBIND(11, "unbind"), SHUTDOWN(12, "shutdown"),
+    JAVA_CRASH(13, "java_crash", benign = false);
+
+    companion object {
+        const val NATIVE_BASE = 100
+
+        /** Signals 1..31 plus the real-time ones in use stay below this. Never collides with 0..13. */
+        private const val NATIVE_LAST = NATIVE_BASE + 64
+
+        /** The signal number a native-crash status stands for, else null. */
+        fun nativeSignal(status: Int): Int? = if (status in NATIVE_BASE + 1..NATIVE_LAST) status - NATIVE_BASE else null
+    }
+}

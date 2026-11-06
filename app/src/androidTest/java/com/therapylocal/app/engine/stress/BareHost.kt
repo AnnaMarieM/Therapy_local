@@ -44,7 +44,15 @@ class BareHost private constructor(val role: EngineRole, private val ctx: Contex
         }
     }
 
-    fun unbind() { runCatching { ctx.unbindService(conn) } }
+    /**
+     * Unbinds and waits (bounded) for the host process to be gone. A host halts itself on unbind; binding again while it is still dying makes
+     * Android delay the next start by about 10 s ("Process ... has died" with a pending bind; seen on a real phone). EngineConnection waits
+     * the same way, so a probe that rebinds must too.
+     */
+    fun unbind() {
+        runCatching { ctx.unbindService(conn) }
+        awaitGone(5_000)
+    }
 
     /** Waits (bounded) until the process is gone; true if it is. The wait is the stimulus' own bound, not a sleep to synchronise. */
     fun awaitGone(timeoutMs: Long = 10_000): Boolean {

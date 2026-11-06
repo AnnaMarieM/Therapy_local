@@ -52,8 +52,13 @@ object ExitReasons {
             ApplicationExitInfo.REASON_CRASH_NATIVE -> m(ExitKind.NATIVE_CRASH)
             ApplicationExitInfo.REASON_CRASH -> m(ExitKind.CRASH)
             ApplicationExitInfo.REASON_ANR -> m(ExitKind.ANR)
-            // A host ends itself on purpose with halt(10/11/12): never a memory kill.
-            ApplicationExitInfo.REASON_EXIT_SELF -> m(ExitKind.BENIGN, HostExit.entries.firstOrNull { it.code == r.status }?.why)
+            // A host ends itself with halt(code) or _exit(code), never a memory kill: 10..12 on purpose, 13 after a logged Java crash, 100+N
+            // after the native handler caught signal N (AD-04). The last two are struck like the crash they are.
+            ApplicationExitInfo.REASON_EXIT_SELF -> when {
+                HostExit.nativeSignal(r.status) != null -> m(ExitKind.NATIVE_CRASH)
+                r.status == HostExit.JAVA_CRASH.code -> m(ExitKind.CRASH, HostExit.JAVA_CRASH.why)
+                else -> m(ExitKind.BENIGN, HostExit.entries.firstOrNull { it.benign && it.code == r.status }?.why)
+            }
             ApplicationExitInfo.REASON_FREEZER -> m(ExitKind.BENIGN, "freezer")
             ApplicationExitInfo.REASON_DEPENDENCY_DIED -> m(ExitKind.UNKNOWN)
             ApplicationExitInfo.REASON_USER_REQUESTED, ApplicationExitInfo.REASON_USER_STOPPED, ApplicationExitInfo.REASON_PERMISSION_CHANGE,
@@ -63,7 +68,13 @@ object ExitReasons {
         }
     }
 
-    fun describe(r: ExitRecord): String = "${reasonName(r.reason)} status=${r.status} ${r.description ?: ""}".trim()
+    fun describe(r: ExitRecord): String {
+        if (r.reason == ApplicationExitInfo.REASON_EXIT_SELF) {
+            HostExit.nativeSignal(r.status)?.let { return "signal $it" }
+            if (r.status == HostExit.JAVA_CRASH.code) return HostExit.JAVA_CRASH.why
+        }
+        return "${reasonName(r.reason)} status=${r.status} ${r.description ?: ""}".trim()
+    }
 
     fun reasonName(reason: Int) = when (reason) {
         ApplicationExitInfo.REASON_EXIT_SELF -> "exit_self"

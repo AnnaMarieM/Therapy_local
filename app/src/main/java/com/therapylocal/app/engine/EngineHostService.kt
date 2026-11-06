@@ -16,7 +16,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 /**
  * A bound, non-foreground process that runs one [EngineServer] for a role (`:live` or `:batch`). Main binds it, calls it with one generic
  * Bundle method, and ends it by unbinding, by [IEngineHost.shutdown] or by dying. The process ends itself with `Runtime.halt(code)`,
- * which the system reports as `EXIT_SELF` with status 10, 11 or 12 ([HostExit]); `killProcess` would read as a memory kill (SIGNALED 9).
+ * which the system reports as `EXIT_SELF` with status 10, 11 or 12 ([HostExit]); a crash also ends as EXIT_SELF (13, or 100 + signal, AD-04); `killProcess` would read as a memory kill (SIGNALED 9).
  *
  * Calls block a binder thread for as long as the inference takes. The host calls back into main only through the synchronous `phase`,
  * which main serves on its own binder pool, and main's caller is never a binder thread, so there is no deadlock.

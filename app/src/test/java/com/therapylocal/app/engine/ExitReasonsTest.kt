@@ -25,7 +25,7 @@ class ExitReasonsTest {
     }
 
     @Test fun haltCodesMapToBenignWithTheirReason() {
-        for (h in HostExit.entries) {
+        for (h in HostExit.entries.filter { it.benign }) {
             val m = ExitReasons.map(rec(ApplicationExitInfo.REASON_EXIT_SELF, h.code), lowMemoryKillReports = false)
             assertEquals(ExitKind.BENIGN, m.kind)
             assertEquals(h.why, m.why)

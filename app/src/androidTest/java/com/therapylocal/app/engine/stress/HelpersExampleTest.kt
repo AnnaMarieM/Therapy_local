@@ -74,12 +74,13 @@ class HelpersExampleTest {
         val m = lab.logs.mark()
         AppLog.i("HelperExample", "tick", LogCtx.NONE)
         AppLog.i("HelperExample", "boundary", LogCtx.NONE)
+        SystemClock.sleep(25) // the stimulus: log lines carry millisecond stamps, and a "later" tick must really be later (a fast emulator logs all three in one ms)
         AppLog.i("HelperExample", "tick", LogCtx.NONE)
         val seq = lab.logs.untilSequence("tick", "boundary", "tick", after = m)
         assertEquals(3, seq.size)
         val stall = lab.logs.stallMs("tick", seq[1])
-        assertNotNull(stall)
-        assertTrue(stall!! in 0..5_000)
+        assertNotNull("no tick found after the boundary line: ${seq.map { it.text() }}", stall)
+        assertTrue("stall $stall ms", stall!! in 0..5_000)
     }
 
     @Test
