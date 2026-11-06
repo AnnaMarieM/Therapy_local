@@ -2,6 +2,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application>
         <!-- QA build only: loads a Gemma build and records exact memory use, see MemProbeActivity. -->
-        <activity android:name=".debug.MemProbeActivity" android:exported="true" />
+        <activity android:name=".debug.MemProbeActivity" android:exported="true" android:permission="android.permission.DUMP" />
     </application>
 </manifest>

@@ -11,6 +11,10 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+# Least privilege by default; a job that needs more (release-main) asks for it itself.
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest

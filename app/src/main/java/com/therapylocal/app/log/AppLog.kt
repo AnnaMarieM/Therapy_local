@@ -106,7 +106,9 @@ object AppLog {
             } catch (_: Throwable) {
                 // the crash handler must never hide the original crash
             }
-            previous?.uncaughtException(thread, t)
+            // The platform handler prints the message and stack to logcat and DropBox. In a process that holds patient text, hand it a copy with
+            // the class name and the frames only, so an exception message that quotes a prompt or transcript never reaches them.
+            previous?.uncaughtException(thread, if (redacted) RuntimeException(t.javaClass.name).also { it.stackTrace = t.stackTrace } else t)
         }
     }
 

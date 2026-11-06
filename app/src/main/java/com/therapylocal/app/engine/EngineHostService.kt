@@ -37,19 +37,22 @@ abstract class EngineHostService(private val role: EngineRole) : Service() {
     private val binder = object : IEngineHost.Stub() {
         override fun call(op: Bundle): Bundle {
             var tag: CallTag? = null
+            var text = true
             return try {
                 val decoded = EngineCodec.decodeOp(op)
                 tag = decoded.tag
+                text = decoded.isText
                 val reply = EngineCodec.encode(server.handle(decoded, phasesVia(events)))
                 scheduleRelease(reply)
                 reply
             } catch (t: Throwable) {
                 // An engine failure never crosses as a Binder exception: it is a reply with ok=false.
                 if (tag == null) AppLog.w(TAG, "host_call_undecodable", LogCtx.NONE, "type" to t.javaClass.simpleName)
-                // The reply keeps the message, as an in-process call did: callers depend on it (Pipeline.embedFitting splits on "exceeds
-                // maximum"). It goes to main only, bounded by EngineErrors.MAX_MESSAGE; every log line that mentions it is redacted for text ops
-                // (the engine server's spans, main's eRedacted), so the message never reaches a log file. docs/AD/AD-01.md, plan Step 2.
-                EngineCodec.error(EngineErrors.capture(t, redact = false))
+                // Pipeline.embedFitting splits a text on "exceeds maximum", so that phrase must survive the boundary (plan Step 2). Every log line that
+                // mentions an error of a text op is redacted (the engine server's spans, main's eRedacted).
+                val e = EngineErrors.capture(t, redact = false)
+                // Only the one phrase a caller acts on crosses for a text op; the rest of the message could quote the patient's text.
+                EngineCodec.error(if (text) e.copy(message = if (e.message?.contains(KEPT_PHRASE) == true) KEPT_PHRASE else null) else e)
             }
         }
 
@@ -106,6 +109,9 @@ abstract class EngineHostService(private val role: EngineRole) : Service() {
 
     private companion object {
         const val TAG = "Engine"
+
+        /** The one phrase of a text-op error message that crosses to main: Pipeline.embedFitting splits an over-long text on it. */
+        const val KEPT_PHRASE = "exceeds maximum"
 
         /** A reply's shared memory can only be closed after Binder has parcelled the reply, which happens after `call` returns. */
         val releaser = Executors.newSingleThreadScheduledExecutor { r -> Thread(r, "engine-reply-release").apply { isDaemon = true } }
