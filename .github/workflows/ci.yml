@@ -76,7 +76,12 @@ jobs:
   android-test:
     needs: build
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 40
+    # The same tests on a phone and on a tablet, so the two-pane layout and the size-dependent tests run on a real tablet screen too.
+    strategy:
+      fail-fast: false
+      matrix:
+        device: [pixel_6, pixel_tablet]
     steps:
       - uses: actions/checkout@v4
       # The APKs the pinned builder produced: the tests run against exactly what gets released
@@ -96,6 +101,7 @@ jobs:
           api-level: 34
           arch: x86_64
           target: google_apis
+          profile: ${{ matrix.device }}
           disable-animations: true
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           script: SKIP_BUILD=1 qa/run-device-tests.sh
