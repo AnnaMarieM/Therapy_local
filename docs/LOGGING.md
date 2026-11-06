@@ -13,7 +13,7 @@ Every stage of the app writes structured `key=value` lines, so a recording can b
 ## Line format
 
 ```
-ts=2026-10-24T13:20:04.509 lvl=I tag=ASR sid=ab12cd rid=3 cid=3.2 evt=span_end span=asr_transcribe dur_ms=1234.5 engine=whisper model=whisper-base backend=CPU audio_sec=20.00 chars=212 rtf=0.06
+ts=2026-10-24T13:20:04.509 lvl=I tag=ASR sid=ab12cd rid=3 cid=3.2 evt=span_end span=asr_transcribe dur_ms=1234.5 engine=canary model=canary-1b-v2 backend=CPU audio_sec=20.00 chars=212 rtf=0.06
 ```
 
 | Field | Meaning |
@@ -34,11 +34,10 @@ Values with spaces or `=` are double-quoted.
 |---|---|---|
 | `chunk_cut` | Audio | one chunk cut from the live stream: `idx`, `start_ms`, `end_ms`, `overlap_ms` (all from `ChunkConfig`), `rms` is the signal level |
 | `chunk_dropped_short` | Audio | the trailing chunk added too little new audio (`new_ms` against `min_new_ms`) and was not kept |
-| `audio_wav_encode` / `audio_to_float` | ASR / Embed | preprocessing: WAV for Gemma and for the audio embedder, float for Whisper |
+| `audio_wav_encode` / `audio_to_float` | ASR / Embed | preprocessing: WAV for the audio embedder, float for Canary |
 | `model_download`, `model_verify` | Download | bytes fetched, resume offset, sha256 check |
 | `asr_load`, `engine_init`, `engine_warmup` | ASR | which backend loaded (`backend`), model file, size; failed attempts are `backend_failed` with `reason` |
 | `asr_transcribe` | ASR | `engine`, `model`, `backend`, `audio_sec`, `chars`, `rtf` (wall time / audio time), `chars_per_sec` |
-| `whisper_decode` | ASR | the decode step alone |
 | `embed_load`, `embed_engine_init`, `embed_selftest` | Embed | the self-test logs `sim_related`, `sim_unrelated` and an audio smoke test |
 | `embed` | Embed | `modality` (audio or text), `role` (document or query), `backend` (text encoder), `audio_backend`, `dim`, `norm`; audio spans add `audio_sec` and `rtf` |
 | `db_create_recording`, `db_insert_chunk`, `db_list_recordings` | DB | row counts and ids; inserts carry `start_ms`, `end_ms`, `overlap_ms` |
@@ -81,7 +80,7 @@ At start-up (tag `Backend`):
 - `backend_record` for every stored record.
 - `backend_model_summary` for every model: the same view as the settings screen.
 
-`job_failed` carries the error type, `cause_chain` (types only), `frames` and `is_oom`. Failures in stages that handle patient text (`embed`, `asr_transcribe`, `whisper_decode`, `live_cue_tick`, `memory_lab_failed`) are written the same way (`AppLog.spanRedacted` / `eRedacted`): no message, no stack trace.
+`job_failed` carries the error type, `cause_chain` (types only), `frames` and `is_oom`. Failures in stages that handle patient text (`embed`, `asr_transcribe`, `live_cue_tick`, `memory_lab_failed`) are written the same way (`AppLog.spanRedacted` / `eRedacted`): no message, no stack trace.
 
 At start-up, `backend_attempt_interrupted` means an attempt was open when the process ended for a reason that may not be the backend's fault. It counts only if it happens again.
 

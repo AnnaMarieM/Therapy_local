@@ -126,7 +126,7 @@ object AppLog {
 
     @PublishedApi
     internal fun redactedFields(t: Throwable): Array<Pair<String, Any?>> = arrayOf(
-        "err" to t.javaClass.name,
+        "err" to com.therapylocal.app.models.BackendLadder.fullName(t),
         "cause_chain" to com.therapylocal.app.models.BackendLadder.causeChain(t, messages = false),
         "frames" to com.therapylocal.app.models.BackendLadder.frames(t),
         "is_oom" to (t is OutOfMemoryError),
@@ -207,7 +207,7 @@ object AppLog {
             val shown = if (v != null && (k == "client" || k == "session")) pseudonymize(v.toString()) else v
             sb.append(' ').append(k).append('=').append(format(shown))
         }
-        if (t != null) sb.append(" err=").append(format(t.javaClass.simpleName)).append(" err_msg=").append(format(runCatching { t.message?.take(2000) }.getOrElse { "(message unreadable)" }))
+        if (t != null) sb.append(" err=").append(format(com.therapylocal.app.models.BackendLadder.name(t))).append(" err_msg=").append(format(runCatching { t.message?.take(2000) }.getOrElse { "(message unreadable)" }))
         val line = sb.toString()
         Log.println(level, LOGCAT_TAG, line)
         if (t != null) runCatching { Log.println(Log.ERROR, LOGCAT_TAG, Log.getStackTraceString(t)) }

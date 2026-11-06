@@ -74,6 +74,7 @@ class MemoryService : Service() {
                 } catch (_: InterruptedException) {
                 }
             }, "memory-notif").also { it.isDaemon = true; it.start() }
+            var debugDone = false
             try {
                 val queue = Jobs.queue(app)
                 queue.clearStop()
@@ -99,13 +100,15 @@ class MemoryService : Service() {
                     runner.drain()
                     trackRun()
                 } while (runner.hasWork()) // a session enqueued just as the run ended
-                if (debugJob) DevHarness.markDone(app)
+                debugDone = true
             } catch (t: Throwable) {
                 AppLog.eRedacted(MemoryLlm.TAG, "memory_lab_failed", LogCtx.NONE, t)
                 // Stack traces can quote patient text (e.g. JSON parse errors), so they are only written for the developer harness, never in app mode.
                 if (debugJob) java.io.File(MemoryFiles.devRoot(app), "out/ERROR").apply { parentFile?.mkdirs() }.writeText(t.stackTraceToString())
             } finally {
                 Engines.resume()
+                // DevResults queries the embedder, so the done marker is written only after it is resumed (markDone catches and writes ERROR itself).
+                if (debugJob && debugDone) runCatching { DevHarness.markDone(app) }
                 // Join the watcher first, or its last tick can re-post an ongoing "processing" notification after the run has ended.
                 watcher.interrupt()
                 try { watcher.join(3000) } catch (_: InterruptedException) {}

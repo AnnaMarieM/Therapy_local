@@ -202,11 +202,14 @@ class BackendLadder(
         fun causeChain(t: Throwable, messages: Boolean = true): String {
             val seen = Collections.newSetFromMap(IdentityHashMap<Throwable, Boolean>()).apply { add(t) }
             return generateSequence(t) { runCatching { it.cause }.getOrNull()?.takeIf { c -> seen.add(c) } }.take(8)
-                .joinToString(" <- ") { if (messages) "${name(it)}: ${message(it)?.take(200)}" else it.javaClass.name }
+                .joinToString(" <- ") { if (messages) "${name(it)}: ${message(it)?.take(200)}" else fullName(it) }
         }
 
         /** The simple class name, or the full one for an anonymous class (whose simple name is empty). */
-        internal fun name(t: Throwable): String = t.javaClass.simpleName.ifEmpty { t.javaClass.name }
+        internal fun name(t: Throwable): String = (t as? com.therapylocal.app.engine.NamedError)?.let { it.typeName.ifEmpty { it.className } } ?: t.javaClass.simpleName.ifEmpty { t.javaClass.name }
+
+        /** The full class name, or the original type of an error rebuilt across a process boundary. */
+        internal fun fullName(t: Throwable): String = (t as? com.therapylocal.app.engine.NamedError)?.className?.ifEmpty { null } ?: t.javaClass.name
 
         /** [Throwable.message], which is code and can itself throw. */
         internal fun message(t: Throwable): String? = try {

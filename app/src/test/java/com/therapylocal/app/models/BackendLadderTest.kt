@@ -75,6 +75,20 @@ class BackendLadderTest {
     }
 
     @Test
+    fun aRemoteErrorKeepsItsOriginalNameInReasonsAndTheCauseChain() {
+        val remote = com.therapylocal.app.engine.RemoteEngineException("LiteRtLmJniException", "boom")
+        assertEquals("LiteRtLmJniException", BackendLadder.name(remote))
+        assertEquals("IllegalStateException", BackendLadder.name(IllegalStateException("x")))
+        val e = assertThrows(BackendLadder.NoBackend::class.java) {
+            ladder.load("m", listOf("GPU"), open = { throw remote }, close = {})
+        }
+        assertTrue(e.message!!, e.message!!.contains("GPU: boom"))
+        assertTrue(lines.toString(), lines.any { l -> l.second.values.any { it.toString().contains("failed(LiteRtLmJniException") } })
+        val chained = IllegalStateException("outer", com.therapylocal.app.engine.RemoteEngineException("a.b.Inner", null))
+        assertEquals("IllegalStateException <- a.b.Inner", BackendLadder.causeChain(chained, messages = false).replace("java.lang.", ""))
+    }
+
+    @Test
     fun whenNothingWorksOneExceptionCarriesEveryReason() {
         val e = assertThrows(BackendLadder.NoBackend::class.java) {
             ladder.load("m", listOf("GPU", "CPU"), open = open(failing = setOf("GPU", "CPU")), close = {})

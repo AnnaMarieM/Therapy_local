@@ -10,6 +10,7 @@ import com.therapylocal.app.log.AppLog
 import com.therapylocal.app.log.DeviceFacts
 import com.therapylocal.app.log.LogCtx
 import com.therapylocal.app.models.Backends
+import com.therapylocal.app.models.SpeechMigration
 
 class App : Application() {
     override fun attachBaseContext(base: Context) = super.attachBaseContext(LocaleStore.wrap(base))
@@ -21,6 +22,8 @@ class App : Application() {
         System.loadLibrary("sqlcipher") // before anything opens a database
         // Logging only: a device that answers oddly must not stop the app from starting.
         runCatching { DeviceFacts.logStartup(this) }.onFailure { AppLog.e("Device", "startup_facts_failed", LogCtx.NONE, it) }
+        // Once per install: removes the old speech-engine settings and recogniser files (Canary is the only recogniser now).
+        SpeechMigration.run(this)
         // Before any model loads: turns a load the last process died in into a strike, so a backend that kills this phone is not retried forever.
         Backends.recoverAtStartup(this)
         DisplayConfig.init(this)

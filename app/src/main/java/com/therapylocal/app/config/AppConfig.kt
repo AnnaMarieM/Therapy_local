@@ -28,13 +28,10 @@ object ChunkConfig {
     const val QUERY_MAX_SECONDS = 20
     const val QUERY_MIN_MS = 400
 
-    const val GEMMA_AUDIO_CAP_SECONDS = 30
-
     /** A recording does not start with less free internal storage: its audio is kept until processed, about 150 MB per hour with the overlap. */
     const val MIN_FREE_BYTES = 300L shl 20
 
     init {
-        require(CHUNK_SECONDS < GEMMA_AUDIO_CAP_SECONDS) { "CHUNK_SECONDS must stay under Gemma's audio cap" }
         require(OVERLAP_SECONDS in 0 until CHUNK_SECONDS) { "OVERLAP_SECONDS must be smaller than CHUNK_SECONDS" }
     }
 
@@ -154,4 +151,10 @@ object LiveCueConfig {
 
     /** Cues shown. */
     const val TOP_K = 10
+}
+
+/** How the engines run (AD-01). The remote tuning and the inline limit are added with the remote host (S8). */
+object EngineConfig {
+    /** The emergency switch from AD-01: forces `LocalEngineHost` everywhere. */
+    val IN_PROCESS: Boolean = com.therapylocal.app.BuildConfig.ENGINE_IN_PROCESS
 }

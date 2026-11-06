@@ -516,7 +516,7 @@ private fun HardwareModel(m: BackendGuard.ModelView) {
     val audio = m.model.endsWith("+audio")
     val title = remember(base) { runCatching { ModelRegistry.byId(base).title.substringBefore(" (") }.getOrDefault(base) }
     val role = when {
-        base.startsWith("gemma") -> if (audio) R.string.settings_hardware_role_llm_audio else R.string.settings_hardware_role_llm
+        base.startsWith("gemma") -> R.string.settings_hardware_role_llm
         base == ModelRegistry.EMBED.id -> if (audio) R.string.settings_hardware_role_embed_audio else R.string.settings_hardware_role_embed
         else -> R.string.settings_hardware_role_asr
     }

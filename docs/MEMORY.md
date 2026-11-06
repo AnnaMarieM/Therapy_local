@@ -31,7 +31,7 @@ All processing runs as jobs in `mind.db`, so it survives a crash or a lock (`job
 transcribe(recording) -> window(session) -> extract(session, 1..n) -> commit(session) -> cleanup(recording)
 ```
 
-1. **transcribe** fills in the chunks that have no text yet, with the engine chosen in the settings (Whisper, or Gemma on the LLM's engine; a Gemma build without audio input falls back to Whisper). `SegmentBuilder` then rebuilds the segments from the overlapping chunks, keeping their timestamps.
+1. **transcribe** fills in the chunks that have no text yet, with Canary 1B v2, the only speech recogniser ([AD-02](AD/AD-02.md)). `SegmentBuilder` then rebuilds the segments from the overlapping chunks, keeping their timestamps.
 2. **window** cuts the segments into windows (1000 tokens, 50 overlap, estimated at 1.4 tokens per word), embeds them with `DOC_PREFIX` and adds the rest of the graph. A window over the embedder's limit is embedded in halves and averaged.
 3. **extract(i)** asks Gemma for the facts of window *i*: one JSON object per line, twice, then a constrained schema as a last resort. A fact is kept only if its evidence quote occurs in the window; the quote is mapped to the segment of its first word.
 4. **commit** has two phases. Phase A, outside any transaction, is `CommitPlanner`: for each candidate in order, the nearest facts of the client's earlier sessions with cosine at least 0.6 are shown to Gemma, which answers whether it is a duplicate. No neighbour above the floor, or an unreadable reply twice, means a new fact. A candidate repeating a fact of an earlier session becomes a mention; one repeating a fact this session already adds is dropped. Phase B is one short transaction that replaces the session's facts and mentions with the plan.
@@ -45,7 +45,7 @@ Queue rules (`JobQueue`):
 - At startup running jobs go back to pending, and a recording with no job gets its jobs queued.
 - `QueueSnapshot` (done/total per session, the running step, failed and blocked counts) drives the processing notice and the notification ("session n of N, step n of N").
 
-`MemoryService` runs `JobRunner.drain()` in a foreground service with a wake lock. The runner keeps the models it loaded (`ModelPool`) across jobs and closes them when the queue is empty; Gemma speech recognition shares the LLM's engine, so one Gemma file is never loaded twice.
+`MemoryService` runs `JobRunner.drain()` in a foreground service with a wake lock. The runner keeps the models it loaded (`ModelPool`) across jobs and closes them when the queue is empty.
 
 ## Decisions
 - **D1. One transcription path.** While recording, every audio chunk is saved encrypted (`PendingAudio`) with an empty `chunks` row. All speech recognition runs in the `transcribe` job after the session. There is no live transcript, and a crash mid-session loses no audio.
@@ -75,7 +75,7 @@ The client profile has a search field: the query is embedded with `QUERY_PREFIX`
 `ModelChoice` resolves the `gemma_variant` setting to Gemma 4 E2B (default) or E4B. The settings suggest E4B on phones with about 12 GB of RAM or more (our own threshold), show the download size, ask before downloading and offer to remove the unused model. While the new model downloads, jobs that need it wait instead of failing.
 
 ## Accelerators and fallback
-Every model is loaded through `BackendLadder` (`models/BackendLadder.kt`) over the accelerators in `models/Accelerators.kt` (built in: NPU, then GPU, then CPU). The ladder keeps the first backend that loads *and* passes a test (the LLM answers "Reply with OK.", the embedder runs its similarity self-test). Nothing a backend throws escapes: it is closed and the next one is tried. The CPU is always last, also when a backend is forced from the developer screen (`BackendPolicy.order`). The Sherpa recognisers (Canary, Whisper) go through the same ladder: the provider asked for (CPU in the app, NNAPI in the evaluations), then the CPU.
+Every model is loaded through `BackendLadder` (`models/BackendLadder.kt`) over the accelerators in `models/Accelerators.kt` (built in: NPU, then GPU, then CPU). The ladder keeps the first backend that loads *and* passes a test (the LLM answers "Reply with OK.", the embedder runs its similarity self-test). Nothing a backend throws escapes: it is closed and the next one is tried. The CPU is always last, also when a backend is forced from the developer screen (`BackendPolicy.order`). The Sherpa recogniser (Canary) goes through the same ladder: the provider asked for (CPU in the app, NNAPI in the evaluations), then the CPU.
 
 A backend is skipped without being tried when:
 - its runtime is missing (NPU: `libLiteRtDispatch_Qualcomm.so`, see `NpuRuntime`);

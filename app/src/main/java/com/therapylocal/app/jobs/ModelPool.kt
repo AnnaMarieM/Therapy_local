@@ -7,11 +7,9 @@ class ModelSwitched : Exception()
  * The models the handlers use, each loaded on first use. The loaders are given by the app (see [com.therapylocal.app.memory.DeviceModels]) or by a test.
  *
  * **One model resident at a time.** The LLM, the embedder and the speech recogniser are never in memory together: loading one first unloads
- * the others. (Gemma speech recognition runs on the LLM's own engine, so those two count as one.) Between jobs [refresh] also drops what the
- * next job does not use, so a model stays loaded across consecutive jobs that use it.
+ * the others. Between jobs [refresh] also drops what the next job does not use, so a model stays loaded across consecutive jobs that use it.
  *
- * **Text only.** The LLM is loaded without its audio encoder; the audio encoder is only loaded for Gemma speech recognition ([loadAsr]), and
- * dropped as soon as a job needs text only.
+ * **Text only.** The LLM never gets audio: speech recognition has its own model (Canary, see docs/AD/AD-02.md).
  *
  * **Enough context.** [contextNeeded] is the context all open work needs (every prompt counted up front, see
  * [com.therapylocal.app.jobs.Pipeline.requiredContext]). [refresh] counts it between jobs; the LLM is loaded with it, and reloaded with more
@@ -19,32 +17,27 @@ class ModelSwitched : Exception()
  *
  * The Gemma build chosen in the settings is only picked up by [refresh], which [JobRunner] calls between jobs, so one job never mixes two
  * builds or unloads the model it is using. The runner only claims a job once its models are ready, so the new build is ready by then.
+ *
+ * **Healthy or reloaded.** A loaded model is handed out again only while it is [Llm.healthy] ([Embed.healthy], [Asr.healthy]); otherwise
+ * it is closed and loaded again, which goes to the next backend.
  */
 class ModelPool(
-    /** Loads the LLM with `context` tokens; `audio` asks for its audio encoder too (Gemma speech recognition), otherwise text only. */
-    private val loadLlm: (audio: Boolean, context: Int) -> Llm,
+    /** Loads the text LLM with `context` tokens. */
+    private val loadLlm: (context: Int) -> Llm,
     private val loadEmbed: () -> Embed,
-    /**
-     * Loads the speech recogniser for a client [language]. Gets the LLM engine if it has an audio encoder (null otherwise): a recogniser that
-     * runs on it (Gemma) uses it, the others have their own model.
-     */
-    private val loadAsr: (llm: () -> Llm?, language: String) -> Asr,
+    /** Loads the speech recogniser for a client [language]. */
+    private val loadAsr: (language: String) -> Asr,
     /** The id of the LLM chosen in the settings, known without loading it. */
     llmModel: () -> String,
-    /** Whether the chosen speech recogniser runs on the LLM's engine (Gemma) or has its own model (Whisper). */
-    private val asrOnLlm: () -> Boolean = { false },
     /** Tokens of context all open work needs, counted from its prompts. */
     private val contextNeeded: () -> Int = { 0 },
-    /** The context the LLM is loaded with at least, and for speech recognition (no prompt to count there). */
+    /** The context the LLM is loaded with at least. */
     private val baseContext: Int = 0,
-    /** Gemma speech recognition could not load its engine; [loadAsr] then gets no LLM and uses its own model. */
-    private val onAsrLlmFailed: (Throwable) -> Unit = {},
 ) : AutoCloseable {
     private val chosenLlm = llmModel
     private var llm: Llm? = null
     private var embed: Embed? = null
     private var asr: Asr? = null
-    private var asrOnEngine = false
     private var asrLanguage: String? = null
     private var current: String? = null
     private var needed = baseContext
@@ -52,28 +45,15 @@ class ModelPool(
     /** The id of the LLM [llm] gives in this job (cache keys). */
     fun llmModel(): String = current ?: chosenLlm().also { current = it }
 
-    /** The text LLM, loaded with the context [refresh] counted for the open work (an engine loaded for speech recognition is used as it is). */
+    /** The text LLM, loaded with the context [refresh] counted for the open work. */
     fun llm(): Llm {
-        llm?.takeIf { it.healthy && (it.hasAudio || it.contextTokens >= needed) }?.let { return it }
+        llm?.takeIf { it.healthy && it.contextTokens >= needed }?.let { return it }
         closeLlm()
         closeEmbed()
-        closeWhisper()
-        return load(audio = false, context = maxOf(needed, baseContext))
-    }
-
-    /** The LLM with its audio encoder, for Gemma speech recognition. A text-only engine is replaced (nothing can be using it then). */
-    private fun audioLlm(): Llm {
-        llm?.takeIf { it.hasAudio && it.healthy }?.let { return it }
-        closeLlm()
-        closeEmbed()
-        closeWhisper()
-        return load(audio = true, context = baseContext)
-    }
-
-    private fun load(audio: Boolean, context: Int): Llm {
+        closeAsr()
         val model = llmModel()
         if (chosenLlm() != model) throw ModelSwitched()
-        val loaded = loadLlm(audio, context)
+        val loaded = loadLlm(maxOf(needed, baseContext))
         if (loaded.model != model) {
             loaded.close()
             throw ModelSwitched()
@@ -82,7 +62,8 @@ class ModelPool(
     }
 
     fun embed(): Embed {
-        embed?.let { return it }
+        embed?.takeIf { it.healthy }?.let { return it }
+        closeEmbed()
         closeAsr()
         closeLlm()
         return loadEmbed().also { embed = it }
@@ -90,31 +71,15 @@ class ModelPool(
 
     /** The speech recogniser for [language] (a language code). Only one is held: asking for another unloads the current one. */
     fun asr(language: String = "en"): Asr {
-        asr?.let { if (asrLanguage == language) return it }
+        asr?.takeIf { it.healthy && asrLanguage == language }?.let { return it }
         closeAsr()
         closeEmbed()
-        if (asrOnLlm()) {
-            // Gemma that cannot be loaded with its audio encoder (memory, every backend failed) is not the end: the recogniser with its own
-            // model takes over. The engine without an audio encoder cannot hear: it is not kept next to the recogniser that takes its place.
-            val heard = try {
-                audioLlm()
-            } catch (e: ModelSwitched) {
-                throw e
-            } catch (t: Throwable) {
-                onAsrLlmFailed(t)
-                null
-            }
-            if (heard?.hasAudio != true) closeLlm()
-        } else {
-            closeLlm()
-        }
-        val recogniser = loadAsr({ llm?.takeIf { it.hasAudio } }, language)
-        asrOnEngine = llm?.hasAudio == true
-        return recogniser.also { asr = it; asrLanguage = language }
+        closeLlm()
+        return loadAsr(language).also { asr = it; asrLanguage = language }
     }
 
     /**
-     * Between jobs: if another Gemma build was chosen, unload the old one, and the speech recogniser that may run on it. With the [nextKind] of
+     * Between jobs: if another Gemma build was chosen, unload the old one. With the [nextKind] of
      * the job about to run (a [JobGraph] kind), count the context the open work needs, and unload every model that job does not use.
      */
     fun refresh(nextKind: String? = null) {
@@ -128,19 +93,16 @@ class ModelPool(
         trim(needs)
     }
 
-    /** Unloads the models [needs] does not list, an engine with an audio encoder no job needs, and one whose context the open work outgrew. */
+    /** Unloads the models [needs] does not list, and an LLM whose context the open work outgrew. */
     private fun trim(needs: Needs) {
         if (!needs.asr) closeAsr()
         if (!needs.embed) closeEmbed()
         val loaded = llm ?: return
-        // An engine with the audio encoder is only for speech recognition; a text-only one only for the text jobs.
-        val keep = loaded.healthy && if (loaded.hasAudio) needs.asr else needs.llm && loaded.contextTokens >= needed
-        if (!keep) closeLlm()
+        if (!(loaded.healthy && needs.llm && loaded.contextTokens >= needed)) closeLlm()
     }
 
-    /** The speech recogniser first when it runs on the LLM's engine. A close that throws still forgets the engine: it is never handed out again. */
+    /** A close that throws still forgets the engine: it is never handed out again. */
     private fun closeLlm() {
-        if (asrOnEngine) closeAsr()
         val l = llm
         llm = null
         l?.close()
@@ -155,14 +117,8 @@ class ModelPool(
     private fun closeAsr() {
         val a = asr
         asr = null
-        asrOnEngine = false
         asrLanguage = null
         a?.close()
-    }
-
-    /** A recogniser with its own model (Whisper) only; one that runs on the LLM's engine goes with it. */
-    private fun closeWhisper() {
-        if (!asrOnEngine) closeAsr()
     }
 
     /** Which models a kind of job uses; null for a kind that is not part of the session pipeline (nothing is unloaded then). */

@@ -8,10 +8,10 @@ data class AsrResult(val text: String, val audioSec: Double, val wallMs: Long)
 
 /** Speech to text for one chunk of 16 kHz mono PCM16. Engines are loaded lazily and reused. */
 interface AsrEngine {
-    /** "gemma" or "whisper". */
+    /** "canary". */
     val engineName: String
 
-    /** Model identity, for example "gemma-4-e2b" or "whisper-base". */
+    /** Model identity, for example "canary-1b-v2". */
     val modelName: String
 
     /** Backend that actually loaded: NPU, GPU or CPU. "none" until [load] succeeds. */

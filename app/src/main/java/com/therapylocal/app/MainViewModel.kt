@@ -19,7 +19,6 @@ import com.therapylocal.app.log.AppLog
 import com.therapylocal.app.log.LogCtx
 import com.therapylocal.app.memory.LiveCues
 import com.therapylocal.app.memory.MemoryFiles
-import com.therapylocal.app.models.ModelRegistry
 import com.therapylocal.app.models.ModelSetup
 import com.therapylocal.app.models.SetupState
 import com.therapylocal.app.session.SessionController
@@ -45,8 +44,6 @@ data class SearchState(val listening: Boolean = false, val searching: Boolean = 
 data class UiState(
     val phase: Phase = Phase.Preparing,
     val prepareMsg: String = "Starting",
-    val engine: String = ModelRegistry.DEFAULT_ENGINE, // "canary", "whisper" or "gemma": which engine transcribes recordings (in the background, after they stop)
-    val whisperSize: String = ModelRegistry.DEFAULT_WHISPER_SIZE,
     val backendOverride: String = "auto", // debug: auto, npu, gpu, cpu
     val embedBackend: String = "-",
     val recording: Boolean = false,
@@ -66,9 +63,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     private val prefs = app.getSharedPreferences("settings", Context.MODE_PRIVATE)
     private val _state = MutableStateFlow(
         UiState(
-            engine = prefs.getString("engine", ModelRegistry.DEFAULT_ENGINE)!!,
-            whisperSize = prefs.getString("whisper_size", ModelRegistry.DEFAULT_WHISPER_SIZE)!!,
-                backendOverride = prefs.getString("backend_override", "auto")!!,
+            backendOverride = prefs.getString("backend_override", "auto")!!,
             testFiles = if (BuildConfig.DEBUG) TestAudio.list(app) else emptyList(),
         ),
     )
@@ -104,23 +99,14 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     // ---- settings -------------------------------------------------------------------------------------------
 
-    fun setEngine(engine: String) = change(reload = false) { prefs.edit().putString("engine", engine).apply(); it.copy(engine = engine) }
-    fun setWhisperSize(size: String) = change(reload = false) { prefs.edit().putString("whisper_size", size).apply(); it.copy(whisperSize = size) }
-
     /** Debug: force a backend to compare NPU, GPU and CPU honestly. Reloads both engines. */
-    fun setBackendOverride(o: String) = change(reload = true) {
+    fun setBackendOverride(o: String) {
+        if (_state.value.recording) return
         prefs.edit().putString("backend_override", o).apply()
         BackendPolicy.override = o
-        it.copy(backendOverride = o)
-    }
-
-    /** The speech settings are read by the transcribe job; [prepare] again because they change which AI files are needed. */
-    private fun change(reload: Boolean, f: (UiState) -> UiState) {
-        if (_state.value.recording) return
-        _state.update(f)
-        val s = _state.value
-        AppLog.i(TAG, "settings_changed", LogCtx.NONE, "engine" to s.engine, "whisper_size" to s.whisperSize, "backend_override" to s.backendOverride)
-        if (reload) embedder.close()
+        _state.update { it.copy(backendOverride = o) }
+        AppLog.i(TAG, "settings_changed", LogCtx.NONE, "backend_override" to o)
+        embedder.close()
         prepare()
     }
 

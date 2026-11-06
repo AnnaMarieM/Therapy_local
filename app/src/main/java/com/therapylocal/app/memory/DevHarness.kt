@@ -6,7 +6,9 @@ import com.therapylocal.app.audio.TestAudio
 import com.therapylocal.app.data.ChunkRow
 import com.therapylocal.app.data.MindStore
 import com.therapylocal.app.data.PendingAudio
+import com.therapylocal.app.log.AppLog
 import com.therapylocal.app.log.LogCtx
+import com.therapylocal.app.models.SpeechMigration
 import kotlinx.coroutines.runBlocking
 import com.therapylocal.app.data.SegmentRow
 import com.therapylocal.app.facts.TranscriptWindows
@@ -22,7 +24,7 @@ import java.io.File
  *   {"resetProfiles": false, "stripLabels": false, "sessions": [{"file": "<client>_<n>.md", "date": "yyyy-MM-dd"}]}
  * Each becomes a session whose segments are the transcript's non-blank lines, queued from the window job on. out/DONE marks the end of the run.
  * A file ending in .wav (16 kHz mono, in in/) is a recorded session instead: it goes through the real chunker, transcribe and everything after.
- * Optional "settings" ({"language": "cs", "whisper_size": "base", "engine": "whisper"}) are written to the app's settings first, and
+ * Optional "settings" ({"language": "cs"}) are written to the app's settings first (the removed speech-engine settings are ignored), and
  * "queries" ([{"client": "...", "q": "..."}]) are answered after the run. Both transcripts and answers land in out/results.json ([DevResults]).
  * A leftover job.json is never read by the app itself, so it cannot reset clients or re-run old sessions.
  */
@@ -36,7 +38,9 @@ object DevHarness {
         val listed = (job.optJSONArray("sessions") ?: JSONArray()).let { a -> (0 until a.length()).map { a.getJSONObject(it).let { s -> s.getString("file") to s.optString("date", "") } } }
         val sessions = listed.sortedWith(compareBy({ it.first.substringBefore('_') }, { it.second }))
         job.optJSONObject("settings")?.let { st ->
-            context.getSharedPreferences("settings", Context.MODE_PRIVATE).edit().apply { st.keys().forEach { putString(it, st.getString(it)) } }.apply()
+            val (ignored, kept) = st.keys().asSequence().toList().partition { it in SpeechMigration.LEGACY_PREFS }
+            ignored.forEach { AppLog.w(MemoryLlm.TAG, "dev_setting_ignored", LogCtx.NONE, "key" to it, "reason" to "speech_engine_removed") }
+            context.getSharedPreferences("settings", Context.MODE_PRIVATE).edit().apply { kept.forEach { putString(it, st.getString(it)) } }.apply()
         }
         val store = MindStore.get(context)
         val queue = Jobs.queue(context)
@@ -61,7 +65,7 @@ object DevHarness {
 
     /** Replays the WAV through the real chunker at 60x, saves the chunks like a recording would, and queues it from transcribe on. */
     private fun seedAudio(context: Context, store: MindStore, queue: com.therapylocal.app.jobs.JobQueue, sid: String, wav: File) {
-        val rid = store.createRecording(sid, "whisper", "")
+        val rid = store.createRecording(sid, "canary", "")
         val rec = ChunkRecorder.recording(LogCtx(rid))
         rec.startFromPcm(TestAudio.load(wav), speed = 60f)
         runBlocking {

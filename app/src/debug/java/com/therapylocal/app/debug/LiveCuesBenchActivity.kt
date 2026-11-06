@@ -48,7 +48,7 @@ class LiveCuesBenchActivity : Activity() {
             val say = { m: String -> runOnUiThread { status.text = m } }
             try {
                 say("loading embedder")
-                val embedder = Embedder(applicationContext).also { it.load() }
+                val embedder = Embedder(applicationContext, host = com.therapylocal.app.embed.Engines.liveHost(applicationContext)).also { it.load() }
                 val store = MindStore.get(applicationContext)
                 val facts = store.facts(client).size
                 AppLog.i("LiveCuesBench", "bench_start", LogCtx.NONE, "client" to client, "file" to file, "speed" to speed, "facts" to facts, "backend" to embedder.backend)

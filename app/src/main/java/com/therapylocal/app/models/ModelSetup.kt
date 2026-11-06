@@ -41,23 +41,12 @@ object ModelSetup {
     val progress: StateFlow<SetupProgress> = _progress.asStateFlow()
     private var observing = false
 
-    /** Distinct specs the current settings need: embeddings, the speech engine (for Whisper, a build per language in use), and the memory model. */
-    fun required(context: Context): List<ModelSpec> {
-        val prefs = prefs(context)
-        val engine = prefs.getString("engine", ModelRegistry.DEFAULT_ENGINE) ?: ModelRegistry.DEFAULT_ENGINE
-        val size = prefs.getString("whisper_size", ModelRegistry.DEFAULT_WHISPER_SIZE) ?: ModelRegistry.DEFAULT_WHISPER_SIZE
-        val gemma = gemma(context)
-        val speech = when (engine) {
-            "gemma" -> listOf(gemma)
-            "whisper" -> SpeechLanguages.inUse(context).map { ModelRegistry.whisperFor(size, it) }
-            else -> listOf(ModelRegistry.CANARY_1B_V2) // one multilingual model serves every client language
-        }
-        return (listOf(ModelRegistry.EMBED) + speech + gemma).distinct()
-    }
+    /** Distinct specs the app needs: embeddings, Canary (one multilingual model serves every client language), and the memory model. */
+    fun required(context: Context): List<ModelSpec> = listOf(ModelRegistry.EMBED, ModelRegistry.CANARY_1B_V2, gemma(context))
 
     fun gemmaVariant(context: Context): GemmaVariant = ModelChoice.resolve(prefs(context).getString(ModelChoice.PREF, null))
 
-    /** The Gemma build the settings choose, for the memory LLM and Gemma speech recognition. */
+    /** The Gemma build the settings choose, for the memory LLM. */
     fun gemma(context: Context): ModelSpec = ModelRegistry.gemma(gemmaVariant(context))
 
     /**

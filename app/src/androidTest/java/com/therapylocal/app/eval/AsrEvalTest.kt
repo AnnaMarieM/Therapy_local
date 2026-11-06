@@ -4,9 +4,7 @@ import android.os.SystemClock
 import android.util.Log
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import com.therapylocal.app.asr.SherpaCanaryAsr
-import com.therapylocal.app.asr.SherpaParakeetAsr
-import com.therapylocal.app.asr.SherpaWhisperAsr
+import com.therapylocal.app.asr.SpeechRecogniser
 import com.therapylocal.app.log.LogCtx
 import com.therapylocal.app.models.SpeechLanguage
 import com.therapylocal.app.models.ModelRegistry
@@ -19,14 +17,14 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
 /**
- * Not a pass/fail test: runs real recordings through the real Whisper models and writes what they said, how long it took and on which
+ * Not a pass/fail test: runs real recordings through the real Canary model and writes what they said, how long it took and on which
  * provider, to `<external files>/eval/results.txt`. Needs the models in `<external files>/models` and 16 kHz mono wavs named
- * `<lang>_<name>.wav` in `<external files>/eval` (see qa/whisper-eval.sh). Skipped when there is nothing to run.
+ * `<lang>_<name>.wav` in `<external files>/eval` (see qa/asr-eval.sh). Skipped when there is nothing to run.
  *
- * Arguments (instrumentation -e): sizes=small,base  providers=cpu,nnapi  seconds=60
+ * Arguments (instrumentation -e): providers=cpu,nnapi  seconds=60
  */
 @RunWith(AndroidJUnit4::class)
-class WhisperEvalTest {
+class AsrEvalTest {
     private val context = InstrumentationRegistry.getInstrumentation().targetContext
     private val args = InstrumentationRegistry.getArguments()
     private val dir = File(context.getExternalFilesDir(null), "eval")
@@ -35,26 +33,17 @@ class WhisperEvalTest {
     fun transcribeTheEvalRecordings() {
         val wavs = dir.listFiles { f -> f.extension == "wav" }?.sortedBy { it.name }.orEmpty()
         assumeTrue("no recordings in $dir", wavs.isNotEmpty())
-        val sizes = (args.getString("sizes") ?: "small").split(",")
         val providers = (args.getString("providers") ?: "cpu").split(",")
         val seconds = (args.getString("seconds") ?: "60").toInt()
         val verbose = args.getString("verbose") == "1"
         val out = StringBuilder()
 
-        for (size in sizes) for (provider in providers) for (lang in listOf(SpeechLanguage.Czech, SpeechLanguage.English)) {
+        for (provider in providers) for (lang in listOf(SpeechLanguage.Czech, SpeechLanguage.English)) {
             val group = wavs.filter { it.name.startsWith(if (lang == SpeechLanguage.Czech) "cs_" else "en_") }
             if (group.isEmpty()) continue
-            val spec = when (size) {
-                "parakeet" -> ModelRegistry.PARAKEET_V3
-                "canary" -> ModelRegistry.CANARY_1B_V2
-                else -> ModelRegistry.whisperFor(size, lang)
-            }
+            val spec = ModelRegistry.CANARY_1B_V2
             if (!spec.isReady(context)) { out.line("SKIP ${lang.code} ${spec.id}: model not on the phone").line(""); continue }
-            val asr: com.therapylocal.app.asr.AsrEngine = when (size) {
-                "parakeet" -> SherpaParakeetAsr(context, provider)
-                "canary" -> SherpaCanaryAsr(context, lang, provider)
-                else -> SherpaWhisperAsr(context, size, lang, provider)
-            }
+            val asr: com.therapylocal.app.asr.AsrEngine = SpeechRecogniser(context, lang, com.therapylocal.app.engine.LocalEngineHost(context), provider)
             try {
                 runBlocking { asr.load() }
                 var errors = 0; var words = 0; var decode = 0L; var audio = 0.0; var scored = 0

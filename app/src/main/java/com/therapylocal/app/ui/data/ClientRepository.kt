@@ -34,14 +34,12 @@ class ClientRepository(context: Context, private val open: (Context) -> MindStor
     fun createClient(name: String, language: SpeechLanguage = SpeechLanguages.default(appContext)): Patient {
         val id = ClientInput.uniqueId(ClientInput.slug(name), clients().toSet())
         store.createClient(id, name.trim(), language.code)
-        SpeechLanguages.markInUse(appContext, language)
         return patient(id)
     }
 
     /** Changes the language the client's next recordings are transcribed in; transcripts already made are kept. */
     fun setLanguage(id: String, language: SpeechLanguage) {
         store.setClientLanguage(id, language.code)
-        SpeechLanguages.markInUse(appContext, language)
     }
 
     /** Deletes the client and all its stored data (audio not processed yet included), and drops it from the pipeline queue state. */

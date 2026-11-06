@@ -8,9 +8,6 @@ interface Llm : AutoCloseable {
     /** Tokens of context the engine was loaded with: prompt and reply of one call must fit in it. */
     val contextTokens: Int get() = Int.MAX_VALUE
 
-    /** True if the audio encoder is loaded with the text model (only speech recognition needs it). */
-    val hasAudio: Boolean get() = false
-
     /** False once the engine keeps failing on real prompts: [ModelPool] then loads the model again, on the next backend. */
     val healthy: Boolean get() = true
 
@@ -22,11 +19,17 @@ interface Llm : AutoCloseable {
 interface Embed : AutoCloseable {
     val model: String
 
+    /** False once the embedder can no longer serve: [ModelPool] then loads it again. */
+    val healthy: Boolean get() = true
+
     fun embed(text: String): FloatArray
 }
 
 /** Speech to text for one chunk of 16 kHz mono PCM16. */
 interface Asr : AutoCloseable {
+    /** False once the recogniser can no longer serve: [ModelPool] then loads it again. */
+    val healthy: Boolean get() = true
+
     fun transcribe(pcm: ShortArray): String
 
     override fun close() {}

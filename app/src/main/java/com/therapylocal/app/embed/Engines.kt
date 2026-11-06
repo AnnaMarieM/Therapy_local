@@ -1,6 +1,9 @@
 package com.therapylocal.app.embed
 
 import android.content.Context
+import com.therapylocal.app.engine.EngineHost
+import com.therapylocal.app.engine.EngineRole
+import com.therapylocal.app.engine.LocalEngineHost
 
 /**
  * The process-wide [Embedder]. A recording outlives the screen that started it (see SessionController), so live cues and search share one
@@ -10,8 +13,19 @@ object Engines {
     @Volatile
     private var embedder: Embedder? = null
 
+    private val hosts = java.util.concurrent.ConcurrentHashMap<EngineRole, EngineHost>()
+
+    /** The host for live cues and search (EmbeddingGemma with its audio encoder). In-process until the remote hosts arrive (S8); `EngineConfig.IN_PROCESS` forces this later too. */
+    fun liveHost(context: Context): EngineHost = host(context, EngineRole.LIVE)
+
+    /** The host for the text LLM, the text embedder and Canary. */
+    fun batchHost(context: Context): EngineHost = host(context, EngineRole.BATCH)
+
+    private fun host(context: Context, role: EngineRole): EngineHost =
+        hosts.getOrPut(role) { LocalEngineHost(context.applicationContext, role) }
+
     fun embedder(context: Context): Embedder =
-        embedder ?: synchronized(this) { embedder ?: Embedder(context.applicationContext).also { embedder = it } }
+        embedder ?: synchronized(this) { embedder ?: Embedder(context.applicationContext, host = liveHost(context)).also { embedder = it } }
 
     /** Unloads the shared embedder (if it was created) while sessions are processed. Live cues and search skip it until [resume]. */
     suspend fun suspend() {

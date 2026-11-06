@@ -41,7 +41,7 @@ class JobRunnerTest {
 
     private var chosen = "gemma-test"
 
-    private fun pool() = ModelPool({ _, _ -> FakeLlm(chosen).also { llms += it } }, { error("not used") }, { _, _ -> error("not used") }, { chosen })
+    private fun pool() = ModelPool({ FakeLlm(chosen).also { llms += it } }, { error("not used") }, { error("not used") }, { chosen })
 
     private fun runner(handler: (Job, JobContext) -> Unit) =
         JobRunner(q, mapOf("work" to JobHandler { j, c -> ran += j.id; handler(j, c) }), pool()) { true }
@@ -102,6 +102,28 @@ class JobRunnerTest {
         assertEquals("IllegalStateException", job(named).errorCode)
         assertEquals("ERROR", job(anonymous).errorCode)
     }
+
+    @Test
+    fun aRebuiltRemoteErrorKeepsTheCodeOfTheOriginal() {
+        val remote = q.enqueue("work", "a_1", maxAttempts = 1)
+        val local = q.enqueue("work", "a_2", maxAttempts = 1)
+        runner { j, _ ->
+            if (j.id == remote) throw com.therapylocal.app.engine.RemoteEngineException("LiteRtLmJniException", "private")
+            throw LiteRtLmJniException("private")
+        }.drain()
+        assertEquals("LiteRtLmJniException", job(remote).errorCode)
+        assertEquals(job(local).errorCode, job(remote).errorCode)
+    }
+
+    @Test
+    fun aRebuiltAnonymousErrorStillGetsTheGenericCode() {
+        val id = q.enqueue("work", "a_1", maxAttempts = 1)
+        val anon = object : RuntimeException("x") {}
+        runner { _, _ -> throw com.therapylocal.app.engine.EngineErrors.rebuild(com.therapylocal.app.engine.EngineErrors.capture(anon, true)) }.drain()
+        assertEquals("ERROR", job(id).errorCode)
+    }
+
+    private class LiteRtLmJniException(m: String) : RuntimeException(m)
 
     @Test
     fun theModelsAreClosedWhenTheDrainEnds() {
