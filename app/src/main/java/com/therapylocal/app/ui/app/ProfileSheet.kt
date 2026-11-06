@@ -60,8 +60,12 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
@@ -79,6 +83,7 @@ import com.therapylocal.app.ui.design.Palette
 import com.therapylocal.app.ui.design.Type
 import com.therapylocal.app.ui.design.rememberChoiceState
 import com.therapylocal.app.ui.design.rememberHaptics
+import com.therapylocal.app.ui.logic.heroShrink
 import com.therapylocal.app.ui.logic.splitName
 import com.therapylocal.app.ui.models.FactItem
 import com.therapylocal.app.ui.models.FactOccurrence
@@ -183,7 +188,12 @@ fun ProfileSheet(
                     // The name is the one thing that does not fade: it travels here from the reel (drawn by TravellingName meanwhile).
                     NameTitle(
                         patient.name,
-                        Modifier.let { m -> titleRef?.let { m.trackBounds(it, pageFrame) } ?: m }.graphicsLayer { alpha = if (titleLent()) 0f else 1f },
+                        Modifier.let { m -> titleRef?.let { m.trackBounds(it, pageFrame) } ?: m }.graphicsLayer {
+                            val q = sheet.progress.value.coerceIn(0f, 1f)
+                            alpha = if (titleLent()) {
+                                if (q >= 0.88f) ((q - 0.88f) / 0.12f).coerceIn(0f, 1f) else 0f
+                            } else 1f
+                        },
                     )
                     if (status != null) {
                         Spacer(Modifier.height(6.dp))
@@ -294,12 +304,23 @@ internal fun sheetDrag(
 
 /** A client's name as the title of their page. Also drawn on its own while it travels between the reel and the page. */
 @Composable
-internal fun NameTitle(name: String, modifier: Modifier) {
+internal fun NameTitle(name: String, modifier: Modifier = Modifier) {
     val (first, rest) = splitName(name)
-    Column(modifier) {
-        Text(first, style = Type.Hero, color = Palette.Ink)
-        if (rest != null) Text(rest, style = Type.Hero.copy(fontStyle = FontStyle.Italic), color = Palette.Ink)
+    val text = buildAnnotatedString {
+        append(first)
+        if (rest != null) withStyle(SpanStyle(fontStyle = FontStyle.Italic)) { append(" $rest") }
     }
+    val chars = first.length + (rest?.let { it.length + 1 } ?: 0)
+    val heroSize = (Type.Hero.fontSize.value * heroShrink(chars)).sp
+    val style = Type.Hero.copy(fontSize = heroSize, lineHeight = heroSize * 0.95f)
+    Text(
+        text,
+        modifier = modifier,
+        style = style,
+        color = Palette.Ink,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+    )
 }
 
 @Composable

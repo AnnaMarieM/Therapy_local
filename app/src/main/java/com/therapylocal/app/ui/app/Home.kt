@@ -418,22 +418,23 @@ private const val STILL_AFTER_MS = 90L
 @Composable
 internal fun TravellingName(name: String, sheet: SheetState, from: BoundsRef, to: BoundsRef, shown: () -> Boolean) {
     if (!sheet.visible) return
-    val density = LocalDensity.current
     NameTitle(
         name,
         Modifier
             .offset { IntOffset(to.rect.left.roundToInt(), to.rect.top.roundToInt()) }
-            .width(with(density) { to.rect.width.toDp() })
+            .padding(end = 26.dp)
             .graphicsLayer {
                 if (!shown()) { alpha = 0f; return@graphicsLayer }
-                val q = sheet.progress.value
+                val q = sheet.progress.value.coerceIn(0f, 1f)
+                val p = GestureMath.smoothstep(0f, 1f, q)
                 val f = from.rect
                 val t = to.rect
-                val s = GestureMath.lerp(if (t.height > 0f) f.height / t.height else 1f, 1f, q)
+                val s = GestureMath.lerp(if (t.height > 0f) f.height / t.height else 1f, 1f, p)
                 transformOrigin = TransformOrigin(0f, 0f)
                 scaleX = s; scaleY = s
-                translationX = (f.left - t.left) * (1f - q)
-                translationY = (f.top - t.top) * (1f - q)
+                translationX = (f.left - t.left) * (1f - p)
+                translationY = (f.top - t.top) * (1f - p)
+                alpha = if (q >= 0.88f) ((1f - q) / 0.12f).coerceIn(0f, 1f) else 1f
             },
     )
 }

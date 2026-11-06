@@ -161,7 +161,7 @@ private fun Main(viewModel: MainViewModel, openSessionRequest: Int, onDeveloper:
             refs.name.rect != Rect.Zero && titleRef.rect != Rect.Zero && titleRef.present
     }
     refs.lent = nameTravels
-    val nameMoving = { nameTravels() && profileSheet.progress.value < 0.999f }
+    val nameMoving = { nameTravels() && profileSheet.progress.value < 1f }
 
     val micGranted = { ContextCompat.checkSelfPermission(ctx, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED }
     var afterMic by remember { mutableStateOf<(() -> Unit)?>(null) }
