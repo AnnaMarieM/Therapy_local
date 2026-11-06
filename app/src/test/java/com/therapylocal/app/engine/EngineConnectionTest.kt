@@ -613,6 +613,8 @@ class EngineConnectionTest {
         // an unknown speed uses 0.5 tokens per second
     }
 
+    // N26 hung close: closeAsync returns at once, one engine_kill close_timeout, BENIGN, no strike
+
     @Test fun aHungCloseReturnsAtOnceAndIsKilledAtTheCloseLimitWithoutAStrike() {
         val closer = Executors.newSingleThreadExecutor { r -> Thread(r, "test-close").apply { isDaemon = true } }
         val r = Rig(tuning = fast, autoAdvance = false, closeExecutor = closer)

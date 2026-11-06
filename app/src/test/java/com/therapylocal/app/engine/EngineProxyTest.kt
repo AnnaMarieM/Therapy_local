@@ -106,6 +106,8 @@ class EngineProxyTest {
         assertTrue(host.ops.filterIsInstance<EngineOp.Open>().all { it.kind == EngineKind.EMBED && it.textOnly })
     }
 
+    // N38 bad embedding turns the embedder unhealthy
+
     @Test fun wrongDimOrNanThrowsBadEmbeddingAndTurnsUnhealthyThenReloads() = runBlocking {
         val host = FakeHost()
         val e = embedder(host)
@@ -122,6 +124,8 @@ class EngineProxyTest {
         assertEquals(3, host.ops.count { it is EngineOp.Open })
         assertTrue(host.closed.isNotEmpty())
     }
+
+    // N38 oversize PCM throws before call
 
     @Test fun oversizePcmThrowsBeforeAnyCall() = runBlocking {
         val host = FakeHost(EngineRole.LIVE)
