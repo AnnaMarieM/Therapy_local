@@ -11,6 +11,8 @@ class EngineErrorsTest {
 
     private fun roundTrip(t: Throwable, redact: Boolean = false) = EngineErrors.rebuild(EngineErrors.capture(t, redact))
 
+    // N16 error marshalling round trip (type, message, causes, limits, cycles, unknown class)
+
     @Test
     fun eachMappedClassKeepsItsClassAndMessage() {
         val all = listOf(
@@ -117,6 +119,8 @@ class EngineErrorsTest {
         }
         assertEquals("(message unreadable)", EngineErrors.capture(t, redact = false).message)
     }
+
+    // N17 a marshalled OOM keeps is_oom
 
     @Test
     fun aMarshalledOutOfMemoryStaysAnOutOfMemoryError() {

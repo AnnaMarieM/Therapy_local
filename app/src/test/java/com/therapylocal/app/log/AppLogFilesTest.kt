@@ -26,6 +26,8 @@ class AppLogFilesTest {
         assertEquals("main", EngineProcess.labelOf("com.therapylocal.app"))
     }
 
+    // N39 tailAll merge, reopen after delete, clear only own base (next three tests)
+
     @Test fun tailAllMergesByTsStably() {
         val d = tmp()
         File(d, "tl.log").writeText("ts=2026-01-01T00:00:01.000 a\nts=2026-01-01T00:00:03.000 b\nts=2026-01-01T00:00:05.000 same-main\n")

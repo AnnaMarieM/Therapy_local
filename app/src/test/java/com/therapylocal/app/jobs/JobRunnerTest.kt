@@ -180,6 +180,8 @@ class JobRunnerTest {
         assertEquals(listOf("gemma-other"), llms.map { it.model })
     }
 
+    // N36 EngineUnavailable defers the job, no attempt, one claim
+
     @Test
     fun noHostThatCanServeReleasesTheJobWithoutAnAttemptAndTheDrainStopsDeferred() {
         val first = q.enqueue("work", "a_1")

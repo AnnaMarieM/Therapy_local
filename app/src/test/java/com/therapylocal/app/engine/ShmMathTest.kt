@@ -8,6 +8,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class ShmMathTest {
+    // N19 Shm size math (see also N19 edge tests in EngineFamilyNTest)
     @Test fun emptyPayloadStillGetsATwoByteRegion() {
         assertEquals(2, ShmMath.regionBytes(0, 2))
         assertEquals(2, ShmMath.regionBytes(0, 1))
