@@ -1,4 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="settings_group_language">Jazyk</string>
+    <string name="settings_group_reprocess">Přečíst znovu</string>
+    <string name="settings_reprocess_title">Přečíst dřívější sezení znovu</string>
+    <string name="settings_reprocess_body">Z uložených přepisů znovu napíše fakta dřívějších sezení v jazyce aplikace. Nejlépe přes noc.</string>
+    <string name="settings_reprocess_action">Zkontrolovat</string>
+    <string name="reprocess_up_to_date">Všechna sezení jsou aktuální</string>
+    <string name="reprocess_title">Přečíst dřívější sezení znovu?</string>
+    <plurals name="reprocess_body">
+        <item quantity="one">%1$d sezení lze přečíst znovu, aby jeho fakta byla v jazyce aplikace. Odhadovaný čas: %2$s. Nejlépe přes noc, s telefonem v nabíječce.</item>
+        <item quantity="few">%1$d sezení lze přečíst znovu, aby jejich fakta byla v jazyce aplikace. Odhadovaný čas: %2$s. Nejlépe přes noc, s telefonem v nabíječce.</item>
+        <item quantity="many">%1$d sezení lze přečíst znovu, aby jejich fakta byla v jazyce aplikace. Odhadovaný čas: %2$s. Nejlépe přes noc, s telefonem v nabíječce.</item>
+        <item quantity="other">%1$d sezení lze přečíst znovu, aby jejich fakta byla v jazyce aplikace. Odhadovaný čas: %2$s. Nejlépe přes noc, s telefonem v nabíječce.</item>
+    </plurals>
+    <plurals name="reprocess_body_unknown">
+        <item quantity="one">%1$d sezení lze přečíst znovu, aby jeho fakta byla v jazyce aplikace. Čas zatím neznáme: změří se po zpracování prvního sezení. Nejlépe přes noc, s telefonem v nabíječce.</item>
+        <item quantity="few">%1$d sezení lze přečíst znovu, aby jejich fakta byla v jazyce aplikace. Čas zatím neznáme: změří se po zpracování prvního sezení. Nejlépe přes noc, s telefonem v nabíječce.</item>
+        <item quantity="many">%1$d sezení lze přečíst znovu, aby jejich fakta byla v jazyce aplikace. Čas zatím neznáme: změří se po zpracování prvního sezení. Nejlépe přes noc, s telefonem v nabíječce.</item>
+        <item quantity="other">%1$d sezení lze přečíst znovu, aby jejich fakta byla v jazyce aplikace. Čas zatím neznáme: změří se po zpracování prvního sezení. Nejlépe přes noc, s telefonem v nabíječce.</item>
+    </plurals>
+    <string name="reprocess_confirm">Přečíst znovu</string>
+    <string name="reprocess_later">Teď ne</string>
+    <string name="reprocess_started">Sezení se na pozadí čtou znovu</string>
 </resources>

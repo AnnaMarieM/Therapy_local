@@ -78,6 +78,7 @@ import com.therapylocal.app.vault.Vault
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import com.therapylocal.app.i18n.LocaleStore
 
 /**
  * The whole app after the gate: the client reel, with every other surface a page shifted in over it on the same paper (see [PageShift]).
@@ -139,6 +140,17 @@ private fun Main(viewModel: MainViewModel, openSessionRequest: Int, onDeveloper:
     var confirmDiscard by remember { mutableStateOf(false) }
     var confirmShort by remember { mutableStateOf(false) }
 
+    // Sessions that can be read again in the app's language, offered after a language switch or from the settings.
+    var reprocess by remember { mutableStateOf<Pair<com.therapylocal.app.jobs.Reprocess.Plan, Long?>?>(null) }
+    val offerReprocess = { asked: Boolean ->
+        scope.launch {
+            val offer = withContext(Dispatchers.IO) { com.therapylocal.app.jobs.Reprocess.plan(ctx).let { it to it.estimateMs(ctx) } }
+            if (offer.first.sessions.isNotEmpty()) reprocess = offer else if (asked) notice.show(t.str(R.string.reprocess_up_to_date))
+        }
+        Unit
+    }
+    LaunchedEffect(Unit) { if (LocaleStore.takeReprocessOffer(ctx)) offerReprocess(false) }
+
     // The client's name travels between the reel and the top of their page while that page comes and goes. Only when both ends are known
     // and in sight (the page's title can be scrolled away); otherwise the page just shifts in like any other.
     val reduced = com.therapylocal.app.ui.design.LocalReducedMotion.current
@@ -180,7 +192,12 @@ private fun Main(viewModel: MainViewModel, openSessionRequest: Int, onDeveloper:
     val llmModel = remember(perfVersion) { ModelSetup.gemma(ctx).id }
     val audioMs by produceState(emptyMap<String, Long>(), queue.sessions.map { it.sessionId }) {
         value = withContext(Dispatchers.IO) {
-            runCatching { MindStore.get(ctx).recordings().filter { it.sessionId != null }.groupBy { it.sessionId!! }.mapValues { e -> e.value.sumOf { it.durationMs } } }.getOrDefault(emptyMap())
+            // A session whose recording is gone (read again from its transcript) is as long as its transcript.
+            runCatching {
+                val store = MindStore.get(ctx)
+                val recorded = store.recordings().filter { it.sessionId != null }.groupBy { it.sessionId!! }.mapValues { e -> e.value.sumOf { it.durationMs } }
+                queue.sessions.associate { s -> s.sessionId to (recorded[s.sessionId] ?: store.transcriptLengthMs(s.sessionId)) }
+            }.getOrDefault(emptyMap())
         }
     }
     val evidence = Evidence(
@@ -393,7 +410,7 @@ private fun Main(viewModel: MainViewModel, openSessionRequest: Int, onDeveloper:
         }
 
         PageShift(settingsSheet, onBack = { settingsSheet.close() }, modifier = pageMod) {
-            SettingsSheet(settingsSheet, failedTotal, retryFailed, lock, onDeveloper, onClose = { settingsSheet.close() }, notice = notice)
+            SettingsSheet(settingsSheet, failedTotal, retryFailed, lock, onDeveloper, onClose = { settingsSheet.close() }, notice = notice, onReprocess = { offerReprocess(true) })
         }
 
         // ---- the order of layers, bottom to top ----
@@ -442,6 +459,17 @@ private fun Main(viewModel: MainViewModel, openSessionRequest: Int, onDeveloper:
         stringResource(R.string.mindvault_lock_title, stringResource(R.string.app_name)), stringResource(R.string.mindvault_lock_body), stringResource(R.string.mindvault_lock_confirm),
         onConfirm = { confirmLock = false; activity?.let(Vault::lock) }, onDismiss = { confirmLock = false }, destructive = false,
     )
+    reprocess?.let { (plan, estimate) ->
+        ReprocessDialog(
+            t, plan, estimate,
+            onStart = {
+                reprocess = null
+                scope.launch(Dispatchers.IO) { com.therapylocal.app.jobs.Reprocess.start(ctx, plan) }
+                notice.show(t.str(R.string.reprocess_started))
+            },
+            onDismiss = { reprocess = null },
+        )
+    }
     if (confirmDiscard) {
         val e = session.ended
         ConfirmDialog(

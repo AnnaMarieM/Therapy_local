@@ -92,7 +92,8 @@ class MemoryService : Service() {
                 val runner = JobRunner(
                     queue, pipeline.handlers, pool,
                     canRun = { !JobRunner.recordingActive && ModelSetup.isReady(app) },
-                    onSessionDone = { sid -> PerfStats.sessionDone(sid, pool.llmModel(), store.recordings().filter { it.sessionId == sid }.sumOf { it.durationMs }) },
+                    // The recording is already gone once the session is done (cleanup deletes it), so its length is the transcript's.
+                    onSessionDone = { sid -> PerfStats.sessionDone(sid, pool.llmModel(), maxOf(store.recordings().filter { it.sessionId == sid }.sumOf { it.durationMs }, store.transcriptLengthMs(sid)), store.windows(sid).size) },
                 )
                 do {
                     runner.drain()
