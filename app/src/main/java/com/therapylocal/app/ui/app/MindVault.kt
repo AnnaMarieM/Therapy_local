@@ -396,9 +396,10 @@ private fun Main(viewModel: MainViewModel, openSessionRequest: Int, onDeveloper:
         }
 
         PageShift(addSheet, onBack = { addSheet.close() }, modifier = pageMod) {
-            AddClientSheet(addSheet, onCancel = { addSheet.close() }, onAdd = { name, language ->
+            val existing = remember(clients) { clientsVm.repo.disambiguationTargets() }
+            AddClientSheet(addSheet, onCancel = { addSheet.close() }, onAdd = { first, last, language ->
                 scope.launch {
-                    val p = withContext(Dispatchers.IO) { runCatching { clientsVm.repo.createClient(name, language) }.getOrNull() }
+                    val p = withContext(Dispatchers.IO) { runCatching { clientsVm.repo.createClient(first, last, language) }.getOrNull() }
                     if (p == null) { notice.show(t.str(R.string.mindvault_client_add_failed)); return@launch }
                     haptics.confirm()
                     clientsVm.refresh()
@@ -406,7 +407,7 @@ private fun Main(viewModel: MainViewModel, openSessionRequest: Int, onDeveloper:
                     addSheet.close()
                     notice.show(t.str(R.string.mindvault_client_added, p.name))
                 }
-            })
+            }, existingClients = existing)
         }
 
         PageShift(settingsSheet, onBack = { settingsSheet.close() }, modifier = pageMod) {

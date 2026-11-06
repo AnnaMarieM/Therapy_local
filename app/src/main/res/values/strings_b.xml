@@ -23,6 +23,7 @@
     <string name="settings_biometric_confirm">Confirm to turn it on</string>
     <string name="settings_biometric_cancel">Cancel</string>
     <string name="settings_biometric_failed">It could not be turned on.</string>
+    <string name="settings_sign_out">Sign out</string>
     <string name="settings_lock_title">Lock now</string>
     <string name="settings_lock_body">Closes %1$s. The password or a fingerprint opens it again.</string>
     <string name="settings_lock_action">Lock</string>
@@ -105,9 +106,9 @@
     <string name="mindvault_session_deleted">Session deleted</string>
     <string name="mindvault_client_add_failed">That client could not be added</string>
     <string name="mindvault_client_added">%1$s added</string>
-    <string name="mindvault_lock_title">Lock %1$s?</string>
-    <string name="mindvault_lock_body">A session is being processed. It pauses now and carries on after you unlock.</string>
-    <string name="mindvault_lock_confirm">Lock</string>
+    <string name="mindvault_lock_title">Sign out of %1$s?</string>
+    <string name="mindvault_lock_body">A session is being processed. It pauses now and carries on after you sign in again.</string>
+    <string name="mindvault_lock_confirm">Sign out</string>
     <string name="mindvault_discard_title">Discard this session?</string>
     <string name="mindvault_discard_body">Its recording is deleted from the phone and it will not be processed. This cannot be undone.</string>
     <string name="mindvault_session_discarded">Session discarded</string>

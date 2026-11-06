@@ -22,6 +22,7 @@
     <string name="settings_biometric_confirm">Potvrďte zapnutí</string>
     <string name="settings_biometric_cancel">Zrušit</string>
     <string name="settings_biometric_failed">Nepodařilo se to zapnout.</string>
+    <string name="settings_sign_out">Odhlásit se</string>
     <string name="settings_lock_title">Zamknout hned</string>
     <string name="settings_lock_body">Zavře aplikaci %1$s. Znovu ji otevře heslo nebo otisk prstu.</string>
     <string name="settings_lock_action">Zamknout</string>
@@ -107,9 +108,9 @@
     <string name="mindvault_session_deleted">Sezení smazáno</string>
     <string name="mindvault_client_add_failed">Klienta se nepodařilo přidat</string>
     <string name="mindvault_client_added">Klient %1$s přidán</string>
-    <string name="mindvault_lock_title">Zamknout aplikaci %1$s?</string>
-    <string name="mindvault_lock_body">Právě se zpracovává sezení. Nyní se pozastaví a po odemknutí bude pokračovat.</string>
-    <string name="mindvault_lock_confirm">Zamknout</string>
+    <string name="mindvault_lock_title">Odhlásit se z aplikace %1$s?</string>
+    <string name="mindvault_lock_body">Právě se zpracovává sezení. Nyní se pozastaví a po přihlášení bude pokračovat.</string>
+    <string name="mindvault_lock_confirm">Odhlásit se</string>
     <string name="mindvault_discard_title">Zahodit toto sezení?</string>
     <string name="mindvault_discard_body">Jeho nahrávka se z telefonu smaže a nebude se zpracovávat. Tuto akci nelze vrátit.</string>
     <string name="mindvault_session_discarded">Sezení zahozeno</string>
