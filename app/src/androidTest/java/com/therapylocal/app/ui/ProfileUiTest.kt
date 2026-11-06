@@ -173,7 +173,7 @@ class ProfileUiTest {
         compose.onAllNodes(hasScrollToNodeAction()).onFirst().performScrollToNode(hasText("Technical settings"))
         compose.onNode(hasText("Technical settings")).performClick()
 
-        compose.onAllNodes(hasScrollToNodeAction()).onFirst().performScrollToNode(hasContentDescription("Listens back"))
+        compose.onAllNodes(hasScrollToNodeAction()).onLast().performScrollToNode(hasContentDescription("Listens back"))
         compose.onNode(hasContentDescription("Listens back")).performSemanticsAction(SemanticsActions.SetProgress) { it(LOOKBACK.toFloat()) }
 
         compose.onNode(hasText("$LOOKBACK S")).assertExists()
