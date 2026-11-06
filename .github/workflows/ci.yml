@@ -72,6 +72,16 @@ jobs:
           [System.Management.Automation.Language.Parser]::ParseFile("$PWD/scripts/build.ps1", [ref]$null, [ref]$errors) | Out-Null
           if ($errors) { $errors | Out-String | Write-Error; exit 1 }
 
+  # Accepted architecture decisions (docs/AD/AD-*.md) are immutable: changing, deleting or renaming one fails the PR (AGENTS.md).
+  ad-immutable:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - run: scripts/check-ad-immutable.sh "${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}" "${{ github.sha }}"
+
   # End-to-end tests on an emulator. Required: a failing instrumented test fails the PR.
   android-test:
     needs: build
@@ -110,7 +120,7 @@ jobs:
   # waits for unit and emulator tests, so the build runs in parallel with them.
   release-main:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: [build, android-test, reproducible-arm]
+    needs: [build, android-test, reproducible-arm, ad-immutable]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
