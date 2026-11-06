@@ -120,7 +120,21 @@ jobs:
             ~/.android/adb*
           key: avd-34-google_apis-${{ matrix.device }}-default
       - name: Create the AVD and its snapshot
+        id: avd1
+        continue-on-error: true   # the SDK download sometimes arrives corrupt ("Error on ZipFile unknown archive"): one retry below
         if: steps.avd-cache.outputs.cache-hit != 'true'
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          target: google_apis
+          profile: ${{ matrix.device }}
+          force-avd-creation: false
+          disable-animations: false
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          script: echo "AVD snapshot generated for the cache"
+      - name: Create the AVD and its snapshot (retry)
+        if: steps.avd-cache.outputs.cache-hit != 'true' && steps.avd1.outcome == 'failure'
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 34
@@ -184,7 +198,22 @@ jobs:
             ~/.android/adb*
           key: avd-34-google_apis-pixel_6-2048
       - name: Create the AVD and its snapshot
+        id: avd1
+        continue-on-error: true   # the SDK download sometimes arrives corrupt ("Error on ZipFile unknown archive"): one retry below
         if: steps.avd-cache.outputs.cache-hit != 'true'
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          target: google_apis
+          profile: pixel_6
+          ram-size: 2048M
+          force-avd-creation: false
+          disable-animations: false
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          script: echo "AVD snapshot generated for the cache"
+      - name: Create the AVD and its snapshot (retry)
+        if: steps.avd-cache.outputs.cache-hit != 'true' && steps.avd1.outcome == 'failure'
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 34

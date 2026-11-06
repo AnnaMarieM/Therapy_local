@@ -38,7 +38,23 @@ jobs:
             ~/.android/adb*
           key: avd-${{ inputs.api }}-${{ inputs.target }}-${{ inputs.profile }}-${{ inputs.ram || 'default' }}-${{ inputs.cores }}
       - name: Create the AVD and its snapshot
+        id: avd1
+        continue-on-error: true   # the SDK download sometimes arrives corrupt ("Error on ZipFile unknown archive"): one retry below
         if: steps.avd-cache.outputs.cache-hit != 'true'
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ inputs.api }}
+          arch: x86_64
+          target: ${{ inputs.target }}
+          profile: ${{ inputs.profile }}
+          ram-size: ${{ inputs.ram && format('{0}M', inputs.ram) || '' }}
+          cores: ${{ inputs.cores }}
+          force-avd-creation: false
+          disable-animations: false
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none ${{ inputs.extra_options }}
+          script: echo "AVD snapshot generated for the cache"
+      - name: Create the AVD and its snapshot (retry)
+        if: steps.avd-cache.outputs.cache-hit != 'true' && steps.avd1.outcome == 'failure'
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: ${{ inputs.api }}
