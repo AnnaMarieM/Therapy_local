@@ -6,8 +6,8 @@ import android.content.pm.PackageManager
 import android.os.SystemClock
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
@@ -55,6 +55,7 @@ import com.therapylocal.app.session.SessionController
 import com.therapylocal.app.session.SessionPhase
 import com.therapylocal.app.ui.data.ClientsViewModel
 import com.therapylocal.app.ui.design.Palette
+import com.therapylocal.app.ui.design.PaneDivider
 import com.therapylocal.app.ui.design.PaperTheme
 import com.therapylocal.app.ui.design.paper
 import com.therapylocal.app.ui.design.rememberChoiceState
@@ -143,7 +144,7 @@ private fun Main(viewModel: MainViewModel, openSessionRequest: Int, onDeveloper:
     val reduced = com.therapylocal.app.ui.design.LocalReducedMotion.current
     val titleRef = remember { BoundsRef() }
     val nameTravels = {
-        !reduced && profileSheet.visible && profileId != null && refs.nameOf == profileId &&
+        !reduced && !twoPane && profileSheet.visible && profileId != null && refs.nameOf == profileId &&
             refs.name.rect != Rect.Zero && titleRef.rect != Rect.Zero && titleRef.present
     }
     refs.lent = nameTravels
@@ -265,7 +266,9 @@ private fun Main(viewModel: MainViewModel, openSessionRequest: Int, onDeveloper:
         val s = if (p != null) profileSheet else addSheet
         if (!s.target) {
             if (p != null) showProfile(p)
-            s.follow((-dx).coerceAtLeast(0f) / s.shiftPx)
+            // The pull is measured against the list the finger is on, not the (much wider) pane the page opens in.
+            val travel = (if (twoPane) listW else winW) * density.density * com.therapylocal.app.ui.motion.SHIFT_SHARE
+            s.follow((-dx).coerceAtLeast(0f) / travel)
         }
     }
     val unpeek = { p: Patient? -> (if (p != null) profileSheet else addSheet).let { if (!it.target) it.close() } }
@@ -309,7 +312,6 @@ private fun Main(viewModel: MainViewModel, openSessionRequest: Int, onDeveloper:
         val pageMod = if (twoPane) Modifier.padding(start = listW.dp) else Modifier
         if (twoPane) {
             Box(Modifier.padding(start = listW.dp).fillMaxSize().paper())
-            Box(Modifier.padding(start = listW.dp).fillMaxHeight().width(1.dp).background(Palette.Hairline))
         }
         Home(
             clients = clients,
@@ -429,7 +431,10 @@ private fun Main(viewModel: MainViewModel, openSessionRequest: Int, onDeveloper:
             )
         }
 
-        NoticeHost(notice, Modifier.align(Alignment.TopCenter))
+        if (twoPane) PaneDivider(Modifier.offset(x = (listW - 1).dp))
+
+        // A notice is a toast, not a bar: on a wide window it keeps the width of a page.
+        Box(Modifier.align(Alignment.TopCenter).widthIn(max = com.therapylocal.app.ui.design.Adaptive.ReadingWidth)) { NoticeHost(notice) }
     }
     }
 

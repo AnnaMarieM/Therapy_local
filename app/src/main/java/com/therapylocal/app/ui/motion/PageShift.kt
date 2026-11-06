@@ -138,12 +138,17 @@ class SheetState internal constructor(private val scope: CoroutineScope, width: 
 @Composable
 fun rememberSheetState(widthDp: Int? = null): SheetState {
     val scope = rememberCoroutineScope()
-    val width = (widthDp ?: LocalConfiguration.current.screenWidthDp) * LocalDensity.current.density
+    // A page never travels further than it would on a large phone: on a tablet a 40% slide is a long way to watch, and it has to match
+    // the swipe that arms the action (96-150 dp), which does not grow with the screen.
+    val width = minOf(widthDp ?: LocalConfiguration.current.screenWidthDp, MAX_TRAVEL_BASIS_DP) * LocalDensity.current.density
     return remember { SheetState(scope, width) }.also { it.resize(width) }
 }
 
 /** Share of the screen width a page's content travels on its way in or out. */
 const val SHIFT_SHARE = 0.4f
+
+/** Wider than this, a page's travel stops growing (600 dp x 40% = 240 dp). */
+const val MAX_TRAVEL_BASIS_DP = 600
 
 /** How much paper has come over what is underneath: it is covered by the time the new content starts to show, so two pages never mix. */
 internal fun paperIn(q: Float) = GestureMath.smoothstep(0.2f, 0.6f, q)
