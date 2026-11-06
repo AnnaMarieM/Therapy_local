@@ -18,7 +18,9 @@ import com.therapylocal.app.models.BackendGuard.ExitKind
  *     ExitInfos.assertMainIntact(t0)                       // U0: no CRASH / CRASH_NATIVE / ANR of main since t0
  */
 object ExitInfos {
-    class Found(val info: ApplicationExitInfo, val latencyMs: Long)
+    class Found(val info: ApplicationExitInfo, val latencyMs: Long) {
+        val settled: Boolean get() = info.reason != ApplicationExitInfo.REASON_UNKNOWN
+    }
 
     private val ctx get() = InstrumentationRegistry.getInstrumentation().targetContext
     private val am get() = ctx.getSystemService(ActivityManager::class.java)
@@ -28,12 +30,20 @@ object ExitInfos {
     val live: String get() = "${ctx.packageName}:live"
     val batch: String get() = "${ctx.packageName}:batch"
 
-    /** The first record for [pid], polled up to [timeoutMs]; null when none arrived (a failed assertion in the caller). */
-    fun await(pid: Int, timeoutMs: Long = 5_000): Found? {
+    /**
+     * The record for [pid], polled up to [timeoutMs] until it has a reason other than `REASON_UNKNOWN`. AMS stores a placeholder first
+     * (reason 0, status 0, empty description) and fills it in when it has processed the death, so the first record is not final.
+     * Returns the last record seen if it never settled (a genuine UNKNOWN, e.g. SIGKILL on a lane without low-memory-kill reports, lands
+     * here after the full [timeoutMs]); null when no record arrived at all. [Found.settled] says which.
+     */
+    fun await(pid: Int, timeoutMs: Long = 8_000): Found? {
         val t0 = SystemClock.elapsedRealtime()
+        var last: ApplicationExitInfo? = null
         while (true) {
-            am.getHistoricalProcessExitReasons(ctx.packageName, pid, 1).firstOrNull()?.let { return Found(it, SystemClock.elapsedRealtime() - t0) }
-            if (SystemClock.elapsedRealtime() - t0 > timeoutMs) return null
+            am.getHistoricalProcessExitReasons(ctx.packageName, pid, 1).firstOrNull()?.let { last = it }
+            val seen = last
+            if (seen != null && seen.reason != ApplicationExitInfo.REASON_UNKNOWN) return Found(seen, SystemClock.elapsedRealtime() - t0)
+            if (SystemClock.elapsedRealtime() - t0 > timeoutMs) return seen?.let { Found(it, SystemClock.elapsedRealtime() - t0) }
             Thread.sleep(50) // bounded poll, see above
         }
     }

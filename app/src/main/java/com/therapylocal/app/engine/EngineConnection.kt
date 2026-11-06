@@ -1,6 +1,7 @@
 package com.therapylocal.app.engine
 
 import android.app.ActivityManager
+import android.app.ApplicationExitInfo
 import com.therapylocal.app.config.EngineTuning
 import com.therapylocal.app.models.BackendGuard
 import com.therapylocal.app.models.BackendGuard.ExitKind
@@ -591,12 +592,18 @@ class EngineConnection(
         lookup(g, clock.nowMs() + tuning.exitLookupMs, true, source)
     }
 
-    /** The exit record may lag the death by a few hundred ms: poll every 50 ms for up to [EngineTuning.exitLookupMs], as a re-posted task. */
-    private fun lookup(g: Gen, deadline: Long, first: Boolean, source: String) {
-        val rec = runCatching { ExitReasons.pick(exits.query(g.pid), g.pid, processName, g.bindWall) }.getOrNull()
-        if (rec != null || clock.nowMs() >= deadline) return complete(g, rec, source)
+    /**
+     * The exit record may lag the death by a few hundred ms: poll every 50 ms for up to [EngineTuning.exitLookupMs], as a re-posted task.
+     * The system first stores a placeholder (`REASON_UNKNOWN`, status 0, empty description) and fills it in once it has processed the death,
+     * so an UNKNOWN record is not final: keep polling, and only when the bound is hit fall back to the newest record seen (a genuine UNKNOWN
+     * exists, e.g. a SIGKILL without low-memory-kill reports).
+     */
+    private fun lookup(g: Gen, deadline: Long, first: Boolean, source: String, seen: ExitRecord? = null) {
+        val rec = runCatching { ExitReasons.pick(exits.query(g.pid), g.pid, processName, g.bindWall) }.getOrNull() ?: seen
+        val settled = rec != null && rec.reason != ApplicationExitInfo.REASON_UNKNOWN
+        if (settled || clock.nowMs() >= deadline) return complete(g, rec, source)
         if (first) ev('w', EngineEvents.EXIT_REASON_PENDING, "gen" to g.n, "host_pid" to g.pid)
-        scheduler.schedule(50) { lookup(g, deadline, false, source) }
+        scheduler.schedule(50) { lookup(g, deadline, false, source, rec) }
     }
 
     private fun complete(g: Gen, rec: ExitRecord?, source: String) {
