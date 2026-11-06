@@ -7,7 +7,7 @@ FROM eclipse-temurin@sha256:292214e32a0a3032e7f1af0e22491e02452c1f5473ec1d964869
 ARG CMDLINE_TOOLS_VERSION=11076708
 ARG CMDLINE_TOOLS_SHA256=2d2d50857e4eb553af5a6dc3ad507a17adf43d115264b1afc116f95c92e5e258
 ARG PLATFORM=android-34
-ARG BUILD_TOOLS=34.0.0
+ARG BUILD_TOOLS=35.0.0
 ARG AAPT2_VERSION=8.8.0-12006047
 ARG AAPT2_JAR_SHA256=8f1b975a0e471b126098afaec8f4e3b1723fd64e09f0edd9660cc6ee1b02caff
 
@@ -43,6 +43,15 @@ RUN mkdir -p "$ANDROID_HOME/cmdline-tools" \
     && yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null \
     && "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;${PLATFORM}" "build-tools;${BUILD_TOOLS}" \
     && chmod -R a+rwX "$ANDROID_HOME"
+
+# aidl (the AIDL compiler, needed for the engine host interface) is x86_64-only too: on arm64 it runs under qemu-user like aapt2.
+# app/build.gradle.kts pins buildToolsVersion to BUILD_TOOLS so AGP uses this copy and never downloads another.
+RUN if [ "$(uname -m)" != x86_64 ]; then \
+      mv "$ANDROID_HOME/build-tools/${BUILD_TOOLS}/aidl" "$ANDROID_HOME/build-tools/${BUILD_TOOLS}/aidl-x86_64" \
+      && printf '%s\n' '#!/bin/sh' \
+         "exec qemu-x86_64-static -L /usr/x86_64-linux-gnu $ANDROID_HOME/build-tools/${BUILD_TOOLS}/aidl-x86_64 \"\$@\"" > "$ANDROID_HOME/build-tools/${BUILD_TOOLS}/aidl" \
+      && chmod a+rx "$ANDROID_HOME/build-tools/${BUILD_TOOLS}/aidl"; \
+    fi
 
 # Fixed path: the source is always mounted here so paths baked into outputs never differ.
 WORKDIR /workspace

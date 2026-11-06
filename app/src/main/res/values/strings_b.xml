@@ -176,7 +176,6 @@
     <string name="settings_hardware_running_on_since">Last ran on %1$s · %2$s</string>
     <string name="settings_hardware_not_loaded">Not loaded yet</string>
     <string name="settings_hardware_role_llm">Reads sessions</string>
-    <string name="settings_hardware_role_llm_audio">Reads sessions and recognises speech</string>
     <string name="settings_hardware_role_embed">Finds related facts while sessions are processed</string>
     <string name="settings_hardware_role_embed_audio">Live cues and search</string>
     <string name="settings_hardware_role_asr">Recognises speech</string>
@@ -194,4 +193,26 @@
     <string name="settings_hardware_reset_title">Test everything again?</string>
     <string name="settings_hardware_reset_body">Every part of the phone is tried again, including ones turned off because they failed. If one makes the app close, it is turned off again by itself.</string>
     <string name="settings_hardware_reset_confirm">Test again</string>
+    <string name="settings_engine_title">Model processes</string>
+    <string name="settings_engine_intro">Models run in two separate processes, so a crash in one does not close the app. Nothing here starts a process.</string>
+    <string name="settings_engine_role_live">Live cues and search</string>
+    <string name="settings_engine_role_batch">Reading sessions and speech</string>
+    <string name="settings_engine_state_stopped">Stopped</string>
+    <string name="settings_engine_state_starting">Starting</string>
+    <string name="settings_engine_state_running">Running</string>
+    <string name="settings_engine_state_stopping">Stopping</string>
+    <string name="settings_engine_state_restarting">Restarting after a crash</string>
+    <string name="settings_engine_state_unavailable">Unavailable after repeated crashes, tried again later</string>
+    <string name="settings_engine_process">Process %1$d · generation %2$d · up %3$s</string>
+    <string name="settings_engine_loaded">Loaded: %1$s</string>
+    <string name="settings_engine_loaded_none">Nothing loaded</string>
+    <string name="settings_engine_memory">Memory: %1$s</string>
+    <string name="settings_engine_deaths">Recent crashes: %1$d</string>
+    <string name="settings_engine_last_exit">Last exit: %1$s · %2$s</string>
+    <string name="settings_engine_exit_memory">stopped by the system for memory</string>
+    <string name="settings_engine_exit_native">native crash</string>
+    <string name="settings_engine_exit_crash">crash</string>
+    <string name="settings_engine_exit_anr">not responding</string>
+    <string name="settings_engine_exit_benign">stopped normally</string>
+    <string name="settings_engine_exit_unknown">unknown</string>
 </resources>

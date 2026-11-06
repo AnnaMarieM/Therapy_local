@@ -50,6 +50,16 @@
             android:foregroundServiceType="microphone"
             android:exported="false" />
 
+        <!-- Model inference hosts (AD-01): bound, never started, no foreground type. One process each, so a model kill leaves the app alive. -->
+        <service
+            android:name=".engine.EngineHostLive"
+            android:process=":live"
+            android:exported="false" />
+        <service
+            android:name=".engine.EngineHostBatch"
+            android:process=":batch"
+            android:exported="false" />
+
         <service
             android:name="androidx.work.impl.foreground.SystemForegroundService"
             android:foregroundServiceType="dataSync"

@@ -157,9 +157,8 @@ object SessionController {
         if (withContext(Dispatchers.IO) { freeBytes() } < ChunkConfig.MIN_FREE_BYTES) {
             return fail(null, null, app.getString(R.string.vm_record_no_space))
         }
-        val engine = app.getSharedPreferences("settings", Context.MODE_PRIVATE).getString("engine", com.therapylocal.app.models.ModelRegistry.DEFAULT_ENGINE)!!
         val createdSession = owner?.let { (client, session) -> withContext(Dispatchers.IO) { !st.sessionExists(session).also { st.createSession(session, client, _state.value.startedAt) } } } ?: false
-        val rid = withContext(Dispatchers.IO) { st.createRecording(owner?.second, engine, "") }
+        val rid = withContext(Dispatchers.IO) { st.createRecording(owner?.second, "canary", "") }
         val c = LogCtx(rid)
         val rec = ChunkRecorder.recording(c)
         rec.tap = { buf, n ->

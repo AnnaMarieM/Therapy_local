@@ -38,6 +38,8 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -67,6 +69,10 @@ import com.therapylocal.app.R
 import com.therapylocal.app.config.LiveCueSettings
 import com.therapylocal.app.config.liveCueSettings
 import com.therapylocal.app.config.saveLiveCueSettings
+import com.therapylocal.app.embed.Engines
+import com.therapylocal.app.engine.EngineRole
+import com.therapylocal.app.engine.EngineState
+import com.therapylocal.app.engine.HostView
 import com.therapylocal.app.models.BackendGuard
 import com.therapylocal.app.models.Backends
 import com.therapylocal.app.models.GemmaVariant
@@ -524,6 +530,7 @@ private fun HardwareStatus(resumeTick: Int, notice: NoticeState) {
         }
         models.forEach { m -> HardwareModel(m) }
         if (models.isNotEmpty()) TextAction(stringResource(R.string.settings_hardware_reset), { confirmReset = true }, color = Palette.InkSoft)
+        EngineProcesses(resumeTick)
     }
     Hairline()
     if (confirmReset) ConfirmDialog(
@@ -538,13 +545,80 @@ private fun HardwareStatus(resumeTick: Int, notice: NoticeState) {
     )
 }
 
+/**
+ * One row per engine process, read from [Engines.state] (published by the connections). Showing it never binds a host. The memory figure is
+ * refreshed once per resume, off the main thread, and only for a host that is already bound.
+ */
+@Composable
+private fun EngineProcesses(resumeTick: Int) {
+    val views by Engines.state.collectAsState()
+    LaunchedEffect(resumeTick) {
+        for (role in listOf(EngineRole.LIVE, EngineRole.BATCH)) runCatching { Engines.refreshPss(role) }
+    }
+    // In-process builds publish nothing: there is no process to show.
+    if (views.isEmpty() && com.therapylocal.app.config.EngineConfig.IN_PROCESS) return
+    Spacer(Modifier.height(20.dp))
+    Text(stringResource(R.string.settings_engine_title), style = Type.Body, color = Palette.Ink)
+    Text(stringResource(R.string.settings_engine_intro), style = Type.BodySmall, color = Palette.InkSoft)
+    listOf(EngineRole.LIVE to R.string.settings_engine_role_live, EngineRole.BATCH to R.string.settings_engine_role_batch).forEach { (role, title) ->
+        EngineRow(stringResource(title), views[role])
+    }
+}
+
+@Composable
+private fun EngineRow(title: String, v: HostView?) {
+    val ctx = LocalContext.current
+    val shown = EngineState.shown(v, Engines.tuning.stormDeaths)
+    val running = shown == EngineState.Shown.RUNNING
+    val state = stringResource(
+        when (shown) {
+            EngineState.Shown.STOPPED -> R.string.settings_engine_state_stopped
+            EngineState.Shown.STARTING -> R.string.settings_engine_state_starting
+            EngineState.Shown.RUNNING -> R.string.settings_engine_state_running
+            EngineState.Shown.STOPPING -> R.string.settings_engine_state_stopping
+            EngineState.Shown.RESTARTING -> R.string.settings_engine_state_restarting
+            EngineState.Shown.UNAVAILABLE -> R.string.settings_engine_state_unavailable
+        },
+    )
+    Column(Modifier.fillMaxWidth().padding(top = 14.dp).semantics(mergeDescendants = true) {}) {
+        Text(title, style = Type.Body, color = Palette.Ink)
+        Text(state, style = Type.BodySmall, color = if (shown == EngineState.Shown.UNAVAILABLE) Palette.Ink else Palette.InkSoft)
+        if (v != null && (running || shown == EngineState.Shown.STARTING)) {
+            val up = ((System.nanoTime() / 1_000_000 - v.sinceMs) / 1000).coerceAtLeast(0)
+            Text(stringResource(R.string.settings_engine_process, v.pid, v.gen, android.text.format.DateUtils.formatElapsedTime(up)), style = Type.BodySmall, color = Palette.InkFaint)
+        }
+        if (v != null && running) {
+            Text(
+                if (v.loaded.isEmpty()) stringResource(R.string.settings_engine_loaded_none) else stringResource(R.string.settings_engine_loaded, v.loaded.joinToString(", ") { it.replace("@", " on ") }),
+                style = Type.BodySmall, color = Palette.InkFaint,
+            )
+            v.pssKb?.let { Text(stringResource(R.string.settings_engine_memory, android.text.format.Formatter.formatShortFileSize(ctx, it * 1024)), style = Type.BodySmall, color = Palette.InkFaint) }
+        }
+        if (v != null && v.deaths > 0) Text(stringResource(R.string.settings_engine_deaths, v.deaths), style = Type.BodySmall, color = Palette.InkFaint)
+        v?.lastExit?.let { e ->
+            val kind = stringResource(
+                when (e.kind) {
+                    BackendGuard.ExitKind.KILLED_FOR_MEMORY -> R.string.settings_engine_exit_memory
+                    BackendGuard.ExitKind.NATIVE_CRASH -> R.string.settings_engine_exit_native
+                    BackendGuard.ExitKind.CRASH -> R.string.settings_engine_exit_crash
+                    BackendGuard.ExitKind.ANR -> R.string.settings_engine_exit_anr
+                    BackendGuard.ExitKind.BENIGN -> R.string.settings_engine_exit_benign
+                    BackendGuard.ExitKind.UNKNOWN -> R.string.settings_engine_exit_unknown
+                },
+            )
+            val at = if (v.lastExitAtMs > 0) android.text.format.DateUtils.getRelativeTimeSpanString(minOf(v.lastExitAtMs, System.currentTimeMillis())).toString() else ""
+            Text(stringResource(R.string.settings_engine_last_exit, kind, at).trim().trimEnd('·', ' '), style = Type.BodySmall, color = Palette.InkFaint)
+        }
+    }
+}
+
 @Composable
 private fun HardwareModel(m: BackendGuard.ModelView) {
     val base = m.model.substringBefore('+')
     val audio = m.model.endsWith("+audio")
     val title = remember(base) { runCatching { ModelRegistry.byId(base).title.substringBefore(" (") }.getOrDefault(base) }
     val role = when {
-        base.startsWith("gemma") -> if (audio) R.string.settings_hardware_role_llm_audio else R.string.settings_hardware_role_llm
+        base.startsWith("gemma") -> R.string.settings_hardware_role_llm
         base == ModelRegistry.EMBED.id -> if (audio) R.string.settings_hardware_role_embed_audio else R.string.settings_hardware_role_embed
         else -> R.string.settings_hardware_role_asr
     }

@@ -136,14 +136,17 @@ class BackendGuard(private val store: Store, private val build: String, private 
     @Synchronized
     fun demoted(model: String, backend: String): Boolean = pair(model, backend) in demoted
 
-    /** Written before the engine is created. Several attempts can be open at once (two engines loading on different threads). */
+    /**
+     * Written before the engine is created. Several attempts can be open at once (two engines loading on different threads). [role] is the
+     * process the engine is created in (`main`, `live`, `batch`): a kill is judged by that process's own exit record at the next start.
+     */
     @Synchronized
-    fun attempting(model: String, backend: String) {
+    fun attempting(model: String, backend: String, role: String = ROLE_MAIN) {
         val r = record(model, backend)
         store.putAll(
             mapOf(
                 key(model, backend) to Record(State.ATTEMPTING, r?.strikes ?: 0, r?.everProven ?: false, now(), "attempting").encode(),
-                PENDING to (pending() + (pair(model, backend) to "start")).encodePending(),
+                PENDING to (pending() + (pair(model, backend) to Entry(PHASE_START, role, now()))).encodePending(),
             ),
         )
     }
@@ -152,8 +155,8 @@ class BackendGuard(private val store: Store, private val build: String, private 
     @Synchronized
     fun phase(model: String, backend: String, phase: String) {
         val p = pending()
-        if (pair(model, backend) !in p) return
-        store.put(PENDING, (p + (pair(model, backend) to phase.filter { it.isLetterOrDigit() || it == '_' })).encodePending())
+        val e = p[pair(model, backend)] ?: return
+        store.put(PENDING, (p + (pair(model, backend) to e.copy(phase = phase.filter { it.isLetterOrDigit() || it == '_' }.ifEmpty { PHASE_START }))).encodePending())
     }
 
     /** Written once the backend loaded and answered its test. Strikes are kept until a clean [unloaded]: loading is not yet surviving the work. */
@@ -202,11 +205,11 @@ class BackendGuard(private val store: Store, private val build: String, private 
         if (store.get(key) != null) store.put(key, null)
     }
 
-    /** A GPU/NPU engine is resident from now until [unloaded]. */
+    /** A GPU/NPU engine is resident from now until [unloaded] (or [diedWhileLoaded]), in the process [role]. */
     @Synchronized
-    fun loaded(model: String, backend: String) {
+    fun loaded(model: String, backend: String, role: String = ROLE_MAIN) {
         if (isCpu(backend)) return
-        store.put(RESIDENT, (resident() + pair(model, backend)).joinToString(","))
+        store.put(RESIDENT, (resident() + (pair(model, backend) to Entry(PHASE_START, role, now()))).encodeResident())
     }
 
     /** The GPU/NPU engine was closed by the app, not by a kill: it survived its work, so the strikes are cleared. */
@@ -214,7 +217,7 @@ class BackendGuard(private val store: Store, private val build: String, private 
     fun unloaded(model: String, backend: String) {
         if (isCpu(backend)) return
         val changes = HashMap<String, String?>()
-        changes[RESIDENT] = (resident() - pair(model, backend)).joinToString(",").ifEmpty { null }
+        changes[RESIDENT] = (resident() - pair(model, backend)).encodeResident()
         record(model, backend)?.takeIf { it.state == State.PROVEN && it.strikes > 0 }?.let { changes[key(model, backend)] = it.copy(strikes = 0, at = now()).encode() }
         store.putAll(changes)
     }
@@ -222,50 +225,143 @@ class BackendGuard(private val store: Store, private val build: String, private 
     /**
      * Once per process start, before any model loads: forgets everything if the build changed, then turns the attempts left open and the GPU/NPU
      * engines that were resident in a process the system killed into strikes.
+     *
+     * An entry noted by main ([ROLE_MAIN]) is judged by [lastExit], the newest exit of the main process. An entry noted for an engine host
+     * (`live`, `batch`) is judged by that host's own exit record, which [hostExit] looks up (role and the time the entry was noted): a main
+     * that was killed (the vault locking, the user) never strikes a backend that was loading in a process that did nothing wrong. A host
+     * that ended on purpose (it halts itself when its client dies) is BENIGN: interrupted, not counted. No record at all is the unknown
+     * rule, as for any exit that may not be the backend's doing.
      */
     @Synchronized
-    fun recover(lastExit: LastExit?): List<Event> {
+    fun recover(lastExit: LastExit?, hostExit: (role: String, sinceMs: Long) -> LastExit? = { _, _ -> null }): List<Event> {
         val events = ArrayList<Event>()
         if (store.get(BUILD) != build) {
             if (store.get(BUILD) != null) events += Event("backend_guard_reset_new_build", "*", "*", null)
             store.putAll(store.keys().associateWith<String, String?> { null } + (BUILD to build))
             return events
         }
-        val exit = lastExit?.let { "${it.kind.name.lowercase()}: ${it.description}" } ?: "exit reason unknown"
-        // The backend's own doing: the system killed it for memory, it crashed natively, or it hung.
-        val backendsFault = lastExit != null && lastExit.kind in setOf(ExitKind.KILLED_FOR_MEMORY, ExitKind.NATIVE_CRASH, ExitKind.ANR)
-        for ((p, phase) in pending()) {
+        fun exitOf(e: Entry): LastExit? = if (e.role == ROLE_MAIN) lastExit else hostExit(e.role, e.at)
+        fun text(x: LastExit?) = x?.let { "${it.kind.name.lowercase()}: ${it.description}" } ?: "exit reason unknown"
+        for ((p, e) in pending()) {
             val (model, backend) = unpair(p) ?: continue
+            val x = exitOf(e)
+            val exit = text(x)
+            val phase = e.phase
+            val where = if (e.role == ROLE_MAIN) "" else "; role=${e.role}"
+            // The backend's own doing: the system killed it for memory, it crashed natively, or it hung.
+            val backendsFault = x != null && x.kind in FAULT_KINDS
             when {
-                lastExit?.kind == ExitKind.BENIGN -> events += Event("backend_attempt_interrupted", model, backend, record(model, backend), "phase=$phase; $exit; not counted")
+                x?.kind == ExitKind.BENIGN -> events += Event("backend_attempt_interrupted", model, backend, record(model, backend), "phase=$phase; $exit; not counted$where")
                 backendsFault -> {
                     val r = strike(model, backend, State.DIED, "process died while loading, in $phase ($exit)")
-                    events += Event(if (r.state == State.BLOCKED) "backend_blocked" else "backend_died_while_loading", model, backend, r, "phase=$phase")
-                    tooLarge(model, backend, r)?.let { events += it }
+                    if (x!!.kind == ExitKind.KILLED_FOR_MEMORY) noteMemoryKill(model, backend)
+                    events += Event(if (r.state == State.BLOCKED) "backend_blocked" else "backend_died_while_loading", model, backend, r, "phase=$phase$where")
+                    tooLargeEvent(model, backend)?.let { events += it }
                 }
                 else -> {
                     val n = (store.get(INTERRUPTED + p)?.toIntOrNull() ?: 0) + 1
                     if (n >= INTERRUPTED_STRIKE) {
                         store.put(INTERRUPTED + p, null)
                         val r = strike(model, backend, State.DIED, "process ended $n times while loading, last in $phase ($exit)")
-                        events += Event(if (r.state == State.BLOCKED) "backend_blocked" else "backend_died_while_loading", model, backend, r, "phase=$phase; repeated")
+                        events += Event(if (r.state == State.BLOCKED) "backend_blocked" else "backend_died_while_loading", model, backend, r, "phase=$phase; repeated$where")
                     } else {
                         store.put(INTERRUPTED + p, n.toString())
-                        events += Event("backend_attempt_interrupted", model, backend, record(model, backend), "phase=$phase; $exit; $n of $INTERRUPTED_STRIKE before it counts")
+                        events += Event("backend_attempt_interrupted", model, backend, record(model, backend), "phase=$phase; $exit; $n of $INTERRUPTED_STRIKE before it counts$where")
                     }
                 }
             }
         }
-        val killedInUse = lastExit != null &&
-            (lastExit.kind == ExitKind.NATIVE_CRASH || lastExit.kind == ExitKind.ANR || (lastExit.kind == ExitKind.KILLED_FOR_MEMORY && lastExit.foreground))
-        if (killedInUse) {
-            resident().mapNotNull(::unpair).forEach { (model, backend) ->
-                val r = strike(model, backend, State.DIED, "process died while loaded ($exit)")
-                events += Event(if (r.state == State.BLOCKED) "backend_blocked" else "backend_died_while_loaded", model, backend, r)
+        for ((p, e) in resident()) {
+            val (model, backend) = unpair(p) ?: continue
+            val x = exitOf(e)
+            if (x != null && killedInUse(x)) {
+                val r = strike(model, backend, State.DIED, "process died while loaded (${text(x)})")
+                events += Event(if (r.state == State.BLOCKED) "backend_blocked" else "backend_died_while_loaded", model, backend, r, if (e.role == ROLE_MAIN) null else "role=${e.role}")
             }
         }
         store.putAll(mapOf(PENDING to null, RESIDENT to null))
         return events
+    }
+
+    /** Native crash, hang, or a memory kill of a process that was visible or a foreground service: the engine's doing, in use. */
+    private fun killedInUse(x: LastExit) = x.kind == ExitKind.NATIVE_CRASH || x.kind == ExitKind.ANR || (x.kind == ExitKind.KILLED_FOR_MEMORY && x.foreground)
+
+    /** What [died] did: the record after (null when the exit was benign and nothing was struck) and the "too large" event once it is clear. */
+    data class Died(val record: Record?, val tooLarge: Event?, val struck: Boolean)
+
+    /**
+     * The host process died during [phase] of an attempt on [backend] (the ladder caught an `EngineDied`): the strike is recorded now, with the
+     * exit kind, so the next backend is tried at once and the next start does not count it again (the pending entry goes). A memory kill,
+     * a native crash or a hang is the backend's doing (`DIED`); a plain crash or an unknown reason may not be (a Java crash elsewhere, an exit
+     * record not found), so it counts only after [INTERRUPTED_STRIKE] in a row (`FAILED`), the same rule [recover] applies; an end the app or the host chose (BENIGN: idle stop, shutdown, a close that timed out) is never a strike.
+     */
+    @Synchronized
+    fun died(model: String, backend: String, phase: String?, exit: LastExit): Died {
+        val p = pending()
+        val noted = p[pair(model, backend)]
+        store.put(PENDING, (p - pair(model, backend)).encodePending())
+        if (exit.kind == ExitKind.BENIGN) return Died(record(model, backend), null, struck = false)
+        val where = phase?.takeIf { it.isNotBlank() } ?: noted?.phase ?: PHASE_START
+        val text = "${exit.kind.name.lowercase()}: ${exit.description}"
+        val r = if (exit.kind in FAULT_KINDS) {
+            if (exit.kind == ExitKind.KILLED_FOR_MEMORY) noteMemoryKill(model, backend)
+            strike(model, backend, State.DIED, "process died while loading, in $where ($text)")
+        } else {
+            val key = INTERRUPTED + pair(model, backend)
+            val n = (store.get(key)?.toIntOrNull() ?: 0) + 1
+            if (n < INTERRUPTED_STRIKE) {
+                store.put(key, n.toString())
+                return Died(record(model, backend), null, struck = false)
+            }
+            store.put(key, null)
+            strike(model, backend, State.FAILED, "$text, in $where (repeated $n times)")
+        }
+        return Died(r, tooLargeEvent(model, backend), struck = true)
+    }
+
+    /**
+     * An attempt that ended without any verdict on the backend (no host could serve: a restart storm, a bind failure, an oversized payload):
+     * the pending note goes, with no strike, or the next start would count an attempt that never reached a device.
+     */
+    @Synchronized
+    fun abandoned(model: String, backend: String) {
+        val p = pending()
+        if (pair(model, backend) in p) store.put(PENDING, (p - pair(model, backend)).encodePending())
+    }
+
+    /**
+     * The host died while this engine was loaded and idle between calls or in the middle of one (the connection's handle registry calls this
+     * once per handle, before any caller is released). The online twin of the resident branch of [recover]: a native crash, a hang, or a
+     * memory kill of a foreground process strikes the GPU/NPU backend; the resident note always goes, so the next start cannot strike it
+     * again. On the CPU, which is never resident and never blocked, only a foreground memory kill counts, toward [tooLarge]. A BENIGN end is
+     * not a death: it is settled with [unloaded] by the caller, never here.
+     */
+    @Synchronized
+    fun diedWhileLoaded(model: String, backend: String, exit: LastExit): List<Event> {
+        store.put(RESIDENT, (resident() - pair(model, backend)).encodeResident())
+        if (exit.kind == ExitKind.BENIGN || !killedInUse(exit)) return emptyList()
+        val text = "${exit.kind.name.lowercase()}: ${exit.description}"
+        if (isCpu(backend)) {
+            if (exit.kind != ExitKind.KILLED_FOR_MEMORY) return emptyList()
+            noteMemoryKill(model, backend)
+            val r = strike(model, backend, State.DIED, "process died while loaded ($text)")
+            return listOfNotNull(Event("backend_died_while_loaded", model, backend, r), tooLargeEvent(model, backend))
+        }
+        val r = strike(model, backend, State.DIED, "process died while loaded ($text)")
+        return listOf(Event(if (r.state == State.BLOCKED) "backend_blocked" else "backend_died_while_loaded", model, backend, r))
+    }
+
+    /**
+     * The model keeps getting killed for memory even on the CPU, which is never blocked: it is too large for this phone. Counts the kills of the
+     * CPU only, so a native crash (a bug) never reads as "too large". Reset by [reset] and a new build.
+     */
+    @Synchronized
+    fun tooLarge(model: String): Boolean = memoryKills(model) >= BLOCK_UNPROVEN
+
+    private fun memoryKills(model: String) = store.get(MEMORY_KILLS + model)?.toIntOrNull() ?: 0
+
+    private fun noteMemoryKill(model: String, backend: String) {
+        if (isCpu(backend)) store.put(MEMORY_KILLS + model, (memoryKills(model) + 1).toString())
     }
 
     /** Every record, for the startup log. */
@@ -275,9 +371,9 @@ class BackendGuard(private val store: Store, private val build: String, private 
         Event("backend_record", model, backend, Record.decode(store.get(k)))
     }
 
-    /** The CPU is never blocked, so a model that keeps getting killed even there is too large for this phone: said once it is clear. */
-    private fun tooLarge(model: String, backend: String, r: Record): Event? =
-        if (isCpu(backend) && r.strikes >= BLOCK_UNPROVEN) Event("model_too_large_for_device", model, backend, r, "killed ${r.strikes} times on the CPU; a smaller model may be needed") else null
+    /** Said once it is clear (see [tooLarge]); only for the CPU, which is never blocked. */
+    private fun tooLargeEvent(model: String, backend: String): Event? =
+        if (isCpu(backend) && tooLarge(model)) Event("model_too_large_for_device", model, backend, record(model, backend), "killed ${memoryKills(model)} times on the CPU; a smaller model may be needed") else null
 
     private fun strike(model: String, backend: String, state: State, reason: String): Record {
         val r = record(model, backend)
@@ -291,15 +387,34 @@ class BackendGuard(private val store: Store, private val build: String, private 
 
     private fun put(model: String, backend: String, r: Record) = store.put(key(model, backend), r.encode())
 
-    private fun resident(): Set<String> = store.get(RESIDENT)?.split(',')?.filter { unpair(it) != null }?.toSet() ?: emptySet()
+    /** A load or a resident engine: the step it is in (attempts only), the process it lives in and the wall-clock time it was noted. */
+    private data class Entry(val phase: String, val role: String, val at: Long)
 
-    /** Open attempts and the step each is in: "model@GPU#initialize,other@CPU#start". An old single-entry value reads as phase "start". */
-    private fun pending(): Map<String, String> = store.get(PENDING)?.split(',')?.mapNotNull { e ->
-        val p = e.substringBefore('#')
-        if (unpair(p) == null) null else p to e.substringAfter('#', "start").ifEmpty { "start" }
+    /**
+     * Resident engines: "model@GPU#role#atMs,...". An entry from before roles existed ("model@GPU") reads as `main`, time 0, which is what
+     * the store always meant.
+     */
+    private fun resident(): Map<String, Entry> = store.get(RESIDENT)?.split(',')?.mapNotNull { e ->
+        val parts = e.split('#')
+        if (unpair(parts[0]) == null) null
+        else parts[0] to Entry(PHASE_START, parts.getOrNull(1)?.ifEmpty { null } ?: ROLE_MAIN, parts.getOrNull(2)?.toLongOrNull() ?: 0L)
     }?.toMap() ?: emptyMap()
 
-    private fun Map<String, String>.encodePending(): String? = if (isEmpty()) null else entries.joinToString(",") { (p, phase) -> "$p#$phase" }
+    private fun Map<String, Entry>.encodeResident(): String? = if (isEmpty()) null else entries.joinToString(",") { (p, e) -> "$p#${e.role}#${e.at}" }
+
+    /**
+     * Open attempts: "model@GPU#initialize#batch#atMs,...". Older values ("model@GPU#initialize", or a bare pair) read as `main`, time 0,
+     * phase "start" when missing.
+     */
+    private fun pending(): Map<String, Entry> = store.get(PENDING)?.split(',')?.mapNotNull { e ->
+        val parts = e.split('#')
+        if (unpair(parts[0]) == null) null
+        else parts[0] to Entry(
+            parts.getOrNull(1)?.ifEmpty { null } ?: PHASE_START, parts.getOrNull(2)?.ifEmpty { null } ?: ROLE_MAIN, parts.getOrNull(3)?.toLongOrNull() ?: 0L,
+        )
+    }?.toMap() ?: emptyMap()
+
+    private fun Map<String, Entry>.encodePending(): String? = if (isEmpty()) null else entries.joinToString(",") { (p, e) -> "$p#${e.phase}#${e.role}#${e.at}" }
 
     companion object {
         const val BLOCK_UNPROVEN = 2
@@ -307,6 +422,12 @@ class BackendGuard(private val store: Store, private val build: String, private 
         const val INFERENCE_STRIKE = 2
         const val INTERRUPTED_STRIKE = 2
         const val BLOCK_RETRY_MS = 7L * 24 * 60 * 60 * 1000
+
+        /** The process the app's UI runs in; entries of the engine hosts are `live` and `batch` (`EngineRole.proc`). */
+        const val ROLE_MAIN = "main"
+        private const val PHASE_START = "start"
+        private const val MEMORY_KILLS = "k:"
+        private val FAULT_KINDS = setOf(ExitKind.KILLED_FOR_MEMORY, ExitKind.NATIVE_CRASH, ExitKind.ANR)
 
         /** [ModelView.selected] when the last load found no backend. */
         const val NONE = "NONE"

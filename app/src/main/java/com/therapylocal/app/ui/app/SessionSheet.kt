@@ -83,6 +83,8 @@ fun SessionSheet(
     level: StateFlow<Float>,
     cues: List<Cue>,
     cuesError: String?,
+    /** The cue engine is away for a moment (it restarts by itself): a quiet line, never the exception text. */
+    cuesPaused: Boolean = false,
     repo: ClientRepository,
     onPause: () -> Unit,
     onResume: () -> Unit,
@@ -122,11 +124,12 @@ fun SessionSheet(
                 paused -> Quiet(stringResource(R.string.session_paused_msg))
                 main == null -> Quiet(
                     when {
+                        cuesPaused -> stringResource(R.string.live_cues_paused)
                         cuesError != null -> stringResource(R.string.session_cues_paused, cuesError)
                         !session.cuesOn -> stringResource(R.string.session_recording_wait)
                         else -> stringResource(R.string.session_listening)
                     },
-                    pulse = session.cuesOn && cuesError == null,
+                    pulse = session.cuesOn && cuesError == null && !cuesPaused,
                 )
                 else -> key(main.factId) { CueStage(main, view.also, repo, onPick = { c -> view = CueView(c, System.currentTimeMillis(), cues.filter { it.factId != c.factId }.take(2)) }) }
             }

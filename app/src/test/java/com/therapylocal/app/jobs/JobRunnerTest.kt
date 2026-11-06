@@ -41,7 +41,7 @@ class JobRunnerTest {
 
     private var chosen = "gemma-test"
 
-    private fun pool() = ModelPool({ _, _ -> FakeLlm(chosen).also { llms += it } }, { error("not used") }, { _, _ -> error("not used") }, { chosen })
+    private fun pool() = ModelPool({ FakeLlm(chosen).also { llms += it } }, { error("not used") }, { error("not used") }, { chosen })
 
     private fun runner(handler: (Job, JobContext) -> Unit) =
         JobRunner(q, mapOf("work" to JobHandler { j, c -> ran += j.id; handler(j, c) }), pool()) { true }
@@ -104,6 +104,28 @@ class JobRunnerTest {
     }
 
     @Test
+    fun aRebuiltRemoteErrorKeepsTheCodeOfTheOriginal() {
+        val remote = q.enqueue("work", "a_1", maxAttempts = 1)
+        val local = q.enqueue("work", "a_2", maxAttempts = 1)
+        runner { j, _ ->
+            if (j.id == remote) throw com.therapylocal.app.engine.RemoteEngineException("LiteRtLmJniException", "private")
+            throw LiteRtLmJniException("private")
+        }.drain()
+        assertEquals("LiteRtLmJniException", job(remote).errorCode)
+        assertEquals(job(local).errorCode, job(remote).errorCode)
+    }
+
+    @Test
+    fun aRebuiltAnonymousErrorStillGetsTheGenericCode() {
+        val id = q.enqueue("work", "a_1", maxAttempts = 1)
+        val anon = object : RuntimeException("x") {}
+        runner { _, _ -> throw com.therapylocal.app.engine.EngineErrors.rebuild(com.therapylocal.app.engine.EngineErrors.capture(anon, true)) }.drain()
+        assertEquals("ERROR", job(id).errorCode)
+    }
+
+    private class LiteRtLmJniException(m: String) : RuntimeException(m)
+
+    @Test
     fun theModelsAreClosedWhenTheDrainEnds() {
         q.enqueue("work", "a_1")
         q.enqueue("work", "a_2")
@@ -156,5 +178,80 @@ class JobRunnerTest {
         assertEquals(JobStatus.Done, job(id).status)
         assertEquals(0, job(id).attempts)
         assertEquals(listOf("gemma-other"), llms.map { it.model })
+    }
+
+    // N36 EngineUnavailable defers the job, no attempt, one claim
+
+    @Test
+    fun noHostThatCanServeReleasesTheJobWithoutAnAttemptAndTheDrainStopsDeferred() {
+        val first = q.enqueue("work", "a_1")
+        val second = q.enqueue("work", "a_2")
+        var claims = 0
+        val result = runner { _, _ ->
+            claims++
+            throw com.therapylocal.app.engine.EngineUnavailable(com.therapylocal.app.engine.EngineRole.BATCH, "storm", 42_000)
+        }.drain()
+        assertEquals(DrainResult.Deferred(42_000), result)
+        // One claim, no hot loop, no attempt counted, and the job (and the one behind it) is still pending.
+        assertEquals(1, claims)
+        assertEquals(JobStatus.Pending, job(first).status)
+        assertEquals(0, job(first).attempts)
+        assertEquals(JobStatus.Pending, job(second).status)
+        assertEquals(listOf(first), ran)
+    }
+
+    @Test
+    fun aDrainThatFindsNothingWrongIsFinished() {
+        q.enqueue("work", "a_1")
+        assertEquals(DrainResult.Finished, runner { _, _ -> }.drain())
+    }
+
+    @Test
+    fun aTooLargeModelFailsTheJobForGoodWithItsCode() {
+        val id = q.enqueue("work", "a_1")
+        val result = runner { _, _ -> throw JobFailure.modelTooLarge() }.drain()
+        assertEquals(DrainResult.Finished, result)
+        assertEquals(JobStatus.Failed, job(id).status)
+        assertEquals(1, job(id).attempts)
+        assertEquals("model_too_large_for_device", job(id).errorCode)
+    }
+
+    // An engine death in a job is not the job's failure: no attempt, a bounded number of retries
+
+    private fun died(kind: com.therapylocal.app.models.BackendGuard.ExitKind = com.therapylocal.app.models.BackendGuard.ExitKind.NATIVE_CRASH) =
+        com.therapylocal.app.engine.EngineDied(
+            com.therapylocal.app.engine.EngineRole.BATCH, 1, com.therapylocal.app.models.BackendGuard.LastExit(kind, true, "test"), null, "ask",
+        )
+
+    @Test
+    fun aJobWhoseHostDiesSeveralTimesIsRetriedWithoutCountingAttempts() {
+        val id = q.enqueue("work", "a_1")
+        var n = 0
+        val result = runner { _, _ -> if (++n <= 4) throw died() }.drain() // more deaths than the job has attempts (3)
+        assertEquals(DrainResult.Finished, result)
+        assertEquals(5, n)
+        assertEquals(JobStatus.Done, job(id).status)
+        assertEquals(0, job(id).attempts)
+    }
+
+    @Test
+    fun aBenignEndOfTheHostInsideAJobAlsoCostsNoAttempt() {
+        val id = q.enqueue("work", "a_1")
+        var n = 0
+        runner { _, _ -> if (++n == 1) throw died(com.therapylocal.app.models.BackendGuard.ExitKind.BENIGN) }.drain()
+        assertEquals(JobStatus.Done, job(id).status)
+        assertEquals(0, job(id).attempts)
+    }
+
+    @Test
+    fun aHostThatKeepsDyingEndsTheJobAfterTheBoundedRetries() {
+        val id = q.enqueue("work", "a_1")
+        var n = 0
+        runner { _, _ -> n++; throw died() }.drain()
+        // five free retries, then the deaths count as attempts like any failure
+        assertEquals(JobRunner.MAX_DIED_RETRIES + JobQueue.MAX_ATTEMPTS, n)
+        assertEquals(JobQueue.MAX_ATTEMPTS, job(id).attempts)
+        assertEquals(JobStatus.Failed, job(id).status)
+        assertEquals("EngineDied", job(id).errorCode)
     }
 }

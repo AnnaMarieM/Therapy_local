@@ -1,49 +1,51 @@
 package com.therapylocal.app.memory
 
-import com.therapylocal.app.perf.LlmCall
-import com.therapylocal.app.perf.PerfStats
 import android.content.Context
-import com.google.ai.edge.litertlm.Backend
-import com.google.ai.edge.litertlm.BenchmarkInfo
-import com.google.ai.edge.litertlm.ConversationConfig
-import com.google.ai.edge.litertlm.Contents
-import com.google.ai.edge.litertlm.Engine
-import com.google.ai.edge.litertlm.EngineConfig
-import com.google.ai.edge.litertlm.ExperimentalApi
-import com.google.ai.edge.litertlm.ExperimentalFlags
-import com.google.ai.edge.litertlm.ModelInfo
-import com.google.ai.edge.litertlm.ResponseFormat
-import com.google.ai.edge.litertlm.SamplerConfig
-import com.therapylocal.app.asr.GemmaAsr
 import com.therapylocal.app.config.BackendPolicy
-import com.therapylocal.app.jobs.Asr
+import com.therapylocal.app.embed.Engines
+import com.therapylocal.app.engine.EngineDied
+import com.therapylocal.app.engine.EngineUnavailable
+import com.therapylocal.app.engine.ReplyTooLarge
+import com.therapylocal.app.jobs.JobFailure
+import com.therapylocal.app.engine.EngineHost
+import com.therapylocal.app.engine.guardRole
+import com.therapylocal.app.engine.EngineKind
+import com.therapylocal.app.engine.EngineOp
+import com.therapylocal.app.engine.EngineProxy
+import com.therapylocal.app.engine.EngineReply
 import com.therapylocal.app.jobs.Llm
 import com.therapylocal.app.log.AppLog
 import com.therapylocal.app.log.LogCtx
+import com.therapylocal.app.models.Accelerators
+import com.therapylocal.app.models.BackendGuard
 import com.therapylocal.app.models.BackendLadder
 import com.therapylocal.app.models.Backends
-import com.therapylocal.app.models.ModelSpec
-import com.therapylocal.app.models.Accelerators
-import com.therapylocal.app.models.LiteRtBindings
 import com.therapylocal.app.models.ModelRuntime
+import com.therapylocal.app.models.ModelSpec
+import com.therapylocal.app.perf.PerfStats
 
 /**
- * Gemma 4 ([spec]: the E2B or E4B build) on LiteRT-LM for the memory pipeline. Every call is a fresh conversation, so nothing leaks between stages. When the model bundle
- * has an audio encoder, the same engine also transcribes speech ([speech]), so Gemma is never loaded twice.
+ * Gemma 4 ([spec]: the E2B or E4B build) for the memory pipeline, text only (docs/AD/AD-02.md). Every call is a fresh conversation, so
+ * nothing leaks between stages. The native engine lives in an [EngineHost]; this class keeps what must stay in main: the backend ladder
+ * with its guard, the memory gate, [PerfStats] and the health of the backend. It imports nothing native.
+ *
+ * [ladder], [guard] and [gate] are test seams; production uses the defaults.
  */
-@OptIn(ExperimentalApi::class)
-class MemoryLlm(private val context: Context, private val maxTokens: Int, private val spec: ModelSpec) : Llm {
+class MemoryLlm(
+    private val context: Context,
+    private val maxTokens: Int,
+    private val spec: ModelSpec,
+    host: EngineHost = Engines.batchHost(context),
+    private val ladder: () -> BackendLadder = { Backends.ladder(context, TAG, "memory_llm", host.guardRole) },
+    private val guard: () -> BackendGuard? = { Backends.guard(context) },
+    private val gate: (String) -> String? = { name -> memoryGate(context, spec, name) },
+    private val proxy: EngineProxy = EngineProxy(context, { host }, TAG, "memory_llm"),
+) : Llm {
     override val model: String = spec.id
 
     var backend = "none"
         private set
-    private var engine: Engine? = null
-    private var audio = false
-
-    /** The model as [Backends.guard] keeps it: the audio build loads more, so it is proven separately. */
-    private var guardModel = spec.id
-
-    override val hasAudio: Boolean get() = audio
+    private var handle: Int? = null
 
     override val contextTokens: Int get() = maxTokens
 
@@ -54,143 +56,122 @@ class MemoryLlm(private val context: Context, private val maxTokens: Int, privat
 
     /**
      * [order] (by default every [Accelerators] entry that serves this model on LiteRT-LM) is tried in turn, through [BackendPolicy.order] so
-     * the debug override goes first and the CPU stays the fallback; each backend is
-     * validated with a small reply because GPU/NPU can fail only at the first inference. Every attempt and its outcome is kept per device by
-     * [Backends.guard]: a backend that keeps failing or killing the app here is skipped from then on.
-     * Only the text model is loaded unless [withAudio] (speech recognition): the audio encoder and the image encoder cost memory for nothing in
-     * the text jobs. [respectBlocks] false (QA probes) tries a blocked backend anyway.
+     * the debug override goes first and the CPU stays the fallback; each backend is validated with a small reply because GPU/NPU can fail
+     * only at the first inference. Every attempt and its outcome is kept per device by [Backends.guard]: a backend that keeps failing or
+     * killing the app here is skipped from then on. Only the text model is loaded. [respectBlocks] false (QA probes) tries a blocked backend anyway.
      */
-    fun load(order: List<String>? = null, withAudio: Boolean = false, respectBlocks: Boolean = true) {
-        ExperimentalFlags.enableBenchmark = true
-        val file = spec.file(context, spec.files.first())
-        // Audio-stripped builds exist: the bundle says whether it can hear (as the embedder checks too).
-        audio = withAudio && runCatching { ModelInfo.from(file.path).use { it.inputModalities().audio } }.getOrDefault(false)
-        guardModel = if (audio) "${spec.id}+audio" else spec.id
+    fun load(order: List<String>? = null, respectBlocks: Boolean = true) {
         val preferred = order ?: Accelerators.order(spec.id, ModelRuntime.LITERT)
+        val fileMb = runCatching { val f = spec.file(context, spec.files.first()); f.length() shr 20 to f.exists() }.getOrNull()
         AppLog.i(
-            TAG, "memory_llm_load_request", LogCtx.NONE, "model" to spec.id, "guard_model" to guardModel, "file_mb" to (file.length() shr 20),
-            "file_exists" to file.exists(), "max_tokens" to maxTokens, "with_audio" to withAudio, "audio" to audio, "order" to preferred.joinToString(","), "order_from" to if (order == null) "accelerators" else "caller",
+            TAG, "memory_llm_load_request", LogCtx.NONE, "model" to spec.id, "file_mb" to fileMb?.first, "file_exists" to fileMb?.second, "max_tokens" to maxTokens,
+            "order" to preferred.joinToString(","), "order_from" to if (order == null) "accelerators" else "caller",
             "override" to BackendPolicy.override, "respect_blocks" to respectBlocks,
         )
-        val loaded = Backends.ladder(context, TAG, "memory_llm").load(
-            model = guardModel,
-            candidates = BackendPolicy.order(preferred),
-            respectBlocks = respectBlocks,
-            gate = { name -> gate(name) },
-            open = { name -> open(file.path, name) },
-            close = { it.close() },
-        )
-        engine = loaded.engine
+        val loadId = BackendLadder.newLoadId()
+        // A model the system kept killing even on the CPU cannot run here: fail the job for good (a retry would be killed again), unless a
+        // person forces the load (debug override, QA probe).
+        val judged = respectBlocks && !BackendPolicy.forcing()
+        if (judged && runCatching { guard()?.tooLarge(spec.id) }.getOrNull() == true) {
+            AppLog.w(TAG, "model_too_large_for_device", LogCtx.NONE, "model" to spec.id, "load_id" to loadId, "when" to "before_load")
+            throw JobFailure.modelTooLarge()
+        }
+        // The model before this one (Canary, the embedder) may still be closing: the memory gate must see its memory freed and the host must
+        // not hold two models. Bounded, so a stuck close only delays the load.
+        proxy.awaitPendingCloses()
+        val loaded = try {
+            ladder().load(
+                loadId = loadId,
+                model = spec.id,
+                candidates = BackendPolicy.order(preferred),
+                respectBlocks = judged,
+                gate = gate,
+                open = { name -> proxy.open(EngineKind.LLM, spec.id, spec.id, name, loadId = loadId, maxTokens = maxTokens, textOnly = true) },
+                close = { runCatching { proxy.closeNow(it.handle) } },
+            )
+        } catch (e: BackendLadder.NoBackend) {
+            // Every backend failed, and the CPU was killed for memory again and again: say so, not "no backend".
+            if (judged && runCatching { guard()?.tooLarge(spec.id) }.getOrNull() == true) {
+                AppLog.w(TAG, "model_too_large_for_device", LogCtx.NONE, "model" to spec.id, "load_id" to loadId, "when" to "after_ladder")
+                throw JobFailure.modelTooLarge()
+            }
+            throw e
+        }
+        handle = loaded.engine.handle
         backend = loaded.backend
         healthy = true
         // Only logging from here on: nothing may throw past the point where the engine is ours, or it would never be closed.
         runCatching {
-            AppLog.i(TAG, "memory_llm_loaded", LogCtx.NONE, "load_id" to loaded.loadId, "backend" to backend, "max_tokens" to maxTokens, "audio" to audio, "skipped" to loaded.skipped.joinToString("; "))
-            AppLog.logMemory(context, TAG, "memory_llm_ready", extra = arrayOf("load_id" to loaded.loadId, "backend" to backend, "model" to spec.id))
+            val pss = proxy.statusIfBound()?.pssKb
+            AppLog.i(TAG, "memory_llm_loaded", LogCtx.NONE, "load_id" to loaded.loadId, "backend" to backend, "max_tokens" to maxTokens, "skipped" to loaded.skipped.joinToString("; "))
+            AppLog.logMemory(context, TAG, "memory_llm_ready", extra = arrayOf("load_id" to loaded.loadId, "backend" to backend, "model" to spec.id, "host_pss_kb" to pss))
         }
     }
-
-    /** Why [name] is not tried now, or null. Accelerators that take the model's memory from the system (GPU, NPU) need it free. */
-    private fun gate(name: String): String? {
-        Accelerators.unavailable(context, name, spec.id, ModelRuntime.LITERT)?.let { return it }
-        if (Accelerators.get(name)?.takesSystemMemory != true) return null
-        val (available, low) = LlmMemory.available(context)
-        val needed = LlmMemory.gpuNeeds(spec.totalBytes)
-        AppLog.d(TAG, "backend_memory_gate", LogCtx.NONE, "backend_try" to name, "available_mb" to (available shr 20), "needed_mb" to (needed shr 20), "low_memory" to low, "model_mb" to (spec.totalBytes shr 20))
-        if (!LlmMemory.gpuFits(spec.totalBytes, available, low)) {
-            return "not enough free memory (${available shr 20} MB free, ${needed shr 20} MB needed${if (low) ", system reports low memory" else ""})"
-        }
-        return null
-    }
-
-    /** Creates, initialises and test-runs an engine on [name]; one that fails on the way is closed here, so its memory is free for the next try. */
-    private fun open(path: String, name: String): Engine {
-        val be: Backend = LiteRtBindings.backend(context, name)
-        val config = EngineConfig(modelPath = path, backend = be, audioBackend = if (audio) Backend.CPU() else null, visionBackend = null, maxNumTokens = maxTokens, cacheDir = context.cacheDir.path)
-        // Each native step is noted and flushed before it runs: after a kill, the log and the next start both name the step that caused it.
-        Backends.phase(context, TAG, guardModel, name, "create")
-        val e = AppLog.span(TAG, "memory_llm_engine_create", LogCtx.NONE, "backend_try" to name) { Engine(config) }
-        try {
-            Backends.phase(context, TAG, guardModel, name, "initialize")
-            AppLog.span(TAG, "memory_llm_engine_initialize", LogCtx.NONE, "backend_try" to name, "max_tokens" to maxTokens, "audio" to audio) { e.initialize() }
-            Backends.phase(context, TAG, guardModel, name, "test")
-            AppLog.span(TAG, "memory_llm_engine_test_reply", LogCtx.NONE, "backend_try" to name) { span ->
-                val reply = e.createConversation().use { it.sendMessage("Reply with OK.") }.toString()
-                span.put("reply_chars", reply.length)
-            }
-            return e
-        } catch (t: Throwable) {
-            runCatching { e.close() }.onFailure { AppLog.w(TAG, "memory_llm_engine_close_after_failure_failed", LogCtx.NONE, "backend_try" to name, "reason" to it.message) }
-            throw t
-        }
-    }
-
-    /** Speech recognition on this engine, or null if the model has no audio input. Closing it leaves the engine to this LLM. */
-    fun speech(): Asr? = engine?.takeIf { audio }?.let { GemmaAsr(it, model, backend) }
 
     /** [schema] switches on constrained decoding for this call only (it looped on the large extraction schema, so callers use it for small schemas or as a last retry). */
     override fun ask(system: String, user: String, schema: String?, maxOutputTokens: Int, temperature: Double, topK: Int): String {
-        val e = checkNotNull(engine) { "not loaded" }
+        val h = checkNotNull(handle) { "not loaded" }
         val t0 = System.nanoTime()
-        // A global flag: switched off again afterwards, or every later conversation on the engine (speech recognition too) pays its ~4 s setup.
-        ExperimentalFlags.enableConversationConstrainedDecoding = schema != null
         try {
-            val cfg = ConversationConfig(
-                systemInstruction = Contents.of(system),
-                samplerConfig = SamplerConfig(topK = topK, topP = 0.9, temperature = temperature, seed = 1),
-                enableResponseFormat = schema != null,
-                maxOutputToken = maxOutputTokens,
-            )
-            e.createConversation(cfg).use { c ->
-                val msg = if (schema != null) c.sendMessage(user, responseFormat = ResponseFormat.json(schema)) else c.sendMessage(user)
-                val b: BenchmarkInfo = c.getBenchmarkInfo()
-                // Numbers only, never text.
-                AppLog.i(
-                    TAG, "llm_call", LogCtx.NONE, "backend" to backend, "constrained" to (schema != null), "prompt_tokens" to b.lastPrefillTokenCount,
-                    "prefill_tok_s" to b.lastPrefillTokensPerSecond, "ttft_s" to b.timeToFirstTokenInSecond, "decode_tokens" to b.lastDecodeTokenCount,
-                    "decode_tok_s" to b.lastDecodeTokensPerSecond, "wall_ms" to (System.nanoTime() - t0) / 1_000_000,
-                )
-                PerfStats.call(
-                    spec.id,
-                    LlmCall(
-                        b.lastPrefillTokenCount.toInt(), b.lastPrefillTokensPerSecond.toDouble(), b.lastDecodeTokenCount.toInt(),
-                        b.lastDecodeTokensPerSecond.toDouble(), (System.nanoTime() - t0) / 1_000_000,
-                    ),
-                )
-                runCatching { Backends.guard(context).inferenceOk(guardModel, backend) }
-                return msg.toString()
-            }
+            val reply = proxy.call<EngineReply.Text>(EngineOp.Ask(proxy.newTag("ask", null), h, system, user, schema, maxOutputTokens, temperature, topK))
+            reply.perf?.let { PerfStats.call(spec.id, it) }
+            runCatching { guard()?.inferenceOk(spec.id, backend) }
+            return reply.text
         } catch (t: Throwable) {
             // Noted per device; failing on prompts again and again strikes the backend and marks this engine unhealthy, so the pool reloads
             // it on the next backend. Types and code locations only, never the message: an inference error can quote the prompt.
-            val r = runCatching { Backends.guard(context).inferenceFailed(guardModel, backend, t.javaClass.simpleName) }.getOrNull()
-            if (r != null) healthy = false
+            // A host that died or could not be reached is not a bad prompt: the connection already struck what was at fault.
+            val notThePrompt = t is EngineDied || t is EngineUnavailable || t is ReplyTooLarge
+            val r = if (notThePrompt) null else runCatching { guard()?.inferenceFailed(spec.id, backend, BackendLadder.name(t)) }.getOrNull()
+            // The host ended under this handle (a death, or an idle stop): the handle is gone, so the pool must reload.
+            if (r != null || t is EngineDied) healthy = false
+            // The connection's registry already settled this handle in the guard; the pool's close() must not settle it again (unloaded would reset strikes).
+            if (t is EngineDied) handle = null
             runCatching {
                 AppLog.eRedacted(
-                    TAG, "llm_call_failed", LogCtx.NONE, t, "backend" to backend, "model" to guardModel, "constrained" to (schema != null),
+                    TAG, "llm_call_failed", LogCtx.NONE, t, "backend" to backend, "model" to spec.id, "constrained" to (schema != null),
                     "system_chars" to system.length, "user_chars" to user.length, "max_output_tokens" to maxOutputTokens, "context_tokens" to maxTokens,
                     "wall_ms" to (System.nanoTime() - t0) / 1_000_000, "demoted" to (r != null), "record_state" to r?.state?.name?.lowercase(),
-                    "record_strikes" to r?.strikes, *com.therapylocal.app.memory.DeviceMemory.memorySnapshot(context), *Backends.thermal(context),
+                    "record_strikes" to r?.strikes, *runCatching { DeviceMemory.memorySnapshot(context) }.getOrDefault(emptyArray()),
+                    *runCatching { Backends.thermal(context) }.getOrDefault(emptyArray()),
                 )
             }
             throw t
-        } finally {
-            ExperimentalFlags.enableConversationConstrainedDecoding = false
         }
     }
 
     override fun close() {
-        val e = engine ?: return
-        engine = null
+        val h = handle ?: return
+        handle = null
         val t0 = System.nanoTime()
-        runCatching { e.close() }.onFailure { AppLog.e(TAG, "memory_llm_close_failed", LogCtx.NONE, it, "backend" to backend) }
-        runCatching { Backends.guard(context).unloaded(guardModel, backend) }
-        AppLog.i(TAG, "memory_llm_unloaded", LogCtx.NONE, "model" to guardModel, "backend" to backend, "close_ms" to (System.nanoTime() - t0) / 1_000_000)
-        AppLog.logMemory(context, TAG, "memory_llm_after_unload", extra = arrayOf("backend" to backend, "model" to guardModel))
+        val b = backend
+        // The guard hears `unloaded` once the host acknowledged the close, not when it was only asked: a death in between is a death.
+        proxy.close(h) { acked -> if (acked) runCatching { guard()?.unloaded(spec.id, b) } }
+        AppLog.i(TAG, "memory_llm_unloaded", LogCtx.NONE, "model" to spec.id, "backend" to backend, "close_ms" to (System.nanoTime() - t0) / 1_000_000)
+        runCatching {
+            AppLog.logMemory(context, TAG, "memory_llm_after_unload", extra = arrayOf("backend" to backend, "model" to spec.id, "host_pss_kb" to proxy.statusIfBound()?.pssKb))
+        }
         backend = "none"
     }
 
     companion object {
         const val TAG = "Memory"
+
+        /** Why [name] is not tried now, or null. Accelerators that take the model's memory from the system (GPU, NPU) need it free. The check is system-wide, so main is right. */
+        internal fun memoryGate(context: Context, spec: ModelSpec, name: String): String? =
+            com.therapylocal.app.engine.LabWiring.gate(realMemoryGate(context, spec, name))
+
+        private fun realMemoryGate(context: Context, spec: ModelSpec, name: String): String? {
+            Accelerators.unavailable(context, name, spec.id, ModelRuntime.LITERT)?.let { return it }
+            if (BackendPolicy.forcing()) { AppLog.w(TAG, "backend_memory_gate_forced", LogCtx.NONE, "backend_try" to name); return null }
+            if (Accelerators.get(name)?.takesSystemMemory != true) return null
+            val (available, low) = LlmMemory.available(context)
+            val needed = LlmMemory.gpuNeeds(spec.totalBytes)
+            AppLog.d(TAG, "backend_memory_gate", LogCtx.NONE, "backend_try" to name, "available_mb" to (available shr 20), "needed_mb" to (needed shr 20), "low_memory" to low, "model_mb" to (spec.totalBytes shr 20))
+            if (!LlmMemory.gpuFits(spec.totalBytes, available, low)) {
+                return "not enough free memory (${available shr 20} MB free, ${needed shr 20} MB needed${if (low) ", system reports low memory" else ""})"
+            }
+            return null
+        }
     }
 }

@@ -4,9 +4,7 @@ import android.content.Context
 import android.os.SystemClock
 import android.util.Log
 import com.therapylocal.app.BuildConfig
-import java.io.BufferedWriter
 import java.io.File
-import java.io.FileWriter
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -56,28 +54,51 @@ object AppLog {
     private val timeFormat = ThreadLocal.withInitial { SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS", Locale.US) }
     private val executor = Executors.newSingleThreadExecutor { r -> Thread(r, "applog-writer").apply { isDaemon = true } }
     private var dir: File? = null
-    private var writer: BufferedWriter? = null
+    private var log: RotatingLog? = null
 
-    fun init(context: Context) {
+    /** `main`, `live` or `batch`: on every line as `proc=`. */
+    @Volatile
+    var proc: String = "main"
+        private set
+    private val pid: Int = android.os.Process.myPid()
+
+    /** This process's session id, read-only: a host's `host_start` carries main's as `client_sid` so the files join. */
+    val sid: String get() = sessionId
+
+    private val isMainProc get() = proc == "main"
+
+    /** The file base of a process: `tl` for main, `engine-live` / `engine-batch` for the hosts (same rotation). */
+    fun baseOf(proc: String) = if (proc == "main") "tl" else "engine-$proc"
+    private val HOST_BASES = listOf("engine-live", "engine-batch")
+
+    fun init(context: Context, proc: String = "main") {
+        this.proc = proc
         val d = File(context.getExternalFilesDir(null), "logs").apply { mkdirs() }
         dir = d
-        executor.execute { openWriter() }
+        log = RotatingLog(d, baseOf(proc), MAX_FILE_BYTES, KEEP_FILES)
+        executor.execute { runCatching { log?.open() } }
     }
 
-    /** Writes any uncaught exception, with its full stack trace, to the log file before the process dies, then lets Android handle it as usual. */
-    fun installCrashHandler() {
+    /**
+     * Writes any uncaught exception to the log file before the process dies, then lets Android handle it as usual. With [redacted] (engine
+     * processes, whose code holds patient text) only exception types, cause types and frames are written, never messages. Nothing here reads
+     * `ApplicationExitInfo.getTraceInputStream()`.
+     */
+    fun installCrashHandler(redacted: Boolean = false) {
         val previous = Thread.getDefaultUncaughtExceptionHandler()
         Thread.setDefaultUncaughtExceptionHandler { thread, t ->
             try {
-                val trace = Log.getStackTraceString(t)
-                val head = "ts=${timeFormat.get()!!.format(Date())} lvl=E tag=CRASH sid=$sessionId evt=uncaught thread=${format(thread.name)} err=${format(t.javaClass.name)}"
-                Log.println(Log.ERROR, LOGCAT_TAG, head + "\n" + trace)
+                val head = "ts=${timeFormat.get()!!.format(Date())} lvl=E tag=CRASH sid=$sessionId proc=$proc pid=$pid evt=uncaught thread=${format(thread.name)} err=${format(t.javaClass.name)}"
+                val text = if (redacted) {
+                    head + redactedFields(t).joinToString("") { (k, v) -> " $k=${format(v)}" }
+                } else {
+                    head + "\n" + Log.getStackTraceString(t)
+                }
+                Log.println(Log.ERROR, LOGCAT_TAG, text)
                 if (dir != null) {
                     executor.submit {
                         try {
-                            val w = writer ?: openWriter()
-                            w?.write(head + "\n" + trace + "\n")
-                            w?.flush()
+                            log?.write(text)
                         } catch (_: Throwable) {
                         }
                     }.get(2, java.util.concurrent.TimeUnit.SECONDS)
@@ -85,12 +106,17 @@ object AppLog {
             } catch (_: Throwable) {
                 // the crash handler must never hide the original crash
             }
-            previous?.uncaughtException(thread, t)
+            // The platform handler prints the message and stack to logcat and DropBox. In a process that holds patient text, hand it a copy with
+            // the class name and the frames only, so an exception message that quotes a prompt or transcript never reaches them.
+            previous?.uncaughtException(thread, if (redacted) RuntimeException(t.javaClass.name).also { it.stackTrace = t.stackTrace } else t)
         }
     }
 
     fun logDir(): File? = dir
-    fun logFile(): File? = dir?.resolve("tl.log")
+    fun logFile(): File? = log?.file
+
+    /** Every `*.log` in the logs dir (all processes, rotated ones too), for `adb pull`. */
+    fun logFiles(): List<File> = dir?.listFiles { f -> f.name.endsWith(".log") }?.sortedBy { it.name } ?: emptyList()
 
     fun logMemory(context: Context, tag: String = "Memory", evt: String = "snapshot", ctx: LogCtx = LogCtx.NONE, vararg extra: Pair<String, Any?>) {
         val snapshot = com.therapylocal.app.memory.DeviceMemory.memorySnapshot(context)
@@ -118,7 +144,7 @@ object AppLog {
     fun flush(timeoutMs: Long = 500) {
         if (dir == null) return
         try {
-            executor.submit { writer?.flush() }.get(timeoutMs, java.util.concurrent.TimeUnit.MILLISECONDS)
+            executor.submit { log?.flush() }.get(timeoutMs, java.util.concurrent.TimeUnit.MILLISECONDS)
         } catch (_: Throwable) {
             // a slow disk must not hold up the load; the line is still queued
         }
@@ -126,7 +152,7 @@ object AppLog {
 
     @PublishedApi
     internal fun redactedFields(t: Throwable): Array<Pair<String, Any?>> = arrayOf(
-        "err" to t.javaClass.name,
+        "err" to com.therapylocal.app.models.BackendLadder.fullName(t),
         "cause_chain" to com.therapylocal.app.models.BackendLadder.causeChain(t, messages = false),
         "frames" to com.therapylocal.app.models.BackendLadder.frames(t),
         "is_oom" to (t is OutOfMemoryError),
@@ -195,11 +221,28 @@ object AppLog {
     }
 
     private fun emit(level: Int, tag: String, evt: String, ctx: LogCtx, f: Array<out Pair<String, Any?>>, t: Throwable?) {
+        val line = line(timeFormat.get()!!.format(Date()), level, tag, proc, pid, ctx, evt, f, t)
+        Log.println(level, LOGCAT_TAG, line)
+        if (t != null) runCatching { Log.println(Log.ERROR, LOGCAT_TAG, Log.getStackTraceString(t)) }
+        // Debug lines (span starts) stay in logcat outside debug builds: in the file they would rotate the useful lines away.
+        if (level > Log.DEBUG || BuildConfig.DEBUG) write(line)
+        // Which hardware each model ran on, and why: kept apart so hours of recording never rotate it away. Main only: a host's lines reach it
+        // through the ladder main logs (same load_id).
+        if (isMainProc && level >= Log.INFO && (tag == BACKEND_TAG || f.any { it.first == "load_id" })) writePinned(line)
+    }
+
+    /** One formatted line. Internal so the format can be tested without Android. */
+    internal fun line(
+        ts: String, level: Int, tag: String, proc: String, pid: Int, ctx: LogCtx, evt: String,
+        f: Array<out Pair<String, Any?>>, t: Throwable?,
+    ): String {
         val sb = StringBuilder(160)
-        sb.append("ts=").append(timeFormat.get()!!.format(Date()))
+        sb.append("ts=").append(ts)
             .append(" lvl=").append(levelChar(level))
             .append(" tag=").append(tag)
             .append(" sid=").append(sessionId)
+            .append(" proc=").append(proc)
+            .append(" pid=").append(pid)
         ctx.rid?.let { sb.append(" rid=").append(it) }
         ctx.cid?.let { sb.append(" cid=").append(it) }
         sb.append(" evt=").append(evt)
@@ -207,14 +250,8 @@ object AppLog {
             val shown = if (v != null && (k == "client" || k == "session")) pseudonymize(v.toString()) else v
             sb.append(' ').append(k).append('=').append(format(shown))
         }
-        if (t != null) sb.append(" err=").append(format(t.javaClass.simpleName)).append(" err_msg=").append(format(runCatching { t.message?.take(2000) }.getOrElse { "(message unreadable)" }))
-        val line = sb.toString()
-        Log.println(level, LOGCAT_TAG, line)
-        if (t != null) runCatching { Log.println(Log.ERROR, LOGCAT_TAG, Log.getStackTraceString(t)) }
-        // Debug lines (span starts) stay in logcat outside debug builds: in the file they would rotate the useful lines away.
-        if (level > Log.DEBUG || BuildConfig.DEBUG) write(line)
-        // Which hardware each model ran on, and why: kept apart so hours of recording never rotate it away.
-        if (level >= Log.INFO && (tag == BACKEND_TAG || f.any { it.first == "load_id" })) writePinned(line)
+        if (t != null) sb.append(" err=").append(format(com.therapylocal.app.models.BackendLadder.name(t))).append(" err_msg=").append(format(runCatching { t.message?.take(2000) }.getOrElse { "(message unreadable)" }))
+        return sb.toString()
     }
 
     /** `backend.log`: the backend lines only, never rotated away; past [MAX_PINNED_BYTES] its older half is dropped. */
@@ -261,33 +298,14 @@ object AppLog {
         if (dir == null) return
         executor.execute {
             try {
-                val w = writer ?: openWriter() ?: return@execute
-                w.write(line)
-                w.write("\n")
-                w.flush()
-                if ((logFile()?.length() ?: 0L) > MAX_FILE_BYTES) rotate()
+                log?.write(line)
             } catch (_: Throwable) {
                 // logging must never crash the app
             }
         }
     }
 
-    private fun openWriter(): BufferedWriter? {
-        val f = logFile() ?: return null
-        return BufferedWriter(FileWriter(f, true)).also { writer = it }
-    }
-
-    private fun rotate() {
-        writer?.close()
-        writer = null
-        val d = dir ?: return
-        File(d, "tl.${KEEP_FILES - 1}.log").delete()
-        for (i in KEEP_FILES - 2 downTo 1) File(d, "tl.$i.log").renameTo(File(d, "tl.${i + 1}.log"))
-        File(d, "tl.log").renameTo(File(d, "tl.1.log"))
-        openWriter()
-    }
-
-    /** Last [maxLines] lines of the current log file, for the in-app viewer. */
+    /** Last [maxLines] lines of this process's current log file. */
     fun tail(maxLines: Int = 400): String {
         val f = logFile() ?: return ""
         if (!f.exists()) return ""
@@ -299,12 +317,28 @@ object AppLog {
         return lines.joinToString("\n")
     }
 
+    /** The last [n] lines of `tl.log`, `engine-live.log` and `engine-batch.log` merged by `ts=`, so host lines show in order (the log viewer and share). */
+    fun tailAll(n: Int = 400): String {
+        val d = dir ?: return ""
+        return LogMerge.tailAll(d, listOf("tl") + HOST_BASES, n)
+    }
+
+    /**
+     * Deletes this process's own files only (in main: `tl*.log` and `backend.log`). Main then has the bound hosts clear theirs and deletes the
+     * files of hosts that are not running; a host's writer re-opens a new file on its next line.
+     */
     fun clear() {
         executor.execute {
-            writer?.close()
-            writer = null
-            dir?.listFiles()?.forEach { it.delete() }
-            openWriter()
+            runCatching {
+                log?.clear()
+                if (isMainProc) dir?.resolve("backend.log")?.delete()
+            }
+        }
+        if (isMainProc) {
+            val d = dir ?: return
+            // Asking a bound host to clear its files can take seconds (it waits for the answer): never on the single writer thread, which every log line needs.
+            Thread({ runCatching { com.therapylocal.app.embed.Engines.clearHostLogs { role -> RotatingLog.deleteBase(d, baseOf(role.proc)) } } }, "applog-clear-hosts")
+                .apply { isDaemon = true }.start()
         }
     }
 }

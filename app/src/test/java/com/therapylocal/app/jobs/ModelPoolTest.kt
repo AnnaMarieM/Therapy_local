@@ -8,7 +8,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class ModelPoolTest {
-    private class FakeLlm(override val model: String, override val hasAudio: Boolean, override val contextTokens: Int) : Llm {
+    private class FakeLlm(override val model: String, override val contextTokens: Int) : Llm {
         var closed = false
         override fun ask(system: String, user: String, schema: String?, maxOutputTokens: Int, temperature: Double, topK: Int) = ""
         override fun close() {
@@ -18,6 +18,7 @@ class ModelPoolTest {
 
     private class FakeEmbed : Embed {
         override val model = "embed"
+        override var healthy = true
         var closed = false
         override fun embed(text: String) = FloatArray(1)
         override fun close() {
@@ -25,7 +26,8 @@ class ModelPoolTest {
         }
     }
 
-    private class FakeAsr(val onLlm: Boolean) : Asr {
+    private class FakeAsr(val language: String) : Asr {
+        override var healthy = true
         var closed = false
         override fun transcribe(pcm: ShortArray) = ""
         override fun close() {
@@ -34,7 +36,6 @@ class ModelPoolTest {
     }
 
     private var chosen = "gemma-4-e2b"
-    private var gemmaAsr = true
     private var needed = 6144
     private val loaded = ArrayList<FakeLlm>()
     private val embeds = ArrayList<FakeEmbed>()
@@ -44,22 +45,20 @@ class ModelPoolTest {
     private fun resident(): List<String> = buildList {
         if (loaded.any { !it.closed }) add("llm")
         if (embeds.any { !it.closed }) add("embed")
-        if (asrs.any { !it.closed && !it.onLlm }) add("whisper")
+        if (asrs.any { !it.closed }) add("asr")
     }
 
     private val pool = ModelPool(
-        loadLlm = { audio, ctx -> FakeLlm(chosen, audio, ctx).also { loaded += it } },
+        loadLlm = { ctx -> FakeLlm(chosen, ctx).also { loaded += it } },
         loadEmbed = { FakeEmbed().also { embeds += it } },
-        loadAsr = { llm, _ -> val onLlm = llm() != null; FakeAsr(onLlm).also { asrs += it } },
+        loadAsr = { language -> FakeAsr(language).also { asrs += it } },
         llmModel = { chosen },
-        asrOnLlm = { gemmaAsr },
         contextNeeded = { needed },
         baseContext = 6144,
     )
 
     @Test
     fun theSpeechRecogniserIsKeptPerLanguageAndSwappedWhenTheLanguageChanges() {
-        gemmaAsr = false
         val english = pool.asr("en") as FakeAsr
         assertSame(english, pool.asr("en"))
         assertFalse(english.closed)
@@ -67,8 +66,9 @@ class ModelPoolTest {
         val czech = pool.asr("cs") as FakeAsr
         assertTrue(english.closed)
         assertFalse(czech.closed)
+        assertEquals("cs", czech.language)
         assertSame(czech, pool.asr("cs"))
-        assertEquals(listOf("whisper"), resident())
+        assertEquals(listOf("asr"), resident())
     }
 
     @Test
@@ -79,39 +79,11 @@ class ModelPoolTest {
     }
 
     @Test
-    fun theLlmIsLoadedAsTextOnly() {
-        assertFalse(pool.llm().hasAudio)
-    }
-
-    @Test
-    fun speechRecognitionOnGemmaLoadsTheAudioEngineAndNothingElse() {
-        pool.asr()
-        assertTrue(loaded.single().hasAudio)
-        assertEquals(listOf("llm"), resident())
-    }
-
-    @Test
-    fun whisperLoadsNoLlmAndUnloadsTheOneThatIsThere() {
-        gemmaAsr = false
+    fun speechRecognitionLoadsNoLlmAndUnloadsTheOneThatIsThere() {
         val llm = pool.llm() as FakeLlm
         pool.asr()
         assertTrue(llm.closed)
-        assertEquals(listOf("whisper"), resident())
-    }
-
-    @Test
-    fun anLlmWithoutAnAudioEncoderIsNotKeptNextToTheWhisperThatReplacesGemmaSpeech() {
-        // The Gemma build has no audio input: asr() falls back to Whisper, and the engine that could not hear must not stay loaded beside it.
-        val noAudio = ModelPool(
-            loadLlm = { _, ctx -> FakeLlm(chosen, false, ctx).also { loaded += it } },
-            loadEmbed = { error("not used") },
-            loadAsr = { llm, _ -> assertTrue(llm() == null); FakeAsr(false).also { asrs += it } },
-            llmModel = { chosen },
-            asrOnLlm = { true },
-            baseContext = 6144,
-        )
-        noAudio.asr()
-        assertEquals(listOf("whisper"), resident())
+        assertEquals(listOf("asr"), resident())
     }
 
     @Test
@@ -122,26 +94,44 @@ class ModelPoolTest {
         assertEquals(listOf("embed"), resident())
         pool.llm()
         assertEquals(listOf("llm"), resident())
-        gemmaAsr = false
         pool.asr()
-        assertEquals(listOf("whisper"), resident())
+        assertEquals(listOf("asr"), resident())
         pool.embed()
         assertEquals(listOf("embed"), resident())
         pool.asr()
-        assertEquals(listOf("whisper"), resident())
+        assertEquals(listOf("asr"), resident())
+        pool.llm()
+        assertEquals(listOf("llm"), resident())
     }
 
     @Test
-    fun aTextJobDropsTheAudioEncoderAndTheSpeechRecogniser() {
+    fun anUnhealthyEmbedderIsClosedAndLoadedAgain() {
+        val first = pool.embed() as FakeEmbed
+        first.healthy = false
+        val second = pool.embed()
+        assertTrue(first.closed)
+        assertTrue(second !== first)
+        assertEquals(listOf("embed"), resident())
+    }
+
+    @Test
+    fun anUnhealthySpeechRecogniserIsClosedAndLoadedAgain() {
+        val first = pool.asr("cs") as FakeAsr
+        first.healthy = false
+        val second = pool.asr("cs") as FakeAsr
+        assertTrue(first.closed)
+        assertTrue(second !== first)
+        assertEquals("cs", second.language)
+        assertEquals(listOf("asr"), resident())
+    }
+
+    @Test
+    fun aTextJobDropsTheSpeechRecogniser() {
         val asr = pool.asr() as FakeAsr
-        val withAudio = loaded.single()
-
         pool.refresh(JobGraph.EXTRACT)
-
         assertTrue(asr.closed)
-        assertTrue(withAudio.closed)
-        assertFalse(pool.llm().hasAudio)
-        assertEquals(2, loaded.size)
+        pool.llm()
+        assertEquals(listOf("llm"), resident())
     }
 
     @Test
@@ -214,28 +204,24 @@ class ModelPoolTest {
 
     @Test
     fun switchingTheBuildMidJobKeepsTheLoadedLlmUntilTheNextRefresh() {
-        val oldAsr = pool.asr() as FakeAsr
-        val oldLlm = loaded.single()
+        val oldLlm = pool.llm()
         chosen = "gemma-4-e4b"
 
-        assertSame(oldAsr, pool.asr())
+        assertSame(oldLlm, pool.llm())
         assertEquals("gemma-4-e2b", pool.llmModel())
-        assertFalse(oldLlm.closed)
         assertEquals(1, loaded.size)
     }
 
     @Test
-    fun refreshUnloadsTheOldLlmAndItsSpeechRecogniser() {
-        val oldAsr = pool.asr() as FakeAsr
-        val oldLlm = loaded.single()
+    fun refreshUnloadsTheOldLlm() {
+        val oldLlm = pool.llm() as FakeLlm
         chosen = "gemma-4-e4b"
 
         pool.refresh()
-        val asr = pool.asr()
+        val llm = pool.llm()
 
         assertTrue(oldLlm.closed)
-        assertTrue(oldAsr.closed)
-        assertTrue(asr !== oldAsr)
+        assertTrue(llm !== oldLlm)
         assertEquals(listOf("gemma-4-e2b", "gemma-4-e4b"), loaded.map { it.model })
         assertEquals("gemma-4-e4b", pool.llmModel())
     }
@@ -260,28 +246,28 @@ class ModelPoolTest {
     }
 
     @Test
-    fun gemmaSpeechRecognitionThatCannotLoadFallsBackToTheRecogniserWithItsOwnModel() {
-        val failures = ArrayList<Throwable>()
+    fun aTooLargeModelFailureFromTheLoaderPropagatesAndNothingStaysLoaded() {
         val failing = ModelPool(
-            loadLlm = { audio, ctx -> if (audio) throw IllegalStateException("No backend could load gemma") else FakeLlm(chosen, false, ctx).also { loaded += it } },
-            loadEmbed = { FakeEmbed().also { embeds += it } },
-            loadAsr = { llm, _ -> FakeAsr(llm() != null).also { asrs += it } },
-            llmModel = { chosen },
-            asrOnLlm = { true },
-            baseContext = 6144,
-            onAsrLlmFailed = { failures += it },
+            loadLlm = { throw JobFailure.modelTooLarge() }, loadEmbed = { FakeEmbed().also { embeds += it } }, loadAsr = { FakeAsr(it) },
+            llmModel = { chosen }, contextNeeded = { needed }, baseContext = 6144,
         )
-        val asr = failing.asr("cs") as FakeAsr
-        assertFalse(asr.onLlm)
-        assertEquals(1, failures.size)
-        assertEquals(listOf("whisper"), resident())
+        val e = assertThrows(JobFailure::class.java) { failing.llm() }
+        assertEquals("model_too_large_for_device", e.code)
+        assertTrue(e.permanent)
     }
 
     @Test
-    fun aModelSwitchDuringGemmaSpeechRecognitionIsNotSwallowedByTheFallback() {
-        gemmaAsr = true
-        pool.llmModel()
-        chosen = "gemma-4-e4b"
-        assertThrows(ModelSwitched::class.java) { pool.asr("en") }
+    fun anAsrAndAnEmbedderThatLostTheirHostAreLoadedAgain() {
+        val a = pool.asr("cs")
+        a as FakeAsr
+        assertSame(a, pool.asr("cs"))
+        a.healthy = false
+        val b = pool.asr("cs")
+        assertTrue(a.closed)
+        assertTrue(b !== a)
+        val e = pool.embed() as FakeEmbed
+        e.healthy = false
+        assertTrue(pool.embed() !== e)
+        assertTrue(e.closed)
     }
 }

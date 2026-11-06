@@ -63,7 +63,7 @@ object Accelerators {
         litert = true,
     )
     val GPU = Accelerator(id = "GPU", priority = 200, litert = true, graphicsMemory = true)
-    /** Android's NNAPI through ONNX Runtime: deprecated and not faster than the CPU for our speech models (WhisperEvalTest), so opt-in only. */
+    /** Android's NNAPI through ONNX Runtime: deprecated and not faster than the CPU for our speech models (AsrEvalTest), so opt-in only. */
     val NNAPI = Accelerator(id = "NNAPI", priority = 150, onnxProvider = "nnapi", auto = false)
     val CPU = Accelerator(id = "CPU", priority = 1000, fallback = true, litert = true, onnxProvider = "cpu")
 

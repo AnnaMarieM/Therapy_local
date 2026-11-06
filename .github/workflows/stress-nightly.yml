@@ -1,0 +1,144 @@
+name: Stress nightly
+
+# The extra lanes of the engine stress lab (catalogue section 5): other API levels, small RAM, slow CPUs, forced backends, big resident fakes
+# and the host-script lane. Nightly, on demand, on a pull request carrying the label `stress`, and AUTOMATICALLY on any pull request that touches
+# code that runs, hosts, configures or tests the models (the `paths` list below: add a path there when a new model-running area appears).
+# The required PR checks stay in ci.yml; these lanes are not required checks, so the path filter can never leave a required check pending.
+# Each lane is under 40 min (the reusable workflow sets the limit). Every lane uploads `stress-<lane>`; the last job renders them together.
+on:
+  schedule:
+    - cron: "0 2 * * *"
+  workflow_dispatch:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled]
+    paths:
+      # where models load, run, are hosted, gated, struck or queued
+      - "app/src/main/java/com/therapylocal/app/engine/**"
+      - "app/src/main/java/com/therapylocal/app/models/**"
+      - "app/src/main/java/com/therapylocal/app/memory/**"
+      - "app/src/main/java/com/therapylocal/app/embed/**"
+      - "app/src/main/java/com/therapylocal/app/asr/**"
+      - "app/src/main/java/com/therapylocal/app/jobs/**"
+      - "app/src/main/java/com/therapylocal/app/config/AppConfig.kt"
+      - "app/src/main/java/com/therapylocal/app/log/**"
+      - "app/src/main/java/com/therapylocal/app/App.kt"
+      - "app/src/main/aidl/**"
+      - "app/src/*/AndroidManifest.xml"
+      - "app/src/debug/**"
+      - "app/src/noFaults/**"
+      - "app/src/qa/**"
+      # build, packaging, native libraries
+      - "app/build.gradle.kts"
+      - "build.gradle.kts"
+      - "gradle/**"
+      - "docker/**"
+      - "scripts/build.sh"
+      # the tests and lanes themselves
+      - "app/src/androidTest/**/engine/**"
+      - "app/src/sharedTest/**"
+      - "qa/stress/**"
+      - "qa/run-device-tests.sh"
+      - "qa/run-host-stress.sh"
+      - ".github/workflows/stress-nightly.yml"
+      - ".github/workflows/emulator-lane.yml"
+      - ".github/workflows/ci.yml"
+
+concurrency:
+  group: stress-nightly-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  T: com.therapylocal.app.engine.stress
+
+jobs:
+  build:
+    if: github.event_name != 'pull_request' || github.event.action != 'labeled' || github.event.label.name == 'stress'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v4
+        with:
+          path: ~/.gradle-therapy-builder
+          key: gradle-${{ hashFiles('**/*.gradle.kts', 'gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: gradle-
+      # Only the two APKs; lint and the unit tests already ran in ci.yml
+      - run: scripts/build.sh fast
+      - uses: actions/upload-artifact@v4
+        with:
+          name: app-debug
+          path: |
+            dist/Therapy-main.apk
+            dist/Therapy-main-androidTest.apk
+            dist/Therapy-main.apk.sha256
+          retention-days: 3
+
+  # Nightly, with the label, and on every pull request that touches model-running code (the `paths` list above)
+  labelled:
+    needs: build
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { lane: lmk-33,      api: 33, profile: pixel_4,     ram: "1536", args: "-e annotation com.therapylocal.app.engine.stress.Lmk,com.therapylocal.app.engine.stress.Core" }
+          # The catalogue calls the profile small_phone; pixel_2 is the smallest stock avdmanager device with a phone screen.
+          - { lane: api31-small, api: 31, profile: pixel_2,     ram: "2048", args: "-e annotation com.therapylocal.app.engine.stress.Full,com.therapylocal.app.engine.stress.Lmk" }
+          - { lane: api35-tablet, api: 35, profile: pixel_tablet, ram: "",     args: "-e annotation com.therapylocal.app.engine.stress.Full" }
+          - { lane: slow-34,     api: 34, profile: pixel_6,     ram: "2048", cores: 2, args: "-e annotation com.therapylocal.app.engine.stress.Full,com.therapylocal.app.engine.stress.Slow -e scale 4" }
+    uses: ./.github/workflows/emulator-lane.yml
+    with:
+      lane: ${{ matrix.lane }}
+      api: ${{ matrix.api }}
+      profile: ${{ matrix.profile }}
+      ram: ${{ matrix.ram }}
+      cores: ${{ matrix.cores || 2 }}
+      args: ${{ matrix.args }}
+
+  # Nightly only
+  nightly:
+    if: github.event_name != 'pull_request'
+    needs: build
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { lane: atd-34,          api: 34, target: google_atd, profile: pixel_6, ram: "",     args: "-e annotation com.therapylocal.app.engine.stress.Core" }
+          # backendOverride forces the ladder's candidates; the CORE tier plus the A, D and F families (their classes carry @Full, the shard filter)
+          - { lane: override-CPU,     api: 34, target: google_apis, profile: pixel_6, ram: "", args: "-e annotation com.therapylocal.app.engine.stress.Core -e backendOverride CPU" }
+          - { lane: override-GPU_CPU, api: 34, target: google_apis, profile: pixel_6, ram: "", args: "-e annotation com.therapylocal.app.engine.stress.Core -e backendOverride GPU_CPU" }
+          # fakeModelMb: a resident allocation in the host, so B, H, I and K run under real memory pressure
+          - { lane: fakemb-256,       api: 34, target: google_apis, profile: pixel_6, ram: "2048", args: "-e annotation com.therapylocal.app.engine.stress.Full -e fakeModelMb 256" }
+          - { lane: fakemb-1024,      api: 34, target: google_apis, profile: pixel_6, ram: "2048", args: "-e annotation com.therapylocal.app.engine.stress.Full -e fakeModelMb 1024" }
+    uses: ./.github/workflows/emulator-lane.yml
+    with:
+      lane: ${{ matrix.lane }}
+      api: ${{ matrix.api }}
+      target: ${{ matrix.target }}
+      profile: ${{ matrix.profile }}
+      ram: ${{ matrix.ram }}
+      args: ${{ matrix.args }}
+
+  # The nine host-script rows (adb root on the google_apis image); same triggers as `labelled`
+  host-stress:
+    needs: build
+    uses: ./.github/workflows/emulator-lane.yml
+    with:
+      lane: host-stress
+      api: 34
+      script: OUT_DIR=out LANE=host-stress APK=dist/Therapy-main.apk qa/run-host-stress.sh
+
+  stress-report:
+    needs: [build, labelled, nightly, host-stress]
+    if: always() && needs.build.result != 'skipped'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: stress-*
+          path: lanes
+        continue-on-error: true
+      - run: |
+          mkdir -p lanes
+          python3 qa/stress-summary.py --matrix lanes >> "$GITHUB_STEP_SUMMARY"

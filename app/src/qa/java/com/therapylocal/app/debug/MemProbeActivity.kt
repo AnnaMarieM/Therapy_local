@@ -11,6 +11,7 @@ import com.therapylocal.app.config.MemoryConfig
 import com.therapylocal.app.memory.MemoryLlm
 import com.therapylocal.app.models.GemmaVariant
 import com.therapylocal.app.models.ModelRegistry
+import com.therapylocal.app.config.BackendPolicy
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
@@ -18,7 +19,8 @@ import kotlin.concurrent.thread
 
 /**
  * QA build only. Loads one Gemma build and writes exact memory counters after every step to files/out/memprobe_<tag>.json:
- *   adb shell am start -n com.therapylocal.app.qa/com.therapylocal.app.debug.MemProbeActivity --es variant e4b --es backend GPU --ei ctx 6144 --ez audio false --ei calls 2 --es tag e4b_gpu
+ *   Add --ez force true to skip the free-memory gate and the guard blocks and try only the first backend (the engine process may die; main must not).
+ *   adb shell am start -n com.therapylocal.app.qa/com.therapylocal.app.debug.MemProbeActivity --es variant e4b --es backend GPU --ei ctx 6144 --ei calls 2 --es tag e4b_gpu
  * No patient data: the prompt is a made-up Czech transcript. Errors are written to the same file.
  */
 class MemProbeActivity : Activity() {
@@ -33,27 +35,28 @@ class MemProbeActivity : Activity() {
         val variant = GemmaVariant.entries.firstOrNull { it.key == i.getStringExtra("variant") } ?: GemmaVariant.E2B
         val order = (i.getStringExtra("backend") ?: "GPU").split(',')
         val ctx = i.getIntExtra("ctx", MemoryConfig.LLM_MAX_TOKENS)
-        val audio = i.getBooleanExtra("audio", false)
         val calls = i.getIntExtra("calls", 2)
         val words = i.getIntExtra("words", 0)
         val maxOut = i.getIntExtra("maxout", 400)
         val lang = i.getStringExtra("lang") ?: "en"
+        val force = i.getBooleanExtra("force", false)
         val tag = i.getStringExtra("tag") ?: "${variant.key}_${order.joinToString("")}"
         val steps = JSONArray()
-        val result = JSONObject().put("variant", variant.key).put("backend_order", order.joinToString(",")).put("ctx", ctx).put("audio", audio).put("steps", steps)
+        val result = JSONObject().put("variant", variant.key).put("backend_order", order.joinToString(",")).put("ctx", ctx).put("steps", steps)
         val t0 = System.nanoTime()
         fun snap(name: String, extra: JSONObject = JSONObject()) {
             steps.put(snapshot(name, (System.nanoTime() - t0) / 1_000_000).also { s -> extra.keys().forEach { s.put(it, extra.get(it)) } })
             Log.i(TAG, "step=$name ${steps.getJSONObject(steps.length() - 1)}")
         }
         snap("start")
+        if (force) { BackendPolicy.override = order.first(); BackendPolicy.force = true }
         val llm = MemoryLlm(this, ctx, ModelRegistry.gemma(variant))
         try {
             check(ModelRegistry.gemma(variant).isReady(this)) { "model file missing or incomplete" }
             val l0 = System.nanoTime()
             // A probe measures what was asked for, even a backend the app has blocked on this phone (its outcome is still recorded).
-            llm.load(order, withAudio = audio, respectBlocks = false)
-            snap("loaded", JSONObject().put("load_ms", (System.nanoTime() - l0) / 1_000_000).put("backend", llm.backend).put("has_audio", llm.hasAudio))
+            llm.load(order, respectBlocks = false)
+            snap("loaded", JSONObject().put("load_ms", (System.nanoTime() - l0) / 1_000_000).put("backend", llm.backend))
             repeat(calls) { n ->
                 val c0 = System.nanoTime()
                 val (system, user) = if (words > 0) realWindow(words, lang) else SYSTEM to USER
@@ -65,6 +68,7 @@ class MemProbeActivity : Activity() {
             result.put("error", JSONObject().put("type", t.javaClass.name).put("message", t.message?.take(600)))
             snap("failed")
         } finally {
+            BackendPolicy.force = false; BackendPolicy.override = "auto"
             runCatching { llm.close() }
             snap("closed")
         }

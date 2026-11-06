@@ -1,11 +1,11 @@
 #!/bin/bash
 # Runs inside the builder container. Called by scripts/build.sh and scripts/build.ps1; do not call Gradle for APKs anywhere else.
-#   full  clean, lint, unit tests, debug APK and the instrumented-test APK
+#   full  clean, lint, unit tests, debug APK, the instrumented-test APK and verifyNoFaultsInRelease (release, feel, qa carry no fault code)
 #   fast  clean and the two APKs only
 set -euo pipefail
 mode="${1:-full}"
 case "$mode" in
-  full) tasks=(clean lint :app:testDebugUnitTest assembleDebug assembleDebugAndroidTest) ;;
+  full) tasks=(clean lint :app:testDebugUnitTest assembleDebug assembleDebugAndroidTest verifyNoFaultsInRelease) ;;
   fast) tasks=(clean assembleDebug assembleDebugAndroidTest) ;;
   *) echo "unknown mode: $mode (full|fast)" >&2; exit 2 ;;
 esac

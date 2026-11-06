@@ -185,7 +185,6 @@
     <string name="settings_hardware_running_on_since">Naposledy běželo na %1$s · %2$s</string>
     <string name="settings_hardware_not_loaded">Zatím nenačteno</string>
     <string name="settings_hardware_role_llm">Čte sezení</string>
-    <string name="settings_hardware_role_llm_audio">Čte sezení a rozpoznává řeč</string>
     <string name="settings_hardware_role_embed">Hledá související fakta při zpracování sezení</string>
     <string name="settings_hardware_role_embed_audio">Živé nápovědy a hledání</string>
     <string name="settings_hardware_role_asr">Rozpoznává řeč</string>
@@ -203,4 +202,26 @@
     <string name="settings_hardware_reset_title">Otestovat vše znovu?</string>
     <string name="settings_hardware_reset_body">Znovu se vyzkouší každá část telefonu, i ty vypnuté kvůli selhání. Pokud některá aplikaci ukončí, sama se opět vypne.</string>
     <string name="settings_hardware_reset_confirm">Otestovat znovu</string>
+    <string name="settings_engine_title">Procesy modelů</string>
+    <string name="settings_engine_intro">Modely běží ve dvou samostatných procesech, takže pád jednoho aplikaci nezavře. Nic z toho, co je tu vidět, žádný proces nespouští.</string>
+    <string name="settings_engine_role_live">Živé nápovědy a hledání</string>
+    <string name="settings_engine_role_batch">Čtení sezení a řeč</string>
+    <string name="settings_engine_state_stopped">Zastaveno</string>
+    <string name="settings_engine_state_starting">Spouští se</string>
+    <string name="settings_engine_state_running">Běží</string>
+    <string name="settings_engine_state_stopping">Zastavuje se</string>
+    <string name="settings_engine_state_restarting">Restartuje se po pádu</string>
+    <string name="settings_engine_state_unavailable">Nedostupné po opakovaných pádech, později se zkusí znovu</string>
+    <string name="settings_engine_process">Proces %1$d · generace %2$d · běží %3$s</string>
+    <string name="settings_engine_loaded">Načteno: %1$s</string>
+    <string name="settings_engine_loaded_none">Nic není načteno</string>
+    <string name="settings_engine_memory">Paměť: %1$s</string>
+    <string name="settings_engine_deaths">Nedávné pády: %1$d</string>
+    <string name="settings_engine_last_exit">Poslední ukončení: %1$s · %2$s</string>
+    <string name="settings_engine_exit_memory">ukončeno systémem kvůli paměti</string>
+    <string name="settings_engine_exit_native">pád nativního kódu</string>
+    <string name="settings_engine_exit_crash">pád</string>
+    <string name="settings_engine_exit_anr">neodpovídá</string>
+    <string name="settings_engine_exit_benign">běžné zastavení</string>
+    <string name="settings_engine_exit_unknown">neznámé</string>
 </resources>

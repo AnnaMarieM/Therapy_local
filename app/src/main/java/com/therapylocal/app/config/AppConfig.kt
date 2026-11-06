@@ -28,13 +28,10 @@ object ChunkConfig {
     const val QUERY_MAX_SECONDS = 20
     const val QUERY_MIN_MS = 400
 
-    const val GEMMA_AUDIO_CAP_SECONDS = 30
-
     /** A recording does not start with less free internal storage: its audio is kept until processed, about 150 MB per hour with the overlap. */
     const val MIN_FREE_BYTES = 300L shl 20
 
     init {
-        require(CHUNK_SECONDS < GEMMA_AUDIO_CAP_SECONDS) { "CHUNK_SECONDS must stay under Gemma's audio cap" }
         require(OVERLAP_SECONDS in 0 until CHUNK_SECONDS) { "OVERLAP_SECONDS must be smaller than CHUNK_SECONDS" }
     }
 
@@ -123,6 +120,16 @@ object BackendPolicy {
     /** "auto" in any case, and a blank override, which names no accelerator. */
     private fun isAuto(override: String) = override.isBlank() || override.trim().equals("auto", ignoreCase = true)
 
+    /**
+     * Debug/QA only, never set by a release path: with a specific accelerator in [override] and this on, the engines skip the free-memory
+     * gate and the guard's block and demotion and try exactly that accelerator. The engine process then survives or dies and main goes on
+     * (docs/AD/AD-01.md). A library that is missing still refuses it: it could not run.
+     */
+    @Volatile
+    var force: Boolean = false
+
+    fun forcing() = force && !isAuto(override)
+
     fun allows(backend: String) = isAuto(override) || override.trim().equals(backend, ignoreCase = true)
 
     /**
@@ -155,3 +162,27 @@ object LiveCueConfig {
     /** Cues shown. */
     const val TOP_K = 10
 }
+
+/** How the engines run (AD-01). Constants here; every timing is in [EngineTuning]. */
+object EngineConfig {
+    /** The emergency switch from AD-01: forces `LocalEngineHost` everywhere. */
+    val IN_PROCESS: Boolean = com.therapylocal.app.BuildConfig.ENGINE_IN_PROCESS
+
+    /** The one inline limit: a string or PCM over this many bytes (UTF-8 for strings) goes through shared memory. */
+    const val INLINE_MAX_BYTES = 128 * 1024
+
+    /** Debug check on a finished Bundle (a parcelled String is UTF-16, so inline strings count double); the binder limit is about 1 MB. */
+    const val BUNDLE_DEBUG_MAX_BYTES = 768 * 1024
+
+    val DEFAULT = EngineTuning()
+}
+
+/** Every timing the engine connection uses. Production uses [EngineConfig.DEFAULT]; only androidTest (through the lab wiring) passes another. */
+data class EngineTuning(
+    val bindTimeoutMs: Long = 10_000, val openTimeoutMs: Long = 300_000, val askMinTimeoutMs: Long = 600_000,
+    val embedTimeoutMs: Long = 60_000, val transcribeTimeoutMs: Long = 180_000, val closeTimeoutMs: Long = 5_000,
+    val hangNoProgressMs: Long = 60_000, val hardCapFactor: Int = 3, val exitLookupMs: Long = 2_000,
+    val backoffMs: List<Long> = listOf(0, 500, 1000, 2000, 4000), val backoffCapMs: Long = 10_000,
+    val stormDeaths: Int = 6, val stormWindowMs: Long = 120_000, val stableMs: Long = 60_000,
+    val idleMs: Long = 120_000, val liveShutdownMs: Long = 5_000, val statusTimeoutMs: Long = 1_000,
+)

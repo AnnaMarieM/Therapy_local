@@ -215,10 +215,6 @@ private fun Chips(label: String, options: List<String>, selected: String, enable
 private fun RecordTab(s: UiState, vm: MainViewModel, hasMic: () -> Boolean, requestMic: () -> Unit) {
     val locked = s.recording
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Chips("Transcript", listOf("canary", "whisper", "gemma"), s.engine, !locked, vm::setEngine)
-        if (s.engine == "whisper") {
-            Chips("Whisper", listOf("tiny", "base", "small", "medium", "turbo", "large-v3"), s.whisperSize, !locked, vm::setWhisperSize)
-        }
         if (BuildConfig.DEBUG) Chips("Backend", listOf("auto") + com.therapylocal.app.models.Accelerators.all().map { it.id.lowercase() }, s.backendOverride, !locked, vm::setBackendOverride)
         Text("Embeddings: embeddinggemma-2 ${s.embedBackend}", fontSize = 12.sp, fontFamily = FontFamily.Monospace)
         Text("Chunking: ${ChunkConfig.describe()}", fontSize = 12.sp, fontFamily = FontFamily.Monospace)
@@ -313,10 +309,10 @@ private fun RecordingsTab(s: UiState, vm: MainViewModel) {
 private fun LogsTab() {
     val context = LocalContext.current
     val clipboard = LocalClipboardManager.current
-    var text by remember { mutableStateOf(AppLog.tail(300)) }
+    var text by remember { mutableStateOf(AppLog.tailAll(300)) }
     Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            OutlinedButton(onClick = { text = AppLog.tail(300) }) { Text("Refresh", fontSize = 12.sp) }
+            OutlinedButton(onClick = { text = AppLog.tailAll(300) }) { Text("Refresh", fontSize = 12.sp) }
             OutlinedButton(onClick = { clipboard.setText(AnnotatedString(text)) }) { Text("Copy", fontSize = 12.sp) }
             OutlinedButton(onClick = {
                 val send = Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, text)

@@ -1,20 +1,16 @@
 package com.therapylocal.app.memory
 
 import android.content.Context
-import com.therapylocal.app.asr.AsrEngine
-import com.therapylocal.app.asr.SherpaCanaryAsr
-import com.therapylocal.app.asr.SherpaWhisperAsr
+import com.therapylocal.app.asr.SpeechRecogniser
 import com.therapylocal.app.config.EmbeddingConfig
 import com.therapylocal.app.config.MemoryConfig
 import com.therapylocal.app.embed.Embedder
+import com.therapylocal.app.engine.LabWiring
 import com.therapylocal.app.jobs.Asr
 import com.therapylocal.app.jobs.Embed
-import com.therapylocal.app.jobs.Llm
 import com.therapylocal.app.jobs.ModelPool
-import com.therapylocal.app.log.AppLog
 import com.therapylocal.app.log.LogCtx
 import com.therapylocal.app.models.SpeechLanguage
-import com.therapylocal.app.models.ModelRegistry
 import com.therapylocal.app.models.ModelSetup
 import kotlinx.coroutines.runBlocking
 
@@ -22,33 +18,17 @@ import kotlinx.coroutines.runBlocking
 object DeviceModels {
     /** [contextNeeded]: the context the open work needs, counted from its prompts before the LLM is loaded (see [com.therapylocal.app.jobs.Pipeline.requiredContext]). */
     fun pool(context: Context, contextNeeded: () -> Int = { MemoryConfig.LLM_MAX_TOKENS }): ModelPool = ModelPool(
-        loadLlm = { audio, ctx -> MemoryLlm(context, ctx, ModelSetup.gemma(context)).apply { load(withAudio = audio) } },
+        loadLlm = { ctx -> MemoryLlm(context, ctx, LabWiring.spec(ModelSetup.gemma(context))).apply { load() } },
         loadEmbed = { embed(context) },
-        loadAsr = { llm, language -> asr(context, llm, language) },
-        llmModel = { ModelSetup.gemma(context).id },
-        asrOnLlm = { context.getSharedPreferences("settings", Context.MODE_PRIVATE).getString("engine", ModelRegistry.DEFAULT_ENGINE) == "gemma" },
+        loadAsr = { language -> asr(context, language) },
+        llmModel = { LabWiring.spec(ModelSetup.gemma(context)).id },
         contextNeeded = contextNeeded,
         baseContext = MemoryConfig.LLM_MAX_TOKENS,
-        onAsrLlmFailed = { t -> AppLog.w(TAG, "gemma_asr_load_failed", LogCtx.NONE, "error" to t.javaClass.simpleName, "reason" to t.message, "fallback" to "canary") },
     )
 
-    /**
-     * The engine chosen in the settings: Canary (the default), Whisper or Gemma, for the client's [language]. Gemma runs on the LLM's engine;
-     * a Gemma build without audio input, or one that could not be loaded (see [ModelPool.asr]), falls back to Canary.
-     */
-    private fun asr(context: Context, llm: () -> Llm?, language: String): Asr {
-        val prefs = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
-        val speech = SpeechLanguage.of(language)
-        var engine = prefs.getString("engine", ModelRegistry.DEFAULT_ENGINE) ?: ModelRegistry.DEFAULT_ENGINE
-        if (engine == "gemma") {
-            (llm() as? MemoryLlm)?.speech()?.let { return it }
-            AppLog.w(TAG, "gemma_asr_unavailable", LogCtx.NONE, "fallback" to "canary")
-            engine = "canary"
-        }
-        val engineImpl: AsrEngine = when (engine) {
-            "whisper" -> SherpaWhisperAsr(context, prefs.getString("whisper_size", ModelRegistry.DEFAULT_WHISPER_SIZE) ?: ModelRegistry.DEFAULT_WHISPER_SIZE, speech)
-            else -> SherpaCanaryAsr(context, speech)
-        }
+    /** Canary, the only speech recogniser (docs/AD/AD-02.md), for the client's [language]. */
+    private fun asr(context: Context, language: String): Asr {
+        val engineImpl = SpeechRecogniser(context, SpeechLanguage.of(language))
         try {
             runBlocking { engineImpl.load() }
         } catch (t: Throwable) {
@@ -56,6 +36,7 @@ object DeviceModels {
             throw t
         }
         return object : Asr {
+            override val healthy: Boolean get() = engineImpl.healthy
             override fun transcribe(pcm: ShortArray): String = runBlocking { engineImpl.transcribe(pcm, LogCtx.NONE).text }
             override fun close() = engineImpl.close()
         }
@@ -70,10 +51,9 @@ object DeviceModels {
         runBlocking { embedder.load() }
         return object : Embed {
             override val model = EmbeddingConfig.MODEL_ID
+            override val healthy: Boolean get() = embedder.healthy
             override fun embed(text: String): FloatArray = runBlocking { embedder.embedText(text, false, LogCtx.NONE) }
             override fun close() = embedder.close()
         }
     }
-
-    private const val TAG = "Memory"
 }

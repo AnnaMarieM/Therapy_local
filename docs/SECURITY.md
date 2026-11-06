@@ -43,6 +43,17 @@ Opening the database or a patient file while locked fails closed (`VaultLockedEx
 | Debug-harness marker `out/DONE` | Written only when a run is started from the debug harness, never in app mode |
 | Debug `LiveCuesBench` output | Debug-build benchmark tool, synthetic input only |
 
+## Engine processes
+
+Models run in two bound, non-foreground processes, `:live` and `:batch` ([AD-01](AD/AD-01.md)). They are stateless model servers:
+- They never open `mind.db`, the vault or the key file, and never receive the DEK or the log pseudonymisation key (`App.onCreate` sets up logging only in a host).
+- They hold prompts, transcripts and audio **in memory only**, while a call runs. Audio arrives in `SharedMemory`; nothing patient-related is written to disk by a host. The memory ends with the process, and a host leaves as soon as the main process dies, so locking the vault (which kills the main process) also ends both.
+- Their log files (`engine-live.log`, `engine-batch.log`) follow the same rules as `tl.log`: lengths, counts, ids and timings only. Failures in calls that handle text are logged by type and code location, never with a message, and the host's uncaught-exception handler writes redacted lines too. `client` and `session` are never logged by a host.
+- The services are not exported, so only the app can bind them.
+- Debug builds will carry a fault-injection entry for tests. It is protected by the `DUMP` permission and does not exist in release builds (described when that step lands).
+
+**Residual risk.** If a host crashes natively, Android may write a tombstone or a dropbox entry (`/data/tombstones`, `dropbox`), and these can contain fragments of what was in the host's memory, such as part of a prompt. This is the same as when models ran in the main process. They are system-owned files, not readable by the app or over a plain `adb pull`. The app never reads or exports them: it uses only `ApplicationExitInfo` fields (reason, status, importance, PSS/RSS, description) and never `getTraceInputStream()`. A rooted or bugreport-capable attacker with the unlocked phone is already out of scope (see the threat model).
+
 ## Limitations
 
 - A forgotten password cannot be recovered: the DEK exists only sealed under the password (and the optional biometric key). Use Erase, which stops processing and waits for the running job, closes `mind.db`, then deletes the key file, the database (and the legacy ones) and all patient files.

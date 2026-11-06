@@ -2,6 +2,8 @@ package com.therapylocal.app.memory
 
 import android.content.res.Resources
 import com.therapylocal.app.R
+import com.therapylocal.app.data.JobStatus
+import com.therapylocal.app.jobs.JobFailure
 import com.therapylocal.app.jobs.JobPhase
 import com.therapylocal.app.jobs.QueueSnapshot
 import com.therapylocal.app.jobs.StepProgress
@@ -76,13 +78,19 @@ data class ProcessingNotice(
             )
         }
 
+        /** The status notice when no engine host could serve the queue: it will be tried again, nothing was lost. Not an error. */
+        fun deferred(): ProcessingNotice = ProcessingNotice(str(R.string.processing_deferred_title), str(R.string.processing_deferred_text), ongoing = false)
+
         /** The dismissible end-of-run notice, or null when there is nothing worth telling (nothing ran, or it is only waiting for setup). */
         fun finished(s: QueueSnapshot, run: Set<String>): ProcessingNotice? {
             val sessions = s.sessions.filter { it.sessionId in run }
             val total = sessions.size
             val done = sessions.count { it.finished }
             val failed = sessions.count { it.failed > 0 }
+            // The model keeps being killed for memory: retrying would not help, so the text says what would.
+            val tooLarge = s.jobs.any { it.sessionId in run && it.status == JobStatus.Failed && it.errorCode == JobFailure.MODEL_TOO_LARGE }
             return when {
+                failed > 0 && tooLarge -> ProcessingNotice(NoticeText.Plural(R.plurals.processing_failed_title, failed), str(R.string.processing_too_large_text), ongoing = false)
                 failed > 0 -> ProcessingNotice(NoticeText.Plural(R.plurals.processing_failed_title, failed), str(R.string.processing_failed_text, done, total), ongoing = false)
                 s.stopping && done < total -> ProcessingNotice(str(R.string.processing_stopped_title), str(R.string.processing_stopped_text, done, total), ongoing = false)
                 done == 0 -> null

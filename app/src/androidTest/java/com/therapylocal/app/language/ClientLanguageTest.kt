@@ -31,7 +31,7 @@ import org.junit.runner.RunWith
 
 /**
  * Per-client transcription language, on the device: the stored language and its migration, the language the transcriber is asked for,
- * the Whisper builds the settings require, and the pickers. Nothing here downloads a model or loads a native speech library.
+ * the Canary download the settings require, and the pickers. Nothing here downloads a model or loads a native speech library.
  */
 @RunWith(AndroidJUnit4::class)
 class ClientLanguageTest {
@@ -117,30 +117,17 @@ class ClientLanguageTest {
     }
 
     @Test
-    fun theDownloadsFollowTheLanguagesInUse() {
-        prefs.edit().putString("engine", "whisper").putString("whisper_size", "base").commit()
-        fun whisper() = ModelSetup.required(context).map { it.id }.filter { it.startsWith("whisper-") }.toSet()
-
-        assertEquals("a fresh install starts with English", setOf("whisper-base.en"), whisper())
-
-        prefs.edit().putString("default_language", "cs").commit()
-        assertEquals(setOf("whisper-base"), whisper())
-
-        prefs.edit().putStringSet("client_languages", setOf("en")).commit()
-        assertEquals(setOf("whisper-base", "whisper-base.en"), whisper())
-    }
-
-    @Test
     fun canaryServesEveryLanguageWithOneDownloadAndIsTheDefault() {
-        fun speech() = ModelSetup.required(context).map { it.id }.filter { it.startsWith("canary") || it.startsWith("whisper") }.toSet()
+        fun speech() = ModelSetup.required(context).map { it.id }.filter { it.startsWith("canary") }.toSet()
 
         assertEquals("nothing chosen: Canary", setOf("canary-1b-v2"), speech())
 
         prefs.edit().putString("default_language", "cs").putStringSet("client_languages", setOf("en")).commit()
         assertEquals("Czech and English clients still need only Canary", setOf("canary-1b-v2"), speech())
 
+        // The old engine settings are gone ; a stale value changes nothing.
         prefs.edit().putString("engine", "whisper").putString("whisper_size", "base").commit()
-        assertEquals(setOf("whisper-base", "whisper-base.en"), speech())
+        assertEquals(setOf("canary-1b-v2"), speech())
     }
 
     @Test

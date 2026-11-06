@@ -1,5 +1,8 @@
 package com.therapylocal.app.models
 
+import com.therapylocal.app.engine.EngineDied
+import com.therapylocal.app.engine.EngineUnavailable
+import com.therapylocal.app.engine.ReplyTooLarge
 import java.util.Collections
 import java.util.IdentityHashMap
 import java.util.UUID
@@ -30,6 +33,8 @@ class BackendLadder(
     private val memoryLight: () -> Array<Pair<String, Any?>> = memory,
     private val clock: () -> Long = System::nanoTime,
     private val heartbeatMs: Long = 30_000,
+    /** The process the engine is created in (`main`, `live`, `batch`): written on the guard's notes, so a kill is judged by that process's own record. */
+    private val role: String = BackendGuard.ROLE_MAIN,
 ) {
     /** Where the lines go. [t] is written with its stack trace. */
     fun interface Log {
@@ -53,8 +58,8 @@ class BackendLadder(
         respectBlocks: Boolean = true,
         open: (backend: String) -> T,
         close: (T) -> Unit,
+        loadId: String = newLoadId(),
     ): Loaded<T> {
-        val loadId = UUID.randomUUID().toString().take(8)
         val order = candidates.map { it.trim().uppercase() }.filter { it.isNotEmpty() }.distinct()
         val t0 = clock()
         val reasons = ArrayList<String>()
@@ -100,7 +105,7 @@ class BackendLadder(
                 continue
             }
             val before = safe(base(backend)) { guard?.record(model, backend) }
-            safe(base(backend)) { guard?.attempting(model, backend) }
+            safe(base(backend)) { guard?.attempting(model, backend, role) }
             log.write(
                 Level.INFO, "backend_attempting",
                 base(backend) + attempt + arrayOf("note" to "attempting", "proven_before" to (before?.everProven == true)) + recordFields("before", before) + safeMemory(memoryLight),
@@ -117,7 +122,7 @@ class BackendLadder(
                 }
                 val ms = (clock() - a0) / 1_000_000
                 safe(base(backend)) { guard?.proven(model, backend) }
-                safe(base(backend)) { guard?.loaded(model, backend) }
+                safe(base(backend)) { guard?.loaded(model, backend, role) }
                 safe(base(backend)) { guard?.selected(model, backend) }
                 log.write(
                     Level.INFO, "backend_proven",
@@ -143,18 +148,35 @@ class BackendLadder(
                 }
                 val msg = message(t)?.take(MAX_MESSAGE)
                 val reason = "${name(t)}: $msg"
-                val after = safe(base(backend)) { guard?.failed(model, backend, reason) }
+                // No host could serve, or the payload was too large for the binder: no backend was asked, so none is at fault. Nothing is
+                // struck, the open note goes (or the next start would count an attempt that never reached the device) and the load stops.
+                if (t is EngineUnavailable || t is ReplyTooLarge) {
+                    safe(base(backend)) { guard?.abandoned(model, backend) }
+                    log.write(Level.WARN, "backend_attempt_abandoned", base(backend) + attempt + arrayOf("open_ms" to ms, "error" to name(t), "reason" to msg, "why" to (t as? EngineUnavailable)?.why), null)
+                    throw t
+                }
+                val died = t as? EngineDied
+                val diedResult = if (died != null) safe(base(backend)) { guard?.died(model, backend, died.phase, died.exit) } else null
+                val after = if (died != null) diedResult?.record else safe(base(backend)) { guard?.failed(model, backend, reason) }
+                val hang = died != null && died.exit.kind == BackendGuard.ExitKind.ANR && died.exit.description.startsWith("hang:")
                 log.write(
                     Level.ERROR, "backend_failed",
                     base(backend) + attempt + arrayOf(
                         "open_ms" to ms, "error" to t.javaClass.name, "reason" to msg, "cause_chain" to causeChain(t),
                         "is_oom" to (t is OutOfMemoryError), "next" to order.getOrNull(index + 1),
-                    ) + recordFields("after", after) + safeMemory(memory),
+                    ) + (if (died != null) arrayOf<Pair<String, Any?>>(
+                        "engine_died" to true, "exit_kind" to died.exit.kind.name.lowercase(), "exit_description" to died.exit.description, "gen" to died.generation,
+                        "struck" to (diedResult?.struck == true), "hang" to hang.takeIf { it },
+                    ) else emptyArray()) + recordFields("after", after) + safeMemory(memory),
                     t,
                 )
                 if (after?.state == BackendGuard.State.BLOCKED) {
                     log.write(Level.WARN, "backend_blocked", base(backend) + recordFields("record", after), null)
                 }
+                diedResult?.tooLarge?.let { log.write(Level.WARN, "model_too_large_for_device", base(backend) + recordFields("record", it.record) + arrayOf("detail" to it.detail), null) }
+                // The host ended on purpose (idle stop, shutdown, a close that timed out): it is not a verdict on any backend, and the
+                // connection already retried once. Walking down to the next backend would settle the model on the wrong one.
+                if (died != null && died.exit.kind == BackendGuard.ExitKind.BENIGN) throw t
                 reasons += "$backend: ${msg ?: name(t)}"
                 summary += "$backend=failed(${name(t)},${ms}ms)"
             }
@@ -190,6 +212,9 @@ class BackendLadder(
     }
 
     companion object {
+        /** A caller that sends the id to a host (the call tag) makes it first and passes it to [load]. */
+        fun newLoadId(): String = UUID.randomUUID().toString().take(8)
+
         /** Longest error message kept on a line or in [NoBackend]: a native wrapper can put kilobytes there. */
         const val MAX_MESSAGE = 1000
 
@@ -202,11 +227,14 @@ class BackendLadder(
         fun causeChain(t: Throwable, messages: Boolean = true): String {
             val seen = Collections.newSetFromMap(IdentityHashMap<Throwable, Boolean>()).apply { add(t) }
             return generateSequence(t) { runCatching { it.cause }.getOrNull()?.takeIf { c -> seen.add(c) } }.take(8)
-                .joinToString(" <- ") { if (messages) "${name(it)}: ${message(it)?.take(200)}" else it.javaClass.name }
+                .joinToString(" <- ") { if (messages) "${name(it)}: ${message(it)?.take(200)}" else fullName(it) }
         }
 
         /** The simple class name, or the full one for an anonymous class (whose simple name is empty). */
-        internal fun name(t: Throwable): String = t.javaClass.simpleName.ifEmpty { t.javaClass.name }
+        internal fun name(t: Throwable): String = (t as? com.therapylocal.app.engine.NamedError)?.let { it.typeName.ifEmpty { it.className } } ?: t.javaClass.simpleName.ifEmpty { t.javaClass.name }
+
+        /** The full class name, or the original type of an error rebuilt across a process boundary. */
+        internal fun fullName(t: Throwable): String = (t as? com.therapylocal.app.engine.NamedError)?.className?.ifEmpty { null } ?: t.javaClass.name
 
         /** [Throwable.message], which is code and can itself throw. */
         internal fun message(t: Throwable): String? = try {

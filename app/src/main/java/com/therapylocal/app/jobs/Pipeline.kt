@@ -1,5 +1,7 @@
 package com.therapylocal.app.jobs
 
+import com.therapylocal.app.engine.EngineDied
+import com.therapylocal.app.engine.EngineUnavailable
 import com.therapylocal.app.audio.AudioChunk
 import com.therapylocal.app.config.MemoryConfig
 import com.therapylocal.app.data.ChunkRow
@@ -174,6 +176,8 @@ class Pipeline(
             val reply = try {
                 llm.ask(system, user, if (attempt == 3) FactSchemas.EXTRACT_STRICT else null, MemoryConfig.EXTRACT_MAX_OUTPUT_TOKENS, MemoryConfig.EXTRACT_TEMPERATURE, MemoryConfig.EXTRACT_TOP_K)
             } catch (t: Throwable) {
+                // The engine ended or no host can serve: another try on the same dead handle only repeats it. The queue defers or retries the job.
+                if (t is EngineDied || t is EngineUnavailable) throw t
                 AppLog.w(JobRunner.TAG, "extract_attempt_failed", LogCtx.NONE, "attempt" to attempt, "type" to t.javaClass.simpleName, "constrained" to (attempt == 3), "frames" to com.therapylocal.app.models.BackendLadder.frames(t, 4))
                 continue
             }
@@ -240,6 +244,7 @@ class Pipeline(
         val reply = try {
             llm.ask(system, user, null, MemoryConfig.REVIEW_MAX_OUTPUT_TOKENS, MemoryConfig.REVIEW_TEMPERATURE, MemoryConfig.REVIEW_TOP_K)
         } catch (t: Throwable) {
+            if (t is EngineDied || t is EngineUnavailable) throw t
             AppLog.w(JobRunner.TAG, "review_failed", LogCtx.NONE, "type" to t.javaClass.simpleName, "frames" to com.therapylocal.app.models.BackendLadder.frames(t, 4))
             return null
         }

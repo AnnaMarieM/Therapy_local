@@ -20,6 +20,7 @@ import com.therapylocal.app.i18n.LocaleStore
 import kotlinx.coroutines.runBlocking
 import com.therapylocal.app.data.DebugAudio
 import com.therapylocal.app.data.PendingAudio
+import com.therapylocal.app.jobs.DrainResult
 import com.therapylocal.app.jobs.JobRunner
 import com.therapylocal.app.jobs.Jobs
 import com.therapylocal.app.jobs.Pipeline
@@ -74,6 +75,9 @@ class MemoryService : Service() {
                 } catch (_: InterruptedException) {
                 }
             }, "memory-notif").also { it.isDaemon = true; it.start() }
+            var debugDone = false
+            // Set when no engine host could serve: the run ends, a notice says so and a worker starts the queue again later.
+            var deferredMs: Long? = null
             try {
                 val queue = Jobs.queue(app)
                 queue.clearStop()
@@ -96,22 +100,35 @@ class MemoryService : Service() {
                     onSessionDone = { sid -> PerfStats.sessionDone(sid, pool.llmModel(), maxOf(store.recordings().filter { it.sessionId == sid }.sumOf { it.durationMs }, store.transcriptLengthMs(sid)), store.windows(sid).size) },
                 )
                 do {
-                    runner.drain()
+                    val result = runner.drain()
                     trackRun()
+                    if (result is DrainResult.Deferred) {
+                        deferredMs = result.retryInMs
+                        break // the job is released, so hasWork() would be true at once: a hot loop
+                    }
                 } while (runner.hasWork()) // a session enqueued just as the run ended
-                if (debugJob) DevHarness.markDone(app)
+                debugDone = true
             } catch (t: Throwable) {
                 AppLog.eRedacted(MemoryLlm.TAG, "memory_lab_failed", LogCtx.NONE, t)
                 // Stack traces can quote patient text (e.g. JSON parse errors), so they are only written for the developer harness, never in app mode.
                 if (debugJob) java.io.File(MemoryFiles.devRoot(app), "out/ERROR").apply { parentFile?.mkdirs() }.writeText(t.stackTraceToString())
             } finally {
                 Engines.resume()
+                // DevResults queries the embedder, so the done marker is written only after it is resumed (markDone catches and writes ERROR itself).
+                if (debugJob && debugDone) runCatching { DevHarness.markDone(app) }
                 // Join the watcher first, or its last tick can re-post an ongoing "processing" notification after the run has ended.
                 watcher.interrupt()
                 try { watcher.join(3000) } catch (_: InterruptedException) {}
                 trackRun()
                 stopForeground(STOP_FOREGROUND_REMOVE)
-                postResult()
+                val retryIn = deferredMs
+                if (retryIn != null) {
+                    postDeferred()
+                    RetryProcessingWorker.schedule(app, retryIn)
+                } else {
+                    RetryProcessingWorker.resetDeferrals()
+                    postResult()
+                }
                 wakeLock?.takeIf { it.isHeld }?.release()
                 stopSelf()
             }
@@ -138,6 +155,14 @@ class MemoryService : Service() {
             .setAutoCancel(true)
             .setCategory(if (success) Notification.CATEGORY_STATUS else Notification.CATEGORY_ERROR)
         if (success) b.setTimeoutAfter(RESULT_TIMEOUT_MS)
+        notify(RESULT_ID, b.setPublicVersion(publicVersion(title)).build())
+    }
+
+    /** "Processing paused, will retry": a status, never an error. Nothing was lost; the queue is started again by [RetryProcessingWorker]. */
+    private fun postDeferred() {
+        val notice = ProcessingNotice.deferred()
+        val title = notice.title.get(resources)
+        val b = base(title, notice.text.get(resources)).setAutoCancel(true).setCategory(Notification.CATEGORY_STATUS)
         notify(RESULT_ID, b.setPublicVersion(publicVersion(title)).build())
     }
 
@@ -180,6 +205,8 @@ class MemoryService : Service() {
     private fun notify(id: Int, n: Notification) = getSystemService(NotificationManager::class.java).notify(id, n)
 
     companion object {
+        /** The log tag of the job queue's lines (`JobRunner.TAG`). */
+        const val TAG_JOBS = JobRunner.TAG
         private const val CHANNEL = "memory"
         private const val NOTIF_ID = 42
         private const val RESULT_ID = 43

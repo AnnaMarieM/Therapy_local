@@ -11,6 +11,10 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+# Least privilege by default; a job that needs more (release-main) asks for it itself.
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -83,6 +87,8 @@ jobs:
       - run: scripts/check-ad-immutable.sh "${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}" "${{ github.sha }}"
 
   # End-to-end tests on an emulator. Required: a failing instrumented test fails the PR.
+  # The existing tests plus the CORE tier of the engine stress lab (catalogue section 5). FULL-only, LMK and SLOW tests run in the lanes below
+  # and in stress-nightly.yml. Every lane leaves an artifact (logs, logcat, exit records, per-test JSON) and a job summary, also when it failed.
   android-test:
     needs: build
     runs-on: ubuntu-latest
@@ -105,6 +111,40 @@ jobs:
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
+      # The AVD is cached by api-target-profile-ram and made once (boot stays under 3 min on a hit)
+      - uses: actions/cache@v4
+        id: avd-cache
+        with:
+          path: |
+            ~/.android/avd/*
+            ~/.android/adb*
+          key: avd-34-google_apis-${{ matrix.device }}-default
+      - name: Create the AVD and its snapshot
+        id: avd1
+        continue-on-error: true   # the SDK download sometimes arrives corrupt ("Error on ZipFile unknown archive"): one retry below
+        if: steps.avd-cache.outputs.cache-hit != 'true'
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          target: google_apis
+          profile: ${{ matrix.device }}
+          force-avd-creation: false
+          disable-animations: false
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          script: echo "AVD snapshot generated for the cache"
+      - name: Create the AVD and its snapshot (retry)
+        if: steps.avd-cache.outputs.cache-hit != 'true' && steps.avd1.outcome == 'failure'
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          target: google_apis
+          profile: ${{ matrix.device }}
+          force-avd-creation: false
+          disable-animations: false
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          script: echo "AVD snapshot generated for the cache"
       - name: Instrumented tests
         uses: reactivecircus/android-emulator-runner@v2
         with:
@@ -112,15 +152,124 @@ jobs:
           arch: x86_64
           target: google_apis
           profile: ${{ matrix.device }}
+          force-avd-creation: false
           disable-animations: true
+          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          script: SKIP_BUILD=1 OUT_DIR=out INSTR_ARGS="-e notAnnotation com.therapylocal.app.engine.stress.FullOnly,com.therapylocal.app.engine.stress.Lmk,com.therapylocal.app.engine.stress.Slow -e lane android-test-${{ matrix.device }} -e commit ${{ github.sha }}" qa/run-device-tests.sh
+      - name: Job summary
+        if: always()
+        run: python3 qa/stress-summary.py out/stress/results.jsonl --title "android-test (${{ matrix.device }})" >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: stress-android-test-${{ matrix.device }}
+          path: out
+          retention-days: 7
+          if-no-files-found: warn
+
+  # The FULL tier of the engine stress lab on two shards (catalogue section 5): a memory-poor phone (2 GB), real separate processes.
+  # CORE tests carry both tiers and ran above, so the shards skip them.
+  stress:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { lane: stress-a, shard: 0 }
+          - { lane: stress-b, shard: 1 }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: app-debug
+          path: dist
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - uses: actions/cache@v4
+        id: avd-cache
+        with:
+          path: |
+            ~/.android/avd/*
+            ~/.android/adb*
+          key: avd-34-google_apis-pixel_6-2048
+      - name: Create the AVD and its snapshot
+        id: avd1
+        continue-on-error: true   # the SDK download sometimes arrives corrupt ("Error on ZipFile unknown archive"): one retry below
+        if: steps.avd-cache.outputs.cache-hit != 'true'
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          target: google_apis
+          profile: pixel_6
+          ram-size: 2048M
+          force-avd-creation: false
+          disable-animations: false
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
-          script: SKIP_BUILD=1 qa/run-device-tests.sh
+          script: echo "AVD snapshot generated for the cache"
+      - name: Create the AVD and its snapshot (retry)
+        if: steps.avd-cache.outputs.cache-hit != 'true' && steps.avd1.outcome == 'failure'
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          target: google_apis
+          profile: pixel_6
+          ram-size: 2048M
+          force-avd-creation: false
+          disable-animations: false
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          script: echo "AVD snapshot generated for the cache"
+      - name: Stress tests (FULL, shard ${{ matrix.shard }} of 2)
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          target: google_apis
+          profile: pixel_6
+          ram-size: 2048M
+          force-avd-creation: false
+          disable-animations: true
+          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          script: SKIP_BUILD=1 OUT_DIR=out INSTR_ARGS="-e annotation com.therapylocal.app.engine.stress.Full -e notAnnotation com.therapylocal.app.engine.stress.Core -e numShards 2 -e shardIndex ${{ matrix.shard }} -e lane ${{ matrix.lane }} -e scale 1 -e commit ${{ github.sha }}" qa/run-device-tests.sh
+      - name: Job summary
+        if: always()
+        run: python3 qa/stress-summary.py out/stress/results.jsonl --title "${{ matrix.lane }}" >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: stress-${{ matrix.lane }}
+          path: out
+          retention-days: 7
+          if-no-files-found: warn
+
+  # One page: every lane of this run, test by lane (ok / FAIL / skip, with the stall in ms).
+  stress-report:
+    needs: [android-test, stress]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: stress-*
+          path: lanes
+        continue-on-error: true
+      - run: |
+          mkdir -p lanes
+          python3 qa/stress-summary.py --matrix lanes >> "$GITHUB_STEP_SUMMARY"
 
   # Rolling "main" prerelease holding the latest APK. Reuses the APK built above and
   # waits for unit and emulator tests, so the build runs in parallel with them.
   release-main:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: [build, android-test, reproducible-arm, ad-immutable]
+    needs: [build, android-test, stress, reproducible-arm, ad-immutable]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:

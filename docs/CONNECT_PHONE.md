@@ -80,7 +80,7 @@ The model (about 2.6 GB) lives in the app's own folder on the phone:
 - **Check the model:** `adb shell ls -lh /sdcard/Android/data/com.therapylocal.app/files/models/`
 - **Seed it without downloading:** `adb push gemma-4-E2B-it.litertlm /sdcard/Android/data/com.therapylocal.app/files/models/`, then open the app.
 - The app trusts the file size on launch, so starting is instant. It only verifies the sha256 right after a download.
-- Models now live in sub-folders: Gemma stays at the top level, `embeddinggemma-2-740m/` (485 MB, text and audio embeddings) and `whisper-<size>/` (tiny 103 MB, base 160 MB, small 375 MB) are fetched on demand with the same resumable, checksummed downloader.
+- Models now live in sub-folders: Gemma stays at the top level, `embeddinggemma-2-740m/` (485 MB, text and audio embeddings) and `canary-1b-v2/` (speech recognition) are fetched on demand with the same resumable, checksummed downloader.
 
 ## Repeatable audio tests (debug builds)
 

@@ -1,6 +1,6 @@
 package com.therapylocal.app.models
 
-/** The Gemma 4 build used as the memory LLM (and Gemma speech recognition). [key] is the value stored in the settings. */
+/** The Gemma 4 build used as the memory LLM. [key] is the value stored in the settings. */
 enum class GemmaVariant(val key: String, val title: String) {
     E2B("e2b", "Gemma 4 E2B"),
     E4B("e4b", "Gemma 4 E4B"),

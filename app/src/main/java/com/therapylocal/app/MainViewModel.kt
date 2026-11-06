@@ -19,7 +19,6 @@ import com.therapylocal.app.log.AppLog
 import com.therapylocal.app.log.LogCtx
 import com.therapylocal.app.memory.LiveCues
 import com.therapylocal.app.memory.MemoryFiles
-import com.therapylocal.app.models.ModelRegistry
 import com.therapylocal.app.models.ModelSetup
 import com.therapylocal.app.models.SetupState
 import com.therapylocal.app.session.SessionController
@@ -39,14 +38,18 @@ import java.io.File
 
 enum class Phase { Preparing, Ready, Failed }
 
-/** Client search on the profile: [hits] is null before the first search. */
-data class SearchState(val listening: Boolean = false, val searching: Boolean = false, val hits: List<SearchHit>? = null, val info: String? = null)
+/**
+ * Client search on the profile: [hits] is null before the first search. [paused]: the search model is unloaded while sessions are processed
+ * (or its engine is away), which is told quietly, never as an error; word hits in facts still show.
+ */
+data class SearchState(
+    val listening: Boolean = false, val searching: Boolean = false, val hits: List<SearchHit>? = null, val info: String? = null,
+    val paused: Boolean = false,
+)
 
 data class UiState(
     val phase: Phase = Phase.Preparing,
     val prepareMsg: String = "Starting",
-    val engine: String = ModelRegistry.DEFAULT_ENGINE, // "canary", "whisper" or "gemma": which engine transcribes recordings (in the background, after they stop)
-    val whisperSize: String = ModelRegistry.DEFAULT_WHISPER_SIZE,
     val backendOverride: String = "auto", // debug: auto, npu, gpu, cpu
     val embedBackend: String = "-",
     val recording: Boolean = false,
@@ -66,9 +69,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     private val prefs = app.getSharedPreferences("settings", Context.MODE_PRIVATE)
     private val _state = MutableStateFlow(
         UiState(
-            engine = prefs.getString("engine", ModelRegistry.DEFAULT_ENGINE)!!,
-            whisperSize = prefs.getString("whisper_size", ModelRegistry.DEFAULT_WHISPER_SIZE)!!,
-                backendOverride = prefs.getString("backend_override", "auto")!!,
+            backendOverride = prefs.getString("backend_override", "auto")!!,
             testFiles = if (BuildConfig.DEBUG) TestAudio.list(app) else emptyList(),
         ),
     )
@@ -104,23 +105,14 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     // ---- settings -------------------------------------------------------------------------------------------
 
-    fun setEngine(engine: String) = change(reload = false) { prefs.edit().putString("engine", engine).apply(); it.copy(engine = engine) }
-    fun setWhisperSize(size: String) = change(reload = false) { prefs.edit().putString("whisper_size", size).apply(); it.copy(whisperSize = size) }
-
     /** Debug: force a backend to compare NPU, GPU and CPU honestly. Reloads both engines. */
-    fun setBackendOverride(o: String) = change(reload = true) {
+    fun setBackendOverride(o: String) {
+        if (_state.value.recording) return
         prefs.edit().putString("backend_override", o).apply()
         BackendPolicy.override = o
-        it.copy(backendOverride = o)
-    }
-
-    /** The speech settings are read by the transcribe job; [prepare] again because they change which AI files are needed. */
-    private fun change(reload: Boolean, f: (UiState) -> UiState) {
-        if (_state.value.recording) return
-        _state.update(f)
-        val s = _state.value
-        AppLog.i(TAG, "settings_changed", LogCtx.NONE, "engine" to s.engine, "whisper_size" to s.whisperSize, "backend_override" to s.backendOverride)
-        if (reload) embedder.close()
+        _state.update { it.copy(backendOverride = o) }
+        AppLog.i(TAG, "settings_changed", LogCtx.NONE, "backend_override" to o)
+        embedder.close()
         prepare()
     }
 
@@ -194,8 +186,14 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         }
         searchJob = viewModelScope.launch(Dispatchers.IO) {
             showSearch {
-                val vec = if (_state.value.phase == Phase.Ready && embedder.usable) embedder.embedText(query, query = true, LogCtx.NONE) else null
-                SearchState(hits = clients.search(client, vec, query), info = if (vec == null) ctx.getString(R.string.vm_search_after_setup) else null)
+                val ready = _state.value.phase == Phase.Ready
+                // Held back while sessions are processed: no call into the (unloaded) embedder, a quiet note instead of an error.
+                val paused = ready && !embedder.usable
+                val vec = if (ready && !paused) embedder.embedText(query, query = true, LogCtx.NONE) else null
+                SearchState(
+                    hits = clients.search(client, vec, query), paused = paused,
+                    info = if (vec == null && !paused) ctx.getString(R.string.vm_search_after_setup) else null,
+                )
             }
         }
     }
@@ -207,6 +205,10 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     fun startVoiceSearch(client: String): Boolean {
         val s = _state.value
         if (s.phase != Phase.Ready || s.recording || voiceRecorder != null) return false
+        if (!embedder.usable) {
+            _search.value = SearchState(paused = true)
+            return false
+        }
         val rec = ChunkRecorder.query(LogCtx.NONE)
         try {
             rec.start()
@@ -241,8 +243,14 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         } catch (e: CancellationException) {
             throw e
         } catch (t: Throwable) {
-            AppLog.e(TAG, "search_failed", LogCtx.NONE, t)
-            SearchState(info = ctx.getString(R.string.vm_search_failed))
+            // Suspended between the check and the call (processing just started): the same quiet pause.
+            if (!embedder.usable) {
+                AppLog.i(TAG, "search_paused", LogCtx.NONE, "error" to t.javaClass.simpleName)
+                SearchState(paused = true)
+            } else {
+                AppLog.e(TAG, "search_failed", LogCtx.NONE, t)
+                SearchState(info = ctx.getString(R.string.vm_search_failed))
+            }
         }
     }
 

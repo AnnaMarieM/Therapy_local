@@ -419,6 +419,7 @@ private fun SearchBox(s: SearchActions, requestMic: () -> Unit) {
         val note = when {
             s.state.listening -> stringResource(R.string.profile_note_listening)
             s.state.searching -> stringResource(R.string.profile_note_searching)
+            s.state.paused -> stringResource(R.string.search_paused_processing)
             s.voiceDisabled != null && s.state.hits == null -> s.voiceDisabled
             else -> s.state.info
         }
