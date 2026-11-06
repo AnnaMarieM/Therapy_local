@@ -1,4 +1,4 @@
-# MindVault (TherapyLocal) — On-Device AI Memory Assistant for Psychotherapists
+# Mnemothera (formerly MindVault / TherapyLocal) — On-Device AI Memory Assistant for Psychotherapists
 
 > **Privacy-First · 100% Offline · Real-Time Longitudinal Memory on Android**
 
@@ -10,7 +10,7 @@ We are building a **privacy-first, on-device Android assistant for psychotherapi
 
 Therapists often conduct 5–8 intense emotional sessions every day. Currently, they must manually write notes, review binders of past sessions, and mentally keep track of intricate details across months or years of patient history. 
 
-**MindVault** runs entirely on the therapist's Android device:
+**Mnemothera** runs entirely on the therapist's Android device:
 - It **records and transcribes** therapy sessions locally.
 - It automatically generates **structured clinical summaries** and updates the patient's persistent memory.
 - It provides a **quick pre-session briefing** so the therapist is fully prepared in minutes.

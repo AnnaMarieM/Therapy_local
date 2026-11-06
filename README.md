@@ -1,26 +1,31 @@
-# MindVault (TherapyLocal) — Private, Verifiable Memory for Therapists
+<p align="center"><img src="docs/icon.svg" alt="Mnemothera app icon" width="128"></p>
+
+# Mnemothera — Private, Verifiable Memory for Therapists
 
 > **Privacy-First · 100% On-Device · Real-Time Longitudinal Memory for Android**
 > Open-Source License: [MIT](LICENSE) | Repository: [github.com/AnnaMarieM/Therapy_local](https://github.com/AnnaMarieM/Therapy_local)
+> Formerly known as MindVault / TherapyLocal. The Android package id (`com.therapylocal.app`) and repository name are unchanged.
+
+**Download:** the latest build of `main` is always available as the rolling [`main` release](https://github.com/AnnaMarieM/Therapy_local/releases/tag/main) (`Therapy-main.apk` plus its `.sha256`).
 
 ---
 
 ## ⚕️ Medical & Clinical Disclaimer
 
-**MindVault is a clinical memory and transcription retrieval tool, NOT a diagnostic medical device.**  
+**Mnemothera is a clinical memory and transcription retrieval tool, NOT a diagnostic medical device.**  
 It does not diagnose mental health conditions, prescribe treatments, or provide clinical advice. All clinical decisions, interpretations, and interventions remain solely the ethical and professional responsibility of the licensed therapist.
 
 ---
 
 ## 1. What It Is and Who It Is For
 
-**MindVault** is an offline-first Android application designed for licensed psychotherapists and counselors who conduct 5–8 emotionally intensive sessions daily.
+**Mnemothera** is an offline-first Android application designed for licensed psychotherapists and counselors who conduct 5–8 emotionally intensive sessions daily.
 
 ### The Problem
 Patients often circle back to core emotional themes weeks or months apart (e.g. connecting a workplace conflict in November to a childhood trauma disclosed in May). Reviewing handwritten binders or manual notes between sessions is slow and fragmented. Crucially, therapists **cannot** upload confidential session audio or notes to cloud AI APIs (OpenAI, Anthropic, cloud databases) due to strict doctor-patient confidentiality, ethics, and GDPR/HIPAA regulations.
 
 ### The Solution
-MindVault operates **100% locally on the therapist's phone**:
+Mnemothera operates **100% locally on the therapist's phone**:
 - **Continuous Local Audio Processing:** Records and transcribes audio directly on-device using Whisper / Gemma ASR.
 - **Overlapping Sliding Chunks:** Splits audio into 20-second windows with 5-second overlap to prevent losing thoughts spoken across boundaries.
 - **Persistent Semantic Memory:** Embeds text and audio chunks via Google EmbeddingGemma, indexing them into local storage.
@@ -43,22 +48,23 @@ MindVault operates **100% locally on the therapist's phone**:
    git clone https://github.com/AnnaMarieM/Therapy_local.git
    cd Therapy_local
    ```
-2. **Install Docker** (Docker Desktop on Mac/Windows). Builds run in a pinned container, identical locally and in CI; no local JDK or Android SDK is needed.
+2. **Or skip the build:** download `Therapy-main.apk` from the [`main` release](https://github.com/AnnaMarieM/Therapy_local/releases/tag/main), verify it with `sha256sum -c Therapy-main.apk.sha256`, and install it with `adb install -r Therapy-main.apk`.
+3. **Install Docker** (Docker Desktop on Mac/Windows). Builds run in a pinned container, identical locally and in CI; no local JDK or Android SDK is needed.
    Only if you also open the project in Android Studio, create `local.properties` in the project root (the container ignores it):
    ```properties
    sdk.dir=/path/to/your/Android/Sdk
    # Example Windows: sdk.dir=C\:\\Users\\<username>\\AppData\\Local\\Android\\Sdk
    ```
-3. **Build the Debug APK** (output: `dist/Therapy-main.apk`):
+4. **Build the Debug APK** (output: `dist/Therapy-main.apk`):
    ```bash
    scripts/build.sh fast        # Windows: .\scripts\build.ps1 fast
    ```
-4. **Install on Phone via ADB:**
+5. **Install on Phone via ADB:**
    ```bash
    adb install -r dist/Therapy-main.apk
    adb shell am start -n com.therapylocal.app/.MainActivity
    ```
-5. **Initial Model Download:**
+6. **Initial Model Download:**
    On first launch, the app downloads model weights (~645 MB default) over Wi-Fi directly to the app's isolated storage (`/sdcard/Android/data/com.therapylocal.app/files/models/`). After this initial download, the app functions **completely offline**.
 
 ---
@@ -71,14 +77,14 @@ Our software layer introduces domain-specific architecture:
 1. **20s / 5s Overlapping Audio Chunker (`AppConfig.kt`):** Therapy speech contains hesitant pauses, sighs, and sentence restarts. Standard fixed chunkers cut sentences in half. Our overlap pipeline stitches boundaries together cleanly.
 2. **Deterministic Transcript Cleaning & Merging (`TranscriptClean.kt`, `TranscriptMerge.kt`):** Strips hallucinated repetitions and merges overlapping phonetic boundaries without calling an LLM.
 3. **Grounded Source Attribution (`Search.kt`):** Every surfaced memory is strictly pinned to its recording timestamp (e.g. `Session 1 — Oct 12, 14:20-14:40`). The therapist is shown the **exact verbatim words** said by the patient, preventing model drift or false clinical suggestions.
-4. **Zero-Ideation Guardrails:** Small on-device models must not diagnose or hypothesize. MindVault restricts LLM inference to indexing and verbatim similarity retrieval. The clinical intellect remains 100% human.
+4. **Zero-Ideation Guardrails:** Small on-device models must not diagnose or hypothesize. Mnemothera restricts LLM inference to indexing and verbatim similarity retrieval. The clinical intellect remains 100% human.
 5. **Privacy Initials Formatter:** Protects patient dignity by automatically formatting stored records as `First L.` (e.g., *George M.*) rather than full surnames.
 
 ---
 
 ## 4. The Models and Licenses
 
-MindVault utilizes open-weight, edge-optimized models licensed for permissive research and commercial use:
+Mnemothera utilizes open-weight, edge-optimized models licensed for permissive research and commercial use:
 
 | Model | Purpose | Developer / Source | License & Terms |
 |---|---|---|---|
@@ -103,7 +109,7 @@ The raw foundation models (Whisper, Gemma) provide only raw transcription and em
 
 ---
 
-## 6. Where Does MindVault Not Work? (Limitations)
+## 6. Where Does Mnemothera Not Work? (Limitations)
 
 We believe in radical transparency about current prototype boundaries:
 1. **Relevance Thresholding:** If a query matches nothing in the patient's history, cosine similarity may still surface the nearest available chunk. A calibrated "No relevant memory found" threshold is currently under active development.
@@ -116,10 +122,10 @@ We believe in radical transparency about current prototype boundaries:
 ## 7. Submission Description (OrganizerHQ)
 
 **Short Pitch (140 characters):**  
-MindVault is an offline-first Android assistant providing therapists with 100% private, verifiable memory recall during clinical sessions.
+Mnemothera is an offline-first Android assistant providing therapists with 100% private, verifiable memory recall during clinical sessions.
 
 **Full Pitch:**  
-Therapists conduct 5–8 intense emotional sessions daily, struggling to track complex patient histories over months without compromising confidentiality. MindVault solves this with an entirely on-device Android co-pilot: it transcribes audio locally using Whisper, generates local semantic embeddings via Google EmbeddingGemma, and retrieves relevant past statements with exact timestamps during sessions. Zero cloud transmission, zero hallucinated diagnoses, 100% verifiable doctor-patient confidentiality.
+Therapists conduct 5–8 intense emotional sessions daily, struggling to track complex patient histories over months without compromising confidentiality. Mnemothera solves this with an entirely on-device Android co-pilot: it transcribes audio locally using Whisper, generates local semantic embeddings via Google EmbeddingGemma, and retrieves relevant past statements with exact timestamps during sessions. Zero cloud transmission, zero hallucinated diagnoses, 100% verifiable doctor-patient confidentiality.
 
 ---
 
