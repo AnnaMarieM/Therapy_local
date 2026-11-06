@@ -15,19 +15,19 @@ tasks=(clean lint :app:testDebugUnitTest assembleDebug)
 mask=()
 [[ -f "$root/local.properties" ]] && mask=(-v /dev/null:/workspace/local.properties:ro)
 
-# The builder is always linux/amd64 (Google ships no arm64 aapt2). Arm hosts run it emulated:
-# Docker Desktop on macOS does this out of the box; on Linux/arm64 register QEMU once:
-#   docker run --privileged --rm tonistiigi/binfmt --install amd64
-if ! docker run --rm --platform linux/amd64 --entrypoint true "$(grep -m1 '^FROM' "$root/docker/Dockerfile" | sed 's/.*--platform=[^ ]* //')" 2>/dev/null; then
-  echo "Cannot run linux/amd64 containers here. On Linux/arm64 run: docker run --privileged --rm tonistiigi/binfmt --install amd64" >&2
-  exit 1
-fi
-
-docker build -q --platform linux/amd64 -t "$image" "$root/docker" >/dev/null
+docker build -q -t "$image" "$root/docker" >/dev/null
 mkdir -p "$gradle_home" "$root/dist"
 
+# KVM is not involved: aapt2 on arm64 runs under qemu-user, which is always software emulation. Say so in the log.
+arch="$(docker run --rm --entrypoint uname "$image" -m)"
+if [[ "$arch" == "x86_64" ]]; then
+  echo "[build] container arch $arch: aapt2 runs natively"
+else
+  echo "[build] container arch $arch: aapt2 is x86_64-only, running it under qemu-user software emulation (no KVM needed, slower resource steps)"
+fi
+
 # --user keeps files owned by the caller; HOME/ANDROID_USER_HOME keep tool state out of the image.
-docker run --rm --platform linux/amd64 \
+docker run --rm \
   --user "$(id -u):$(id -g)" \
   -e HOME=/tmp/home -e GRADLE_USER_HOME=/gradle-home -e ANDROID_USER_HOME=/tmp/home/.android \
   -e SOURCE_DATE_EPOCH="$(git -C "$root" log -1 --format=%ct)" \
@@ -36,7 +36,7 @@ docker run --rm --platform linux/amd64 \
   "${mask[@]}" \
   -w /workspace \
   "$image" \
-  bash -c 'mkdir -p "$HOME" && ./gradlew --no-daemon --console=plain "$@"' _ "${tasks[@]}"
+  bash -c 'mkdir -p "$HOME" && ./gradlew --no-daemon --console=plain -Pandroid.aapt2FromMavenOverride=/opt/aapt2/aapt2 "$@"' _ "${tasks[@]}"
 
 cp "$root/app/build/outputs/apk/debug/app-debug.apk" "$root/dist/Therapy-main.apk"
 (cd "$root/dist" && sha256sum Therapy-main.apk | tee Therapy-main.apk.sha256)
