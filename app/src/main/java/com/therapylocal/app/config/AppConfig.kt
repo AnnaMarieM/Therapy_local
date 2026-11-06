@@ -83,7 +83,6 @@ object EmbeddingConfig {
 /** The background pipeline that turns a session's transcript into facts (see [com.therapylocal.app.jobs.Pipeline]). */
 object MemoryConfig {
     const val LLM_MAX_TOKENS = 6144
-    val LLM_BACKENDS = listOf("NPU", "GPU", "CPU")
 
     /**
      * The GPU and NPU take the model's memory from the system and Android cannot reclaim it (measured: E4B took 3,469 MiB for a 3,490 MiB file, E2B
@@ -92,6 +91,9 @@ object MemoryConfig {
      */
     const val GPU_MEMORY_FACTOR = 1.0
     const val GPU_HEADROOM_BYTES = 1L shl 30
+
+    /** After the system asked for memory back, the live embedder reloads on the CPU only for this long, not straight back onto the GPU. */
+    const val LOW_MEMORY_CPU_COOLDOWN_MS = 5 * 60_000L
 
     /** Transcript windows, in estimated tokens: each is embedded for search and read by the LLM once. */
     const val WINDOW_TOKENS = 1000
@@ -113,12 +115,26 @@ object MemoryConfig {
     const val MIN_SIMILARITY = 0.6f
 }
 
-/** Debug override of which backend the engines try: "auto" (NPU if possible, then GPU, then CPU), "npu", "gpu" or "cpu". */
+/** Debug override of which accelerator the engines try: "auto" (the [com.therapylocal.app.models.Accelerators] order) or one accelerator id. */
 object BackendPolicy {
     @Volatile
     var override: String = "auto"
 
-    fun allows(backend: String) = override == "auto" || override.equals(backend, ignoreCase = true)
+    /** "auto" in any case, and a blank override, which names no accelerator. */
+    private fun isAuto(override: String) = override.isBlank() || override.trim().equals("auto", ignoreCase = true)
+
+    fun allows(backend: String) = isAuto(override) || override.trim().equals(backend, ignoreCase = true)
+
+    /**
+     * The order to try: [preferred] as it is on "auto", otherwise the forced accelerator first. The fallback (CPU) stays last whenever
+     * [preferred] has it, so forcing one the phone cannot run falls back instead of failing.
+     */
+    fun order(preferred: List<String>, override: String = this.override): List<String> {
+        if (isAuto(override)) return preferred
+        val forced = override.trim().uppercase()
+        val fallback = preferred.filter { com.therapylocal.app.models.Accelerators.isFallback(it) }.map { it.uppercase() }
+        return (listOf(forced) + fallback).distinct()
+    }
 }
 
 /** Realtime "possibly relevant" fact cues: the last few seconds of live audio are embedded every tick and ranked against the client's facts. The adjustable knobs are in [LiveCueSettings]. */

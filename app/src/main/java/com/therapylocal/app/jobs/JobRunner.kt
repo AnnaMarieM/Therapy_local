@@ -77,7 +77,12 @@ class JobRunner(
             if (!queue.repo.sessionExists(job.sessionId)) return queue.cancel(job)
             // Only a code or the exception type is kept: messages can quote patient text. An anonymous class has no simple name.
             val code = (t as? JobFailure)?.code ?: t.javaClass.simpleName.ifEmpty { "ERROR" }
-            AppLog.w(TAG, "job_failed", c, "job" to job.id, "kind" to job.kind, "code" to code)
+            // Types and code locations, never messages: enough to tell a backend failure from a parse error in field logs.
+            AppLog.w(
+                TAG, "job_failed", c, "job" to job.id, "kind" to job.kind, "code" to code, "attempt" to job.attempts + 1,
+                "error" to t.javaClass.name, "cause_chain" to com.therapylocal.app.models.BackendLadder.causeChain(t, messages = false),
+                "frames" to com.therapylocal.app.models.BackendLadder.frames(t), "is_oom" to (t is OutOfMemoryError),
+            )
             queue.fail(job, code, (t as? JobFailure)?.permanent == true)
         }
     }

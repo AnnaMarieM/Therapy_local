@@ -127,7 +127,7 @@ class LiveCues(
                 throw e
             } catch (t: Throwable) {
                 _error.value = t.message ?: t.javaClass.simpleName
-                AppLog.e(TAG, "live_cue_tick_failed", LogCtx.NONE, t)
+                AppLog.eRedacted(TAG, "live_cue_tick_failed", LogCtx.NONE, t)
             }
             val spent = SystemClock.elapsedRealtime() - t0
             delay((s.intervalMs - spent).coerceAtLeast(LiveCueConfig.MIN_GAP_MS))
@@ -157,7 +157,7 @@ class LiveCues(
             AppLog.d(TAG, "live_cue_silence", LogCtx.NONE, "tick" to n, "rms" to "%.4f".format(rms))
             return
         }
-        AppLog.span(TAG, "live_cue_tick", LogCtx.NONE, "tick" to n, "client" to client, "interval_ms" to sinceMs, "audio_sec" to "%.2f".format(Pcm.seconds(pcm)), "rms" to "%.4f".format(rms)) { span ->
+        AppLog.spanRedacted(TAG, "live_cue_tick", LogCtx.NONE, "tick" to n, "client" to client, "interval_ms" to sinceMs, "audio_sec" to "%.2f".format(Pcm.seconds(pcm)), "rms" to "%.4f".format(rms)) { span ->
             val t0 = SystemClock.elapsedRealtime()
             val vec = embedder.embedAudio(pcm, LogCtx.NONE, role = "live_cue")
             val t1 = SystemClock.elapsedRealtime()

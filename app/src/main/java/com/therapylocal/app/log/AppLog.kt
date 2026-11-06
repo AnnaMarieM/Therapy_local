@@ -39,6 +39,8 @@ class Span {
 object AppLog {
     const val LOGCAT_TAG = "TL"
     private const val MAX_FILE_BYTES = 1_500_000L
+    private const val MAX_PINNED_BYTES = 400_000L
+    private const val BACKEND_TAG = "Backend"
     private const val KEEP_FILES = 5
 
     val sessionId: String = UUID.randomUUID().toString().take(6)
@@ -102,9 +104,58 @@ object AppLog {
     fun e(tag: String, evt: String, ctx: LogCtx = LogCtx.NONE, t: Throwable? = null, vararg f: Pair<String, Any?>) =
         emit(Log.ERROR, tag, evt, ctx, f, t)
 
+    /**
+     * An error from code that handles patient text (inference, embedding, transcription): its message and stack trace can quote that text, so
+     * only the type, the cause types and the code locations are written.
+     */
+    fun eRedacted(tag: String, evt: String, ctx: LogCtx = LogCtx.NONE, t: Throwable, vararg f: Pair<String, Any?>) =
+        emit(Log.ERROR, tag, evt, ctx, arrayOf(*f, *redactedFields(t)), null)
+
+    /**
+     * Waits (at most [timeoutMs]) until every line written so far is in the file. For the line before a step that can kill the process
+     * natively (a model engine starting on the GPU): lines are written on a background thread, and a kill would otherwise lose the last ones.
+     */
+    fun flush(timeoutMs: Long = 500) {
+        if (dir == null) return
+        try {
+            executor.submit { writer?.flush() }.get(timeoutMs, java.util.concurrent.TimeUnit.MILLISECONDS)
+        } catch (_: Throwable) {
+            // a slow disk must not hold up the load; the line is still queued
+        }
+    }
+
+    @PublishedApi
+    internal fun redactedFields(t: Throwable): Array<Pair<String, Any?>> = arrayOf(
+        "err" to t.javaClass.name,
+        "cause_chain" to com.therapylocal.app.models.BackendLadder.causeChain(t, messages = false),
+        "frames" to com.therapylocal.app.models.BackendLadder.frames(t),
+        "is_oom" to (t is OutOfMemoryError),
+    )
+
     /** Content logging, only when [fullTextLogging] is enabled. Otherwise a no-op. */
     fun text(tag: String, evt: String, ctx: LogCtx, content: String) {
         if (fullTextLogging) emit(Log.DEBUG, tag, evt, ctx, arrayOf("text" to content), null)
+    }
+
+    /** [span] for stages that handle patient text: a failure is logged as with [eRedacted], never with its message. */
+    inline fun <T> spanRedacted(
+        tag: String,
+        name: String,
+        ctx: LogCtx = LogCtx.NONE,
+        vararg fields: Pair<String, Any?>,
+        block: (Span) -> T,
+    ): T {
+        val span = Span()
+        val start = SystemClock.elapsedRealtimeNanos()
+        spanEvent(Log.DEBUG, tag, "span_start", name, ctx, fields, null, null)
+        try {
+            val result = block(span)
+            spanEvent(Log.INFO, tag, "span_end", name, ctx, fields, span, (SystemClock.elapsedRealtimeNanos() - start) / 1_000_000.0)
+            return result
+        } catch (t: Throwable) {
+            spanEvent(Log.ERROR, tag, "span_error", name, ctx, arrayOf(*fields, *redactedFields(t)), span, (SystemClock.elapsedRealtimeNanos() - start) / 1_000_000.0)
+            throw t
+        }
     }
 
     /** Wraps [block] in a traced stage: span_start (debug), then span_end (info) with dur_ms, or span_error. */
@@ -156,11 +207,32 @@ object AppLog {
             val shown = if (v != null && (k == "client" || k == "session")) pseudonymize(v.toString()) else v
             sb.append(' ').append(k).append('=').append(format(shown))
         }
-        if (t != null) sb.append(" err=").append(format(t.javaClass.simpleName)).append(" err_msg=").append(format(t.message))
+        if (t != null) sb.append(" err=").append(format(t.javaClass.simpleName)).append(" err_msg=").append(format(runCatching { t.message?.take(2000) }.getOrElse { "(message unreadable)" }))
         val line = sb.toString()
         Log.println(level, LOGCAT_TAG, line)
-        if (t != null) Log.println(Log.ERROR, LOGCAT_TAG, Log.getStackTraceString(t))
-        write(line)
+        if (t != null) runCatching { Log.println(Log.ERROR, LOGCAT_TAG, Log.getStackTraceString(t)) }
+        // Debug lines (span starts) stay in logcat outside debug builds: in the file they would rotate the useful lines away.
+        if (level > Log.DEBUG || BuildConfig.DEBUG) write(line)
+        // Which hardware each model ran on, and why: kept apart so hours of recording never rotate it away.
+        if (level >= Log.INFO && (tag == BACKEND_TAG || f.any { it.first == "load_id" })) writePinned(line)
+    }
+
+    /** `backend.log`: the backend lines only, never rotated away; past [MAX_PINNED_BYTES] its older half is dropped. */
+    fun pinnedFile(): File? = dir?.resolve("backend.log")
+
+    private fun writePinned(line: String) {
+        val f = pinnedFile() ?: return
+        executor.execute {
+            try {
+                f.appendText(line + "\n")
+                if (f.length() > MAX_PINNED_BYTES) {
+                    val text = f.readText()
+                    f.writeText(text.substring(text.indexOf('\n', text.length / 2) + 1))
+                }
+            } catch (_: Throwable) {
+                // logging must never crash the app
+            }
+        }
     }
 
     private fun levelChar(level: Int) = when (level) {

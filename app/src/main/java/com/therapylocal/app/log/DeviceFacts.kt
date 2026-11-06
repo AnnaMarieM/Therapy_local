@@ -14,7 +14,7 @@ object DeviceFacts {
 
     fun logStartup(context: Context) {
         val am = context.getSystemService(ActivityManager::class.java)
-        val mem = ActivityManager.MemoryInfo().also { am.getMemoryInfo(it) }
+        val mem = ActivityManager.MemoryInfo().also { m -> am?.let { runCatching { it.getMemoryInfo(m) } } }
         val ext = context.getExternalFilesDir(null)
         AppLog.i(
             TAG, "startup",

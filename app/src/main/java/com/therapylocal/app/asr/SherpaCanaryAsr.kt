@@ -52,9 +52,11 @@ class SherpaCanaryAsr(private val context: Context, private val language: Speech
                     ),
                     decodingMethod = "greedy_search",
                 )
-                recognizer = OfflineRecognizer(config = config)
-                backend = provider.uppercase()
+                val opened = SherpaLoad.open(context, TAG, engineName, spec, provider, config)
+                recognizer = opened.recognizer
+                backend = opened.backend
                 span.put("backend", backend)
+                span.put("load_id", opened.loadId)
             }
         }
     }
@@ -65,7 +67,7 @@ class SherpaCanaryAsr(private val context: Context, private val language: Speech
             val audioSec = Pcm.seconds(pcm)
             val samples = Pcm.toFloats(pcm)
             val start = SystemClock.elapsedRealtime()
-            val text = AppLog.span(TAG, "asr_transcribe", ctx, "engine" to engineName, "model" to modelName, "backend" to backend, "audio_sec" to "%.2f".format(audioSec)) { span ->
+            val text = AppLog.spanRedacted(TAG, "asr_transcribe", ctx, "engine" to engineName, "model" to modelName, "backend" to backend, "audio_sec" to "%.2f".format(audioSec)) { span ->
                 val stream = r.createStream()
                 try {
                     stream.acceptWaveform(samples, Pcm.SAMPLE_RATE)
@@ -85,8 +87,9 @@ class SherpaCanaryAsr(private val context: Context, private val language: Speech
     }
 
     override fun close() {
-        recognizer?.release()
+        val r = recognizer ?: return
         recognizer = null
+        SherpaLoad.release(context, TAG, engineName, spec, backend, r)
         backend = "none"
     }
 

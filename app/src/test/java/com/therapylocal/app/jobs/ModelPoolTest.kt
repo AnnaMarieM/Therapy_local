@@ -258,4 +258,30 @@ class ModelPoolTest {
         pool.close()
         assertEquals(emptyList<String>(), resident())
     }
+
+    @Test
+    fun gemmaSpeechRecognitionThatCannotLoadFallsBackToTheRecogniserWithItsOwnModel() {
+        val failures = ArrayList<Throwable>()
+        val failing = ModelPool(
+            loadLlm = { audio, ctx -> if (audio) throw IllegalStateException("No backend could load gemma") else FakeLlm(chosen, false, ctx).also { loaded += it } },
+            loadEmbed = { FakeEmbed().also { embeds += it } },
+            loadAsr = { llm, _ -> FakeAsr(llm() != null).also { asrs += it } },
+            llmModel = { chosen },
+            asrOnLlm = { true },
+            baseContext = 6144,
+            onAsrLlmFailed = { failures += it },
+        )
+        val asr = failing.asr("cs") as FakeAsr
+        assertFalse(asr.onLlm)
+        assertEquals(1, failures.size)
+        assertEquals(listOf("whisper"), resident())
+    }
+
+    @Test
+    fun aModelSwitchDuringGemmaSpeechRecognitionIsNotSwallowedByTheFallback() {
+        gemmaAsr = true
+        pool.llmModel()
+        chosen = "gemma-4-e4b"
+        assertThrows(ModelSwitched::class.java) { pool.asr("en") }
+    }
 }
