@@ -75,7 +75,7 @@ class Embedder(
 
     private suspend fun loadLocked() {
         if (engine != null) return
-        withContext(Dispatchers.Default) {
+        withContext(com.therapylocal.app.jobs.ModelDispatchers.Compute) {
             val file = ModelRegistry.EMBED.file(context, ModelRegistry.EMBED.files.first())
             AppLog.span(TAG, "embed_load", LogCtx.NONE, "model" to EmbeddingConfig.MODEL_ID, "model_mb" to (file.length() shr 20), "dim" to dim) { span ->
                 maxTokens = logModelInfo(file)
@@ -96,7 +96,13 @@ class Embedder(
                             AppLog.w(TAG, "npu_skipped", LogCtx.NONE, "reason" to "dispatch_library_missing", "expected" to NpuRuntime.DISPATCH_LIB, "dir" to context.applicationInfo.nativeLibraryDir)
                         }
                     }
-                    if (BackendPolicy.allows("GPU")) attempts += "GPU" to { Backend.GPU() }
+                    if (BackendPolicy.allows("GPU")) {
+                        if (BackendPolicy.override.equals("gpu", ignoreCase = true) || com.therapylocal.app.memory.DeviceMemory.allowEmbedderGpu(context)) {
+                            attempts += "GPU" to { Backend.GPU() }
+                        } else {
+                            AppLog.i(TAG, "gpu_skipped_memory_safety", LogCtx.NONE, "reason" to "tensor_mali_or_low_ram")
+                        }
+                    }
                     if (BackendPolicy.allows("CPU")) attempts += "CPU" to { Backend.CPU() }
                 }
 
@@ -123,6 +129,7 @@ class Embedder(
                         span.put("audio_backend", audioBackendName())
                         span.put("fallbacks_failed", failures.size)
                         AppLog.i(TAG, "backend_selected", LogCtx.NONE, "engine" to "embeddinggemma", "backend" to name, "audio_backend" to audioBackendName(), "model_file" to file.name, "model_bytes" to file.length())
+                        AppLog.logMemory(context, TAG, "embed_ready", extra = arrayOf("backend" to name))
                         return@span
                     } catch (t: Throwable) {
                         runCatching { engine?.close() }
@@ -162,7 +169,7 @@ class Embedder(
         check(!suspended) { "Embedder suspended while sessions are processed" }
         if (engine == null) loadLocked()
         val e = checkNotNull(engine) { "Embedder not loaded" }
-        withContext(Dispatchers.Default) { runAudio(e, pcm, ctx, role) }
+        withContext(com.therapylocal.app.jobs.ModelDispatchers.Compute) { runAudio(e, pcm, ctx, role) }
     }
 
     /** Embeds text as a query ("task: search query | text: ...") or as a document. */
@@ -170,7 +177,7 @@ class Embedder(
         check(!suspended) { "Embedder suspended while sessions are processed" }
         if (engine == null) loadLocked()
         val e = checkNotNull(engine) { "Embedder not loaded" }
-        withContext(Dispatchers.Default) { runText(e, text, query, ctx) }
+        withContext(com.therapylocal.app.jobs.ModelDispatchers.Compute) { runText(e, text, query, ctx) }
     }
 
     private fun runAudio(e: EmbeddingEngine, pcm: ShortArray, ctx: LogCtx, role: String): FloatArray {

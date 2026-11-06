@@ -90,6 +90,12 @@ object AppLog {
     fun logDir(): File? = dir
     fun logFile(): File? = dir?.resolve("tl.log")
 
+    fun logMemory(context: Context, tag: String = "Memory", evt: String = "snapshot", ctx: LogCtx = LogCtx.NONE, vararg extra: Pair<String, Any?>) {
+        val snapshot = com.therapylocal.app.memory.DeviceMemory.memorySnapshot(context)
+        val combined = snapshot + extra
+        emit(Log.INFO, tag, evt, ctx, combined, null)
+    }
+
     fun d(tag: String, evt: String, ctx: LogCtx = LogCtx.NONE, vararg f: Pair<String, Any?>) = emit(Log.DEBUG, tag, evt, ctx, f, null)
     fun i(tag: String, evt: String, ctx: LogCtx = LogCtx.NONE, vararg f: Pair<String, Any?>) = emit(Log.INFO, tag, evt, ctx, f, null)
     fun w(tag: String, evt: String, ctx: LogCtx = LogCtx.NONE, vararg f: Pair<String, Any?>) = emit(Log.WARN, tag, evt, ctx, f, null)

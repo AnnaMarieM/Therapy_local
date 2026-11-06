@@ -38,7 +38,7 @@ class LiveCues(
     private val store: MindStore,
     private val settings: () -> LiveCueSettings = { LiveCueSettings.DEFAULT },
 ) {
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    private val scope = CoroutineScope(SupervisorJob() + com.therapylocal.app.jobs.ModelDispatchers.Compute)
     private val _cues = MutableStateFlow<List<Cue>>(emptyList())
     private val _running = MutableStateFlow(false)
     private val _error = MutableStateFlow<String?>(null)

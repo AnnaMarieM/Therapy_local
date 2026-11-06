@@ -79,6 +79,7 @@ class MemoryLlm(private val context: Context, private val maxTokens: Int, privat
                 engine = e
                 backend = name.uppercase()
                 AppLog.i(TAG, "memory_llm_loaded", LogCtx.NONE, "backend" to backend, "max_tokens" to maxTokens, "audio" to audio)
+                AppLog.logMemory(context, TAG, "memory_llm_ready", extra = arrayOf("backend" to backend, "model" to spec.id))
                 return
             } catch (t: Throwable) {
                 failures += "$name: ${t.message}"
