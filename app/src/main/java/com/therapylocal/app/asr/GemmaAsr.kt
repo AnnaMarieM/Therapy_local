@@ -23,7 +23,7 @@ class GemmaAsr(private val engine: Engine, private val modelName: String, privat
         val audioSec = Pcm.seconds(pcm)
         val wav = Pcm.toWav(pcm)
         val start = SystemClock.elapsedRealtime()
-        return AppLog.span(TAG, "asr_transcribe", ctx, "engine" to "gemma", "model" to modelName, "backend" to backend, "audio_sec" to "%.2f".format(audioSec)) { span ->
+        return AppLog.spanRedacted(TAG, "asr_transcribe", ctx, "engine" to "gemma", "model" to modelName, "backend" to backend, "audio_sec" to "%.2f".format(audioSec)) { span ->
             val sb = StringBuilder()
             // Global; the memory LLM switches it on for a constrained call only, and with it on a conversation takes ~4 s to create.
             ExperimentalFlags.enableConversationConstrainedDecoding = false

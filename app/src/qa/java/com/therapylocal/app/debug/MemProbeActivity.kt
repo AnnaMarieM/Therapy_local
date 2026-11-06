@@ -51,7 +51,8 @@ class MemProbeActivity : Activity() {
         try {
             check(ModelRegistry.gemma(variant).isReady(this)) { "model file missing or incomplete" }
             val l0 = System.nanoTime()
-            llm.load(order, withAudio = audio)
+            // A probe measures what was asked for, even a backend the app has blocked on this phone (its outcome is still recorded).
+            llm.load(order, withAudio = audio, respectBlocks = false)
             snap("loaded", JSONObject().put("load_ms", (System.nanoTime() - l0) / 1_000_000).put("backend", llm.backend).put("has_audio", llm.hasAudio))
             repeat(calls) { n ->
                 val c0 = System.nanoTime()
