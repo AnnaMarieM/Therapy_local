@@ -3,6 +3,11 @@ package com.therapylocal.app.ui.design
 import androidx.compose.foundation.text.selection.LocalTextSelectionColors
 import androidx.compose.foundation.text.selection.TextSelectionColors
 import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.LocalRippleConfiguration
+import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.RippleConfiguration
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material.ripple.RippleAlpha
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Typography
 import androidx.compose.material3.lightColorScheme
@@ -24,6 +29,7 @@ import kotlin.random.Random
  * The app's theme: paper and ink, the three type voices, reduced motion. Material components still in use (text fields, dialogs) read the
  * same colours through [MaterialTheme], so nothing falls back to Material's defaults.
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PaperTheme(content: @Composable () -> Unit) {
     val scheme = lightColorScheme(
@@ -39,18 +45,32 @@ fun PaperTheme(content: @Composable () -> Unit) {
         outline = Palette.Hairline, outlineVariant = Palette.Hairline,
         inverseSurface = Palette.Ink, inverseOnSurface = Palette.Paper,
     )
-    val type = Typography(
-        displayLarge = Type.Hero, displayMedium = Type.Statement, headlineMedium = Type.Title, titleLarge = Type.Title,
-        bodyLarge = Type.Body, bodyMedium = Type.BodySmall, labelLarge = Type.Action, labelMedium = Type.Label, labelSmall = Type.Label,
-    )
-    MaterialTheme(colorScheme = scheme, typography = type) {
+    MaterialTheme(colorScheme = scheme, typography = paperTypography()) {
         CompositionLocalProvider(
             LocalReducedMotion provides rememberReducedMotion(),
             LocalContentColor provides Palette.Ink,
+            LocalTextStyle provides Type.Body,
+            LocalRippleConfiguration provides RippleConfiguration(Palette.Ink, RippleAlpha(0.10f, 0.10f, 0.10f, 0.16f)),
             LocalTextSelectionColors provides TextSelectionColors(Palette.Ink, Palette.Ink.copy(alpha = 0.18f)),
             content = content,
         )
     }
+}
+
+/**
+ * All fifteen Material slots, each in a bundled family. Material's own defaults use the system font (Roboto, MiSans, One UI Sans...), so
+ * any slot not set here would draw differently per ROM: start from the defaults and give every slot the ui family first.
+ */
+internal fun paperTypography(): Typography {
+    val d = Typography()
+    val ui = Type.UiFamily
+    return Typography(
+        displayLarge = Type.Hero, displayMedium = Type.Statement, displaySmall = d.displaySmall.copy(fontFamily = ui),
+        headlineLarge = Type.Title, headlineMedium = Type.Title, headlineSmall = Type.Title,
+        titleLarge = Type.Title, titleMedium = d.titleMedium.copy(fontFamily = ui), titleSmall = d.titleSmall.copy(fontFamily = ui),
+        bodyLarge = Type.Body, bodyMedium = Type.BodySmall, bodySmall = d.bodySmall.copy(fontFamily = ui),
+        labelLarge = Type.Action, labelMedium = Type.Label, labelSmall = Type.Label,
+    )
 }
 
 /**

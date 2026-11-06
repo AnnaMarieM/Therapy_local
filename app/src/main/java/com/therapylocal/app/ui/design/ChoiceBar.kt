@@ -131,7 +131,7 @@ fun rememberChoiceState(): ChoiceState {
     val scope = rememberCoroutineScope()
     val haptics = rememberHaptics()
     val density = androidx.compose.ui.platform.LocalDensity.current
-    val widthDp = androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp
+    val widthDp = windowWidthDp()
     return remember { ChoiceState(scope, haptics) }.also {
         it.tact = with(density) { (widthDp * ACTION_SHARE).coerceIn(ACTION_MIN_DP, ACTION_MAX_DP).dp.toPx() }
     }

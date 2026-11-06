@@ -26,7 +26,6 @@ import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onPlaced
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import com.therapylocal.app.ui.design.LocalReducedMotion
 import com.therapylocal.app.ui.design.Motion
@@ -140,7 +139,7 @@ fun rememberSheetState(widthDp: Int? = null): SheetState {
     val scope = rememberCoroutineScope()
     // A page never travels further than it would on a large phone: on a tablet a 40% slide is a long way to watch, and it has to match
     // the swipe that arms the action (96-150 dp), which does not grow with the screen.
-    val width = minOf(widthDp ?: LocalConfiguration.current.screenWidthDp, MAX_TRAVEL_BASIS_DP) * LocalDensity.current.density
+    val width = minOf(widthDp ?: com.therapylocal.app.ui.design.windowWidthDp(), MAX_TRAVEL_BASIS_DP) * LocalDensity.current.density
     return remember { SheetState(scope, width) }.also { it.resize(width) }
 }
 

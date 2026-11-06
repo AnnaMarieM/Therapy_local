@@ -33,7 +33,7 @@ import kotlinx.coroutines.launch
  * [SessionController] starts and stops it; it has no logic of its own.
  */
 class RecordingService : Service() {
-    override fun attachBaseContext(base: android.content.Context) = super.attachBaseContext(com.therapylocal.app.i18n.LocaleStore.wrap(base))
+    override fun attachBaseContext(base: android.content.Context) = super.attachBaseContext(com.therapylocal.app.ui.design.DisplayPin.wrap(com.therapylocal.app.i18n.LocaleStore.wrap(base)))
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private var watch: Job? = null

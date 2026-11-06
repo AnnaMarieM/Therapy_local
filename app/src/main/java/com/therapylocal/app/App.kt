@@ -13,7 +13,7 @@ import com.therapylocal.app.log.LogCtx
 import com.therapylocal.app.models.Backends
 
 class App : Application() {
-    override fun attachBaseContext(base: Context) = super.attachBaseContext(LocaleStore.wrap(base))
+    override fun attachBaseContext(base: Context) = super.attachBaseContext(com.therapylocal.app.ui.design.DisplayPin.wrap(LocaleStore.wrap(base)))
 
     override fun onCreate() {
         super.onCreate()

@@ -36,7 +36,7 @@ import com.therapylocal.app.vault.Vault
  * only when the app is not on screen (success, which times out) or when something needs attention (failure or stop).
  */
 class MemoryService : Service() {
-    override fun attachBaseContext(base: android.content.Context) = super.attachBaseContext(com.therapylocal.app.i18n.LocaleStore.wrap(base))
+    override fun attachBaseContext(base: android.content.Context) = super.attachBaseContext(com.therapylocal.app.ui.design.DisplayPin.wrap(com.therapylocal.app.i18n.LocaleStore.wrap(base)))
 
     private var worker: Thread? = null
     private var wakeLock: PowerManager.WakeLock? = null

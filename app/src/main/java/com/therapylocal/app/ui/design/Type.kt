@@ -1,12 +1,10 @@
 package com.therapylocal.app.ui.design
 
 import androidx.compose.runtime.Immutable
-import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.ui.text.font.FontVariation
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.unit.em
@@ -15,33 +13,31 @@ import com.therapylocal.app.R
 
 /**
  * Three voices. Fraunces (display): names and the one thing that matters on a screen, light and slightly soft. Geist (ui): buttons and body.
- * Geist Mono (label): small uppercase metadata, the quiet voice. All three are variable fonts bundled in res/font (OFL, see assets/licenses).
+ * Geist Mono (label): small uppercase metadata, the quiet voice.
+ *
+ * Every face is a STATIC instance in res/font (cut from the variable masters in tools/fonts-src by tools/make-static-fonts.py; OFL, see
+ * assets/licenses), so no axis is applied at run time. A variable font whose axes the device ignores falls back to the master's default,
+ * which for Fraunces is Black at optical size 9: that is what HyperOS drew (AD-05). Weight and style are stated for each face, and
+ * [TypeScanTest] fails the build if a text style uses a system family. Glyph coverage: Latin, Latin Extended (Czech) and general
+ * punctuation in all three families; the geometric shapes the UI needs (radio dots, stop square) are drawn, not typed.
  */
-@OptIn(ExperimentalTextApi::class)
 @Immutable
 object Type {
-    private fun fraunces(weight: Int, italic: Boolean, opsz: Float) = Font(
-        if (italic) R.font.fraunces_italic else R.font.fraunces,
-        weight = FontWeight(weight),
-        style = if (italic) FontStyle.Italic else FontStyle.Normal,
-        variationSettings = FontVariation.Settings(
-            FontVariation.weight(weight),
-            FontVariation.Setting("opsz", opsz),
-            FontVariation.Setting("SOFT", 40f),
-            FontVariation.Setting("WONK", 0f),
-        ),
-    )
+    private fun face(res: Int, weight: Int, italic: Boolean = false) =
+        Font(res, weight = FontWeight(weight), style = if (italic) FontStyle.Italic else FontStyle.Normal)
 
-    /** Large sizes use the display optical size (finer contrast); small sizes the text size, which stays readable. */
-    val DisplayFamily = FontFamily(fraunces(260, false, 144f), fraunces(260, true, 144f), fraunces(380, false, 144f), fraunces(380, true, 144f))
-    val TextSerif = FontFamily(fraunces(340, false, 24f), fraunces(340, true, 24f))
-
-    val UiFamily = FontFamily(
-        Font(R.font.geist, FontWeight.Normal, variationSettings = FontVariation.Settings(FontVariation.weight(400))),
-        Font(R.font.geist, FontWeight.Medium, variationSettings = FontVariation.Settings(FontVariation.weight(500))),
-        Font(R.font.geist, FontWeight.SemiBold, variationSettings = FontVariation.Settings(FontVariation.weight(600))),
+    /** Large sizes use the display optical size (144, finer contrast); small sizes the text size (24), which stays readable. */
+    val DisplayFamily = FontFamily(
+        face(R.font.fraunces_display_260, 260), face(R.font.fraunces_display_italic_260, 260, true),
+        face(R.font.fraunces_display_380, 380), face(R.font.fraunces_display_italic_380, 380, true),
     )
-    val MonoFamily = FontFamily(Font(R.font.geist_mono, FontWeight.Normal, variationSettings = FontVariation.Settings(FontVariation.weight(400))))
+    val TextSerif = FontFamily(face(R.font.fraunces_text_340, 340), face(R.font.fraunces_text_italic_340, 340, true))
+
+    val UiFamily = FontFamily(face(R.font.geist_400, 400), face(R.font.geist_500, 500), face(R.font.geist_600, 600))
+    val MonoFamily = FontFamily(face(R.font.geist_mono_400, 400))
+
+    /** Every family the app may draw with. Anything else is a system font, which differs per ROM. */
+    val Bundled: Set<FontFamily> = setOf(DisplayFamily, TextSerif, UiFamily, MonoFamily)
 
     private val tight = LineHeightStyle(LineHeightStyle.Alignment.Center, LineHeightStyle.Trim.Both)
 
