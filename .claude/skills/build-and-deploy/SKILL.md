@@ -1,6 +1,6 @@
 ---
 name: build-and-deploy
-description: How to build, install and ship MindVault (com.therapylocal.app), and the two kinds of build - the open QA build (adb-driven, screenshots, no fingerprint) and the customer build as shipped (fingerprint, FLAG_SECURE, no debug exports). Use when asked to build, deploy, install on a phone/tablet, run device tests, take screenshots, cut a release, or pick a build type/variant.
+description: How to build, install and ship Mnemothera (code name MindVault, package com.therapylocal.app), and the two kinds of build - the open QA build (adb-driven, screenshots, no fingerprint) and the customer build as shipped (fingerprint, FLAG_SECURE, no debug exports). Use when asked to build, deploy, install on a phone/tablet, run device tests, take screenshots, cut a release, or pick a build type/variant.
 ---
 
 # Build and deploy
