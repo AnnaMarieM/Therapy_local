@@ -104,6 +104,7 @@ class SpeechRecogniser(
      * sees. It needs no native code, so it runs here, before the ladder.
      */
     private fun checkFiles() {
+        if (com.therapylocal.app.engine.LabWiring.isFake(spec.id)) return   // the lab's fake model has no files (debug builds only)
         val files = spec.files.map { f -> Triple(f.name, spec.file(context, f).length(), f.size) }
         AppLog.i(
             TAG, "asr_files", LogCtx.NONE, "engine" to engineName, "model" to spec.id,

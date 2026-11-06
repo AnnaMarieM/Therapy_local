@@ -37,19 +37,19 @@ abstract class EngineHostService(private val role: EngineRole) : Service() {
     private val binder = object : IEngineHost.Stub() {
         override fun call(op: Bundle): Bundle {
             var tag: CallTag? = null
-            var text = true
             return try {
                 val decoded = EngineCodec.decodeOp(op)
                 tag = decoded.tag
-                text = decoded.isText
                 val reply = EngineCodec.encode(server.handle(decoded, phasesVia(events)))
                 scheduleRelease(reply)
                 reply
             } catch (t: Throwable) {
                 // An engine failure never crosses as a Binder exception: it is a reply with ok=false.
-                // If the op itself could not be decoded, assume text, so nothing the user wrote leaks into a message.
                 if (tag == null) AppLog.w(TAG, "host_call_undecodable", LogCtx.NONE, "type" to t.javaClass.simpleName)
-                EngineCodec.error(EngineErrors.capture(t, redact = text))
+                // The reply keeps the message, as an in-process call did: callers depend on it (Pipeline.embedFitting splits on "exceeds
+                // maximum"). It goes to main only, bounded by EngineErrors.MAX_MESSAGE; every log line that mentions it is redacted for text ops
+                // (the engine server's spans, main's eRedacted), so the message never reaches a log file. docs/AD/AD-01.md, plan Step 2.
+                EngineCodec.error(EngineErrors.capture(t, redact = false))
             }
         }
 

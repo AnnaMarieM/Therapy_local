@@ -56,6 +56,9 @@ object LabWiring {
         return ModelSpec(id, id, null, listOf(ModelFile("$id.bin", "", 1L shl 20, "")))
     }
 
+    /** True for the lab's fake model ids: they have no files on disk, so the completeness check is skipped. */
+    fun isFake(id: String): Boolean = id == FakeRunners.LLM || id == FakeRunners.EMBED || id == FakeRunners.ASR
+
     fun ready(d: Boolean): Boolean = if (override?.ready == true) true else d
 
     fun gate(d: String?): String? = when {

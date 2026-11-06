@@ -7,6 +7,8 @@ import com.therapylocal.app.models.ModelSpec
 object LabWiring {
     fun spec(d: ModelSpec): ModelSpec = d
     fun model(d: String): String = d
+    fun isFake(id: String): Boolean = false
+
     fun ready(d: Boolean): Boolean = d
     fun gate(d: String?): String? = d
     fun tuning(d: EngineTuning): EngineTuning = d
