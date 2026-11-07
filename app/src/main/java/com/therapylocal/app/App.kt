@@ -35,6 +35,9 @@ class App : Application() {
         runCatching { DeviceFacts.logStartup(this) }.onFailure { AppLog.e("Device", "startup_facts_failed", LogCtx.NONE, it) }
         // Before any model loads: turns a load the last process died in into a strike, so a backend that kills this phone is not retried forever.
         Backends.recoverAtStartup(this)
+        // Names and sizes only; nothing is deleted (AD-03). Off the main thread: it walks the models folder. (DeviceFacts' model_files walks it inline.)
+        val app = this
+        Thread({ com.therapylocal.app.models.ModelsInventory.log(app) }, "models-inventory").apply { isDaemon = true }.start()
         DisplayConfig.init(this)
         AppLog.logMemory(this, tag = "Memory", evt = "app_start")
     }
