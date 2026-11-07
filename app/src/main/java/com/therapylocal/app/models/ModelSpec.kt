@@ -143,4 +143,3 @@ object ModelRegistry {
     fun backendSpecsFor(modelIds: Collection<String>, soc: String): List<ModelSpec> =
         BACKEND_BUILDS.filter { b -> modelIds.any { it == b.modelId } && (b.soc == null || b.soc.equals(soc, ignoreCase = true)) }.map { it.spec }.distinct()
 }
-}
