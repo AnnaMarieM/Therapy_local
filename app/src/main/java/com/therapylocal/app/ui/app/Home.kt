@@ -51,6 +51,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
@@ -280,6 +281,7 @@ fun Home(
                         val c = ordered.getOrNull(i)
                         ReelItem(
                             client = c,
+                            isFocused = i == selected,
                             look = { ReelItemLook.of(i - pos.value, near, far) },
                             centerY = centerY + (1f - arrive.value) * 26f,
                             heroSp = heroSp,
@@ -444,6 +446,7 @@ internal fun TravellingName(name: String, sheet: SheetState, from: BoundsRef, to
 @Composable
 private fun ReelItem(
     client: Patient?,
+    isFocused: Boolean,
     look: () -> ReelItemLook,
     centerY: Float,
     heroSp: Float,
@@ -462,7 +465,14 @@ private fun ReelItem(
     var bigH by remember { mutableFloatStateOf(0f) }
     Box(
         Modifier.fillMaxWidth().padding(start = 26.dp, end = 72.dp)
-            .offset { IntOffset(0, (centerY + look().y).roundToInt()) }
+            .layout { measurable, constraints ->
+                val placeable = measurable.measure(constraints)
+                layout(placeable.width, placeable.height) {
+                    val l = look()
+                    val y = (centerY + l.y - placeable.height / 2f).roundToInt()
+                    placeable.placeRelative(0, y)
+                }
+            }
             .semantics {
                 contentDescription = client?.name ?: newLabel
                 onClick(label = client?.name ?: newLabel) { tap(); true }
@@ -471,33 +481,35 @@ private fun ReelItem(
             .pointerInput(Unit) {
                 detectTapGestures(onTap = { tap() }, onLongPress = { long?.invoke() })
             },
+        contentAlignment = Alignment.CenterStart,
     ) {
         // The large form for the centre, the small one for the neighbours; the reel crossfades between them. Both are one line, so a name
         // only grows as it arrives, never re-wraps: past what fits, it ends in an ellipsis like its neighbours do.
-        Box(
-            Modifier.onGloballyPositioned { c ->
-                bigH = c.size.height.toFloat()
-                // Where the name is drawn (the layer below lifts it by half its height), for it to travel from.
-                refs?.let { r ->
-                    val f = r.frame.coords?.takeIf { it.isAttached }
-                    r.name.rect = (if (f != null) f.localBoundingBoxOf(c, clipBounds = false) else c.boundsInRoot()).translate(0f, -bigH / 2)
-                    r.nameOf = client?.id
+        if (isFocused) {
+            Box(
+                Modifier.onGloballyPositioned { c ->
+                    bigH = c.size.height.toFloat()
+                    // Where the name is drawn (centered at centerY + l.y), for it to travel from.
+                    refs?.let { r ->
+                        val f = r.frame.coords?.takeIf { it.isAttached }
+                        r.name.rect = if (f != null) f.localBoundingBoxOf(c, clipBounds = false) else c.boundsInRoot()
+                        r.nameOf = client?.id
+                    }
                 }
+                    .graphicsLayer {
+                        val l = look()
+                        alpha = if (refs?.lent?.invoke() == true) 0f else l.bigAlpha
+                        scaleX = l.bigScale; scaleY = l.bigScale
+                        transformOrigin = TransformOrigin(0f, 0.5f)
+                    },
+            ) {
+                val style = Type.Hero.copy(fontSize = heroSize, lineHeight = heroSize * 0.95f)
+                val text = buildAnnotatedString {
+                    append(first)
+                    if (rest != null) withStyle(SpanStyle(fontStyle = FontStyle.Italic)) { append(" $rest") }
+                }
+                Text(text, style = style, color = ink, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
-                .graphicsLayer {
-                    val l = look()
-                    alpha = if (refs?.lent?.invoke() == true) 0f else l.bigAlpha
-                    scaleX = l.bigScale; scaleY = l.bigScale
-                    transformOrigin = TransformOrigin(0f, 0.5f)
-                    translationY = -bigH / 2
-                },
-        ) {
-            val style = Type.Hero.copy(fontSize = heroSize, lineHeight = heroSize * 0.95f)
-            val text = buildAnnotatedString {
-                append(first)
-                if (rest != null) withStyle(SpanStyle(fontStyle = FontStyle.Italic)) { append(" $rest") }
-            }
-            Text(text, style = style, color = ink, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
         Text(
             client?.name ?: newLabel,
@@ -505,7 +517,7 @@ private fun ReelItem(
             color = ink,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.graphicsLayer { alpha = look().smallAlpha; translationY = -size.height / 2 },
+            modifier = Modifier.graphicsLayer { alpha = look().smallAlpha },
         )
     }
 }
