@@ -291,12 +291,12 @@ internal class FakeBinding(val time: ManualClock, val processName: String, val p
         if (reason != null) {
             records += ExitRecord(reason, status, time.wallMs(), processName, p.pid, 100, 2048, 4096, "test") to queries + lag
         }
-        p.deadLatch.countDown()
         for (c in callbacks) when (c) {
             "binderDied" -> listener.binderDied(p.gen)
             "disconnected" -> listener.disconnected(p.gen)
             "bindingDied" -> listener.bindingDied(p.gen)
         }
+        p.deadLatch.countDown()
     }
 
     fun die(gen: Int, reason: Int?, status: Int = 0, lag: Int = 0, callbacks: List<String> = listOf("binderDied")) = die(procs.getValue(gen), reason, status, lag, callbacks)
