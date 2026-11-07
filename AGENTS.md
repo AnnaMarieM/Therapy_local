@@ -21,3 +21,9 @@ Decisions that shape the architecture are recorded in [`docs/AD/`](docs/AD/), on
   Take the person from GitHub: `gh api user -q '.login + " " + .name'` for whoever approves it in the session, or the author of the PR or commit that accepts it (`gh pr view <n> --json author`, `git log -1 --format='%an %ad'`). An agent drafts a decision; a person decides it.
 - **Sections:** Context (the facts from the code that force the choice), Decision, Alternatives considered (and why rejected), Consequences (better, worse and accepted, still true), Verification, Delivery.
 - **Link it** from the index and from the short decision list in the relevant doc (for example D6 in [`docs/MEMORY.md`](docs/MEMORY.md#decisions) points to AD-01).
+
+## Test devices and the QA build
+
+- **The QA build (`com.therapylocal.app.qa`) is the testing build.** It holds test data only, so agents may purge its data at any time without asking: `adb -s <serial> shell pm clear com.therapylocal.app.qa`, the in-app erase / "Forgot password", or deleting files under `/sdcard/Android/data/com.therapylocal.app.qa/`. A full clear also deletes its downloaded models (several GB). Copy or keep them first if you want to skip the download.
+- **Standard QA vault password: `12345678`.** Use it to unlock an existing QA vault and when setting up a new one.
+- **This applies only to the QA build.** Never clear, erase or uninstall the real app `com.therapylocal.app`; it may hold a real vault. Never uninstall either app, since that deletes the models.
