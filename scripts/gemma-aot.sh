@@ -24,10 +24,9 @@ PY="$ROOT/venv/bin/python"
 echo "=== VERSIONS ==="; "$PY" -m pip freeze | grep -i -E "litert|torch|flatbuffers|numpy"
 SDK=$("$PY" -I -c "import ai_edge_litert_sdk_qualcomm as q;print(q.path_to_sdk_libs())")
 echo "QNN host libs: $SDK"; ls "$SDK" | head -20
-QAIRT_SEEN=$(find "$(dirname "$SDK")/../.." -maxdepth 4 -type d -name '2.*' 2>/dev/null | head -3 | tr '\n' ' ')
-echo "QAIRT dirs in SDK package: $QAIRT_SEEN"
-strings "$SDK/libQnnHtp.so" | grep -m3 -E "QNN_SDK_VERSION|2\.50|backend_build_id" || true
-case "$QAIRT_SEEN" in *"$WANT_QAIRT"*) echo "QAIRT version OK: $WANT_QAIRT";; *) echo "QAIRT MISMATCH: wanted $WANT_QAIRT"; exit 3;; esac
+QAIRT_STR=$(strings "$SDK/libQnnHtp.so" | grep -m1 -oE "v2\.[0-9]+\.[0-9]+\.[0-9]{6}[0-9]*" || true)
+echo "QAIRT string in libQnnHtp.so: $QAIRT_STR"
+case "$QAIRT_STR" in v$WANT_QAIRT*) echo "QAIRT version OK: $WANT_QAIRT";; *) echo "QAIRT MISMATCH: wanted $WANT_QAIRT"; exit 3;; esac
 echo "app runtime: qnn-runtime 2.50.0, litert-npu-runtime-qualcomm 2.3.0"
 
 # licence gate
@@ -52,4 +51,5 @@ free -g; df -h "$ROOT" | tail -1
 /usr/bin/time -v "$PY" -I -m litert_torch.generative.export_hf.experimental.litert_lm_npu_compiler.litert_lm_npu_compiler \
   --input_litertlm="$IN" --output_litertlm="$OUT" --backend=qualcomm --soc_model=$SOC 2>&1 | tail -n 80 | grep -v "^$" || { echo "compile failed"; exit 5; }
 [ -s "$OUT" ] || { echo "no output"; exit 5; }
+"$PY" -I "$(dirname "$0")/gemma-aot-inspect.py" "$OUT" "$IN" || true
 echo "OUTPUT sha256 $(sha256sum "$OUT" | cut -d' ' -f1) size $(stat -c%s "$OUT")"
