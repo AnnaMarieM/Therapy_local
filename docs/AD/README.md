@@ -8,3 +8,4 @@ Each record is immutable once merged (see [`AGENTS.md`](../../AGENTS.md); CI job
 | [AD-02](AD-02.md) | One model per role; Canary is the only speech recogniser | 2026-11-06 15:27 CET | Martin Hajný (@hajnina) | Accepted; point 6 (the migration) superseded by AD-03 |
 | [AD-03](AD-03.md) | No speech migration; old speech models are wiped by hand | 2026-11-06 16:47 CET | Martin Hajný (@hajnina) | Accepted |
 | [AD-04](AD-04.md) | Engine hosts exit quietly on a crash (native signal handler, Java crash halt); C via the NDK | 2026-11-06 22:20 CET | Martin Hajný (@hajnina) | Accepted |
+| [AD-05](AD-05.md) | One pinned look: bundled static fonts, pinned font scale, weight and density, explicit colours, deterministic breakpoints | 2026-11-06 23:40 CET | Martin Hajný (@hajnina) | Accepted |

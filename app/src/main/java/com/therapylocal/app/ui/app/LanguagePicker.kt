@@ -1,6 +1,10 @@
 package com.therapylocal.app.ui.app
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -26,7 +30,15 @@ fun LanguagePicker(selected: SpeechLanguage, onSelect: (SpeechLanguage) -> Unit,
                 Modifier.fillMaxWidth().pressable({ if (l != selected) onSelect(l) }, label = label, depth = 0.015f).padding(vertical = 14.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Box(Modifier.width(22.dp)) { if (l == selected) Label("●", color = Palette.Ink) else Label("○", color = Palette.InkFaint) }
+                Box(Modifier.width(22.dp)) {
+                    // Drawn, not typed: the geometric shapes are not in the bundled fonts, so a typed dot would come from the system font.
+                    Box(
+                        Modifier.size(12.dp).then(
+                            if (l == selected) Modifier.background(Palette.Ink, CircleShape)
+                            else Modifier.border(1.5.dp, Palette.InkFaint, CircleShape),
+                        ),
+                    )
+                }
                 Text(label, style = Type.Body, color = Palette.Ink)
             }
             Hairline()

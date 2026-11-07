@@ -43,6 +43,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -491,7 +492,7 @@ private fun ModelChoice(notice: NoticeState) {
                     .padding(vertical = 14.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Box(Modifier.width(22.dp)) { if (v == variant) Label("â—", color = Palette.Ink) else Label("â—‹", color = Palette.InkFaint) }
+                Box(Modifier.width(22.dp)) { if (v == variant) Label("●", color = Palette.Ink) else Label("○", color = Palette.InkFaint) }
                 Text(v.title, style = Type.Body, color = Palette.Ink, modifier = Modifier.weight(1f))
                 Label(ModelSetup.formatBytes(ctx, spec.totalBytes))
             }
@@ -529,6 +530,13 @@ private fun HardwareStatus(resumeTick: Int, notice: NoticeState) {
             Text(stringResource(R.string.settings_hardware_none), style = Type.BodySmall, color = Palette.InkFaint)
         }
         models.forEach { m -> HardwareModel(m) }
+        val unexpected by produceState(0, resumeTick, tick) {
+            value = withContext(Dispatchers.IO) { runCatching { com.therapylocal.app.models.ModelsInventory.scan(ctx).unknown.size }.getOrDefault(0) }
+        }
+        if (unexpected > 0) {
+            Spacer(Modifier.height(12.dp))
+            Text(stringResource(R.string.settings_models_unexpected, unexpected), style = Type.BodySmall, color = Palette.InkFaint)
+        }
         if (models.isNotEmpty()) TextAction(stringResource(R.string.settings_hardware_reset), { confirmReset = true }, color = Palette.InkSoft)
         EngineProcesses(resumeTick)
     }

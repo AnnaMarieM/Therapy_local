@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Paper and ink, as in ui/design/Palette.kt. The window shows these before Compose draws, and as the system splash. -->
+    <color name="pin_paper">#FFEDE6D9</color>
+    <color name="pin_ink">#FF2B221B</color>
+
+    <!-- One explicit theme (AD-05): light, never darkened by the ROM, bars transparent with dark icons, no contrast scrim, cutout used. -->
+    <style name="Theme.MnemoThera" parent="@android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/pin_paper</item>
+        <item name="android:colorBackground">@color/pin_paper</item>
+        <item name="android:forceDarkAllowed">false</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar">true</item>
+        <item name="android:enforceNavigationBarContrast">false</item>
+        <item name="android:enforceStatusBarContrast">false</item>
+        <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
+        <item name="android:windowSplashScreenBackground">@color/pin_paper</item>
+        <item name="android:textColorPrimary">@color/pin_ink</item>
+        <item name="android:colorAccent">@color/pin_ink</item>
+        <item name="android:colorControlActivated">@color/pin_ink</item>
+        <item name="android:textColorHighlight">#2E2B221B</item>
+    </style>
+</resources>

@@ -726,4 +726,56 @@ class EngineConnectionTest {
         }
         assertEquals(12, ran)
     }
+    // --- a requested shutdown is an exit, not a death
+
+    @Test fun aCloseInFlightWhenWeShutTheHostDownIsAnExpectedExitAndNoStrike() {
+        val r = Rig()
+        val h = r.open()
+        r.binding.script = { p, op -> if (op is EngineOp.Close) r.binding.block(p) else null }
+        val f = async { r.conn.call(EngineOp.Close(r.tag("close", "L"), h.handle)) }
+        r.binding.inCall.await(10, TimeUnit.SECONDS)
+        r.conn.shutdownAndAwait("batch_starting")
+        f.failure()
+        assertEquals(0, r.log.count(EngineEvents.DIED))
+        val exit = r.log.all(EngineEvents.EXIT).single()
+        assertEquals("exit_self", exit.f["reason"])
+        assertEquals("batch_starting", exit.f["why"])
+        assertEquals(12, exit.f["status"])
+        assertTrue(r.settler.died.isEmpty())
+    }
+
+    @Test fun aNativeCrashDuringARequestedShutdownIsStillADeathAndStruck() {
+        val r = Rig()
+        val h = r.open()
+        r.binding.script = { p, op -> if (op is EngineOp.Close) r.binding.block(p) else null }
+        r.binding.onShutdown = { p -> r.binding.die(p, ApplicationExitInfo.REASON_EXIT_SELF, HostExit.NATIVE_BASE + 11); false }
+        val f = async { r.conn.call(EngineOp.Close(r.tag("close", "L"), h.handle)) }
+        r.binding.inCall.await(10, TimeUnit.SECONDS)
+        r.conn.shutdownAndAwait("batch_starting")
+        f.failure()
+        val died = r.log.all(EngineEvents.DIED).single()
+        assertEquals("native_crash", died.f["exit_kind"])
+        assertEquals("close", died.f["op"])
+        assertEquals(0, r.log.count(EngineEvents.EXIT))
+        assertEquals(ExitKind.NATIVE_CRASH, r.settler.died.single().third.kind)
+    }
+
+    @Test fun aJavaCrashDuringARequestedShutdownIsStillADeath() {
+        val r = Rig()
+        r.open()
+        r.binding.onShutdown = { p -> r.binding.die(p, ApplicationExitInfo.REASON_EXIT_SELF, HostExit.JAVA_CRASH.code); false }
+        r.conn.shutdownAndAwait("batch_starting")
+        assertEquals("crash", r.log.all(EngineEvents.DIED).single().f["exit_kind"])
+    }
+
+    @Test fun anAskInFlightWhenWeShutTheHostDownStaysADeathLine() {
+        val r = Rig()
+        val h = r.open()
+        r.binding.script = { p, op -> if (op is EngineOp.Ask) r.binding.block(p) else null }
+        val f = async { r.ask(h.handle) }
+        r.binding.inCall.await(10, TimeUnit.SECONDS)
+        r.conn.shutdownAndAwait("batch_starting")
+        f.failure()
+        assertEquals("ask", r.log.all(EngineEvents.DIED).single().f["op"])
+    }
 }

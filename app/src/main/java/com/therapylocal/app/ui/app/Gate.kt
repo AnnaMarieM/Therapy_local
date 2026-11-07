@@ -577,7 +577,7 @@ private fun Unlock(onOpen: () -> Unit, onErased: () -> Unit, onResetPassword: ()
         Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 26.dp), verticalArrangement = Arrangement.Center) {
             LanguageSwitch(activity)
             Spacer(Modifier.height(28.dp))
-            Text(stringResource(R.string.app_name), style = Type.Hero, color = Palette.Ink)
+            com.therapylocal.app.ui.design.OneLine(stringResource(R.string.app_name), Type.Hero, Palette.Ink)
             Spacer(Modifier.height(40.dp))
             Box(Modifier.offset { IntOffset(shake.value.roundToInt(), 0) }) {
                 PaperField(

@@ -171,6 +171,7 @@
     <!-- settings: hardware -->
     <string name="settings_group_hardware">On this device</string>
     <string name="settings_hardware_intro">Which part of this phone runs each model. %1$s tries the NPU first, then the GPU, then the CPU, keeps the first one that passes a test, and remembers what this phone can do.</string>
+    <string name="settings_models_unexpected">Unexpected files in models folder: %1$d</string>
     <string name="settings_hardware_none">No model has run on this phone yet. This fills in once a session is processed or live cues start.</string>
     <string name="settings_hardware_running_on">Last ran on %1$s</string>
     <string name="settings_hardware_running_on_since">Last ran on %1$s · %2$s</string>
