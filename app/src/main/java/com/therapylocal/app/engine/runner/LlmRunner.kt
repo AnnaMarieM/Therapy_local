@@ -53,6 +53,8 @@ internal class LlmRunner(private val context: Context) : AskEngine {
             notePhase(phases, op.tag, TAG, op.guardModel, name, "test")
             AppLog.span(TAG, "memory_llm_engine_test_reply", LogCtx.NONE, "backend_try" to name, *f) { span ->
                 proveOutput(e, span)
+                // The CPU is the reference and the last resort, so only an accelerator needs the second proof (it costs about 10 s there).
+                if (name != "CPU") proveFacts(e, span)
             }
         } catch (t: Throwable) {
             runCatching { e.close() }.onFailure { AppLog.w(TAG, "memory_llm_engine_close_after_failure_failed", LogCtx.NONE, "backend_try" to name, "reason" to it.message, *f) }
@@ -83,6 +85,22 @@ internal class LlmRunner(private val context: Context) : AskEngine {
         if (verdict is LlmProof.Verdict.Fail) {
             span.put("proof_reason", verdict.reason)
             error("llm_output_proof_failed:${verdict.reason}")
+        }
+    }
+
+    /** The second proof (LlmProof.checkFacts): the app's own extraction instruction on three made-up sentences. A wrong answer throws, so the ladder strikes the backend. */
+    private fun proveFacts(e: Engine, span: com.therapylocal.app.log.Span) {
+        val t0 = System.nanoTime()
+        val cfg = ConversationConfig(samplerConfig = SamplerConfig(topK = LlmProof.TOP_K, topP = 1.0, temperature = LlmProof.TEMPERATURE, seed = 1), maxOutputToken = LlmProof.MAX_OUTPUT_TOKENS2, systemInstruction = Contents.of(LlmProof.SYSTEM2))
+        val reply = e.createConversation(cfg).use { c -> c.sendMessage(LlmProof.USER2).toString() }
+        val verdict = LlmProof.checkFacts(reply)
+        AppLog.text(TAG, "llm_proof2_prompt", LogCtx.NONE, LlmProof.SYSTEM2 + "\n---\n" + LlmProof.USER2)
+        AppLog.text(TAG, "llm_proof2_reply", LogCtx.NONE, reply)
+        span.put("proof2_ms", (System.nanoTime() - t0) / 1_000_000)
+        span.put("proof2_ok", verdict is LlmProof.Verdict.Ok)
+        if (verdict is LlmProof.Verdict.Fail) {
+            span.put("proof2_reason", verdict.reason)
+            error("llm_output_proof2_failed:${verdict.reason}")
         }
     }
 

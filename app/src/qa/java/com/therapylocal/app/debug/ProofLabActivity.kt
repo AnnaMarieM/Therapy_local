@@ -24,7 +24,8 @@ import kotlin.concurrent.thread
  * creates in the main process, so the model file, the activation type and the cache dir can be chosen. Writes files/out/prooflab_<tag>.json
  * with the full replies (made-up text, no patient data).
  *   adb shell am start -n com.therapylocal.app.qa/com.therapylocal.app.debug.ProofLabActivity --es backend GPU --es file gemma-4-E2B-it.litertlm \
- *     --es dtype FLOAT32 --ei ctx 4096 --es tag gpu32 [--es cases facts1,facts2,facts4,pad400,memprobe]
+ *     --es dtype FLOAT32 --ei ctx 4096 --es tag gpu32 [--es cases facts1,facts2,facts4,pad400,memprobe,file:<name>] [--ei topk 1 --es temp 0.0 --es topp 1.0 --ei maxout 400]
+ *   file:<name> reads files/prompts/<name>.sys and <name>.usr (candidate proof prompts, made-up text).
  */
 @OptIn(ExperimentalApi::class)
 class ProofLabActivity : Activity() {
@@ -41,8 +42,12 @@ class ProofLabActivity : Activity() {
         val dtype = i.getStringExtra("dtype") ?: "default"
         val ctx = i.getIntExtra("ctx", 4096)
         val tag = i.getStringExtra("tag") ?: "${backend}_$dtype"
+        val topK = i.getIntExtra("topk", 1)
+        val temp = (i.getStringExtra("temp") ?: "0.0").toDouble()
+        val topP = (i.getStringExtra("topp") ?: "1.0").toDouble()
+        val maxOut = i.getIntExtra("maxout", 400)
         val cases = (i.getStringExtra("cases") ?: "facts1,facts2,facts3,facts4,memprobe").split(',')
-        val result = JSONObject().put("backend", backend).put("file", file).put("dtype", dtype).put("ctx", ctx)
+        val result = JSONObject().put("backend", backend).put("file", file).put("dtype", dtype).put("ctx", ctx).put("topk", topK).put("temp", temp).put("topp", topP).put("maxout", maxOut)
         val out = JSONArray().also { result.put("cases", it) }
         ExperimentalFlags.enableBenchmark = true
         try {
@@ -62,12 +67,12 @@ class ProofLabActivity : Activity() {
                     try {
                         val conv = e.createConversation(ConversationConfig(
                             systemInstruction = system?.let { Contents.of(it) },
-                            samplerConfig = SamplerConfig(topK = 1, topP = 1.0, temperature = 0.0, seed = 1), maxOutputToken = 400,
+                            samplerConfig = SamplerConfig(topK = topK, topP = topP, temperature = temp, seed = 1), maxOutputToken = maxOut,
                         ))
                         conv.use { cv ->
                             val reply = cv.sendMessage(user).toString()
                             val b = cv.getBenchmarkInfo()
-                            val verdict = if (c == "facts4" || c.startsWith("pad")) LlmProof.check(reply) else null
+                            val verdict = if (c == "facts4" || c.startsWith("pad")) LlmProof.check(reply) else if (c == "proof2") LlmProof.checkFacts(reply) else null
                             rec.put("ms", (System.nanoTime() - c0) / 1_000_000).put("prefill_tokens", b.lastPrefillTokenCount).put("prefill_tok_s", b.lastPrefillTokensPerSecond)
                                 .put("decode_tokens", b.lastDecodeTokenCount).put("decode_tok_s", b.lastDecodeTokensPerSecond).put("reply_chars", reply.length)
                                 .put("verdict", verdict?.toString()).put("reply", reply)
@@ -91,6 +96,8 @@ class ProofLabActivity : Activity() {
     /** facts<N>: the proof prompt with the first N facts; facts4 is the shipped proof. pad<W>: the shipped proof after W words of made-up filler. memprobe: the #48 prompt. */
     private fun promptFor(c: String): Pair<String?, String> = when {
         c == "memprobe" -> MEMSYS to MEMUSER
+        c == "proof2" -> LlmProof.SYSTEM2 to LlmProof.USER2
+        c.startsWith("file:") -> File(getExternalFilesDir(null), "prompts/${c.removePrefix("file:")}").let { File(it.path + ".sys").readText().trim() to File(it.path + ".usr").readText().trim() }
         c.startsWith("facts") -> LlmProof.SYSTEM to LlmProof.FACTS.take(c.removePrefix("facts").toInt()).joinToString("\n")
         c.startsWith("pad") -> LlmProof.SYSTEM to padded(c.removePrefix("pad").toInt())
         else -> error("unknown case $c")

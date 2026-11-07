@@ -33,8 +33,49 @@ internal object LlmProof {
 
     val USER: String = FACTS.joinToString("\n")
 
+    // ---- Second proof (issue #48): the app's own kind of instruction, one JSON object per fact with a quote -------------------------------------
+    // The reformat task above passed on the tablet's Adreno 650 with the generic Gemma file although that GPU answered the app's extraction prompt with
+    // ONE merged object (invented keys, a repeated key). What separated them was not the length (this prompt is shorter than the first proof) but the
+    // instruction: "one JSON object per line with keys heading, content, evidence (an exact quote)". So this proof uses exactly that instruction
+    // on three made-up sentences. The check is structural and does not depend on the model's wording or on the key names it picks (the CPU writes
+    // Klíč/Obsah/Důkaz): at least three objects, three distinct keys each, no repeated key, no empty value, and the last value (the quote) must occur in the text.
+
+    val SYSTEM2: String = "You are a careful note-taker for a psychotherapist. List the facts the client stated, one JSON object per line with keys heading, content, evidence (an exact quote). Write heading and content in Czech."
+
+    /** Made-up text. Three sentences, so three objects are expected. */
+    val SENTENCES: List<String> = listOf(
+        "Moje sestra Lucie se přestěhovala do Brna a já mám pocit, že jsme si s ní teď strašně vzdálené.",
+        "Usínám až po půlnoci a v pět ráno se budím.",
+        "Pila jsem proto víc kávy, tři až čtyři hrnky denně.",
+    )
+    val USER2: String = "Klient: Petra\n\nPetra: " + SENTENCES.joinToString(" ")
+
+    /** The CPU needs about 230 tokens for three objects. */
+    const val MAX_OUTPUT_TOKENS2 = 320
+
+    fun checkFacts(reply: String): Verdict {
+        // Fence lines (```json) are not part of the data; objects follow one another, or sit in one array.
+        val body = reply.lines().filterNot { it.trim().startsWith("```") }.joinToString("\n").trim()
+        if (body.isEmpty()) return Verdict.Fail("empty_reply")
+        val objects = try {
+            Parser(body).parseObjects()
+        } catch (e: DuplicateKey) {
+            return Verdict.Fail("duplicate_key")
+        } catch (e: BadJson) {
+            return Verdict.Fail("invalid_json")
+        }
+        if (objects.size < SENTENCES.size) return Verdict.Fail("too_few_objects")
+        if (objects.any { it.size != 3 }) return Verdict.Fail("wrong_keys")
+        if (objects.any { o -> o.values.any { it.isBlank() } }) return Verdict.Fail("empty_value")
+        val text = normalise(SENTENCES.joinToString(" "))
+        val quotes = objects.map { normalise(it.values.last()).trim() }
+        quotes.forEachIndexed { i, q -> if (q.isEmpty() || !text.contains(q)) return Verdict.Fail("evidence_not_quote:${i + 1}") }
+        if (quotes.toSet().size != quotes.size) return Verdict.Fail("repeated_evidence")
+        return Verdict.Ok
+    }
+
     sealed class Verdict {
-        object Ok : Verdict()
+        object Ok : Verdict() { override fun toString() = "Ok" }
         data class Fail(val reason: String) : Verdict()
     }
 
@@ -89,6 +130,21 @@ internal object LlmProof {
                 }
             }
             end()
+            return out
+        }
+
+        /** Objects one after another (optionally comma separated), or one array of objects. */
+        fun parseObjects(): List<Map<String, String>> {
+            ws()
+            if (p < s.length && s[p] == '[') return parseArray()
+            val out = ArrayList<Map<String, String>>()
+            while (true) {
+                ws()
+                if (p >= s.length) break
+                out += parseObject()
+                ws()
+                if (p < s.length && s[p] == ',') p++
+            }
             return out
         }
 
