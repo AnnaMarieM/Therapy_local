@@ -14,6 +14,8 @@ package com.therapylocal.app.models
  * Strikes are cleared when the app closes a GPU/NPU engine itself ([unloaded]): it loaded and survived its work. A load alone does not clear
  * them, or a backend that loads fine and is then killed mid-work would be retried forever.
  *
+ * A GPU/NPU whose host died while loading or loaded ([died], [diedWhileLoaded]) is struck and [demoted] at once, so the next load of the run
+ * does not take the host down again before the block threshold is reached.
  * A loaded engine that fails on [INFERENCE_STRIKE] real prompts in a row ([inferenceFailed]) gets a strike and is [demoted] for the rest of this
  * process, so the next load goes to the next backend instead of the same failing one.
  *
@@ -316,6 +318,7 @@ class BackendGuard(private val store: Store, private val build: String, private 
             store.put(key, null)
             strike(model, backend, State.FAILED, "$text, in $where (repeated $n times)")
         }
+        if (!isCpu(backend)) demoted += pair(model, backend)
         return Died(r, tooLargeEvent(model, backend), struck = true)
     }
 
@@ -348,6 +351,8 @@ class BackendGuard(private val store: Store, private val build: String, private 
             return listOfNotNull(Event("backend_died_while_loaded", model, backend, r), tooLargeEvent(model, backend))
         }
         val r = strike(model, backend, State.DIED, "process died while loaded ($text)")
+        // A GPU/NPU that took its host down is not tried again in this run, blocked yet or not: the next load goes to the next backend.
+        demoted += pair(model, backend)
         return listOf(Event(if (r.state == State.BLOCKED) "backend_blocked" else "backend_died_while_loaded", model, backend, r))
     }
 

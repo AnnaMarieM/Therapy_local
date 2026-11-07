@@ -165,13 +165,8 @@ class MemoryLlm(
             Accelerators.unavailable(context, name, spec.id, ModelRuntime.LITERT)?.let { return it }
             if (BackendPolicy.forcing()) { AppLog.w(TAG, "backend_memory_gate_forced", LogCtx.NONE, "backend_try" to name); return null }
             if (Accelerators.get(name)?.takesSystemMemory != true) return null
-            val (available, low) = LlmMemory.available(context)
-            val needed = LlmMemory.gpuNeeds(spec.totalBytes)
-            AppLog.d(TAG, "backend_memory_gate", LogCtx.NONE, "backend_try" to name, "available_mb" to (available shr 20), "needed_mb" to (needed shr 20), "low_memory" to low, "model_mb" to (spec.totalBytes shr 20))
-            if (!LlmMemory.gpuFits(spec.totalBytes, available, low)) {
-                return "not enough free memory (${available shr 20} MB free, ${needed shr 20} MB needed${if (low) ", system reports low memory" else ""})"
-            }
-            return null
+            AppLog.d(TAG, "backend_memory_gate", LogCtx.NONE, "backend_try" to name, "needed_mb" to (LlmMemory.gpuNeeds(spec.totalBytes) shr 20), "model_mb" to (spec.totalBytes shr 20))
+            return LlmMemory.gate(context, spec.totalBytes)
         }
     }
 }

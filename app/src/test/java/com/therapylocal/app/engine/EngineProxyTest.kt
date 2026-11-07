@@ -36,7 +36,7 @@ class EngineProxyTest {
         context, 4096, ModelRegistry.GEMMA_E2B, host, ladder = { BackendLadder(guard) }, guard = { guard }, gate = { null }, proxy = proxy(host),
     )
     private fun embedder(host: FakeHost, textOnly: Boolean = true) = Embedder(
-        context, null, textOnly, host, ladder = { BackendLadder(guard) }, guard = { guard }, gate = { _, _ -> null }, proxy = proxy(host),
+        context, null, textOnly, host, ladder = { BackendLadder(guard) }, guard = { guard }, gate = { _ -> null }, proxy = proxy(host), inputTokens = { EmbeddingConfig.MAX_TOKENS },
     )
 
     @Test fun ladderOverTheHostGpuThrowsCpuOpens() {

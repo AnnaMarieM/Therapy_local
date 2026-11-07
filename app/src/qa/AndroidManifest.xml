@@ -3,6 +3,9 @@
     <application>
         <!-- QA build only: loads a Gemma build and records exact memory use, see MemProbeActivity. -->
         <activity android:name=".debug.MemProbeActivity" android:exported="true" android:permission="android.permission.DUMP" />
+        <!-- QA build only: issue #48 output-proof lab, see ProofLabActivity. -->
         <activity android:name=".debug.ProofLabActivity" android:exported="true" android:permission="android.permission.DUMP" />
+        <!-- QA build only: loads the embedder or Canary on one chosen backend and compares it with the CPU, see BackendProbeActivity. -->
+        <activity android:name=".debug.BackendProbeActivity" android:exported="true" android:permission="android.permission.DUMP" />
     </application>
 </manifest>

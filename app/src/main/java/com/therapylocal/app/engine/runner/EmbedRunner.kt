@@ -10,6 +10,8 @@ import com.google.ai.edge.litertlm.Modality
 import com.google.ai.edge.litertlm.ModelInfo
 import com.therapylocal.app.asr.Pcm
 import com.therapylocal.app.config.EmbeddingConfig
+import com.therapylocal.app.embed.EmbedGolden
+import com.therapylocal.app.models.Accelerators
 import com.therapylocal.app.engine.CallTag
 import com.therapylocal.app.engine.EngineKind
 import com.therapylocal.app.engine.EngineOp
@@ -22,7 +24,6 @@ import com.therapylocal.app.log.Span
 import com.therapylocal.app.models.LiteRtBindings
 import com.therapylocal.app.models.ModelRegistry
 import java.io.File
-import kotlin.math.sin
 import kotlin.math.sqrt
 
 /**
@@ -46,7 +47,7 @@ internal class EmbedRunner(private val context: Context, private val role: Engin
         val file = spec.file(context, spec.files.first())
         val name = op.backend
         val f = callFields(op.tag)
-        maxTokens = logModelInfo(file, f)
+        maxTokens = logModelInfo(file, f, op.maxTokens.takeIf { it > 0 } ?: EmbeddingConfig.MAX_TOKENS)
         val audioName = if (textOnly) "none" else "CPU"
         notePhase(phases, op.tag, TAG, op.guardModel, name, "create")
         val created = AppLog.span(TAG, "embed_engine_init", LogCtx.NONE, "backend_try" to name, "audio_backend" to audioName, *f) {
@@ -65,7 +66,7 @@ internal class EmbedRunner(private val context: Context, private val role: Engin
             AppLog.span(TAG, "embed_engine_initialize", LogCtx.NONE, "backend_try" to name, *f) { created.initialize() }
             notePhase(phases, op.tag, TAG, op.guardModel, name, "test")
             backend = name
-            selfTest(created, name, f)
+            selfTest(created, name, EmbedGolden.load(context, spec.files.first().sha256), f)
         } catch (t: Throwable) {
             backend = "none"
             runCatching { created.close() }.onFailure { AppLog.w(TAG, "embed_engine_close_after_failure_failed", LogCtx.NONE, "backend_try" to name, "reason" to it.message, *f) }
@@ -77,7 +78,7 @@ internal class EmbedRunner(private val context: Context, private val role: Engin
     }
 
     /** What the model bundle itself declares: modalities, backends, NPU brand. Audio support is required unless text only. Returns the input length to use. */
-    private fun logModelInfo(file: File, f: Fields): Int =
+    private fun logModelInfo(file: File, f: Fields, asked: Int): Int =
         ModelInfo.from(file.path).use { info ->
             val m = info.inputModalities()
             AppLog.i(
@@ -89,7 +90,7 @@ internal class EmbedRunner(private val context: Context, private val role: Engin
             )
             check(textOnly || m.audio) { "This EmbeddingGemma build has no audio encoder" }
             val reported = info.maxContextTokens()
-            if (reported in 1 until EmbeddingConfig.MAX_TOKENS) reported else EmbeddingConfig.MAX_TOKENS
+            if (reported in 1 until asked) reported else asked
         }
 
     private fun isolatedCacheDir(): File = File(context.cacheDir, "emb_t$maxTokens").apply { mkdirs() }
@@ -132,22 +133,39 @@ internal class EmbedRunner(private val context: Context, private val role: Engin
         return if (norm > 0f && kotlin.math.abs(norm - 1f) > 1e-3f) FloatArray(v.size) { v[it] / norm } else v
     }
 
-    /** Text pair similarity plus an audio smoke test (a 1 s tone). Proves both encoders run and the text space is semantic. */
-    private fun selfTest(e: EmbeddingEngine, backendName: String, f: Fields) {
+    /**
+     * Proves the engine on the backend it was opened on: the three sentences rank right, the audio path returns a vector, and every output
+     * matches the CPU reference vectors of this model file ([EmbedGolden]). The last is what catches a backend that "works" with wrong numbers.
+     */
+    private fun selfTest(e: EmbeddingEngine, backendName: String, ref: EmbedGolden.Reference?, f: Fields) {
         val dim = EmbeddingConfig.DIM
-        AppLog.span(TAG, "embed_selftest", LogCtx.NONE, "backend_try" to backendName, *f) { span ->
-            val q = runText(e, "my boss keeps criticising my work", true, f)
-            val related = runText(e, "my manager is always unhappy with my reports", false, f)
-            val unrelated = runText(e, "we went hiking in the mountains last weekend", false, f)
+        AppLog.span(TAG, "embed_selftest", LogCtx.NONE, "backend_try" to backendName, "golden" to (ref != null), *f) { span ->
+            val q = runText(e, EmbedGolden.QUERY, true, f)
+            val related = runText(e, EmbedGolden.RELATED, false, f)
+            val unrelated = runText(e, EmbedGolden.UNRELATED, false, f)
             span.put("sim_related", dot(q, related))
             span.put("sim_unrelated", dot(q, unrelated))
             check(q.size == dim) { "unexpected embedding size ${q.size}" }
             check(dot(q, related) > dot(q, unrelated)) { "text self-test failed" }
-            if (textOnly) return@span
-            val tone = ShortArray(Pcm.SAMPLE_RATE) { (8000 * sin(2 * Math.PI * 440 * it / Pcm.SAMPLE_RATE)).toInt().toShort() }
-            val a = runAudio(e, tone, "selftest", f)
-            span.put("audio_dim", a.size)
-            check(a.size == dim) { "unexpected audio embedding size ${a.size}" }
+            val outputs = arrayListOf("query" to q, "related" to related, "unrelated" to unrelated)
+            if (!textOnly) {
+                val a = runAudio(e, EmbedGolden.tone(), "selftest", f)
+                span.put("audio_dim", a.size)
+                check(a.size == dim) { "unexpected audio embedding size ${a.size}" }
+                outputs += "tone" to a
+            }
+            if (ref == null) {
+                // Loud, never a silent pass: a GPU/NPU cannot be proven without the CPU's vectors for this exact model file. The CPU is the
+                // reference itself (and the last resort), so it still loads, with an error line; CI also fails (EmbedGoldenAssetTest).
+                val why = "no CPU reference vectors for model file sha256 ${EmbedGolden.expectedSha()} (assets/${EmbedGolden.ASSET} missing or made for another file): regenerate it with BackendProbeActivity --es backend CPU --ez golden true"
+                AppLog.e(TAG, "embed_golden_missing", LogCtx.NONE, null, "backend_try" to backendName, "reason" to why, *f)
+                check(Accelerators.isFallback(backendName)) { why }
+            } else {
+                for ((name, v) in outputs) {
+                    span.put("cos_$name", "%.4f".format(EmbedGolden.cosine(v, ref.vectors[name] ?: v)))
+                    ref.mismatch(name, v)?.let { error(it) }
+                }
+            }
         }
     }
 

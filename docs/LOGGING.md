@@ -42,7 +42,7 @@ Values with spaces or `=` are double-quoted.
 | `model_download`, `model_verify` | Download | bytes fetched, resume offset, sha256 check |
 | `asr_load`, `engine_init`, `engine_warmup` | ASR | which backend loaded (`backend`), model file, size; failed attempts are `backend_failed` with `reason` |
 | `asr_transcribe` | ASR | `engine`, `model`, `backend`, `audio_sec`, `chars`, `rtf` (wall time / audio time), `chars_per_sec` |
-| `embed_load`, `embed_engine_init`, `embed_selftest` | Embed | the self-test logs `sim_related`, `sim_unrelated` and an audio smoke test |
+| `embed_load`, `embed_engine_init`, `embed_selftest` | Embed | the self-test logs `sim_related`, `sim_unrelated`, an audio smoke test and `cos_query`, `cos_related`, `cos_unrelated`, `cos_tone`: the cosine of each output to the CPU reference vector of this model file (`embed_golden_missing` when there is none); a cosine under `EmbedGolden.MIN_COSINE` fails the proof. `embed_load_request` carries `max_tokens`, the input size the engine is opened with; `embed_input_changed` (`from`, `to`) says a loaded engine is reloaded because the Settings lookback needs another size |
 | `embed` | Embed | `modality` (audio or text), `role` (document or query), `backend` (text encoder), `audio_backend`, `dim`, `norm`; audio spans add `audio_sec` and `rtf` |
 | `db_create_recording`, `db_insert_chunk`, `db_list_recordings` | DB | row counts and ids; inserts carry `start_ms`, `end_ms`, `overlap_ms` |
 | `chunk_pipeline` | App | the whole chunk: embed audio, transcribe, embed transcript, store |
@@ -60,7 +60,7 @@ Model and backend events (tag `Memory` for the LLM, `Embed` for the embedder, `A
 |---|---|
 | `memory_llm_load_request`, `embed_load_request` | model, file size, context, audio, order asked for, debug override, cooldown left |
 | `ladder_start` | `candidates`, `history` (every backend's state/strikes/proven before, e.g. `GPU=proven/0/proven_before`), full memory and thermal picture |
-| `backend_skipped` | `reason` (missing library, `not enough free memory (… MB free, … MB needed)`, cooldown, Tensor/Mali rule) |
+| `backend_skipped` | `reason` (missing library, `not enough free memory (… MB free, … MB needed)`, the guard's block or demotion) |
 | `backend_skipped_blocked` | the record that blocked it: state, strikes, when, why |
 | `backend_attempting` | `note=attempting`, attempt n of m, record before, memory before |
 | `backend_phase` | `phase` (create, initialize, test), free memory. Written and **flushed to disk** before each native step, so after a native kill it is the last line. The step is also in the next start's `backend_died_while_loading` |
@@ -74,7 +74,7 @@ Model and backend events (tag `Memory` for the LLM, `Embed` for the embedder, `A
 | `embed_release_for_memory`, `proactive_embedder_unload` | the system asked for memory back; `cpu_only_for_ms` |
 | `llm_call_failed` | an inference error: backend, sizes, `err`, `cause_chain` and `frames` with **types and code locations only** (an inference message can quote patient text), `demoted`, memory and thermal |
 
-Memory fields on these lines come from `DeviceMemory.memorySnapshot` (system available/low/threshold, process PSS/RSS, graphics, Java and native heap, RAM tier) plus `thermal_status`, `thermal_headroom_10s` and `power_save`.
+Memory fields on these lines come from `DeviceMemory.memorySnapshot` (system available/low/threshold, process PSS/RSS, graphics, Java and native heap) plus `thermal_status`, `thermal_headroom_10s` and `power_save`.
 
 At start-up (tag `Backend`):
 - `accelerator_profile`: SoC, board, hardware, fingerprint, kernel, ABIs, RAM class, GLES and Vulkan versions, whether the NPU runtime library is in the app, the app's native libraries, whether the system reports low-memory kills, thermal state.
@@ -166,6 +166,15 @@ adb shell am start -n com.therapylocal.app.qa/com.therapylocal.app.debug.MemProb
 ```
 
 Expect `engine_died` in `tl.log` and a probe result file that records the error; the app must stay up.
+
+`BackendProbeActivity` (QA build) does the same for the embedder and Canary, and compares with the CPU:
+
+```bash
+adb shell am start -n com.therapylocal.app.qa/com.therapylocal.app.debug.BackendProbeActivity --es model embed_audio --es backend GPU [--ez force true] --es tag emb_gpu
+adb shell cat /sdcard/Android/data/com.therapylocal.app.qa/files/out/backendprobe_emb_gpu.json
+```
+
+`--es model embed|embed_audio|canary`, `--es backend GPU|NPU|NNAPI|CPU`, `--ei calls 3`. Without `force` the real ladder decides (gate, blocks); with it the gate and blocks are skipped. The file holds the backend used, `open_ms`, per-call milliseconds, a CPU reference run (always forced to the CPU), `cosine_vs_cpu` per fixed input (embeddings) or `text_equals_cpu` (Canary, an 8 s synthetic clip), and any error. `--es backend CPU --ez golden true` also writes the CPU vectors in the format of `assets/embed_golden.json`.
 
 *To revisit after the strike, deferral and fault-injection steps land:* `job_deferred` and `fault_plan_ignored` fields, the immediate strike line, and the debug fault points.
 
