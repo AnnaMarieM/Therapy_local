@@ -60,14 +60,19 @@ class ProofLabActivity : Activity() {
             e.initialize()
             result.put("init_ms", (System.nanoTime() - t0) / 1_000_000)
             e.use {
-                for (c in cases) {
+                for (spec in cases) {
+                    // Experiment (npueval): "<case>@g" = greedy, "<case>@a" = the app's extraction sampler (top-k 20, top-p 0.9, temp 0.1); no suffix = the run's flags.
+                    val c = spec.substringBefore('@')
+                    val mode = spec.substringAfter('@', "")
+                    val (caseTopK, caseTopP, caseTemp) = when (mode) { "g" -> Triple(1, 1.0, 0.0); "a" -> Triple(20, 0.9, 0.1); else -> Triple(topK, topP, temp) }
+                    val caseMaxOut = if (c.startsWith("win")) 1600 else maxOut
                     val (system, user) = promptFor(c)
                     val c0 = System.nanoTime()
-                    val rec = JSONObject().put("case", c).put("prompt_chars", user.length)
+                    val rec = JSONObject().put("case", spec).put("sampler", "$caseTopK/$caseTopP/$caseTemp").put("prompt_chars", user.length)
                     try {
                         val conv = e.createConversation(ConversationConfig(
                             systemInstruction = system?.let { Contents.of(it) },
-                            samplerConfig = SamplerConfig(topK = topK, topP = topP, temperature = temp, seed = 1), maxOutputToken = maxOut,
+                            samplerConfig = SamplerConfig(topK = caseTopK, topP = caseTopP, temperature = caseTemp, seed = 1), maxOutputToken = caseMaxOut,
                         ))
                         conv.use { cv ->
                             val reply = cv.sendMessage(user).toString()
@@ -97,6 +102,22 @@ class ProofLabActivity : Activity() {
     private fun promptFor(c: String): Pair<String?, String> = when {
         c == "memprobe" -> MEMSYS to MEMUSER
         c == "proof2" -> LlmProof.SYSTEM2 to LlmProof.USER2
+        // s<N>: the proof-2 instruction over the first N made-up sentences of SPOOL (N=3 is the shipped proof 2 text); s<N>u: the same instruction inside the user message, no system instruction.
+        c.startsWith("s") && c.removeSuffix("u").drop(1).toIntOrNull() != null -> {
+            val n = c.removeSuffix("u").drop(1).toInt()
+            val user = "Klient: Petra\n\nPetra: " + SPOOL.take(n).joinToString(" ")
+            if (c.endsWith("u")) null to (LlmProof.SYSTEM2 + "\n\n" + user) else LlmProof.SYSTEM2 to user
+        }
+        // win<k>: the app's own Czech extraction prompts (assets cs/extract.*.txt) around files/prompts/win<k>.txt, like Pipeline.extractUser for one window.
+        c.startsWith("win") -> {
+            val raw = File(getExternalFilesDir(null), "prompts/$c.txt").readText().trim()
+            val client = raw.lineSequence().first().removePrefix("CLIENT=")
+            val text = raw.substringAfter('\n').trim()
+            val system = com.therapylocal.app.memory.MemoryFiles.prompt(this, "cs/extract.system.txt")
+            val user = com.therapylocal.app.facts.Prompts.fill(com.therapylocal.app.memory.MemoryFiles.prompt(this, "cs/extract.user.txt"),
+                mapOf("CLIENT" to client, "DATE" to "2026-09-14", "PART" to "1", "PARTS" to "1", "TEXT" to text))
+            system to user
+        }
         c.startsWith("file:") -> File(getExternalFilesDir(null), "prompts/${c.removePrefix("file:")}").let { File(it.path + ".sys").readText().trim() to File(it.path + ".usr").readText().trim() }
         c.startsWith("facts") -> LlmProof.SYSTEM to LlmProof.FACTS.take(c.removePrefix("facts").toInt()).joinToString("\n")
         c.startsWith("pad") -> LlmProof.SYSTEM to padded(c.removePrefix("pad").toInt())
@@ -113,6 +134,25 @@ class ProofLabActivity : Activity() {
     companion object {
         const val TAG = "PROOFLAB"
         private const val FILLER = "Ráno bylo chladné a mlhavé, na náměstí se pomalu otevíraly obchody a po dláždění projížděl první tramvajový vůz směrem k nádraží."
+        /** Made-up sentences, the first three are the shipped proof-2 sentences. */
+        private val SPOOL = listOf(
+            "Moje sestra Lucie se přestěhovala do Brna a já mám pocit, že jsme si s ní teď strašně vzdálené.",
+            "Usínám až po půlnoci a v pět ráno se budím.",
+            "Pila jsem proto víc kávy, tři až čtyři hrnky denně.",
+            "V pátek mi šéf řekl, že dostanu výpověď.",
+            "Poslední den budu mít 30. září.",
+            "Bojím se, jak zaplatím nájem, platím osm tisíc měsíčně.",
+            "Chodím na dlouhé procházky podél řeky.",
+            "Můj syn Matyáš začal chodit do první třídy a často pláče, když ho tam vedu.",
+            "Minulý měsíc jsem přestala cvičit jógu, protože nemám sílu vstát z postele.",
+            "Mamce je sedmdesát dva a v březnu měla operaci kyčle, takže k ní jezdím každý druhý den.",
+            "S manželem Tomášem se už tři týdny skoro nebavíme, večer sedí u počítače.",
+            "Na jaře jsem si chtěla otevřít malou keramickou dílnu, ale banka mi půjčku zamítla.",
+            "Včera večer jsem vypila celou láhev vína, což se mi předtím nestalo.",
+            "Kamarádka Hana mi nabídla, že u ní můžu týden bydlet.",
+            "Do práce jezdím autobusem číslo 17 a cesta mi trvá čtyřicet minut.",
+            "Minulou středu jsem měla záchvat paniky v supermarketu a musela jsem odejít bez nákupu.",
+        )
         private const val MEMSYS = "You are a careful note-taker for a psychotherapist. List the facts the client stated, one JSON object per line with keys heading, content, evidence (an exact quote). Write heading and content in Czech."
         private const val MEMUSER = "Klient: Petra\n\nPetra: Moje sestra Lucie se přestěhovala do Brna a já mám pocit, že jsme si s ní teď strašně vzdálené. Usínám až po půlnoci a v pět ráno se budím. Pila jsem proto víc kávy, tři až čtyři hrnky denně. V pátek mi šéf řekl, že dostanu výpověď. Poslední den budu mít 30. září. Bojím se, jak zaplatím nájem, platím osm tisíc měsíčně. Chodím na dlouhé procházky podél řeky."
     }
