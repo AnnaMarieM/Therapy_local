@@ -49,10 +49,10 @@ class ProbeTest {
         assertTrue("$name: host ${h.pid} did not die", h.awaitGone())
         val found = ExitInfos.await(h.pid)
         h.unbind()
-        assertNotNull("$name: every kill yields an exit record (polled 8 s)", found)
+        assertNotNull("$name: exit record not written within 8 s (no record at all for pid ${h.pid})", found)
         val i = found!!.info
         // SIGKILL may legitimately stay UNKNOWN on some lanes (data); the quiet-exit signals must settle, else say so instead of asserting on a placeholder.
-        if (sig != OsConstants.SIGKILL) assertTrue("$name: exit record never settled in ${found.latencyMs} ms (placeholder: ${ExitInfos.describe(i)})", found.settled)
+        if (sig != OsConstants.SIGKILL) assertTrue("$name: exit record not written within ${found.latencyMs / 1000.0} s (only a placeholder: ${ExitInfos.describe(i)})", found.settled)
         record.exit("${ctx.packageName}:batch", h.pid, i.reason.toString(), i.status, null, i.description)
         return JSONObject().put("reason", i.reason).put("status", i.status).put("description", i.description ?: JSONObject.NULL)
             .put("importance", i.importance).put("latency_ms", found.latencyMs)
