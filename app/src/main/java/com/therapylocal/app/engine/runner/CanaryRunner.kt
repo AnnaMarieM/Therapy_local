@@ -58,9 +58,11 @@ internal class CanaryRunner(private val context: Context) : AsrEngine {
         val r = AppLog.span(TAG, "asr_recognizer_create", LogCtx.NONE, "engine" to ENGINE, "backend_try" to name, "onnx_provider" to onnx, "threads" to THREADS, "language" to language.code, *f) {
             OfflineRecognizer(config = config)
         }
+        nativeLog(name, onnx, "create", f)
         try {
             notePhase(phases, op.tag, TAG, op.guardModel, name, "test")
             selfTest(name, r, f)
+            nativeLog(name, onnx, "test", f)
         } catch (t: Throwable) {
             runCatching { r.release() }
             throw t
@@ -69,6 +71,22 @@ internal class CanaryRunner(private val context: Context) : AsrEngine {
         model = spec.id
         backend = name
         return EngineReply.Opened(0, name, 0, null)
+    }
+
+    /**
+     * sherpa-onnx and ONNX Runtime print to the Android log (tag `sherpa-onnx`), never to us: a provider that does not take the model says
+     * "Fallback to cpu!" there and runs on the CPU all the same. This copies this process's lines into our log (`asr_native_log`) so a field
+     * log shows what the provider really did. It reads only our own uid's log, and never throws.
+     */
+    private fun nativeLog(name: String, onnx: String, step: String, f: Fields) {
+        val lines = runCatching {
+            val p = ProcessBuilder("logcat", "-d", "-t", "200", "--pid=${android.os.Process.myPid()}", "sherpa-onnx:V", "onnxruntime:V", "*:S").redirectErrorStream(true).start()
+            val out = p.inputStream.bufferedReader().readLines()
+            p.destroy()
+            out.filter { !it.startsWith("---") && it.isNotBlank() }
+        }.getOrDefault(emptyList())
+        val fell = lines.any { it.contains("Fallback to cpu", ignoreCase = true) }
+        AppLog.i(TAG, "asr_native_log", LogCtx.NONE, "engine" to ENGINE, "backend_try" to name, "onnx_provider" to onnx, "step" to step, "fell_back_to_cpu" to fell, "lines" to lines.size, "tail" to lines.takeLast(6).joinToString(" | ") { it.substringAfter(": ").take(160) }, *f)
     }
 
     /** Decodes one second of silence: a provider can construct fine and fail at the first decode, and "proven on this device" must mean it decoded. */
