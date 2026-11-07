@@ -95,6 +95,16 @@ object Engines {
         (hosts[EngineRole.LIVE] as? RemoteEngineHost)?.release()
     }
 
+    /**
+     * The live-cue lookback was changed in Settings: a loaded embedder reloads at the input size it now needs, unless a session is being
+     * recorded (it then reloads at the next start of the cues). Off the caller's thread.
+     */
+    fun onLiveCueSettingsChanged() {
+        val e = embedder ?: return
+        if (com.therapylocal.app.jobs.JobRunner.recordingActive) return
+        Thread({ runCatching { kotlinx.coroutines.runBlocking { e.ensureInput() } } }, "embed-input").apply { isDaemon = true }.start()
+    }
+
     fun resume() {
         embedder?.resume()
     }

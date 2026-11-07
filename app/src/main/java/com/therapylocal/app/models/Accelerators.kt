@@ -37,11 +37,6 @@ data class Accelerator(
     val onnxProvider: String? = null,
     /** Tried on its own in the automatic order; false keeps it for explicit requests (an evaluation, the debug override) only. */
     val auto: Boolean = true,
-    /**
-     * Shares the phone's graphics memory the way a mobile GPU does, so the embedder's device rule (no GPU on Tensor/Mali or under ~10 GB, see
-     * DeviceMemory.allowEmbedderGpu) applies to it too.
-     */
-    val graphicsMemory: Boolean = false,
 ) {
     init {
         require(id.isNotBlank() && id == id.uppercase()) { "Accelerator id must be non-blank upper case: '$id'" }
@@ -65,7 +60,7 @@ object Accelerators {
         availableFor = { ctx, model -> NpuRuntime.modelReason(ctx, model) },
         litert = true,
     )
-    val GPU = Accelerator(id = "GPU", priority = 200, litert = true, graphicsMemory = true)
+    val GPU = Accelerator(id = "GPU", priority = 200, litert = true)
     /** Android's NNAPI through ONNX Runtime: deprecated and not faster than the CPU for our speech models (AsrEvalTest), so opt-in only. */
     val NNAPI = Accelerator(id = "NNAPI", priority = 150, onnxProvider = "nnapi", auto = false)
     val CPU = Accelerator(id = "CPU", priority = 1000, fallback = true, litert = true, onnxProvider = "cpu")

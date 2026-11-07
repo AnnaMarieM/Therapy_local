@@ -1,10 +1,11 @@
 package com.therapylocal.app.embed
 
 import android.content.Context
-import android.os.SystemClock
 import com.therapylocal.app.config.BackendPolicy
 import com.therapylocal.app.config.EmbeddingConfig
 import com.therapylocal.app.config.LiveCueConfig
+import com.therapylocal.app.config.liveCueSettings
+import com.therapylocal.app.config.MemoryConfig
 import com.therapylocal.app.engine.EngineDied
 import com.therapylocal.app.jobs.JobFailure
 import com.therapylocal.app.engine.EngineHost
@@ -15,7 +16,6 @@ import com.therapylocal.app.engine.EngineProxy
 import com.therapylocal.app.engine.EngineReply
 import com.therapylocal.app.models.BackendGuard
 import com.therapylocal.app.models.BackendLadder
-import com.therapylocal.app.config.MemoryConfig
 import com.therapylocal.app.log.AppLog
 import com.therapylocal.app.log.LogCtx
 import com.therapylocal.app.memory.LlmMemory
@@ -34,6 +34,9 @@ interface CueEmbedder {
 
     /** Longest audio clip one call can take. */
     val maxAudioSeconds: Int
+
+    /** Reloads the engine at the input size the use needs now, if it was loaded at another (the lookback changed in Settings). Nothing if unloaded. */
+    suspend fun ensureInput() {}
 
     suspend fun embedAudio(pcm: ShortArray, ctx: LogCtx, role: String = "document"): FloatArray
 }
@@ -54,6 +57,7 @@ interface CueEmbedder {
  *    https://huggingface.co/litert-community/embeddinggemma-2-740m-litert-lm
  *
  * Backend order for the text encoder: the [Accelerators] that serve it on LiteRT-LM (NPU only with the Qualcomm dispatch library, then GPU, CPU).
+ * The audio encoder is pinned to the CPU (EmbedRunner).
  *
  * The native engine (and the model-info read, the self-test and the embed spans) lives in an [EngineHost]; this class keeps the ladder with its
  * guard, the memory gates, the lock and the lifecycle. It imports nothing native. [ladder], [guard], [gate] and [proxy] are test seams.
@@ -66,8 +70,16 @@ class Embedder(
     host: EngineHost = if (textOnly) Engines.batchHost(context) else Engines.liveHost(context),
     private val ladder: () -> BackendLadder = { Backends.ladder(context, TAG, "embeddinggemma", host.guardRole) },
     private val guard: () -> BackendGuard? = { Backends.guard(context) },
-    gate: ((String, Boolean) -> String?)? = null,
+    gate: ((String) -> String?)? = null,
     private val proxy: EngineProxy = EngineProxy(context, { host }, TAG, "embeddinggemma"),
+    /**
+     * The input size to open the engine with, read at every load: the smallest the use needs (text-only: the pipeline's longest text; live:
+     * the Settings lookback, see [EmbeddingConfig.liveInputTokens]). The buffers, and so the GPU memory, scale with it.
+     */
+    private val inputTokens: () -> Int = {
+        if (textOnly) EmbeddingConfig.PIPELINE_INPUT_TOKENS
+        else EmbeddingConfig.liveInputTokens(context.getSharedPreferences("settings", Context.MODE_PRIVATE).liveCueSettings().lookbackS)
+    },
 ) : CueEmbedder {
     var backend: String = "none"
         private set
@@ -82,7 +94,7 @@ class Embedder(
     /** Longest audio clip one call can take, from [maxTokens]. */
     override val maxAudioSeconds get() = EmbeddingConfig.maxAudioSeconds(maxTokens)
 
-    private val gateFn: (String, Boolean) -> String? = gate ?: { name, forced -> memoryGate(name, forced) }
+    private val gateFn: (String) -> String? = gate ?: { name -> memoryGate(name) }
     private var handle: Int? = null
 
     /** False after a reply the proxy rejected ("bad embedding"): the next use closes the handle and reloads. */
@@ -94,10 +106,6 @@ class Embedder(
     /** [close] was asked for while a call held the lock: that call closes the engine when it is done. */
     @Volatile
     private var closeRequested = false
-
-    /** Until this [SystemClock.elapsedRealtime], loads skip GPU and NPU (see [releaseForMemory]). */
-    @Volatile
-    private var cpuOnlyUntil = 0L
 
     /**
      * True while the embedder is held back so it does not sit in memory beside the LLM (see [Engines.suspend]). An embedder that is not
@@ -129,16 +137,16 @@ class Embedder(
 
     private suspend fun loadLocked() {
         if (handle != null) return
+        val wanted = EmbeddingConfig.inputSizeFor(inputTokens())
+        maxTokens = wanted
         withContext(com.therapylocal.app.jobs.ModelDispatchers.Compute) {
             val fileInfo = runCatching { ModelRegistry.EMBED.file(context, ModelRegistry.EMBED.files.first()).let { it.name to it.length() } }.getOrNull()
             AppLog.span(TAG, "embed_load", LogCtx.NONE, "model" to modelId, "model_mb" to ((fileInfo?.second ?: 0L) shr 20), "dim" to dim) { span ->
                 val preferred = Accelerators.order(modelId, ModelRuntime.LITERT)
                 val candidates = if (forcedBackend != null) BackendPolicy.order(listOf(Accelerators.fallback.id), forcedBackend) else BackendPolicy.order(preferred)
-                val forced = forcedBackend != null || !BackendPolicy.override.equals("auto", ignoreCase = true)
                 AppLog.i(
                     TAG, "embed_load_request", LogCtx.NONE, "guard_model" to guardModel, "text_only" to textOnly, "forced_backend" to forcedBackend,
                     "override" to BackendPolicy.override, "candidates" to candidates.joinToString(","), "max_tokens" to maxTokens,
-                    "cpu_only_for_ms" to (cpuOnlyUntil - SystemClock.elapsedRealtime()).coerceAtLeast(0),
                 )
                 val loadId = BackendLadder.newLoadId()
                 // The model was killed for memory again and again even on the CPU: it cannot run here (unless a person forces the load).
@@ -156,8 +164,8 @@ class Embedder(
                         model = guardModel,
                         candidates = candidates,
                         respectBlocks = judged,
-                        gate = { name -> gateFn(name, forced) },
-                        open = { name -> proxy.open(EngineKind.EMBED, modelId, guardModel, name, loadId = loadId, maxTokens = EmbeddingConfig.MAX_TOKENS, textOnly = textOnly) },
+                        gate = gateFn,
+                        open = { name -> proxy.open(EngineKind.EMBED, modelId, guardModel, name, loadId = loadId, maxTokens = wanted, textOnly = textOnly) },
                         close = { runCatching { proxy.closeNow(it.handle) } },
                     )
                 } catch (e: BackendLadder.NoBackend) {
@@ -168,6 +176,7 @@ class Embedder(
                     throw e
                 }
                 handle = loaded.engine.handle
+                loadedInput = wanted
                 backend = loaded.backend
                 healthy = true
                 // The host lowers the input length to what the model reports.
@@ -190,21 +199,17 @@ class Embedder(
     private val guardModel get() = if (textOnly) modelId else "${modelId}+audio"
 
     /**
-     * Why [name] is not tried now, or null. A [forced] backend (debug override) skips the device-class rule, never availability or the
-     * free-memory check: GPU and NPU take their memory from the system, and running out there gets the app killed, not an exception.
+     * Why [name] is not tried now, or null: the accelerator's own availability, then the one memory rule every GPU/NPU load follows
+     * ([LlmMemory.gate]: the model's size plus a headroom must be free). No device is judged by its name or total RAM; a phone that cannot
+     * take the GPU shows it as a strike in [BackendGuard] (the engine host dies, not the app), and the CPU is tried next.
      */
-    private fun memoryGate(name: String, forced: Boolean): String? = com.therapylocal.app.engine.LabWiring.gate(realGate(name, forced))
+    private fun memoryGate(name: String): String? = com.therapylocal.app.engine.LabWiring.gate(realGate(name))
 
-    private fun realGate(name: String, forced: Boolean): String? {
+    private fun realGate(name: String): String? {
         Accelerators.unavailable(context, name, modelId, ModelRuntime.LITERT)?.let { return it }
         if (BackendPolicy.forcing()) return null
         if (Accelerators.get(name)?.takesSystemMemory != true) return null
-        if (SystemClock.elapsedRealtime() < cpuOnlyUntil) return "CPU only for a while after the system asked for memory"
-        if (Accelerators.get(name)?.graphicsMemory == true && !forced && !com.therapylocal.app.memory.DeviceMemory.allowEmbedderGpu(context)) return "memory safety: Tensor/Mali GPU or not enough RAM"
-        val (available, low) = LlmMemory.available(context)
-        val bytes = ModelRegistry.EMBED.totalBytes
-        if (!LlmMemory.gpuFits(bytes, available, low)) return "not enough free memory (${available shr 20} MB free, ${LlmMemory.gpuNeeds(bytes) shr 20} MB needed)"
-        return null
+        return LlmMemory.gateForCost(context, MemoryConfig.embedGpuCostBytes(maxTokens))
     }
 
     private fun audioBackendName() = if (textOnly) "none" else "CPU"
@@ -300,13 +305,34 @@ class Embedder(
     }
 
     /**
-     * The system asked for memory back: unload, and for [MemoryConfig.LOW_MEMORY_CPU_COOLDOWN_MS] reload on the CPU only, so the next search
-     * does not take the same GPU/NPU memory again straight away.
+     * The system asked for memory back: unload. The next load is gated by the memory that is free then ([LlmMemory.gate]), so there is no
+     * timed "CPU only" period: it depended on which instance had seen the pressure.
      */
     fun releaseForMemory() {
-        if (backend != "none" && !Accelerators.isFallback(backend)) cpuOnlyUntil = SystemClock.elapsedRealtime() + MemoryConfig.LOW_MEMORY_CPU_COOLDOWN_MS
-        AppLog.w(TAG, "embed_release_for_memory", LogCtx.NONE, "backend" to backend, "cpu_only_for_ms" to (cpuOnlyUntil - SystemClock.elapsedRealtime()).coerceAtLeast(0))
+        AppLog.w(TAG, "embed_release_for_memory", LogCtx.NONE, "backend" to backend)
         close()
+    }
+
+    /** The input size the engine now loaded was opened with (0: none). */
+    @Volatile
+    private var loadedInput = 0
+
+    /**
+     * If the engine is loaded at another input size than the use needs now (the live-cue lookback was changed in Settings), unloads it and
+     * loads it again at the right one; the new size is gated by the memory free at that moment like any load. Does nothing when nothing is
+     * loaded (the next load reads the setting) or while suspended.
+     */
+    override suspend fun ensureInput() = lock.withLock {
+        if (suspended || handle == null) return@withLock
+        val wanted = EmbeddingConfig.inputSizeFor(inputTokens())
+        if (wanted == loadedInput) return@withLock
+        AppLog.i(TAG, "embed_input_changed", LogCtx.NONE, "from" to loadedInput, "to" to wanted, "backend" to backend)
+        closeLocked()
+        try {
+            loadLocked()
+        } finally {
+            closeIfRequested()
+        }
     }
 
     private fun closeIfRequested() {
@@ -322,7 +348,7 @@ class Embedder(
         val gm = guardModel
         val b = backend
         proxy.close(h) { acked -> if (acked) runCatching { guard()?.unloaded(gm, b) } }
-        AppLog.i(TAG, "embed_unloaded", LogCtx.NONE, "model" to guardModel, "backend" to backend, "close_ms" to (System.nanoTime() - t0) / 1_000_000, "cpu_only_for_ms" to (cpuOnlyUntil - SystemClock.elapsedRealtime()).coerceAtLeast(0))
+        AppLog.i(TAG, "embed_unloaded", LogCtx.NONE, "model" to guardModel, "backend" to backend, "close_ms" to (System.nanoTime() - t0) / 1_000_000)
         backend = "none"
     }
 

@@ -70,6 +70,30 @@ object EmbeddingConfig {
     /** Kept free for the model's own special tokens around the audio. */
     const val AUDIO_MARGIN_TOKENS = 16
 
+    /**
+     * The input sizes the LiteRT build of the model has (128..8192, powers of two; the engine is opened with one of them and its buffers are
+     * sized for it, see [MemoryConfig.EMBED_GPU_BASE_BYTES]). The smallest one that holds what is needed is used, not the full 8192.
+     */
+    val INPUT_SIZES = listOf(128, 256, 512, 1024, 2048, 4096, 8192)
+
+    fun inputSizeFor(tokens: Int): Int = INPUT_SIZES.firstOrNull { it >= tokens } ?: MAX_TOKENS
+
+    /** Tokens [seconds] of audio take, with the margin for the special tokens: the inverse of [maxAudioSeconds]. */
+    fun audioTokens(seconds: Int) = seconds * AUDIO_TOKENS_PER_SECOND + AUDIO_MARGIN_TOKENS
+
+    /**
+     * The live (audio) embedder's input size for a lookback of [lookbackS] seconds (Settings, "Knobs for nerds"): it must also hold a voice
+     * search query, which is up to [ChunkConfig.QUERY_MAX_SECONDS] long. The default 20 s needs 516 tokens, so 1024.
+     */
+    fun liveInputTokens(lookbackS: Int) = inputSizeFor(audioTokens(maxOf(lookbackS, ChunkConfig.QUERY_MAX_SECONDS)))
+
+    /**
+     * The pipeline's text embedder (`:batch`): a transcript window is `MemoryConfig.WINDOW_TOKENS` (1000) estimated tokens plus 50 of overlap,
+     * the estimate can be a few percent low (Czech more) and a fact or a search query is a sentence. 2048 holds all of them; a window that
+     * still does not fit is split by `Pipeline.embedFitting`, so this is a size, not a limit.
+     */
+    const val PIPELINE_INPUT_TOKENS = 2048
+
     /** Longest audio clip that fits [tokens] of context. */
     fun maxAudioSeconds(tokens: Int) = ((tokens - AUDIO_MARGIN_TOKENS) / AUDIO_TOKENS_PER_SECOND).coerceAtLeast(0)
 
@@ -89,8 +113,19 @@ object MemoryConfig {
     const val GPU_MEMORY_FACTOR = 1.0
     const val GPU_HEADROOM_BYTES = 1L shl 30
 
-    /** After the system asked for memory back, the live embedder reloads on the CPU only for this long, not straight back onto the GPU. */
-    const val LOW_MEMORY_CPU_COOLDOWN_MS = 5 * 60_000L
+    /**
+     * What EmbeddingGemma's GPU load takes from the system, by input size. It is not the 485 MB file: the engine builds its graph (about a
+     * thousand kernels) and its buffers for the input size it is opened with. Measured on the Galaxy Tab S7 (Adreno 650, QA build,
+     * `BackendProbeActivity`, forced, 2026-11-07): the fall in available memory while loading was about 110 MB at 1024 tokens and 250 MB at
+     * 2048; at 4096 it was at least 1.5 GB and lmkd killed `:live` at the low watermark, and at 8192 at least 2.2 GB with the same kill. So the
+     * cost grows faster than the size, and the full 8192 is what blew up. The line below stays above every point (about 4.7 times the
+     * measurement at 1024, 3.7 times at 2048, 1.1 times the 4096 lower bound), so a free-memory check against it plus the headroom is safe,
+     * and a phone that is genuinely short of memory is still refused. The phone's measurement at 1024 and 8192 confirms or corrects it.
+     */
+    const val EMBED_GPU_BASE_BYTES = 100L shl 20
+    const val EMBED_GPU_BYTES_PER_TOKEN = 420_000L
+
+    fun embedGpuCostBytes(tokens: Int): Long = EMBED_GPU_BASE_BYTES + EMBED_GPU_BYTES_PER_TOKEN * tokens
 
     /** Transcript windows, in estimated tokens: each is embedded for search and read by the LLM once. */
     const val WINDOW_TOKENS = 1000
