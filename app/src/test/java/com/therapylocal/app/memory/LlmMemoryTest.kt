@@ -37,3 +37,38 @@ class LlmMemoryTest {
         assertFalse(LlmMemory.gpuFits(e2b, gb(8.0), lowMemory = true))
     }
 }
+
+class MemoryGateTest {
+    private fun mb(n: Long) = n shl 20
+    private fun cost(tokens: Int) = com.therapylocal.app.config.MemoryConfig.embedGpuCostBytes(tokens)
+
+    @Test
+    fun theEmbedderAtItsDefaultSizeFitsWhereTheFullSizeDoesNot() {
+        // The tablet has 1.9-2.8 GB free. At 1024 tokens the measured cost is about 110 MB; at 8192 the load took at least 2.2 GB and lmkd killed :live.
+        assertEquals(null, LlmMemory.gateReasonForCost(cost(1024), mb(2100), false))
+        assertTrue(LlmMemory.gateReasonForCost(cost(8192), mb(2800), false)!!.startsWith("not enough free memory"))
+    }
+
+    @Test
+    fun theCostLineStaysAboveEveryMeasuredPoint() {
+        assertTrue(cost(1024) > mb(110) * 4)
+        assertTrue(cost(2048) > mb(250) * 3)
+        assertTrue(cost(4096) >= mb(1557))
+        assertTrue(cost(8192) >= mb(2230))
+    }
+
+    @Test
+    fun genuinelyLowFreeMemoryStillRefusesTheSmallSize() {
+        assertTrue(LlmMemory.gateReasonForCost(cost(1024), mb(1200), false) != null)
+    }
+
+    @Test
+    fun lowMemoryAlwaysBlocksAndSaysSo() {
+        assertTrue(LlmMemory.gateReasonForCost(cost(1024), mb(8000), true)!!.contains("system reports low memory"))
+    }
+
+    @Test
+    fun theLlmKeepsItsOwnFactor() {
+        assertEquals(null, LlmMemory.gateReason(2_588_147_712L, mb(3600), false))
+    }
+}
