@@ -29,6 +29,7 @@ val quietTasks = listOf("arm64-v8a" to "aarch64-linux-android31", "x86_64" to "x
         inputs.property("ndk", quietNdkVersion)
         outputs.file(outFile)
         workingDir = projectDir
+        onlyIf { !outFile.exists() }
         doFirst {
             check(clang.canExecute()) { "NDK $quietNdkVersion not found at $clang: build with scripts/build.sh (the pinned image has it)" }
             outFile.parentFile.mkdirs()
