@@ -123,7 +123,7 @@ object ModelRegistry {
                     ),
                 ),
             ),
-            evidence = "docs/MEMORY.md#npu-optimised-devices",
+            evidence = "docs/AD/AD-06.md#verification",
         ),
     )
 
