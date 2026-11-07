@@ -57,6 +57,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.customActions
+import androidx.compose.ui.semantics.onClick
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.SpanStyle
@@ -284,9 +285,10 @@ fun Home(
                             heroSp = heroSp,
                             onTap = {
                                 onLearned()
-                                if (i == selected) {
-                                    if (i < ordered.size) actions.openProfile(ordered[i]) else actions.addClient()
-                                } else scope.launch { pos.animateTo(i.toFloat(), Motion.Reel) }
+                                if (i != selected) {
+                                    scope.launch { pos.snapTo(i.toFloat()) }
+                                }
+                                goIn(i, ordered, actions)
                             },
                             onLongPress = c?.let { p -> { if (i == selected) { haptics.arm(); confirmDelete = p } } },
                             // Only the selected name travels; it leaves its place empty while it is away.
@@ -463,6 +465,7 @@ private fun ReelItem(
             .offset { IntOffset(0, (centerY + look().y).roundToInt()) }
             .semantics {
                 contentDescription = client?.name ?: newLabel
+                onClick(label = client?.name ?: newLabel) { tap(); true }
                 if (onLongPress != null) customActions = listOf(CustomAccessibilityAction(deleteLabel) { long?.invoke(); true })
             },
     ) {

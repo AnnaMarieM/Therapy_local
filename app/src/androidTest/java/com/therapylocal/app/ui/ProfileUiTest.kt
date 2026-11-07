@@ -203,6 +203,45 @@ class ProfileUiTest {
     }
 
     @Test
+    fun tappingAnUnfocusedClientOpensThemDirectly() {
+        store.createClient("zoe", "Zoe K.")
+        store.createClient("ben", "Ben C.")
+        val clients = repo.patients()
+        var opened: String? = null
+        compose.setContent {
+            PaperTheme {
+                Home(
+                    clients = clients, statusOf = { ClientStatus("${it.sessionCount} sessions") }, session = SessionState(),
+                    setupLine = null, focusClient = null, onFocused = {}, hint = false, onLearned = {},
+                    bar = rememberChoiceState(), refs = remember { HomeRefs() },
+                    actions = HomeActions(openProfile = { opened = it.name }, openSession = {}, addClient = {}, deleteClient = {}, openSettings = {}),
+                )
+            }
+        }
+        // Ana is focused. Tapping Ben C. directly opens Ben C., even though he is not currently focused.
+        compose.onNode(hasContentDescription("Ben C.") and hasClickAction()).performClick()
+        compose.runOnIdle { assertEquals("Ben C.", opened) }
+    }
+
+    @Test
+    fun tappingNewClientOpensAddClientEvenIfNotFocused() {
+        val clients = repo.patients()
+        var addOpened = false
+        compose.setContent {
+            PaperTheme {
+                Home(
+                    clients = clients, statusOf = { ClientStatus("${it.sessionCount} sessions") }, session = SessionState(),
+                    setupLine = null, focusClient = null, onFocused = {}, hint = false, onLearned = {},
+                    bar = rememberChoiceState(), refs = remember { HomeRefs() },
+                    actions = HomeActions(openProfile = {}, openSession = {}, addClient = { addOpened = true }, deleteClient = {}, openSettings = {}),
+                )
+            }
+        }
+        compose.onNode(hasContentDescription("New client") and hasClickAction()).performClick()
+        compose.runOnIdle { assertEquals(true, addOpened) }
+    }
+
+    @Test
     fun addingAClientKeepsOnlyTheInitialOfTheSurname() {
         var added: String? = null
         compose.setContent { PaperTheme { AddClientSheet(rememberSheetState(), onCancel = {}, onAdd = { name, _ -> added = name }) } }
