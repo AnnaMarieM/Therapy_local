@@ -53,9 +53,13 @@ internal class LlmRunner(private val context: Context) : AskEngine {
             AppLog.span(TAG, "memory_llm_engine_initialize", LogCtx.NONE, "backend_try" to name, "max_tokens" to op.maxTokens, *f) { e.initialize() }
             notePhase(phases, op.tag, TAG, op.guardModel, name, "test")
             AppLog.span(TAG, "memory_llm_engine_test_reply", LogCtx.NONE, "backend_try" to name, *f) { span ->
-                proveOutput(e, span, name)
-                // The CPU is the reference and the last resort, so only an accelerator needs the second proof (it costs about 10 s there).
-                if (!Accelerators.isFallback(name)) proveFacts(e, span)
+                // The CPU is the reference and the last resort: it is kept without a proof, since a failed proof there would only log.
+                // Both proofs cost real load time on the CPU (7 to 22 s per load, measured), so they run on accelerators only.
+                if (Accelerators.isFallback(name)) span.put("proof_skipped", "fallback")
+                else {
+                    proveOutput(e, span)
+                    proveFacts(e, span)
+                }
             }
         } catch (t: Throwable) {
             runCatching { e.close() }.onFailure { AppLog.w(TAG, "memory_llm_engine_close_after_failure_failed", LogCtx.NONE, "backend_try" to name, "reason" to it.message, *f) }
@@ -69,7 +73,7 @@ internal class LlmRunner(private val context: Context) : AskEngine {
     }
 
     /** The backend proof (LlmProof.kt): a fixed reformat-as-JSON task, checked strictly. A wrong answer throws, so the ladder strikes the backend. */
-    private fun proveOutput(e: Engine, span: com.therapylocal.app.log.Span, backendName: String) {
+    private fun proveOutput(e: Engine, span: com.therapylocal.app.log.Span) {
         val t0 = System.nanoTime()
         val cfg = ConversationConfig(samplerConfig = SamplerConfig(topK = LlmProof.TOP_K, topP = 1.0, temperature = LlmProof.TEMPERATURE, seed = 1), maxOutputToken = LlmProof.MAX_OUTPUT_TOKENS, systemInstruction = Contents.of(LlmProof.SYSTEM))
         val (reply, b) = e.createConversation(cfg).use { c -> c.sendMessage(LlmProof.USER).toString() to c.getBenchmarkInfo() }
@@ -85,11 +89,6 @@ internal class LlmRunner(private val context: Context) : AskEngine {
         span.put("proof_ok", verdict is LlmProof.Verdict.Ok)
         if (verdict is LlmProof.Verdict.Fail) {
             span.put("proof_reason", verdict.reason)
-            // The CPU is the reference and the last resort: striking it would leave no LLM at all. It still loads, loudly (like EmbedRunner without golden vectors).
-            if (!LlmProof.rejects(Accelerators.isFallback(backendName), verdict)) {
-                AppLog.e(TAG, "llm_proof_failed_on_fallback", LogCtx.NONE, null, "backend_try" to backendName, "reason" to verdict.reason)
-                return
-            }
             error("llm_output_proof_failed:${verdict.reason}")
         }
     }

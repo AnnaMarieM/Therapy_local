@@ -133,11 +133,4 @@ class LlmProofFactsTest {
 
     @Test fun a_non_string_value_fails() =
         assertEquals("invalid_json", fail("""{"h": "a", "c": ["x"], "e": "y"}"""))
-
-    @Test fun a_failed_proof_rejects_an_accelerator_but_not_the_fallback() {
-        val bad = LlmProof.checkFacts(gpuGeneric)
-        assertEquals(true, LlmProof.rejects(backendIsFallback = false, verdict = bad))
-        assertEquals(false, LlmProof.rejects(backendIsFallback = true, verdict = bad))
-        assertEquals(false, LlmProof.rejects(backendIsFallback = false, verdict = LlmProof.Verdict.Ok))
-    }
 }

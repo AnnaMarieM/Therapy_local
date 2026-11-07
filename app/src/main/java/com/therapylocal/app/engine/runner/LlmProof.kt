@@ -74,9 +74,6 @@ internal object LlmProof {
         return Verdict.Ok
     }
 
-    /** A failed proof strikes an accelerator; the fallback (CPU) is the reference and the last resort, so it is kept (and the failure logged as an error). */
-    fun rejects(backendIsFallback: Boolean, verdict: Verdict): Boolean = verdict is Verdict.Fail && !backendIsFallback
-
     sealed class Verdict {
         object Ok : Verdict() { override fun toString() = "Ok" }
         data class Fail(val reason: String) : Verdict()
