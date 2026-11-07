@@ -112,18 +112,22 @@ object ModelRegistry {
 
     /** The accelerator-specific builds (AD-06, docs/AD/AD-06.md "Adding an optimised device"). One entry per validated accelerator, SoC and model. */
     val BACKEND_BUILDS: List<BackendBuild> = listOf(
+        // EmbeddingGemma 2 740M has an official SM8750 file (litert-community/embeddinggemma-2-740m-litert-lm, embeddinggemma-2-740m_Qualcomm_SM8750.litertlm,
+        // 543,522,816 bytes, sha256 ac1973c0195dc6e28a621651f2f5e04d35fdc7a7b11cdbbe94f29f5dccb57996) but it does NOT load with litertlm-android 0.18.1 on the
+        // SM8750 phone (2026-11-07): "Failed to invoke the compiled model", AD-06 Verification. No entry until a runtime that loads it has been measured.
         BackendBuild(
-            modelId = EMBED.id, accelerator = "NPU", soc = "SM8750",
+            modelId = GEMMA_E2B.id, accelerator = "NPU", soc = "SM8750",
             spec = ModelSpec(
-                id = "${EMBED.id}-npu-sm8750", title = "EmbeddingGemma 2 740M (Snapdragon 8 Elite NPU)", subdir = "npu",
+                id = "${GEMMA_E2B.id}-npu-sm8750", title = "Gemma 4 E2B (Snapdragon 8 Elite NPU)", subdir = "npu",
                 files = listOf(
                     ModelFile(
-                        "embeddinggemma-2-740m_Qualcomm_SM8750.litertlm", "$HF/litert-community/embeddinggemma-2-740m-litert-lm/resolve/main/embeddinggemma-2-740m_Qualcomm_SM8750.litertlm",
-                        543_522_816L, "ac1973c0195dc6e28a621651f2f5e04d35fdc7a7b11cdbbe94f29f5dccb57996",
+                        "gemma-4-E2B-it_qualcomm_sm8750.litertlm",
+                        "$HF/litert-community/gemma-4-E2B-it-litert-lm/resolve/fc978c656bfaecebc54c31ccb9a2db7750ef6920/gemma-4-E2B-it_qualcomm_sm8750.litertlm",
+                        2_724_793_461L, "248e732911222c173d6c7d7086258990fc009f23a6144fb8abcf43dd111c7a1b",
                     ),
                 ),
             ),
-            evidence = "docs/AD/AD-06.md#verification",
+            evidence = "docs/AD/AD-06.md#verification (2026-11-07, POCO F8 Pro SM8750: backend NPU, 2 runs, compared with CPU)",
         ),
     )
 
