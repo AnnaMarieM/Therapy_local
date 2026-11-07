@@ -190,10 +190,10 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.3")
     implementation("androidx.work:work-runtime-ktx:2.9.1")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
-    implementation("com.google.ai.edge.litertlm:litertlm-android:0.18.1")
+    implementation("com.google.ai.edge.litertlm:litertlm-android:0.19.1")
     // Qualcomm NPU (AD-06). The dispatch library and compiler plugin from Google, the QNN/HTP runtime from Qualcomm: ONE QAIRT version (2.50.0),
     // the one the Gemma NPU bundles on Hugging Face were built with. A different pair gives "Unsupported context binary version".
-    implementation("com.google.ai.edge.litert:litert-npu-runtime-qualcomm:2.3.0")
+    implementation("com.google.ai.edge.litert:litert-npu-runtime-qualcomm:2.3.2")
     implementation("com.qualcomm.qti:qnn-runtime:2.50.0")
     implementation(files("libs/sherpa-onnx-2.0.0.aar"))
     implementation("net.zetetic:sqlcipher-android:4.12.0@aar") // encrypted SQLite for recordings.db and memory.db (patient data at rest)

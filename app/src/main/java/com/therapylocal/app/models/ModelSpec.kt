@@ -112,6 +112,20 @@ object ModelRegistry {
 
     /** The accelerator-specific builds (AD-06, docs/AD/AD-06.md "Adding an optimised device"). One entry per validated accelerator, SoC and model. */
     val BACKEND_BUILDS: List<BackendBuild> = listOf(
+        // EXPERIMENT (branch experiment/embedgemma-npu-runtime only): the official EmbeddingGemma SM8750 file, to test it with a newer runtime.
+        BackendBuild(
+            modelId = EMBED.id, accelerator = "NPU", soc = "SM8750",
+            spec = ModelSpec(
+                id = "${EMBED.id}-npu-sm8750", title = "EmbeddingGemma 2 740M (Snapdragon 8 Elite NPU)", subdir = "npu",
+                files = listOf(
+                    ModelFile(
+                        "embeddinggemma-2-740m_Qualcomm_SM8750.litertlm", "$HF/litert-community/embeddinggemma-2-740m-litert-lm/resolve/main/embeddinggemma-2-740m_Qualcomm_SM8750.litertlm",
+                        543_522_816L, "ac1973c0195dc6e28a621651f2f5e04d35fdc7a7b11cdbbe94f29f5dccb57996",
+                    ),
+                ),
+            ),
+            evidence = "experiment, unvalidated",
+        ),
         // EmbeddingGemma 2 740M has an official SM8750 file (litert-community/embeddinggemma-2-740m-litert-lm, embeddinggemma-2-740m_Qualcomm_SM8750.litertlm,
         // 543,522,816 bytes, sha256 ac1973c0195dc6e28a621651f2f5e04d35fdc7a7b11cdbbe94f29f5dccb57996) but it does NOT load with litertlm-android 0.18.1 on the
         // SM8750 phone (2026-11-07): "Failed to invoke the compiled model", AD-06 Verification. No entry until a runtime that loads it has been measured.
