@@ -3,6 +3,7 @@ package com.therapylocal.app.engine.stress
 import android.app.ActivityManager
 import android.app.ApplicationExitInfo
 import android.os.SystemClock
+import android.util.Log
 import androidx.test.platform.app.InstrumentationRegistry
 import com.therapylocal.app.engine.ExitReasons
 import com.therapylocal.app.models.BackendGuard.ExitKind
@@ -39,9 +40,13 @@ object ExitInfos {
     fun await(pid: Int, timeoutMs: Long = 8_000): Found? {
         val t0 = SystemClock.elapsedRealtime()
         var last: ApplicationExitInfo? = null
+        var attempt = 0
         while (true) {
             am.getHistoricalProcessExitReasons(ctx.packageName, pid, 1).firstOrNull()?.let { last = it }
             val seen = last
+            // One line per attempt, so a slow lane shows when the record appeared and what it held.
+            Log.d("ExitInfos", "await pid=$pid attempt=${++attempt} t=${SystemClock.elapsedRealtime() - t0}ms record=" +
+                (seen?.let { "reason=${ExitReasons.reasonName(it.reason)} status=${it.status}" } ?: "none"))
             if (seen != null && seen.reason != ApplicationExitInfo.REASON_UNKNOWN) return Found(seen, SystemClock.elapsedRealtime() - t0)
             if (SystemClock.elapsedRealtime() - t0 > timeoutMs) return seen?.let { Found(it, SystemClock.elapsedRealtime() - t0) }
             Thread.sleep(50) // bounded poll, see above
