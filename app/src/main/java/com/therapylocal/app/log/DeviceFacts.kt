@@ -32,9 +32,6 @@ object DeviceFacts {
                 "low_memory" to mem.lowMemory,
                 "storage_free_mb" to (ext?.usableSpace ?: 0L) / MB,
                 "cpu_cores" to Runtime.getRuntime().availableProcessors(),
-                "tier" to com.therapylocal.app.memory.DeviceMemory.tier(context).name.lowercase(),
-                "mali_or_tensor" to com.therapylocal.app.memory.DeviceMemory.isMaliOrTensor(),
-                "embedder_gpu_allowed" to com.therapylocal.app.memory.DeviceMemory.allowEmbedderGpu(context),
             ),
         )
         // Cheap availability hints. The real answer is whichever backend actually loads (see Engine/Embed spans).
@@ -47,6 +44,11 @@ object DeviceFacts {
                 "native_lib_dir" to context.applicationInfo.nativeLibraryDir,
             ),
         )
+        // Walks the models folder: logging only, so off the main thread (it must not delay start-up).
+        Thread({ runCatching { logModelFiles(ext) }.onFailure { AppLog.e(TAG, "model_files_failed", LogCtx.NONE, it) } }, "device-model-files").apply { isDaemon = true }.start()
+    }
+
+    private fun logModelFiles(ext: File?) {
         val models = File(ext, "models")
         val files = models.walkTopDown().filter { it.isFile }.toList()
         AppLog.i(

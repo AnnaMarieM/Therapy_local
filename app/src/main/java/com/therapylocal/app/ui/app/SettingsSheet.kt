@@ -433,7 +433,7 @@ private fun CueKnobs() {
     val ctx = LocalContext.current
     val prefs = remember { ctx.getSharedPreferences("settings", Context.MODE_PRIVATE) }
     var k by remember { mutableStateOf(prefs.liveCueSettings()) }
-    val save = { prefs.saveLiveCueSettings(k) }
+    val save = { prefs.saveLiveCueSettings(k); com.therapylocal.app.embed.Engines.onLiveCueSettingsChanged() }
     Column(Modifier.padding(vertical = 10.dp)) {
         Text(stringResource(R.string.settings_cues_intro), style = Type.BodySmall, color = Palette.InkSoft)
         Knob(stringResource(R.string.settings_cues_lookback), stringResource(R.string.settings_value_seconds, k.lookbackS), k.lookbackS.toFloat(), LiveCueSettings.LOOKBACK_S.first.toFloat()..LiveCueSettings.LOOKBACK_S.last.toFloat(), 0,

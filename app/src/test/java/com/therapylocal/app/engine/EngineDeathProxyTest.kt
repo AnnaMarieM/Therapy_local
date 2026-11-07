@@ -35,7 +35,7 @@ class EngineDeathProxyTest {
     )
 
     private fun embedder(host: FakeHost) = Embedder(
-        context, null, true, host, ladder = { BackendLadder(guard, role = "batch") }, guard = { guard }, gate = { _, _ -> null }, proxy = proxy(host),
+        context, null, true, host, ladder = { BackendLadder(guard, role = "batch") }, guard = { guard }, gate = { _ -> null }, proxy = proxy(host), inputTokens = { EmbeddingConfig.MAX_TOKENS },
     )
 
     @Test
