@@ -15,7 +15,7 @@ mkdir -p "$ROOT"/{venv,data,out}
 python3 -m venv "$ROOT/venv"
 PY="$ROOT/venv/bin/python"
 "$PY" -m pip install -q --upgrade pip
-"$PY" -m pip install -q torch==2.9.1 --index-url https://download.pytorch.org/whl/cpu
+"$PY" -m pip install -q torch==2.10.0 --index-url https://download.pytorch.org/whl/cpu
 "$PY" -m pip install -q litert-torch==0.10.0 ai-edge-litert==2.3.0 litert-lm-builder==0.19.1 \
   huggingface_hub "ai-edge-litert[model-utils]==2.3.0"
 # Qualcomm SDK: sdist, downloads the QAIRT zip from softwarecenter.qualcomm.com during build
