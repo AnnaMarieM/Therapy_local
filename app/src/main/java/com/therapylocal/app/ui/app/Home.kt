@@ -467,6 +467,9 @@ private fun ReelItem(
                 contentDescription = client?.name ?: newLabel
                 onClick(label = client?.name ?: newLabel) { tap(); true }
                 if (onLongPress != null) customActions = listOf(CustomAccessibilityAction(deleteLabel) { long?.invoke(); true })
+            }
+            .pointerInput(Unit) {
+                detectTapGestures(onTap = { tap() }, onLongPress = { long?.invoke() })
             },
     ) {
         // The large form for the centre, the small one for the neighbours; the reel crossfades between them. Both are one line, so a name
@@ -487,9 +490,6 @@ private fun ReelItem(
                     scaleX = l.bigScale; scaleY = l.bigScale
                     transformOrigin = TransformOrigin(0f, 0.5f)
                     translationY = -bigH / 2
-                }
-                .pointerInput(Unit) {
-                    detectTapGestures(onTap = { tap() }, onLongPress = { long?.invoke() })
                 },
         ) {
             val style = Type.Hero.copy(fontSize = heroSize, lineHeight = heroSize * 0.95f)
@@ -505,8 +505,7 @@ private fun ReelItem(
             color = ink,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.graphicsLayer { alpha = look().smallAlpha; translationY = -size.height / 2 }
-                .pointerInput(Unit) { detectTapGestures(onTap = { tap() }, onLongPress = { long?.invoke() }) },
+            modifier = Modifier.graphicsLayer { alpha = look().smallAlpha; translationY = -size.height / 2 },
         )
     }
 }
