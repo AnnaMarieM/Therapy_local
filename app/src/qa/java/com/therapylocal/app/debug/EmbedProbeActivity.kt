@@ -15,7 +15,7 @@ import kotlin.concurrent.thread
 import kotlin.math.sqrt
 
 /**
- * QA build only. Loads EmbeddingGemma (text only) on the backends asked for, embeds a few made-up texts and writes load time, per-call time and the
+ * QA build only. Loads EmbeddingGemma (text only) on the backends asked for, embeds a few made-up texts and writes load time, per-call time, the backend that ran, why others were skipped (`skipped`, `failed` when it is not the one asked) and the
  * cosine similarities to files/out/embedprobe_<tag>.json. Compare an NPU run with a CPU run: the vectors must agree.
  *   adb shell am start -n com.therapylocal.app.qa/com.therapylocal.app.debug.EmbedProbeActivity --es backend NPU --ez force true --es tag npu
  * No patient data.
@@ -41,6 +41,9 @@ class EmbedProbeActivity : Activity() {
             val t0 = System.nanoTime()
             runBlocking { embedder.load() }
             result.put("backend", embedder.backend).put("load_ms", (System.nanoTime() - t0) / 1_000_000)
+            result.put("skipped", embedder.skipped).put("ladder_summary", "asked=$backend ran=${embedder.backend}")
+            // A run that landed on another backend than the one asked for is not a result for that backend: say so in the file, do not only log it.
+            if (force && !embedder.backend.equals(backend, ignoreCase = true)) result.put("failed", "asked $backend but ran ${embedder.backend}: ${embedder.skipped.take(600)}")
             val texts = listOf(
                 "Moje sestra se přestěhovala do Brna a jsme si vzdálené.",
                 "My sister moved to another city and we have grown apart.",
