@@ -143,8 +143,8 @@ android {
     testOptions { unitTests.isReturnDefaultValues = true }
 
     buildTypes.configureEach {
-        // Transcript text in logs. Keep false: this is a therapy app. See docs/LOGGING.md.
-        buildConfigField("boolean", "LOG_TEXT", "false")
+        // Transcript text in logs. True ONLY in qa (test data only); false in debug, feel and release. See docs/LOGGING.md.
+        buildConfigField("boolean", "LOG_TEXT", if (name == "qa") "true" else "false")
         // AD-01 emergency switch: true forces every model back into the main process (LocalEngineHost). Default false.
         buildConfigField("boolean", "ENGINE_IN_PROCESS", "false")
         // A decrypted wav of each retained recording, for debugging with adb (see DebugAudio). Never in a release.

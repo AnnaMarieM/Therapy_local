@@ -52,8 +52,7 @@ internal class LlmRunner(private val context: Context) : AskEngine {
             AppLog.span(TAG, "memory_llm_engine_initialize", LogCtx.NONE, "backend_try" to name, "max_tokens" to op.maxTokens, *f) { e.initialize() }
             notePhase(phases, op.tag, TAG, op.guardModel, name, "test")
             AppLog.span(TAG, "memory_llm_engine_test_reply", LogCtx.NONE, "backend_try" to name, *f) { span ->
-                val reply = e.createConversation().use { it.sendMessage("Reply with OK.") }.toString()
-                span.put("reply_chars", reply.length)
+                proveOutput(e, span)
             }
         } catch (t: Throwable) {
             runCatching { e.close() }.onFailure { AppLog.w(TAG, "memory_llm_engine_close_after_failure_failed", LogCtx.NONE, "backend_try" to name, "reason" to it.message, *f) }
@@ -64,6 +63,27 @@ internal class LlmRunner(private val context: Context) : AskEngine {
         backend = name
         maxTokens = op.maxTokens
         return EngineReply.Opened(0, name, op.maxTokens, null)
+    }
+
+    /** The backend proof (LlmProof.kt): a fixed reformat-as-JSON task, checked strictly. A wrong answer throws, so the ladder strikes the backend. */
+    private fun proveOutput(e: Engine, span: com.therapylocal.app.log.Span) {
+        val t0 = System.nanoTime()
+        val cfg = ConversationConfig(samplerConfig = SamplerConfig(topK = LlmProof.TOP_K, topP = 1.0, temperature = LlmProof.TEMPERATURE, seed = 1), maxOutputToken = LlmProof.MAX_OUTPUT_TOKENS, systemInstruction = Contents.of(LlmProof.SYSTEM))
+        val (reply, b) = e.createConversation(cfg).use { c -> c.sendMessage(LlmProof.USER).toString() to c.getBenchmarkInfo() }
+        val verdict = LlmProof.check(reply)
+        // Text only when LOG_TEXT is on (the QA build); AppLog.text is a no-op otherwise.
+        AppLog.text(TAG, "llm_proof_prompt", LogCtx.NONE, LlmProof.SYSTEM + "\n---\n" + LlmProof.USER)
+        AppLog.text(TAG, "llm_proof_reply", LogCtx.NONE, reply)
+        span.put("proof_ms", (System.nanoTime() - t0) / 1_000_000)
+        span.put("reply_chars", reply.length)
+        span.put("prefill_tok_s", b.lastPrefillTokensPerSecond)
+        span.put("decode_tok_s", b.lastDecodeTokensPerSecond)
+        span.put("decode_tokens", b.lastDecodeTokenCount)
+        span.put("proof_ok", verdict is LlmProof.Verdict.Ok)
+        if (verdict is LlmProof.Verdict.Fail) {
+            span.put("proof_reason", verdict.reason)
+            error("llm_output_proof_failed:${verdict.reason}")
+        }
     }
 
     /** One fresh conversation. [EngineOp.Ask.schema] switches on constrained decoding for this call only. */
