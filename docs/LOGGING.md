@@ -70,6 +70,7 @@ Model and backend events (tag `Memory` for the LLM, `Embed` for the embedder, `A
 | `backend_failed` (error, with stack trace) | `open_ms`, `error`, `reason`, `cause_chain`, `is_oom`, `next`, record after (strikes, blocked?), memory after |
 | `backend_blocked` | the backend is off on this phone from now on |
 | `ladder_done` / `ladder_failed` | `summary` (e.g. `NPU=skipped;GPU=failed(IllegalStateException,812ms);CPU=proven(2140ms)`), `total_ms` |
+| `memory_llm_engine_test_reply` | the LLM test span: on the CPU only `proof_skipped=fallback` (no generation); on an accelerator `proof_ms`, `proof_ok`, `proof_reason`, `reply_chars`, the speeds and `proof2_ms`, `proof2_ok`, `proof2_reason` (the proofs in `docs/MEMORY.md`) |
 | `memory_llm_unloaded`, `embed_unloaded`, `asr_unloaded` | clean unloads (they clear strikes); `embed_close_deferred` when a call was still running |
 | `embed_release_for_memory`, `proactive_embedder_unload` | the system asked for memory back; `cpu_only_for_ms` |
 | `llm_call_failed` | an inference error: backend, sizes, `err`, `cause_chain` and `frames` with **types and code locations only** (an inference message can quote patient text), `demoted`, memory and thermal |
