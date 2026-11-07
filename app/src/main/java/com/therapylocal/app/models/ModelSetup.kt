@@ -42,7 +42,11 @@ object ModelSetup {
     private var observing = false
 
     /** Distinct specs the app needs: embeddings, Canary (one multilingual model serves every client language), and the memory model. */
-    fun required(context: Context): List<ModelSpec> = listOf(ModelRegistry.EMBED, ModelRegistry.CANARY_1B_V2, gemma(context))
+    fun required(context: Context): List<ModelSpec> {
+        val base = listOf(ModelRegistry.EMBED, ModelRegistry.CANARY_1B_V2, gemma(context))
+        // An optimised device (AD-06) also fetches the accelerator-specific builds of the models that have one for its SoC; any other device fetches nothing extra.
+        return base + ModelRegistry.backendSpecsFor(base.map { it.id }, NpuRuntime.deviceSoc())
+    }
 
     fun gemmaVariant(context: Context): GemmaVariant = ModelChoice.resolve(prefs(context).getString(ModelChoice.PREF, null))
 

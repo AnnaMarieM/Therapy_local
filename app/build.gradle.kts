@@ -138,7 +138,8 @@ android {
         )
     }
     // Keep the libraries as they come: no stripping with the NDK (the prebuilt ones were never stripped here), so adding the NDK changes none of them.
-    packaging { jniLibs { useLegacyPackaging = true; keepDebugSymbols += "**/*.so" } }
+    // qnn-runtime also carries the QNN GPU and DSP backends and the Hexagon V66/V68 skels, none of which LiteRT's Qualcomm dispatch uses (about 135 MB).
+    packaging { jniLibs { useLegacyPackaging = true; keepDebugSymbols += "**/*.so"; excludes += listOf("**/libQnnGpu.so", "**/libQnnDsp*.so", "**/libQnnHtpV68*.so") } }
     // JVM tests run code that logs through AppLog (android.util.Log); the stubs then return defaults instead of throwing.
     testOptions { unitTests.isReturnDefaultValues = true }
 
@@ -190,6 +191,10 @@ dependencies {
     implementation("androidx.work:work-runtime-ktx:2.9.1")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
     implementation("com.google.ai.edge.litertlm:litertlm-android:0.18.1")
+    // Qualcomm NPU (AD-06). The dispatch library and compiler plugin from Google, the QNN/HTP runtime from Qualcomm: ONE QAIRT version (2.50.0),
+    // the one the Gemma NPU bundles on Hugging Face were built with. A different pair gives "Unsupported context binary version".
+    implementation("com.google.ai.edge.litert:litert-npu-runtime-qualcomm:2.3.0")
+    implementation("com.qualcomm.qti:qnn-runtime:2.50.0")
     implementation(files("libs/sherpa-onnx-2.0.0.aar"))
     implementation("net.zetetic:sqlcipher-android:4.12.0@aar") // encrypted SQLite for recordings.db and memory.db (patient data at rest)
     implementation("androidx.sqlite:sqlite:2.4.0") // SupportSQLite types required by sqlcipher-android

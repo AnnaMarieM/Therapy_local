@@ -35,6 +35,20 @@ data class ModelSpec(val id: String, val title: String, val subdir: String?, val
     }
 }
 
+/**
+ * A build of a model made for one accelerator (AD-06): a different file from the default CPU/GPU one, used only when that accelerator runs the
+ * model. This is how a role (the memory LLM, the embedder) keeps ONE model while an accelerator gets its own file of it: the NPU file compiled
+ * for a Snapdragon generation, or a GPU-specific file. The entries with an [soc] are the "optimised devices": the chip families the
+ * accelerator was validated on, on hardware we own. A device without an entry gets a logged reason and the next backend.
+ *
+ * @property modelId the model it replaces on [accelerator] ([ModelSpec.id] of the default build)
+ * @property accelerator [Accelerator.id] it is for ("NPU", "GPU")
+ * @property soc `Build.SOC_MODEL` of the devices it is for (and its bundle metadata must say the same), or null for every device
+ * @property spec the download: its own directory, fetched only on a device that has an entry
+ * @property evidence where the on-device validation is recorded (test date, device, tokens/s, quality check)
+ */
+data class BackendBuild(val modelId: String, val accelerator: String, val soc: String?, val spec: ModelSpec, val evidence: String)
+
 object ModelRegistry {
     private const val HF = "https://huggingface.co"
 
@@ -94,4 +108,39 @@ object ModelRegistry {
 
     val ALL = listOf(GEMMA_E2B, GEMMA_E4B, EMBED, CANARY_1B_V2)
     fun byId(id: String): ModelSpec = ALL.first { it.id == id }
+    fun find(id: String): ModelSpec? = ALL.firstOrNull { it.id == id.substringBefore('+') }
+
+    /** The accelerator-specific builds (AD-06, docs/AD/AD-06.md "Adding an optimised device"). One entry per validated accelerator, SoC and model. */
+    val BACKEND_BUILDS: List<BackendBuild> = listOf(
+        BackendBuild(
+            modelId = EMBED.id, accelerator = "NPU", soc = "SM8750",
+            spec = ModelSpec(
+                id = "${EMBED.id}-npu-sm8750", title = "EmbeddingGemma 2 740M (Snapdragon 8 Elite NPU)", subdir = "npu",
+                files = listOf(
+                    ModelFile(
+                        "embeddinggemma-2-740m_Qualcomm_SM8750.litertlm", "$HF/litert-community/embeddinggemma-2-740m-litert-lm/resolve/main/embeddinggemma-2-740m_Qualcomm_SM8750.litertlm",
+                        543_522_816L, "ac1973c0195dc6e28a621651f2f5e04d35fdc7a7b11cdbbe94f29f5dccb57996",
+                    ),
+                ),
+            ),
+            evidence = "docs/MEMORY.md#npu-optimised-devices",
+        ),
+    )
+
+    /** The build of [modelId] made for [accelerator] on a device with SoC [soc], or null: the default file is used (or, for the NPU, there is no model for it). */
+    fun backendBuild(modelId: String, accelerator: String, soc: String): BackendBuild? = BACKEND_BUILDS.firstOrNull {
+        it.modelId == modelId.substringBefore('+') && it.accelerator.equals(accelerator, ignoreCase = true) && (it.soc == null || it.soc.equals(soc, ignoreCase = true))
+    }
+
+    /**
+     * The file [accelerator] loads for [spec] on this device: its own build when the catalogue has one and it is on the phone, else the default
+     * file. (Whether a missing build should stop the backend is the accelerator's gate, as for the NPU: see NpuRuntime.modelReason.)
+     */
+    fun fileFor(context: Context, spec: ModelSpec, accelerator: String, soc: String = android.os.Build.SOC_MODEL): File =
+        backendBuild(spec.id, accelerator, soc)?.spec?.let { b -> b.file(context, b.files.first()).takeIf { it.exists() } } ?: spec.file(context, spec.files.first())
+
+    /** The extra files this device fetches, for the models in use: nothing on a device without an entry. */
+    fun backendSpecsFor(modelIds: Collection<String>, soc: String): List<ModelSpec> =
+        BACKEND_BUILDS.filter { b -> modelIds.any { it == b.modelId } && (b.soc == null || b.soc.equals(soc, ignoreCase = true)) }.map { it.spec }.distinct()
+}
 }

@@ -3,5 +3,7 @@
     <application>
         <!-- QA build only: loads a Gemma build and records exact memory use, see MemProbeActivity. -->
         <activity android:name=".debug.MemProbeActivity" android:exported="true" android:permission="android.permission.DUMP" />
+        <!-- QA build only: loads EmbeddingGemma on one backend and embeds a few texts, see EmbedProbeActivity. -->
+        <activity android:name=".debug.EmbedProbeActivity" android:exported="true" android:permission="android.permission.DUMP" />
     </application>
 </manifest>

@@ -60,7 +60,8 @@ Model and backend events (tag `Memory` for the LLM, `Embed` for the embedder, `A
 |---|---|
 | `memory_llm_load_request`, `embed_load_request` | model, file size, context, audio, order asked for, debug override, cooldown left |
 | `ladder_start` | `candidates`, `history` (every backend's state/strikes/proven before, e.g. `GPU=proven/0/proven_before`), full memory and thermal picture |
-| `backend_skipped` | `reason` (missing library, `not enough free memory (… MB free, … MB needed)`, cooldown, Tensor/Mali rule) |
+| `backend_skipped` | `reason` (missing library, `not enough free memory (… MB free, … MB needed)`, cooldown, Tensor/Mali rule; the NPU: `no validated NPU model for SM8250 (…; validated on SM8750)`, `NPU model file for SM8750 not downloaded (…)`, `NPU runtime library missing (…)`, AD-06) |
+| `npu_bundle` (tag `Npu`, engine process) | `file`, `npu_brand` and `bundle_soc` from the model bundle's own metadata, `device_soc`; the NPU is refused before it runs a bundle whose SoC is not this device's |
 | `backend_skipped_blocked` | the record that blocked it: state, strikes, when, why |
 | `backend_attempting` | `note=attempting`, attempt n of m, record before, memory before |
 | `backend_phase` | `phase` (create, initialize, test), free memory. Written and **flushed to disk** before each native step, so after a native kill it is the last line. The step is also in the next start's `backend_died_while_loading` |
