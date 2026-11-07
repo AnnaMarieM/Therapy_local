@@ -20,7 +20,8 @@ Home is always underneath; every other surface is a sheet that grows out of the 
 (`ContainerTransform`, one interruptible spring per sheet, also driven by predictive back and by pulling down from the top).
 Every swipe has a tap or accessibility equivalent: the two bar buttons are tappable, the hold-to-finish has a "Finish session" action.
 Gesture rules live in plain Kotlin with unit tests (`ui/motion/GestureMath`, `ui/logic/ReelLogic`). Design tokens (palette, type,
-springs, haptics) are in `ui/design/`.
+springs, haptics) are in `ui/design/`. The look is pinned for every device and user setting (static fonts, font scale, weight and density,
+explicit colours, one breakpoint table): see [AD-05](AD/AD-05.md).
 
 ## Data flow
 - Home (the reel): `ClientRepository.patients()` in alphabetical order (`ReelIndex`). Up/down scrolls the names; the letter rail jumps

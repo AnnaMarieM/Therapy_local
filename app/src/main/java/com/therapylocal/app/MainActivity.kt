@@ -71,14 +71,21 @@ class MainActivity : FragmentActivity() {
     private val viewModel: MainViewModel by viewModels()
     private var memoryLabRequested = false
 
-    override fun attachBaseContext(newBase: Context) = super.attachBaseContext(LocaleStore.wrap(newBase))
+    override fun attachBaseContext(newBase: Context) = super.attachBaseContext(com.therapylocal.app.ui.design.DisplayPin.wrap(LocaleStore.wrap(newBase)))
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         // Phones stay in portrait; windows from 600dp up (tablets, unfolded) rotate freely.
         requestedOrientation = if (resources.getBoolean(R.bool.portrait_lock)) android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT else android.content.pm.ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
         // Edge to edge: the app draws behind the system bars and pads by their insets itself.
-        enableEdgeToEdge()
+        // Pinned look (AD-05): light bars with dark icons whatever the system theme, no contrast scrim, no ROM force-dark.
+        enableEdgeToEdge(
+            statusBarStyle = androidx.activity.SystemBarStyle.light(android.graphics.Color.TRANSPARENT, android.graphics.Color.TRANSPARENT),
+            navigationBarStyle = androidx.activity.SystemBarStyle.light(android.graphics.Color.TRANSPARENT, android.graphics.Color.TRANSPARENT),
+        )
+        window.isNavigationBarContrastEnforced = false
+        window.isStatusBarContrastEnforced = false
+        window.decorView.isForceDarkAllowed = false
         // Patient names and notes must not end up in screenshots or the recents preview. (Not in the qa build: its vault holds only test
         // data, and screenshots are how its screens are checked.)
         if (BuildConfig.SECURE_WINDOW) window.setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE)
