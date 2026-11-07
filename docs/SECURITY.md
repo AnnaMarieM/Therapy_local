@@ -42,6 +42,7 @@ Opening the database or a patient file while locked fails closed (`VaultLockedEx
 | Developer inputs: `prompts/`, `job.json`, `in/` test transcripts (external `files/memory/`) | Read only by the debug harness. Use synthetic transcripts there |
 | Debug-harness marker `out/DONE` | Written only when a run is started from the debug harness, never in app mode |
 | Debug `LiveCuesBench` output | Debug-build benchmark tool, synthetic input only |
+| Prompts and replies in `tl.log` and logcat of the **QA** build (`LOG_TEXT` is true for `qa` only) | The QA build holds test data only and is never given a real client. `debug`, `feel` and `release` keep `LOG_TEXT` false; `LogTextFlagTest` enforces it. The LLM proof prompt is made-up text |
 
 ## Engine processes
 

@@ -17,6 +17,7 @@ import com.therapylocal.app.engine.EngineOp
 import com.therapylocal.app.engine.EngineReply
 import com.therapylocal.app.engine.PhaseSink
 import com.therapylocal.app.log.AppLog
+import com.therapylocal.app.models.Accelerators
 import com.therapylocal.app.log.LogCtx
 import com.therapylocal.app.models.LiteRtBindings
 import com.therapylocal.app.models.ModelRegistry
@@ -52,8 +53,9 @@ internal class LlmRunner(private val context: Context) : AskEngine {
             AppLog.span(TAG, "memory_llm_engine_initialize", LogCtx.NONE, "backend_try" to name, "max_tokens" to op.maxTokens, *f) { e.initialize() }
             notePhase(phases, op.tag, TAG, op.guardModel, name, "test")
             AppLog.span(TAG, "memory_llm_engine_test_reply", LogCtx.NONE, "backend_try" to name, *f) { span ->
-                val reply = e.createConversation().use { it.sendMessage("Reply with OK.") }.toString()
-                span.put("reply_chars", reply.length)
+                proveOutput(e, span, name)
+                // The CPU is the reference and the last resort, so only an accelerator needs the second proof (it costs about 10 s there).
+                if (!Accelerators.isFallback(name)) proveFacts(e, span)
             }
         } catch (t: Throwable) {
             runCatching { e.close() }.onFailure { AppLog.w(TAG, "memory_llm_engine_close_after_failure_failed", LogCtx.NONE, "backend_try" to name, "reason" to it.message, *f) }
@@ -64,6 +66,48 @@ internal class LlmRunner(private val context: Context) : AskEngine {
         backend = name
         maxTokens = op.maxTokens
         return EngineReply.Opened(0, name, op.maxTokens, null)
+    }
+
+    /** The backend proof (LlmProof.kt): a fixed reformat-as-JSON task, checked strictly. A wrong answer throws, so the ladder strikes the backend. */
+    private fun proveOutput(e: Engine, span: com.therapylocal.app.log.Span, backendName: String) {
+        val t0 = System.nanoTime()
+        val cfg = ConversationConfig(samplerConfig = SamplerConfig(topK = LlmProof.TOP_K, topP = 1.0, temperature = LlmProof.TEMPERATURE, seed = 1), maxOutputToken = LlmProof.MAX_OUTPUT_TOKENS, systemInstruction = Contents.of(LlmProof.SYSTEM))
+        val (reply, b) = e.createConversation(cfg).use { c -> c.sendMessage(LlmProof.USER).toString() to c.getBenchmarkInfo() }
+        val verdict = LlmProof.check(reply)
+        // Text only when LOG_TEXT is on (the QA build); AppLog.text is a no-op otherwise.
+        AppLog.text(TAG, "llm_proof_prompt", LogCtx.NONE, LlmProof.SYSTEM + "\n---\n" + LlmProof.USER)
+        AppLog.text(TAG, "llm_proof_reply", LogCtx.NONE, reply)
+        span.put("proof_ms", (System.nanoTime() - t0) / 1_000_000)
+        span.put("reply_chars", reply.length)
+        span.put("prefill_tok_s", b.lastPrefillTokensPerSecond)
+        span.put("decode_tok_s", b.lastDecodeTokensPerSecond)
+        span.put("decode_tokens", b.lastDecodeTokenCount)
+        span.put("proof_ok", verdict is LlmProof.Verdict.Ok)
+        if (verdict is LlmProof.Verdict.Fail) {
+            span.put("proof_reason", verdict.reason)
+            // The CPU is the reference and the last resort: striking it would leave no LLM at all. It still loads, loudly (like EmbedRunner without golden vectors).
+            if (!LlmProof.rejects(Accelerators.isFallback(backendName), verdict)) {
+                AppLog.e(TAG, "llm_proof_failed_on_fallback", LogCtx.NONE, null, "backend_try" to backendName, "reason" to verdict.reason)
+                return
+            }
+            error("llm_output_proof_failed:${verdict.reason}")
+        }
+    }
+
+    /** The second proof (LlmProof.checkFacts): the app's own extraction instruction on three made-up sentences. A wrong answer throws, so the ladder strikes the backend. */
+    private fun proveFacts(e: Engine, span: com.therapylocal.app.log.Span) {
+        val t0 = System.nanoTime()
+        val cfg = ConversationConfig(samplerConfig = SamplerConfig(topK = LlmProof.TOP_K, topP = 1.0, temperature = LlmProof.TEMPERATURE, seed = 1), maxOutputToken = LlmProof.MAX_OUTPUT_TOKENS2, systemInstruction = Contents.of(LlmProof.SYSTEM2))
+        val reply = e.createConversation(cfg).use { c -> c.sendMessage(LlmProof.USER2).toString() }
+        val verdict = LlmProof.checkFacts(reply)
+        AppLog.text(TAG, "llm_proof2_prompt", LogCtx.NONE, LlmProof.SYSTEM2 + "\n---\n" + LlmProof.USER2)
+        AppLog.text(TAG, "llm_proof2_reply", LogCtx.NONE, reply)
+        span.put("proof2_ms", (System.nanoTime() - t0) / 1_000_000)
+        span.put("proof2_ok", verdict is LlmProof.Verdict.Ok)
+        if (verdict is LlmProof.Verdict.Fail) {
+            span.put("proof2_reason", verdict.reason)
+            error("llm_output_proof2_failed:${verdict.reason}")
+        }
     }
 
     /** One fresh conversation. [EngineOp.Ask.schema] switches on constrained decoding for this call only. */
