@@ -1,0 +1,387 @@
+{
+ "id": "eva-s_s01",
+ "tag": "cs-rapid",
+ "what": "Czech, rapid short turns, one-word answers, back-channels and interruptions",
+ "lang": "cs",
+ "client": "eva-s",
+ "client_name": "Eva S.",
+ "date": "2026-03-10",
+ "voices": {
+  "therapist": "cs-CZ-AntoninNeural",
+  "patient": "cs-CZ-VlastaNeural"
+ },
+ "fx": {
+  "gap_min": "0.08",
+  "gap_max": "0.3"
+ },
+ "expect": {
+  "speakers": 2,
+  "roles": {
+   "therapist": "therapist",
+   "patient": "patient"
+  }
+ },
+ "turns": [
+  {
+   "who": "therapist",
+   "text": "Dobrý den, paní Svobodová. Pojďme na to rychle, mám pro dnešek víc otázek. Spala jste dobře?"
+  },
+  {
+   "who": "patient",
+   "pause": 0.3,
+   "text": "Ne."
+  },
+  {
+   "who": "therapist",
+   "text": "Kolik hodin?"
+  },
+  {
+   "who": "patient",
+   "text": "Čtyři. Možná pět."
+  },
+  {
+   "who": "therapist",
+   "text": "A usínáte těžko, nebo se budíte?"
+  },
+  {
+   "who": "patient",
+   "text": "Budím se. Hm."
+  },
+  {
+   "who": "therapist",
+   "text": "V kolik?"
+  },
+  {
+   "who": "patient",
+   "text": "Kolem třetí. Budím se každou noc ve tři ráno a už neusnu."
+  },
+  {
+   "who": "therapist",
+   "at": 0.7,
+   "text": "Hm."
+  },
+  {
+   "who": "therapist",
+   "text": "Pracujete?"
+  },
+  {
+   "who": "patient",
+   "text": "Ano."
+  },
+  {
+   "who": "therapist",
+   "text": "Kde?"
+  },
+  {
+   "who": "patient",
+   "text": "V pojišťovně, na call centru. Jsem čtyři roky operátorka na zákaznické lince jedné pojišťovny."
+  },
+  {
+   "who": "therapist",
+   "text": "Je to stresující?"
+  },
+  {
+   "who": "patient",
+   "text": "Hodně. Hlavně telefony od rozzlobených lidí."
+  },
+  {
+   "who": "therapist",
+   "text": "Jíte pravidelně?"
+  },
+  {
+   "who": "patient",
+   "text": "Ne."
+  },
+  {
+   "who": "therapist",
+   "text": "Snídaně?"
+  },
+  {
+   "who": "patient",
+   "text": "Ne. Jenom kafe."
+  },
+  {
+   "who": "therapist",
+   "text": "Kolik kaf za den?"
+  },
+  {
+   "who": "patient",
+   "overlap": 0.3,
+   "text": "Pět. Šest. Dávám si šest kávy denně, protože jinak bych přes den neprobrala oči."
+  },
+  {
+   "who": "therapist",
+   "text": "Alkohol?"
+  },
+  {
+   "who": "patient",
+   "text": "Ne."
+  },
+  {
+   "who": "therapist",
+   "text": "Vůbec?"
+  },
+  {
+   "who": "patient",
+   "text": "Vůbec. Nepiju."
+  },
+  {
+   "who": "therapist",
+   "text": "Kouříte?"
+  },
+  {
+   "who": "patient",
+   "text": "Ano. Kouřím asi krabičku denně a už jsem to zkoušela pětkrát přestat."
+  },
+  {
+   "who": "therapist",
+   "at": 0.6,
+   "text": "Mhm."
+  },
+  {
+   "who": "therapist",
+   "text": "Bydlíte sama?"
+  },
+  {
+   "who": "patient",
+   "text": "Ne."
+  },
+  {
+   "who": "therapist",
+   "text": "S kým?"
+  },
+  {
+   "who": "patient",
+   "text": "S přítelem. A dvěma kočkami. Máme doma dvě kočky, jmenují se Mourek a Žofie."
+  },
+  {
+   "who": "therapist",
+   "text": "Jak se jmenuje přítel?"
+  },
+  {
+   "who": "patient",
+   "text": "Tomáš."
+  },
+  {
+   "who": "therapist",
+   "text": "Jste spokojená?"
+  },
+  {
+   "who": "patient",
+   "text": "Hm. Ano. Většinou."
+  },
+  {
+   "who": "therapist",
+   "text": "Většinou?"
+  },
+  {
+   "who": "patient",
+   "text": "No, poslední dobou se hádáme. S Tomášem se hádáme skoro každý večer kvůli drobnostem, třeba kvůli nádobí."
+  },
+  {
+   "who": "therapist",
+   "overlap": 0.4,
+   "text": "Kvůli čemu?"
+  },
+  {
+   "who": "patient",
+   "text": "Kvůli nádobí. Kvůli všemu."
+  },
+  {
+   "who": "therapist",
+   "text": "Bijete se?"
+  },
+  {
+   "who": "patient",
+   "text": "Ne. Ne! Nikdy."
+  },
+  {
+   "who": "therapist",
+   "text": "Dobře. Co rodina?"
+  },
+  {
+   "who": "patient",
+   "text": "Máma žije v Olomouci."
+  },
+  {
+   "who": "therapist",
+   "text": "Vídáte ji?"
+  },
+  {
+   "who": "patient",
+   "text": "Jednou za měsíc."
+  },
+  {
+   "who": "therapist",
+   "text": "A otec?"
+  },
+  {
+   "who": "patient",
+   "text": "Ne. Zemřel, když mi bylo dvanáct. Táta zemřel, když mi bylo dvanáct, a od té doby se bojím, že se něco stane i mámě."
+  },
+  {
+   "who": "therapist",
+   "text": "Rozumím."
+  },
+  {
+   "who": "patient",
+   "at": 0.5,
+   "text": "Hm."
+  },
+  {
+   "who": "therapist",
+   "text": "Máte nějaké léky?"
+  },
+  {
+   "who": "patient",
+   "text": "Ne."
+  },
+  {
+   "who": "therapist",
+   "text": "Žádné?"
+  },
+  {
+   "who": "patient",
+   "text": "Žádné. Jenom vitamíny."
+  },
+  {
+   "who": "therapist",
+   "text": "Dobře. Chodíte ven?"
+  },
+  {
+   "who": "patient",
+   "text": "Málo."
+  },
+  {
+   "who": "therapist",
+   "text": "Sportujete?"
+  },
+  {
+   "who": "patient",
+   "text": "Dřív jsem plavala. Dřív jsem třikrát týdně plavala v bazénu, ale už tři roky jsem tam nebyla."
+  },
+  {
+   "who": "therapist",
+   "text": "Chcete zase?"
+  },
+  {
+   "who": "patient",
+   "text": "Možná."
+  },
+  {
+   "who": "therapist",
+   "text": "Možná ano, nebo možná ne?"
+  },
+  {
+   "who": "patient",
+   "text": "Ano. Chci."
+  },
+  {
+   "who": "therapist",
+   "text": "Skvěle. Jak se cítíte teď, jednou větou?"
+  },
+  {
+   "who": "patient",
+   "pause": 0.8,
+   "text": "Unavená a trochu vystrašená."
+  },
+  {
+   "who": "therapist",
+   "text": "Čeho se bojíte?"
+  },
+  {
+   "who": "patient",
+   "text": "Že to nezvládnu. Že se mi to celé zhroutí."
+  },
+  {
+   "who": "therapist",
+   "text": "Rozumím. Dnes jsme si udělali přehled. Příště vezmeme jedno téma, spánek."
+  },
+  {
+   "who": "patient",
+   "text": "Dobře."
+  },
+  {
+   "who": "therapist",
+   "text": "Souhlasíte?"
+  },
+  {
+   "who": "patient",
+   "text": "Ano."
+  },
+  {
+   "who": "therapist",
+   "text": "Děkuji, paní Svobodová."
+  },
+  {
+   "who": "patient",
+   "text": "Děkuji. Na shledanou."
+  }
+ ],
+ "facts": [
+  {
+   "id": "eva-s_s01.f1",
+   "heading": "Budí se ve tři ráno",
+   "said": "Budím se každou noc ve tři ráno a už neusnu.",
+   "who": "patient",
+   "turn": 7,
+   "repeat_of": null
+  },
+  {
+   "id": "eva-s_s01.f2",
+   "heading": "Práce na call centru",
+   "said": "Jsem čtyři roky operátorka na zákaznické lince jedné pojišťovny.",
+   "who": "patient",
+   "turn": 12,
+   "repeat_of": null
+  },
+  {
+   "id": "eva-s_s01.f3",
+   "heading": "Pije hodně kávy",
+   "said": "Dávám si šest kávy denně, protože jinak bych přes den neprobrala oči.",
+   "who": "patient",
+   "turn": 20,
+   "repeat_of": null
+  },
+  {
+   "id": "eva-s_s01.f4",
+   "heading": "Kouří krabičku denně",
+   "said": "Kouřím asi krabičku denně a už jsem to zkoušela pětkrát přestat.",
+   "who": "patient",
+   "turn": 26,
+   "repeat_of": null
+  },
+  {
+   "id": "eva-s_s01.f5",
+   "heading": "Dvě kočky, Mourek a Žofie",
+   "said": "Máme doma dvě kočky, jmenují se Mourek a Žofie.",
+   "who": "patient",
+   "turn": 31,
+   "repeat_of": null
+  },
+  {
+   "id": "eva-s_s01.f6",
+   "heading": "Hádky s přítelem Tomášem",
+   "said": "S Tomášem se hádáme skoro každý večer kvůli drobnostem, třeba kvůli nádobí.",
+   "who": "patient",
+   "turn": 37,
+   "repeat_of": null
+  },
+  {
+   "id": "eva-s_s01.f7",
+   "heading": "Otec zemřel v jejích dvanácti",
+   "said": "Táta zemřel, když mi bylo dvanáct, a od té doby se bojím, že se něco stane i mámě.",
+   "who": "patient",
+   "turn": 47,
+   "repeat_of": null
+  },
+  {
+   "id": "eva-s_s01.f8",
+   "heading": "Plavání dřív",
+   "said": "Dřív jsem třikrát týdně plavala v bazénu, ale už tři roky jsem tam nebyla.",
+   "who": "patient",
+   "turn": 57,
+   "repeat_of": null
+  }
+ ]
+}

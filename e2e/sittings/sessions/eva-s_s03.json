@@ -1,0 +1,89 @@
+{
+ "id": "eva-s_s03",
+ "tag": "cs-dictation",
+ "what": "Czech, single voice: the therapist dictates a session note (one-speaker fallback)",
+ "lang": "cs",
+ "client": "eva-s",
+ "client_name": "Eva S.",
+ "date": "2026-03-25",
+ "voices": {
+  "therapist": "cs-CZ-AntoninNeural"
+ },
+ "fx": {},
+ "expect": {
+  "speakers": 1,
+  "roles": {}
+ },
+ "turns": [
+  {
+   "who": "therapist",
+   "text": "Poznámka ze sezení s klientkou Evou S., čtyřiadvacátého března. Sezení trvalo padesát minut."
+  },
+  {
+   "who": "therapist",
+   "text": "Klientka přišla včas, působila unaveně a mluvila tišeji než obvykle. Spánek se nelepší, klientka se pořád budí kolem třetí hodiny ranní."
+  },
+  {
+   "who": "therapist",
+   "text": "Hlavním tématem byl vztah s partnerem Tomášem. Partner Tomáš si přeje dítě, klientka si není jistá a bojí se, že by byla špatná matka. Otázku jsme neuzavřeli, je to pro ni zatím příliš těžké téma."
+  },
+  {
+   "who": "therapist",
+   "text": "Pozitivně hodnotím, že se klientka po třech letech vrátila k plavání. Doporučil jsem večerní rutinu, vypnout obrazovky hodinu před spaním a nepít kávu po čtrnácté hodině."
+  },
+  {
+   "who": "therapist",
+   "text": "Klientka odmítla léky na spaní, nechce tablety. Respektuji to a nebudu to tlačit."
+  },
+  {
+   "who": "therapist",
+   "text": "Rizikové faktory: žádné známky sebepoškozování, klientka to výslovně popřela. Bez myšlenek na ublížení sobě."
+  },
+  {
+   "who": "therapist",
+   "text": "Další sezení jsme domluvili na sedmého dubna ve čtrnáct hodin. Do té doby ať si klientka vede deník spánku."
+  },
+  {
+   "who": "therapist",
+   "text": "Plán pro příště: probrat strach z mateřství a případně pozvat partnera na jedno společné sezení, pokud s tím klientka bude souhlasit."
+  },
+  {
+   "who": "therapist",
+   "text": "Konec poznámky."
+  }
+ ],
+ "facts": [
+  {
+   "id": "eva-s_s03.f1",
+   "heading": "Terapeut: spánek se nelepší",
+   "said": "Spánek se nelepší, klientka se pořád budí kolem třetí hodiny ranní.",
+   "who": "therapist",
+   "turn": 1,
+   "repeat_of": null
+  },
+  {
+   "id": "eva-s_s03.f2",
+   "heading": "Tomáš chce dítě",
+   "said": "Partner Tomáš si přeje dítě, klientka si není jistá a bojí se, že by byla špatná matka.",
+   "who": "therapist",
+   "turn": 2,
+   "repeat_of": "eva-s_s02.f2"
+  },
+  {
+   "id": "eva-s_s03.f3",
+   "heading": "Doporučena večerní rutina",
+   "said": "Doporučil jsem večerní rutinu, vypnout obrazovky hodinu před spaním a nepít kávu po čtrnácté hodině.",
+   "who": "therapist",
+   "turn": 3,
+   "repeat_of": null
+  },
+  {
+   "id": "eva-s_s03.f4",
+   "heading": "Příští sezení sedmého dubna",
+   "said": "Další sezení jsme domluvili na sedmého dubna ve čtrnáct hodin.",
+   "who": "therapist",
+   "turn": 6,
+   "repeat_of": null
+  }
+ ]
+}

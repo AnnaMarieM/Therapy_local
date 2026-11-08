@@ -1,0 +1,190 @@
+{
+ "id": "eva-s_s02",
+ "tag": "cs-noisy-far",
+ "what": "Czech, patient quiet and far (gain down, reverb), background noise at about 12 dB SNR",
+ "lang": "cs",
+ "client": "eva-s",
+ "client_name": "Eva S.",
+ "date": "2026-03-24",
+ "voices": {
+  "therapist": "cs-CZ-AntoninNeural",
+  "patient": "cs-CZ-VlastaNeural"
+ },
+ "fx": {
+  "patient.gain_db": "-13",
+  "patient.reverb_rt60": "0.5",
+  "patient.reverb_mix": "0.45",
+  "noise_snr_db": "12"
+ },
+ "expect": {
+  "speakers": 2,
+  "roles": {
+   "therapist": "therapist",
+   "patient": "patient"
+  }
+ },
+ "turns": [
+  {
+   "who": "therapist",
+   "text": "Dobrý den, paní Svobodová. Posaďte se, prosím. Minule jsme se domluvili, že se zaměříme na spánek. Jak jste na tom?"
+  },
+  {
+   "who": "patient",
+   "text": "Dobrý den. Pořád špatně. Pořád se budím každou noc ve tři ráno a pak už jen koukám do stropu. Zkoušela jsem si pustit rádio, ale nepomohlo to."
+  },
+  {
+   "who": "therapist",
+   "text": "Co se vám v tu chvíli honí hlavou?"
+  },
+  {
+   "who": "patient",
+   "text": "Práce. Rozzlobení zákazníci. Že jsem něco řekla špatně. A pak Tomáš, jak jsme se pohádali."
+  },
+  {
+   "who": "therapist",
+   "text": "Co se mezi vámi stalo?"
+  },
+  {
+   "who": "patient",
+   "text": "Tomáš by chtěl dítě, říká, že mu je třicet osm a že čas běží, a já si nejsem jistá. Řekla jsem mu, že nejsem připravená. Dva dny se mnou nemluvil."
+  },
+  {
+   "who": "therapist",
+   "text": "A co byste chtěla vy?"
+  },
+  {
+   "who": "patient",
+   "text": "To nevím. Bojím se, že bych byla špatná máma. Moje máma byla celý život sama a vždycky byla unavená a podrážděná. Nechci takhle skončit."
+  },
+  {
+   "who": "therapist",
+   "text": "To je velmi lidský strach. Kdo by vám mohl pomoct se rozhodnout?"
+  },
+  {
+   "who": "patient",
+   "text": "Možná kamarádka Dana. Dana je moje kamarádka ještě z plaveckého kroužku a pracuje jako porodní asistentka v Motole. Ta by mi řekla pravdu."
+  },
+  {
+   "who": "therapist",
+   "text": "A mluvila jste s ní o tom?"
+  },
+  {
+   "who": "patient",
+   "text": "Ještě ne. Ale mám jí napsat. Tuhle sobotu se sejdeme na kávě."
+  },
+  {
+   "who": "therapist",
+   "text": "A co vaše kouření? Minule jste říkala o krabičce denně."
+  },
+  {
+   "who": "patient",
+   "text": "Od pondělí kouřím jenom půlku krabičky, snažím se to omezit. Ale není to snadné."
+  },
+  {
+   "who": "therapist",
+   "text": "To je krok správným směrem. Něco dalšího?"
+  },
+  {
+   "who": "patient",
+   "text": "Šla jsem v neděli zase plavat. Poprvé po třech letech jsem se šla do bazénu a zvládla jsem dvacet bazénů. Byla jsem pak celý den unavená, ale dobře."
+  },
+  {
+   "who": "therapist",
+   "text": "Tak to je moc hezké."
+  },
+  {
+   "who": "patient",
+   "text": "Ano. Pomohlo mi to usnout. Aspoň do jedné v noci. A potom už zase to buzení."
+  },
+  {
+   "who": "therapist",
+   "text": "Zkusíme dnes pár technik na uvolnění. Máte doma nějaké místo, kde se cítíte bezpečně?"
+  },
+  {
+   "who": "patient",
+   "text": "U kočky na gauči. Když mám úzkost, vezmu si na klín Žofii, ona přijde, začne příst a to mě uklidní. Mourek je spíš samostatný."
+  },
+  {
+   "who": "therapist",
+   "text": "Výborně, to je skvělý začátek. Zkuste při tom hlasitě vydechovat, pomalu, delší výdech než nádech."
+  },
+  {
+   "who": "patient",
+   "text": "Jako při plavání."
+  },
+  {
+   "who": "therapist",
+   "text": "Přesně tak."
+  },
+  {
+   "who": "patient",
+   "text": "Budu to zkoušet. A ještě jsem chtěla říct, že nepůjdu na lékaře kvůli tabletkám na spaní, nechci to brát."
+  },
+  {
+   "who": "therapist",
+   "text": "Rozumím. Proto bychom měli pracovat na večerní rutině. Vypnout obrazovky hodinu před spaním, nepít kávu po čtrnácté hodině."
+  },
+  {
+   "who": "patient",
+   "text": "To bude těžké, ale zkusím to."
+  },
+  {
+   "who": "therapist",
+   "text": "Vidíme se za dva týdny. Přijďte, i když se budete cítit lépe."
+  },
+  {
+   "who": "patient",
+   "text": "Děkuji. Na shledanou."
+  }
+ ],
+ "facts": [
+  {
+   "id": "eva-s_s02.f1",
+   "heading": "Pořád se budí ve tři",
+   "said": "Pořád se budím každou noc ve tři ráno a pak už jen koukám do stropu.",
+   "who": "patient",
+   "turn": 1,
+   "repeat_of": "eva-s_s01.f1"
+  },
+  {
+   "id": "eva-s_s02.f2",
+   "heading": "Tomáš chce dítě",
+   "said": "Tomáš by chtěl dítě, říká, že mu je třicet osm a že čas běží, a já si nejsem jistá.",
+   "who": "patient",
+   "turn": 5,
+   "repeat_of": null
+  },
+  {
+   "id": "eva-s_s02.f3",
+   "heading": "Kamarádka Dana z plavání",
+   "said": "Dana je moje kamarádka ještě z plaveckého kroužku a pracuje jako porodní asistentka v Motole.",
+   "who": "patient",
+   "turn": 9,
+   "repeat_of": null
+  },
+  {
+   "id": "eva-s_s02.f4",
+   "heading": "Omezila kouření",
+   "said": "Od pondělí kouřím jenom půlku krabičky, snažím se to omezit.",
+   "who": "patient",
+   "turn": 13,
+   "repeat_of": "eva-s_s01.f4"
+  },
+  {
+   "id": "eva-s_s02.f5",
+   "heading": "Šla plavat po třech letech",
+   "said": "Poprvé po třech letech jsem se šla do bazénu a zvládla jsem dvacet bazénů.",
+   "who": "patient",
+   "turn": 15,
+   "repeat_of": "eva-s_s01.f8"
+  },
+  {
+   "id": "eva-s_s02.f6",
+   "heading": "Kočka Žofie ji uklidňuje",
+   "said": "Když mám úzkost, vezmu si na klín Žofii, ona přijde, začne příst a to mě uklidní.",
+   "who": "patient",
+   "turn": 19,
+   "repeat_of": null
+  }
+ ]
+}

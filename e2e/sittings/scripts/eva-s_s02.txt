@@ -1,0 +1,39 @@
+# Noisy and far: the patient is quieter (about -13 dB), further away (room reverb), and there is background noise at a modest SNR.
+id: eva-s_s02
+tag: cs-noisy-far
+what: Czech, patient quiet and far (gain down, reverb), background noise at about 12 dB SNR
+lang: cs
+client: eva-s | Eva S.
+date: 2026-03-24
+voice: therapist=cs-CZ-AntoninNeural patient=cs-CZ-VlastaNeural
+fx: patient.gain_db=-13 patient.reverb_rt60=0.5 patient.reverb_mix=0.45 noise_snr_db=12
+expect: therapist=therapist patient=patient
+---
+T: Dobrý den, paní Svobodová. Posaďte se, prosím. Minule jsme se domluvili, že se zaměříme na spánek. Jak jste na tom?
+P: Dobrý den. Pořád špatně. [[f1=eva-s_s01.f1|Pořád se budí ve tři|Pořád se budím každou noc ve tři ráno a pak už jen koukám do stropu.]] Zkoušela jsem si pustit rádio, ale nepomohlo to.
+T: Co se vám v tu chvíli honí hlavou?
+P: Práce. Rozzlobení zákazníci. Že jsem něco řekla špatně. A pak Tomáš, jak jsme se pohádali.
+T: Co se mezi vámi stalo?
+P: [[f2|Tomáš chce dítě|Tomáš by chtěl dítě, říká, že mu je třicet osm a že čas běží, a já si nejsem jistá.]] Řekla jsem mu, že nejsem připravená. Dva dny se mnou nemluvil.
+T: A co byste chtěla vy?
+P: To nevím. Bojím se, že bych byla špatná máma. Moje máma byla celý život sama a vždycky byla unavená a podrážděná. Nechci takhle skončit.
+T: To je velmi lidský strach. Kdo by vám mohl pomoct se rozhodnout?
+P: Možná kamarádka Dana. [[f3|Kamarádka Dana z plavání|Dana je moje kamarádka ještě z plaveckého kroužku a pracuje jako porodní asistentka v Motole.]] Ta by mi řekla pravdu.
+T: A mluvila jste s ní o tom?
+P: Ještě ne. Ale mám jí napsat. Tuhle sobotu se sejdeme na kávě.
+T: A co vaše kouření? Minule jste říkala o krabičce denně.
+P: [[f4=eva-s_s01.f4|Omezila kouření|Od pondělí kouřím jenom půlku krabičky, snažím se to omezit.]] Ale není to snadné.
+T: To je krok správným směrem. Něco dalšího?
+P: Šla jsem v neděli zase plavat. [[f5=eva-s_s01.f8|Šla plavat po třech letech|Poprvé po třech letech jsem se šla do bazénu a zvládla jsem dvacet bazénů.]] Byla jsem pak celý den unavená, ale dobře.
+T: Tak to je moc hezké.
+P: Ano. Pomohlo mi to usnout. Aspoň do jedné v noci. A potom už zase to buzení.
+T: Zkusíme dnes pár technik na uvolnění. Máte doma nějaké místo, kde se cítíte bezpečně?
+P: U kočky na gauči. [[f6|Kočka Žofie ji uklidňuje|Když mám úzkost, vezmu si na klín Žofii, ona přijde, začne příst a to mě uklidní.]] Mourek je spíš samostatný.
+T: Výborně, to je skvělý začátek. Zkuste při tom hlasitě vydechovat, pomalu, delší výdech než nádech.
+P: Jako při plavání.
+T: Přesně tak.
+P: Budu to zkoušet. A ještě jsem chtěla říct, že nepůjdu na lékaře kvůli tabletkám na spaní, nechci to brát.
+T: Rozumím. Proto bychom měli pracovat na večerní rutině. Vypnout obrazovky hodinu před spaním, nepít kávu po čtrnácté hodině.
+P: To bude těžké, ale zkusím to.
+T: Vidíme se za dva týdny. Přijďte, i když se budete cítit lépe.
+P: Děkuji. Na shledanou.
