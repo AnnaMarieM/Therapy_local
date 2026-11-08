@@ -45,7 +45,14 @@ object ModelSetup {
      * Distinct specs the app needs: embeddings, Canary (one multilingual model serves every client language), the speaker-diarization pair
      * (docs/AD/AD-06.md) and the memory model.
      */
-    fun required(context: Context): List<ModelSpec> = listOf(ModelRegistry.EMBED, ModelRegistry.CANARY_1B_V2, ModelRegistry.DIARIZATION, gemma(context))
+    fun required(context: Context): List<ModelSpec> = essential(context) + ModelRegistry.DIARIZATION
+
+    /**
+     * What the app cannot work without: [required] minus the speaker-diarization pair. That one is downloaded like the others, but sessions do
+     * not wait for it ([isReady] ignores it): an install from before it existed keeps processing its queue on the chunk path (docs/AD/AD-06.md,
+     * `diarization_skipped reason=model_missing`) and gets the model in the background.
+     */
+    fun essential(context: Context): List<ModelSpec> = listOf(ModelRegistry.EMBED, ModelRegistry.CANARY_1B_V2, gemma(context))
 
     fun gemmaVariant(context: Context): GemmaVariant = ModelChoice.resolve(prefs(context).getString(ModelChoice.PREF, null))
 
@@ -81,7 +88,7 @@ object ModelSetup {
 
     private fun prefs(context: Context) = context.applicationContext.getSharedPreferences("settings", Context.MODE_PRIVATE)
 
-    fun isReady(context: Context): Boolean = com.therapylocal.app.engine.LabWiring.ready(required(context).all { it.isReady(context) })
+    fun isReady(context: Context): Boolean = com.therapylocal.app.engine.LabWiring.ready(essential(context).all { it.isReady(context) })
 
     fun start(context: Context) {
         val app = context.applicationContext
@@ -89,6 +96,8 @@ object ModelSetup {
         scope.launch {
             if (isReady(app)) {
                 _progress.value = SetupProgress(SetupState.Ready, totalBytes(app), totalBytes(app))
+                // An install from before the diarization pair: it is fetched in the background and the app stays usable meanwhile.
+                if (!ModelRegistry.DIARIZATION.isReady(app)) enqueue(app, ExistingWorkPolicy.KEEP)
                 return@launch
             }
             enqueue(app, ExistingWorkPolicy.KEEP)

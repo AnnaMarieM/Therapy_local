@@ -6,7 +6,10 @@ import com.therapylocal.app.data.JobStatus
 /**
  * The job graph of a session, and the one place that adds its jobs to the queue:
  *
- *   transcribe(recording) -> window(session) -> extract(session, 1..n) -> commit(session) -> cleanup(recording)
+ *   transcribe(recording) -> roles(session) -> window(session) -> extract(session, 1..n) -> commit(session) -> cleanup(recording)
+ *
+ * [ROLES] guesses who is the therapist once the speakers are known. A queue written before it existed holds transcribe -> window without it: those
+ * sessions are processed as before and get no role guess.
  *
  * The extracts and later jobs are only known once [WINDOW] has cut the transcript, so it adds them ([expand]). A client's sessions are
  * committed in order of their start (D4): commit(S) waits for every unfinished job but cleanup of the session before S, a session windowed
@@ -15,6 +18,7 @@ import com.therapylocal.app.data.JobStatus
  */
 object JobGraph {
     const val TRANSCRIBE = "transcribe"
+    const val ROLES = "roles"
     const val WINDOW = "window"
     const val EXTRACT = "extract"
     const val COMMIT = "commit"
@@ -23,7 +27,8 @@ object JobGraph {
     /** After a recording has stopped and every chunk is saved. Returns the window job. */
     fun enqueueRecording(queue: JobQueue, session: String, recording: Long): Long {
         val transcribe = queue.enqueue(TRANSCRIBE, session, recording)
-        return queue.enqueue(WINDOW, session, recording, dependsOn = listOf(transcribe))
+        val roles = queue.enqueue(ROLES, session, recording, dependsOn = listOf(transcribe))
+        return queue.enqueue(WINDOW, session, recording, dependsOn = listOf(roles))
     }
 
     /** A session whose segments are already stored (the developer harness imports text transcripts): no audio, no cleanup. */

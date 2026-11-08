@@ -50,6 +50,8 @@ Values with spaces or `=` are double-quoted.
 | `chunk_pipeline` | App | the whole chunk: embed audio, transcribe, embed transcript, store |
 | `search`, `search_scan` | Search/App | `kind` (text or voice), `embed_ms`, `scan_ms`, `rows_scanned`, `top` as `rid.idx:score` (audio vector) and `alt` (transcript text vector, for comparison) |
 | `search_collapse` | Search | `raw_hits`, `relevant` (within `SearchConfig.SCORE_MARGIN` of the best), `groups`, `merged` (adjacent chunks merged) |
+| `diarization_skipped` | Diarize | TRANSCRIBE took the chunk path (docs/AD/AD-06.md); the job still succeeds. `reason`: `model_missing` (the diarization files are not on the phone yet), `failed` (the load or the call threw; `type` is the exception class, no message), `too_long` (over `SpeakerDiarizer.MAX_SAMPLES`, two hours) or `one_speaker` (fewer than two speakers found, [AD-07](AD/AD-07.md)). Counts and reasons only |
+| `roles_done` | Jobs | the ROLES job stored a speaker map: `source` (`llm` or `fallback`), `version`, `speakers`, `attempts`, `confidence`, `evidence` (a count), `model`, `prompt_version` (`MemoryConfig.ROLES_PROMPT_VERSION`) and `prompt_hash`. `roles_attempt_failed` is an LLM call that threw. Never the transcript or the quotes |
 | `transcript_merge` | App | `removed_words` per chunk: how many words of each 5 s overlap were dropped when showing the whole recording |
 | `db_delete_recording`, `db_delete_all` | DB | rows removed and rows left |
 | `delete_verified`, `delete_all_verified` | App | counts read back after a delete: `remaining_recordings`, `remaining_chunks`, `audio_files_on_disk` (no audio is ever stored) |

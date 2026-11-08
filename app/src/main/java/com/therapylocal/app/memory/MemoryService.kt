@@ -87,6 +87,7 @@ class MemoryService : Service() {
                     MindStore.get(app), queue, { MemoryFiles.prompt(app, it) }, { PendingAudio.indices(app, it) }, { r, i -> PendingAudio.load(app, r, i) },
                     { rid, session -> PendingAudio.retain(app, rid, session); DebugAudio.export(app, session, rid) },
                     promptLanguage = { clientLanguage -> PromptLanguage.choose(LocaleStore.current(app).tag, clientLanguage) },
+                    diarizationReady = { com.therapylocal.app.models.ModelRegistry.DIARIZATION.isReady(app) },
                 )
                 PerfStats.init(app)
                 // The live-cue embedder (GPU, with its audio encoder) must not stay loaded beside the LLM and the speech model.

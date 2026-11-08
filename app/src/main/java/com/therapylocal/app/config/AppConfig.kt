@@ -140,6 +140,24 @@ object MemoryConfig {
     const val REVIEW_TEMPERATURE = 0.1
     const val REVIEW_TOP_K = 1
 
+    /**
+     * How many speakers the diarizer is told to find in a recording (docs/AD/AD-07.md). 0 lets its clustering threshold decide, so a couple's or
+     * family session keeps its three voices and a one-voice recording is reported as such; 2 would force two speakers. Changing it needs a new decision.
+     */
+    const val DIARIZE_SPEAKERS_HINT = 0
+
+    /** A diarizer host that dies this many times under one recording's transcribe job stops being retried: the job takes the chunk path. */
+    const val DIARIZE_DEATHS_BEFORE_FALLBACK = 2
+
+    /** The role guess (job ROLES) reads the start of the transcript and answers with a small JSON object. */
+    const val ROLES_INPUT_TOKENS = 4000
+    const val ROLES_MAX_OUTPUT_TOKENS = 250
+    const val ROLES_TEMPERATURE = 0.1
+    const val ROLES_TOP_K = 1
+
+    /** Changes with the meaning of the role prompt or its schema; logged with the model id next to the prompt's text hash. */
+    const val ROLES_PROMPT_VERSION = 1
+
     /** Known facts shown to the duplicate review. */
     const val NEIGHBOURS = 10
 
