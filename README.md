@@ -92,6 +92,8 @@ Mnemothera utilizes open-weight, edge-optimized models licensed for permissive r
 | **Whisper (via sherpa-onnx)** | Alternative on-device speech-to-text engine | OpenAI / k2-fsa | [Apache 2.0](https://github.com/k2-fsa/sherpa-onnx/blob/master/LICENSE) / [MIT](https://github.com/openai/whisper/blob/main/LICENSE) |
 | **EmbeddingGemma 2 (740M)** | On-device text and audio semantic embeddings | Google | [Gemma Terms of Use](https://ai.google.dev/gemma/terms) / Apache 2.0 |
 | **Gemma 4 E2B / LiteRT-LM** | On-device local language compression and transcript extraction | Google LiteRT | [Gemma Terms of Use](https://ai.google.dev/gemma/terms) |
+| **pyannote segmentation-3.0 (via sherpa-onnx)** | On-device speaker diarization, step 1: who speaks when | pyannote / k2-fsa (ONNX conversion) | [MIT](https://github.com/pyannote/pyannote-audio/blob/develop/LICENSE) |
+| **WeSpeaker ResNet34 (VoxCeleb, via sherpa-onnx)** | On-device speaker diarization, step 2: speaker voice embeddings that are clustered into speakers | WeSpeaker / k2-fsa | [Apache 2.0](https://github.com/wenet-e2e/wespeaker/blob/master/LICENSE) |
 
 No proprietary or paid cloud APIs are used.
 

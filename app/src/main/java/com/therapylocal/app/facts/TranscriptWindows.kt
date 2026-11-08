@@ -35,7 +35,10 @@ object TranscriptWindows {
     /** Window sizes are given in (estimated) tokens: the model's tokenizer is not reachable from here, so words are converted at [TOKENS_PER_WORD]. */
     fun wordsFor(tokens: Int): Int = (tokens / TOKENS_PER_WORD).toInt()
 
-    /** "Therapist: hello" lines become "hello": real transcripts from the recorder carry no speaker labels. */
+    /**
+     * "Therapist: hello" lines become "hello". Stored utterances carry their speaker in a column, not in the text, and windows still get plain
+     * text in PR 1 (speaker-aware extraction comes later), so this only cleans hand-written or imported transcripts that have labels in the text.
+     */
     fun stripSpeakerLabels(text: String): String =
         text.lines().joinToString("\n") { it.replace(Regex("^\\s*\\**[A-Z][A-Za-z.]*\\**:\\**\\s*"), "") }
 }

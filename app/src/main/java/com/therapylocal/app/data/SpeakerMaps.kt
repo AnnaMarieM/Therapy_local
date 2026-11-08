@@ -26,4 +26,18 @@ object SpeakerMaps {
     /** Therapist and patient trade places, everything else stays; the map is returned unchanged when [canSwap] is false. */
     fun swap(map: Map<String, Role>): Map<String, Role> =
         if (!canSwap(map)) map else map.mapValues { (_, r) -> when (r) { Role.THERAPIST -> Role.PATIENT; Role.PATIENT -> Role.THERAPIST; else -> r } }
+
+    /** Source of a map the person made by swapping, with full confidence. */
+    const val SOURCE_USER = "user"
+
+    /**
+     * The "Is this incorrect?" swap: appends the swapped [current] map as the next version (source [SOURCE_USER], confidence 1.0, no evidence: the
+     * quotes belonged to the old guess) through [append] and returns its version. Null, and nothing appended, when there is no map or it cannot
+     * be swapped. History stays: the earlier versions are never changed.
+     */
+    fun appendSwap(current: SpeakerMapRow?, append: (mapJson: String, source: String, confidence: Double, evidenceJson: String) -> Int): Int? {
+        val map = current?.let { decode(it.mapJson) } ?: return null
+        if (!canSwap(map)) return null
+        return append(encode(swap(map)), SOURCE_USER, 1.0, "[]")
+    }
 }
