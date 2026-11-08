@@ -373,6 +373,7 @@ class EngineConnection(
         }
         is EngineOp.EmbedText, is EngineOp.EmbedAudio -> tuning.embedTimeoutMs
         is EngineOp.Transcribe -> tuning.transcribeTimeoutMs
+        is EngineOp.Diarize -> tuning.diarizeTimeoutMs
         is EngineOp.Close -> tuning.closeTimeoutMs
         else -> null
     }
@@ -926,6 +927,7 @@ class EngineConnection(
         is EngineOp.EmbedText -> handle
         is EngineOp.EmbedAudio -> handle
         is EngineOp.Transcribe -> handle
+        is EngineOp.Diarize -> handle
         is EngineOp.Close -> handle
         else -> null
     }
@@ -935,6 +937,7 @@ class EngineConnection(
         is EngineOp.EmbedText -> copy(handle = h)
         is EngineOp.EmbedAudio -> copy(handle = h)
         is EngineOp.Transcribe -> copy(handle = h)
+        is EngineOp.Diarize -> copy(handle = h)
         is EngineOp.Close -> copy(handle = h)
         else -> this
     }

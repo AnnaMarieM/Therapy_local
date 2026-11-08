@@ -220,4 +220,6 @@ data class EngineTuning(
     val backoffMs: List<Long> = listOf(0, 500, 1000, 2000, 4000), val backoffCapMs: Long = 10_000,
     val stormDeaths: Int = 6, val stormWindowMs: Long = 120_000, val stableMs: Long = 60_000,
     val idleMs: Long = 120_000, val liveShutdownMs: Long = 5_000, val statusTimeoutMs: Long = 1_000,
+    /** A whole recording at once (an hour on the CPU is minutes); the watchdog also needs no CPU progress, and kills at 3 times this. */
+    val diarizeTimeoutMs: Long = 600_000,
 )
