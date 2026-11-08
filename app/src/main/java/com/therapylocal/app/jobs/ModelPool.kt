@@ -1,12 +1,14 @@
 package com.therapylocal.app.jobs
 
+import com.therapylocal.app.asr.Diarizer
+
 /** Thrown when the Gemma build was switched in the settings during a job, before the job loaded it: the job goes back to pending. */
 class ModelSwitched : Exception()
 
 /**
  * The models the handlers use, each loaded on first use. The loaders are given by the app (see [com.therapylocal.app.memory.DeviceModels]) or by a test.
  *
- * **One model resident at a time.** The LLM, the embedder and the speech recogniser are never in memory together: loading one first unloads
+ * **One model resident at a time.** The LLM, the embedder, the speech recogniser and the speaker diarizer (docs/AD/AD-06.md) are never in memory together: loading one first unloads
  * the others. Between jobs [refresh] also drops what the next job does not use, so a model stays loaded across consecutive jobs that use it.
  *
  * **Text only.** The LLM never gets audio: speech recognition has its own model (Canary, see docs/AD/AD-02.md).
@@ -20,6 +22,9 @@ class ModelSwitched : Exception()
  *
  * **Healthy or reloaded.** A loaded model is handed out again only while it is [Llm.healthy] ([Embed.healthy], [Asr.healthy]); otherwise
  * it is closed and loaded again, which goes to the next backend.
+ *
+ * **Diarization is a whole-recording call.** The diarizer holds the PCM of a session as float in `:batch` while it runs (230 MB for an hour), so
+ * it is unloaded as soon as the LLM, the embedder or Canary is asked for, and a transcribe job that needs both gets them one after the other.
  */
 class ModelPool(
     /** Loads the text LLM with `context` tokens. */
@@ -33,12 +38,15 @@ class ModelPool(
     private val contextNeeded: () -> Int = { 0 },
     /** The context the LLM is loaded with at least. */
     private val baseContext: Int = 0,
+    /** Loads the speaker diarizer. */
+    private val loadDiarizer: () -> Diarizer = { throw IllegalStateException("no diarizer configured") },
 ) : AutoCloseable {
     private val chosenLlm = llmModel
     private var llm: Llm? = null
     private var embed: Embed? = null
     private var asr: Asr? = null
     private var asrLanguage: String? = null
+    private var diarizer: Diarizer? = null
     private var current: String? = null
     private var needed = baseContext
 
@@ -51,6 +59,7 @@ class ModelPool(
         closeLlm()
         closeEmbed()
         closeAsr()
+        closeDiarizer()
         val model = llmModel()
         if (chosenLlm() != model) throw ModelSwitched()
         val loaded = loadLlm(maxOf(needed, baseContext))
@@ -66,6 +75,7 @@ class ModelPool(
         closeEmbed()
         closeAsr()
         closeLlm()
+        closeDiarizer()
         return loadEmbed().also { embed = it }
     }
 
@@ -75,7 +85,18 @@ class ModelPool(
         closeAsr()
         closeEmbed()
         closeLlm()
+        closeDiarizer()
         return loadAsr(language).also { asr = it; asrLanguage = language }
+    }
+
+    /** The speaker diarizer. Loading it unloads the others, as every other model does. */
+    fun diarizer(): Diarizer {
+        diarizer?.takeIf { it.healthy }?.let { return it }
+        closeDiarizer()
+        closeAsr()
+        closeEmbed()
+        closeLlm()
+        return loadDiarizer().also { diarizer = it }
     }
 
     /**
@@ -96,6 +117,7 @@ class ModelPool(
     /** Unloads the models [needs] does not list, and an LLM whose context the open work outgrew. */
     private fun trim(needs: Needs) {
         if (!needs.asr) closeAsr()
+        if (!needs.diarize) closeDiarizer()
         if (!needs.embed) closeEmbed()
         val loaded = llm ?: return
         if (!(loaded.healthy && needs.llm && loaded.contextTokens >= needed)) closeLlm()
@@ -114,6 +136,12 @@ class ModelPool(
         e?.close()
     }
 
+    private fun closeDiarizer() {
+        val d = diarizer
+        diarizer = null
+        d?.close()
+    }
+
     private fun closeAsr() {
         val a = asr
         asr = null
@@ -122,10 +150,10 @@ class ModelPool(
     }
 
     /** Which models a kind of job uses; null for a kind that is not part of the session pipeline (nothing is unloaded then). */
-    private class Needs(val asr: Boolean = false, val embed: Boolean = false, val llm: Boolean = false) {
+    private class Needs(val asr: Boolean = false, val embed: Boolean = false, val llm: Boolean = false, val diarize: Boolean = false) {
         companion object {
             fun of(kind: String): Needs? = when (kind) {
-                JobGraph.TRANSCRIBE -> Needs(asr = true)
+                JobGraph.TRANSCRIBE -> Needs(asr = true, diarize = true)
                 JobGraph.WINDOW -> Needs(embed = true)
                 JobGraph.EXTRACT -> Needs(llm = true)
                 JobGraph.COMMIT -> Needs(embed = true, llm = true)
@@ -136,6 +164,7 @@ class ModelPool(
     }
 
     override fun close() {
+        closeDiarizer()
         closeAsr()
         closeEmbed()
         closeLlm()

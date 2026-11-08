@@ -1,6 +1,8 @@
 package com.therapylocal.app.memory
 
 import android.content.Context
+import com.therapylocal.app.asr.Diarizer
+import com.therapylocal.app.asr.SpeakerDiarizer
 import com.therapylocal.app.asr.SpeechRecogniser
 import com.therapylocal.app.config.EmbeddingConfig
 import com.therapylocal.app.config.MemoryConfig
@@ -24,7 +26,20 @@ object DeviceModels {
         llmModel = { LabWiring.spec(ModelSetup.gemma(context)).id },
         contextNeeded = contextNeeded,
         baseContext = MemoryConfig.LLM_MAX_TOKENS,
+        loadDiarizer = { diarizer(context) },
     )
+
+    /** Speaker diarization (docs/AD/AD-06.md), loaded in the `:batch` host. */
+    private fun diarizer(context: Context): Diarizer {
+        val d = SpeakerDiarizer(context)
+        try {
+            runBlocking { d.load() }
+        } catch (t: Throwable) {
+            d.close()
+            throw t
+        }
+        return d
+    }
 
     /** Canary, the only speech recogniser (docs/AD/AD-02.md), for the client's [language]. */
     private fun asr(context: Context, language: String): Asr {
