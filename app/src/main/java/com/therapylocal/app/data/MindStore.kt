@@ -21,7 +21,14 @@ data class RecordingRow(val id: Long, val sessionId: String?, val startedAt: Lon
 /** Raw speech-recognition output of one chunk; [text] is null until it has been transcribed. It shares [overlapMs] with the previous chunk. */
 data class ChunkRow(val recordingId: Long, val idx: Int, val startMs: Long, val endMs: Long, val overlapMs: Long, val text: String?)
 
-data class SegmentRow(val idx: Int, val startMs: Long, val endMs: Long, val text: String)
+/** One utterance. [speaker] is the raw diarization id ("S0", "S1", ...); null when the recording was not diarized (or is older than diarization). */
+data class SegmentRow(val idx: Int, val startMs: Long, val endMs: Long, val text: String, val speaker: String? = null)
+
+/** One stretch of one speaker found by diarization, kept until it is transcribed; [text] is null until then. */
+data class TurnRow(val idx: Int, val startMs: Long, val endMs: Long, val speaker: String, val text: String? = null)
+
+/** One version of the speaker-to-role map of a session ([mapJson] as written by SpeakerMaps); [source] is "llm", "user" or "fallback". */
+data class SpeakerMapRow(val sessionId: String, val version: Int, val mapJson: String, val source: String, val confidence: Double, val evidenceJson: String, val createdAt: Long)
 
 /** An embedded stretch of transcript covering segments [segFrom]..[segTo]. */
 data class WindowRow(val idx: Int, val segFrom: Int, val segTo: Int, val text: String, val embedding: FloatArray, val embedModel: String)
@@ -116,6 +123,11 @@ class MindStore(context: Context, name: String, password: ByteArray) :
             for ((id, first, last) in updates) {
                 db.execSQL("UPDATE clients SET first_name = ?, last_name = ? WHERE id = ?", arrayOf(first, last, id))
             }
+        }
+        if (oldVersion < 4) {
+            db.execSQL("ALTER TABLE segments ADD COLUMN speaker TEXT")
+            db.execSQL(DIARIZATION_TURNS_SQL)
+            db.execSQL(SPEAKER_MAPS_SQL)
         }
     }
 
@@ -239,7 +251,7 @@ class MindStore(context: Context, name: String, password: ByteArray) :
            FROM recordings r LEFT JOIN chunks c ON c.recording_id = r.id GROUP BY r.id ORDER BY r.id DESC""",
     ) { RecordingRow(it.getLong(0), it.getStringOrNull(1), it.getLong(2), it.getString(3), it.getString(4), it.getInt(5), it.getLong(6)) }
 
-    /** Its chunks cascade. */
+    /** Its chunks and diarization turns cascade. */
     fun deleteRecording(id: Long): Boolean = writableDatabase.delete("recordings", "id = ?", arrayOf(id.toString())) > 0
 
     /** Inserts or replaces the chunk with the same recording and index. */
@@ -259,25 +271,64 @@ class MindStore(context: Context, name: String, password: ByteArray) :
             ChunkRow(it.getLong(0), it.getInt(1), it.getLong(2), it.getLong(3), it.getLong(4), it.getStringOrNull(5))
         }
 
+    // ---- diarization turns and speaker maps ----------------------------------------------------------------------
+
+    /** Replaces all turns of [recordingId]; the recording must exist. */
+    fun replaceTurns(recordingId: Long, turns: List<TurnRow>) = tx { db ->
+        db.delete("diarization_turns", "recording_id = ?", arrayOf(recordingId.toString()))
+        for (t in turns) db.insertOrThrow("diarization_turns", null, ContentValues().apply {
+            put("recording_id", recordingId); put("idx", t.idx); put("start_ms", t.startMs); put("end_ms", t.endMs); put("speaker", t.speaker)
+            if (t.text != null) put("text", t.text)
+        })
+    }
+
+    fun turns(recordingId: Long): List<TurnRow> =
+        query("SELECT idx, start_ms, end_ms, speaker, text FROM diarization_turns WHERE recording_id = ? ORDER BY idx", recordingId.toString()) {
+            TurnRow(it.getInt(0), it.getLong(1), it.getLong(2), it.getString(3), it.getStringOrNull(4))
+        }
+
+    /** Stores the transcription of one turn; false when there is no such turn. */
+    fun setTurnText(recordingId: Long, idx: Int, text: String): Boolean =
+        writableDatabase.update("diarization_turns", ContentValues().apply { put("text", text) }, "recording_id = ? AND idx = ?", arrayOf(recordingId.toString(), idx.toString())) > 0
+
+    /** Appends the next version of the map of [session] (1 for the first) and returns it. Maps are never changed or deleted, so a swap keeps the history. */
+    fun appendSpeakerMap(session: String, mapJson: String, source: String, confidence: Double, evidenceJson: String = "[]"): Int = tx { db ->
+        val version = db.rawQuery("SELECT COALESCE(MAX(version), 0) + 1 FROM speaker_maps WHERE session_id = ?", arrayOf(session)).use { it.moveToFirst(); it.getInt(0) }
+        db.insertOrThrow("speaker_maps", null, ContentValues().apply {
+            put("session_id", session); put("version", version); put("map_json", mapJson); put("source", source); put("confidence", confidence)
+            put("evidence_json", evidenceJson); put("created_at", System.currentTimeMillis())
+        })
+        version
+    }
+
+    /** Oldest first. */
+    fun speakerMaps(session: String): List<SpeakerMapRow> =
+        query("SELECT session_id, version, map_json, source, confidence, evidence_json, created_at FROM speaker_maps WHERE session_id = ? ORDER BY version", session) {
+            SpeakerMapRow(it.getString(0), it.getInt(1), it.getString(2), it.getString(3), it.getDouble(4), it.getString(5), it.getLong(6))
+        }
+
+    /** The latest version, or null before roles were guessed. */
+    fun currentSpeakerMap(session: String): SpeakerMapRow? = speakerMaps(session).lastOrNull()
+
     // ---- segments and windows ------------------------------------------------------------------------------------
 
     fun replaceSegments(session: String, segments: List<SegmentRow>) = tx { db ->
         db.delete("segments", "session_id = ?", arrayOf(session))
         for (s in segments) {
-            db.insertOrThrow("segments", null, ContentValues().apply { put("session_id", session); put("idx", s.idx); put("start_ms", s.startMs); put("end_ms", s.endMs); put("text", s.text) })
+            db.insertOrThrow("segments", null, ContentValues().apply { put("session_id", session); put("idx", s.idx); put("start_ms", s.startMs); put("end_ms", s.endMs); put("text", s.text); if (s.speaker != null) put("speaker", s.speaker) })
         }
     }
 
     fun segments(session: String): List<SegmentRow> =
-        query("SELECT idx, start_ms, end_ms, text FROM segments WHERE session_id = ? ORDER BY idx", session) { SegmentRow(it.getInt(0), it.getLong(1), it.getLong(2), it.getString(3)) }
+        query("SELECT idx, start_ms, end_ms, text, speaker FROM segments WHERE session_id = ? ORDER BY idx", session) { SegmentRow(it.getInt(0), it.getLong(1), it.getLong(2), it.getString(3), it.getStringOrNull(4)) }
 
     /** How far the transcript of [session] reaches, 0 before it is transcribed. */
     fun transcriptLengthMs(session: String): Long = query("SELECT COALESCE(MAX(end_ms), 0) FROM segments WHERE session_id = ?", session) { it.getLong(0) }.first()
 
     /** Segments [seg] - [r] .. [seg] + [r] of [session], in order. */
     fun segmentsAround(session: String, seg: Int, r: Int): List<SegmentRow> =
-        query("SELECT idx, start_ms, end_ms, text FROM segments WHERE session_id = ? AND idx BETWEEN ? AND ? ORDER BY idx", session, (seg - r).toString(), (seg + r).toString()) {
-            SegmentRow(it.getInt(0), it.getLong(1), it.getLong(2), it.getString(3))
+        query("SELECT idx, start_ms, end_ms, text, speaker FROM segments WHERE session_id = ? AND idx BETWEEN ? AND ? ORDER BY idx", session, (seg - r).toString(), (seg + r).toString()) {
+            SegmentRow(it.getInt(0), it.getLong(1), it.getLong(2), it.getString(3), it.getStringOrNull(4))
         }
 
     fun replaceWindows(session: String, windows: List<WindowRow>) = tx { db ->
@@ -472,7 +523,26 @@ class MindStore(context: Context, name: String, password: ByteArray) :
         /** The two databases before this one. Their data is not migrated. */
         val LEGACY = listOf("recordings.db", "memory.db")
 
-        private const val VERSION = 3
+        private const val VERSION = 4
+
+        // Shared by onCreate and the version 4 upgrade. Both cascade: deleting a recording or a session removes them.
+        private const val DIARIZATION_TURNS_SQL = """CREATE TABLE diarization_turns(
+                 recording_id INTEGER NOT NULL REFERENCES recordings(id) ON DELETE CASCADE,
+                 idx INTEGER NOT NULL,
+                 start_ms INTEGER NOT NULL,
+                 end_ms INTEGER NOT NULL,
+                 speaker TEXT NOT NULL,
+                 text TEXT,
+                 PRIMARY KEY(recording_id, idx))"""
+        private const val SPEAKER_MAPS_SQL = """CREATE TABLE speaker_maps(
+                 session_id TEXT NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,
+                 version INTEGER NOT NULL,
+                 map_json TEXT NOT NULL,
+                 source TEXT NOT NULL,
+                 confidence REAL NOT NULL,
+                 evidence_json TEXT NOT NULL,
+                 created_at INTEGER NOT NULL,
+                 PRIMARY KEY(session_id, version))"""
 
         private const val FACT_COLUMNS =
             "SELECT f.id, f.client_id, f.session_id, f.heading, f.content, f.evidence, f.seg_idx, f.created_at, (SELECT COUNT(*) FROM mentions m WHERE m.fact_id = f.id)"
@@ -507,6 +577,7 @@ class MindStore(context: Context, name: String, password: ByteArray) :
                  start_ms INTEGER NOT NULL,
                  end_ms INTEGER NOT NULL,
                  text TEXT NOT NULL,
+                 speaker TEXT,
                  PRIMARY KEY(session_id, idx))""",
             """CREATE TABLE windows(
                  session_id TEXT NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,
@@ -569,6 +640,8 @@ class MindStore(context: Context, name: String, password: ByteArray) :
                  job_id INTEGER NOT NULL REFERENCES jobs(id) ON DELETE CASCADE,
                  depends_on INTEGER NOT NULL REFERENCES jobs(id) ON DELETE CASCADE,
                  PRIMARY KEY(job_id, depends_on))""",
+            DIARIZATION_TURNS_SQL,
+            SPEAKER_MAPS_SQL,
         )
 
         @SuppressLint("StaticFieldLeak") // built from the application context only
