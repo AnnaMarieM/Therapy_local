@@ -4,11 +4,11 @@ import com.therapylocal.app.config.MemoryConfig
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
-/** AD-07: the pipeline never forces a speaker count; a hint above 0 is the only way to fix one. */
+/** AD-07: the pipeline always asks for two speakers; a hint above 0 fixes the count, 0 would leave it to the threshold. */
 class DiarizeClusteringTest {
     @Test
-    fun theConfiguredHintLeavesTheCountToTheThreshold() {
-        assertEquals(0, MemoryConfig.DIARIZE_SPEAKERS_HINT)
+    fun theConfiguredHintForcesTwoSpeakers() {
+        assertEquals(2, MemoryConfig.DIARIZE_SPEAKERS_HINT)
     }
 
     @Test

@@ -141,10 +141,11 @@ object MemoryConfig {
     const val REVIEW_TOP_K = 1
 
     /**
-     * How many speakers the diarizer is told to find in a recording (docs/AD/AD-07.md). 0 lets its clustering threshold decide, so a couple's or
-     * family session keeps its three voices and a one-voice recording is reported as such; 2 would force two speakers. Changing it needs a new decision.
+     * How many speakers the diarizer is told to find in a recording (docs/AD/AD-07.md): always two, a therapist and a patient. The app does not
+     * record couples or family sessions, and a fixed count cannot split one voice into a spurious third speaker. A one-voice recording therefore
+     * gets two speakers too (accepted in AD-07). 0 would let the clustering threshold decide. Changing it needs a new decision.
      */
-    const val DIARIZE_SPEAKERS_HINT = 0
+    const val DIARIZE_SPEAKERS_HINT = 2
 
     /** A diarizer host that dies this many times under one recording's transcribe job stops being retried: the job takes the chunk path. */
     const val DIARIZE_DEATHS_BEFORE_FALLBACK = 2

@@ -80,7 +80,7 @@ class TranscribeFlowTest {
         val diarizer = FakeDiarizer { turns(Triple(0, 10, 0), Triple(10, 20, 1), Triple(20, 30, 0)) }
         val out = flow(store).run(rid, "s", "en", context(diarizer))
         assertEquals(TranscribeFlow.Outcome(true), out)
-        assertEquals(listOf(0), diarizer.hints) // AD-07: the threshold decides
+        assertEquals(listOf(2), diarizer.hints) // AD-07: always two speakers
         assertEquals(listOf("S0" to "t0", "S1" to "t10", "S0" to "t20"), store.segments.map { it.speaker to it.text })
         assertEquals(listOf(1, 2, 3), store.segments.map { it.idx })
         // The turns are cut from the chunks without their repeated overlap: the 10 s turn is 10 s of audio, not more.

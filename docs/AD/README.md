@@ -10,4 +10,4 @@ Each record is immutable once merged (see [`AGENTS.md`](../../AGENTS.md); CI job
 | [AD-04](AD-04.md) | Engine hosts exit quietly on a crash (native signal handler, Java crash halt); C via the NDK | 2026-11-06 22:20 CET | Martin Hajný (@hajnina) | Accepted |
 | [AD-05](AD-05.md) | One pinned look: bundled static fonts, pinned font scale, weight and density, explicit colours, deterministic breakpoints | 2026-11-06 23:40 CET | Martin Hajný (@hajnina) | Accepted |
 | [AD-06](AD-06.md) | Speaker diarization is a model role: pyannote segmentation plus a WeSpeaker embedding in `:batch`; diarize first, then transcribe per turn | 2026-11-08 23:54 CET | Martin Hajný (@hajnina) | Accepted |
-| [AD-07](AD-07.md) | The diarizer finds the number of speakers itself (threshold); it is never forced to two | 2026-11-08 23:52 CET | Martin Hajný (@hajnina) | Accepted |
+| [AD-07](AD-07.md) | The diarizer always looks for exactly two speakers (therapist and patient) | 2026-11-09 00:12 CET | Martin Hajný (@hajnina) | Accepted |
