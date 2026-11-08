@@ -38,6 +38,8 @@ data class NewFact(
     val embedding: FloatArray?,
     val llmModel: String,
     val promptVersion: String,
+    val scope: String = "profile",
+    val category: String = "",
 )
 
 data class NewMention(val factId: Long, val sessionId: String, val evidence: String, val segIdx: Int)
@@ -53,6 +55,8 @@ data class FactRow(
     val segIdx: Int,
     val createdAt: Long,
     val mentionCount: Int,
+    val scope: String = "profile",
+    val category: String = "",
 )
 
 /** Where a fact was said: its first occurrence ([first]) or a later mention. */
@@ -116,6 +120,10 @@ class MindStore(context: Context, name: String, password: ByteArray) :
             for ((id, first, last) in updates) {
                 db.execSQL("UPDATE clients SET first_name = ?, last_name = ? WHERE id = ?", arrayOf(first, last, id))
             }
+        }
+        if (oldVersion < 4) {
+            db.execSQL("ALTER TABLE facts ADD COLUMN scope TEXT NOT NULL DEFAULT 'profile'")
+            db.execSQL("ALTER TABLE facts ADD COLUMN category TEXT NOT NULL DEFAULT ''")
         }
     }
 
@@ -331,6 +339,7 @@ class MindStore(context: Context, name: String, password: ByteArray) :
             put("client_id", f.clientId); put("session_id", f.sessionId); put("heading", f.heading); put("content", f.content); put("evidence", f.evidence)
             put("seg_idx", f.segIdx); if (f.embedding != null) put("embedding", VectorMath.toBlob(f.embedding))
             put("llm_model", f.llmModel); put("prompt_version", f.promptVersion); put("created_at", System.currentTimeMillis())
+            put("scope", f.scope); put("category", f.category)
         },
     )
 
@@ -343,19 +352,25 @@ class MindStore(context: Context, name: String, password: ByteArray) :
     /** Oldest first. */
     fun facts(client: String): List<FactRow> = query("$FACT_COLUMNS FROM facts f WHERE f.client_id = ? ORDER BY f.created_at, f.id", client) { factOf(it) }
 
+    /** All facts of [client] that have an embedding, oldest first. */
+    fun factEmbeddings(client: String): List<Pair<FactRow, FloatArray>> =
+        query("$FACT_COLUMNS, f.embedding FROM facts f WHERE f.client_id = ? AND f.embedding IS NOT NULL ORDER BY f.created_at, f.id", client) {
+            factOf(it) to VectorMath.fromBlob(it.getBlob(11))
+        }
+
     /**
      * The [k] facts of [client] closest to [vec], best first. With [beforeSession], only facts first seen in sessions that started before it
      * (in [sessions] order), so a session is only ever compared with what was known when it took place.
      */
     fun nearestFacts(client: String, vec: FloatArray, k: Int, beforeSession: String? = null): List<Pair<FactRow, Float>> = VectorMath.topK(
         if (beforeSession == null) {
-            query("$FACT_COLUMNS, f.embedding FROM facts f WHERE f.client_id = ? AND f.embedding IS NOT NULL", client) { factOf(it) to VectorMath.fromBlob(it.getBlob(9)) }
+            query("$FACT_COLUMNS, f.embedding FROM facts f WHERE f.client_id = ? AND f.embedding IS NOT NULL", client) { factOf(it) to VectorMath.fromBlob(it.getBlob(11)) }
         } else {
             query(
                 """$FACT_COLUMNS, f.embedding FROM facts f JOIN sessions o ON o.id = f.session_id JOIN sessions b ON b.id = ?
                    WHERE f.client_id = ? AND f.embedding IS NOT NULL AND (o.started_at < b.started_at OR (o.started_at = b.started_at AND o.id < b.id))""",
                 beforeSession, client,
-            ) { factOf(it) to VectorMath.fromBlob(it.getBlob(9)) }
+            ) { factOf(it) to VectorMath.fromBlob(it.getBlob(11)) }
         },
         vec, k,
     )
@@ -464,7 +479,12 @@ class MindStore(context: Context, name: String, password: ByteArray) :
 
     private fun Cursor.getStringOrNull(i: Int): String? = if (isNull(i)) null else getString(i)
 
-    private fun factOf(c: Cursor) = FactRow(c.getLong(0), c.getString(1), c.getString(2), c.getString(3), c.getString(4), c.getString(5), c.getInt(6), c.getLong(7), c.getInt(8))
+    private fun factOf(c: Cursor) = FactRow(
+        c.getLong(0), c.getString(1), c.getString(2), c.getString(3), c.getString(4),
+        c.getString(5), c.getInt(6), c.getLong(7), c.getInt(8),
+        if (c.columnCount > 9) c.getString(9) else "profile",
+        if (c.columnCount > 10) c.getString(10) else "",
+    )
 
     companion object {
         const val NAME = "mind.db"
@@ -472,10 +492,10 @@ class MindStore(context: Context, name: String, password: ByteArray) :
         /** The two databases before this one. Their data is not migrated. */
         val LEGACY = listOf("recordings.db", "memory.db")
 
-        private const val VERSION = 3
+        private const val VERSION = 4
 
         private const val FACT_COLUMNS =
-            "SELECT f.id, f.client_id, f.session_id, f.heading, f.content, f.evidence, f.seg_idx, f.created_at, (SELECT COUNT(*) FROM mentions m WHERE m.fact_id = f.id)"
+            "SELECT f.id, f.client_id, f.session_id, f.heading, f.content, f.evidence, f.seg_idx, f.created_at, (SELECT COUNT(*) FROM mentions m WHERE m.fact_id = f.id), f.scope, f.category"
 
         private val SCHEMA = listOf(
             "CREATE TABLE clients(id TEXT PRIMARY KEY, name TEXT NOT NULL, created_at INTEGER NOT NULL, language TEXT NOT NULL DEFAULT 'en', first_name TEXT NOT NULL DEFAULT '', last_name TEXT NOT NULL DEFAULT '')",
@@ -528,7 +548,9 @@ class MindStore(context: Context, name: String, password: ByteArray) :
                  embedding BLOB,
                  llm_model TEXT NOT NULL,
                  prompt_version TEXT NOT NULL,
-                 created_at INTEGER NOT NULL)""",
+                 created_at INTEGER NOT NULL,
+                 scope TEXT NOT NULL DEFAULT 'profile',
+                 category TEXT NOT NULL DEFAULT '')""",
             "CREATE INDEX facts_client ON facts(client_id)",
             "CREATE INDEX facts_session ON facts(session_id)",
             """CREATE TABLE mentions(

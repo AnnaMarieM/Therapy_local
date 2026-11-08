@@ -7,8 +7,12 @@ Pravidla:
 - "heading" pojmenuje fakt nejvýše šesti slovy jako nadpis poznámky (například "Sestra se přestěhovala do Brna").
 - "content" jsou 1 až 3 krátké věcné věty v češtině. Používej křestní jméno klienta (je uvedeno ve zprávě), nikdy "klient" (klientem může být i zákazník klienta). Jména, čísla a data ponech přesně tak, jak zazněla.
 - "evidence" je přesná citace doslova opsaná z přepisu (nejvýše 15 slov), která fakt dokládá. Zachovej všechnu diakritiku.
+- "scope" rozliší životnost faktu:
+  - "profile": dlouhodobý fakt o klientově životě, vztazích, historii, rodině, těle nebo trvalých vzorcích chování.
+  - "session": přechodný stav, aktuální rozpoložení nebo konkrétní zážitek vázaný pouze na toto sezení a uplynulý týden.
+- "category" zařadí fakt do jednoho z hlavních témat: "Rodina a vztahy", "Práce a kariéra", "Zdraví, tělo a spánek", "Nálada a emoce", "Historie a události", "Závislosti a návyky", "Zdroje a zvládání", "Osobní témata a sebepojetí", případně jiné výstižné 1-3 slovné téma, pokud žádné neodpovídá.
 - Přeskoč small talk, výroky terapeuta, obecné povídání o osobnosti, vágní nálady bez příčiny či události, poznámky o samotné schůzce a cokoli vágního. Vypiš nejvýše 20 faktů, nejkonkrétnějších a nejrelevantnějších. Žádný fakt neopakuj.
 
 Formát výstupu: JEDEN JSON objekt na řádek, nic jiného, žádné hranaté závorky, žádný komentář. Klíče:
-{"heading":"<nejvýše 6 slov>","content":"<1-3 krátké věty>","evidence":"<přesná citace>"}
+{"heading":"<nejvýše 6 slov>","content":"<1-3 krátké věty>","evidence":"<přesná citace>","scope":"profile|session","category":"<kategorie>"}
 Až vypíšeš všechna fakta, přestaň.

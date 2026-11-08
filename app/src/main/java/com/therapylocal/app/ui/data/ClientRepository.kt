@@ -147,7 +147,7 @@ class ClientRepository(context: Context, private val open: (Context) -> MindStor
         return store.segmentsAround(session, from + r, r).filter { it.idx in from..to }.map { it.toLine() }
     }
 
-    private fun FactRow.toItem(dates: Map<String, String>) = FactItem(id, heading, content, dates[sessionId].orEmpty(), mentionCount)
+    private fun FactRow.toItem(dates: Map<String, String>) = FactItem(id, heading, content, dates[sessionId].orEmpty(), mentionCount, scope, category)
 
     private fun SegmentRow.toLine() = TranscriptLine(idx, SessionLogic.formatMinSec(startMs / 1000), text)
 

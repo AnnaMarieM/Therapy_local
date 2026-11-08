@@ -8,11 +8,34 @@ import java.security.MessageDigest
  * One thing the client said, as extracted from a transcript window: a short [heading], a few plain sentences of [content], and [evidence],
  * a verbatim quote from the transcript, so a therapist can always check it. [segIdx] is the transcript segment of the quote, 0 if unknown.
  */
-data class Fact(val heading: String, val content: String, val evidence: String, val segIdx: Int = 0) {
-    fun toJson(): JSONObject = JSONObject().put("heading", heading).put("content", content).put("evidence", evidence).put("seg", segIdx)
+data class Fact(
+    val heading: String,
+    val content: String,
+    val evidence: String,
+    val segIdx: Int = 0,
+    val scope: String = SCOPE_PROFILE,
+    val category: String = "",
+) {
+    fun toJson(): JSONObject = JSONObject()
+        .put("heading", heading)
+        .put("content", content)
+        .put("evidence", evidence)
+        .put("seg", segIdx)
+        .put("scope", scope)
+        .put("category", category)
 
     companion object {
-        fun fromJson(o: JSONObject) = Fact(o.optString("heading"), o.optString("content"), o.optString("evidence"), o.optInt("seg", 0))
+        const val SCOPE_PROFILE = "profile"
+        const val SCOPE_SESSION = "session"
+
+        fun fromJson(o: JSONObject) = Fact(
+            o.optString("heading"),
+            o.optString("content"),
+            o.optString("evidence"),
+            o.optInt("seg", 0),
+            o.optString("scope", SCOPE_PROFILE).ifBlank { SCOPE_PROFILE },
+            o.optString("category", "").trim(),
+        )
     }
 }
 
@@ -35,8 +58,10 @@ object FactSchemas {
     {"type":"object","properties":{"facts":{"type":"array","maxItems":20,"items":{"type":"object","properties":{
       "heading":{"type":"string","minLength":2,"maxLength":60},
       "content":{"type":"string","minLength":10,"maxLength":300},
-      "evidence":{"type":"string","minLength":5,"maxLength":160}},
-      "required":["heading","content","evidence"],"additionalProperties":false}}},"required":["facts"],"additionalProperties":false}
+      "evidence":{"type":"string","minLength":5,"maxLength":160},
+      "scope":{"type":"string","maxLength":20},
+      "category":{"type":"string","maxLength":60}},
+      "required":["heading","content","evidence"],"additionalProperties":true}}},"required":["facts"],"additionalProperties":false}
     """.trimIndent()
 }
 
@@ -65,7 +90,7 @@ object FactParser {
         }
     }
 
-    private val PAIR = Regex("\"(heading|content|evidence)\"\\s*:\\s*\"((?:[^\"\\\\]|\\\\.)*)\"")
+    private val PAIR = Regex("\"(heading|content|evidence|scope|category|rozsah|kategorie)\"\\s*:\\s*\"((?:[^\"\\\\]|\\\\.)*)\"")
 
     private fun unescape(s: String) = s.replace("\\\"", "\"").replace("\\n", " ").replace("\\\\", "\\")
 
@@ -78,7 +103,11 @@ object FactParser {
         val out = ArrayList<Map<String, String>>()
         var cur = LinkedHashMap<String, String>()
         for (m in PAIR.findAll(text)) {
-            val key = m.groupValues[1]
+            val key = when (val k = m.groupValues[1]) {
+                "rozsah" -> "scope"
+                "kategorie" -> "category"
+                else -> k
+            }
             if (key in cur) {
                 out += cur
                 cur = LinkedHashMap()
@@ -97,7 +126,21 @@ object FactParser {
      * Truncated output is salvaged item by item. Only valid facts are returned, trimmed.
      */
     fun anyFacts(text: String): List<Fact> = records(text)
-        .map { r -> Fact(r["heading"].orEmpty().trim(), r["content"].orEmpty().trim(), r["evidence"].orEmpty().trim()) }
+        .map { r ->
+            val rawScope = r["scope"]?.lowercase()?.trim() ?: Fact.SCOPE_PROFILE
+            val scope = if (rawScope.contains("session") || rawScope.contains("sezení") || rawScope.contains("sezeni")) {
+                Fact.SCOPE_SESSION
+            } else {
+                Fact.SCOPE_PROFILE
+            }
+            Fact(
+                heading = r["heading"].orEmpty().trim(),
+                content = r["content"].orEmpty().trim(),
+                evidence = r["evidence"].orEmpty().trim(),
+                scope = scope,
+                category = r["category"].orEmpty().trim(),
+            )
+        }
         .filter(::valid)
 
     private fun norm(s: String) = s.lowercase().replace(Regex("[^a-z0-9 ]"), " ").replace(Regex("\\s+"), " ").trim()
