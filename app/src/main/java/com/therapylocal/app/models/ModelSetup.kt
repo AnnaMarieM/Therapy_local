@@ -41,8 +41,11 @@ object ModelSetup {
     val progress: StateFlow<SetupProgress> = _progress.asStateFlow()
     private var observing = false
 
-    /** Distinct specs the app needs: embeddings, Canary (one multilingual model serves every client language), and the memory model. */
-    fun required(context: Context): List<ModelSpec> = listOf(ModelRegistry.EMBED, ModelRegistry.CANARY_1B_V2, gemma(context))
+    /**
+     * Distinct specs the app needs: embeddings, Canary (one multilingual model serves every client language), the speaker-diarization pair
+     * (docs/AD/AD-06.md) and the memory model.
+     */
+    fun required(context: Context): List<ModelSpec> = listOf(ModelRegistry.EMBED, ModelRegistry.CANARY_1B_V2, ModelRegistry.DIARIZATION, gemma(context))
 
     fun gemmaVariant(context: Context): GemmaVariant = ModelChoice.resolve(prefs(context).getString(ModelChoice.PREF, null))
 

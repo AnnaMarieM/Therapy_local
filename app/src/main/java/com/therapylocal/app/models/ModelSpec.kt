@@ -92,6 +92,33 @@ object ModelRegistry {
         )
     }
 
-    val ALL = listOf(GEMMA_E2B, GEMMA_E4B, EMBED, CANARY_1B_V2)
+    /**
+     * Speaker diarization (docs/AD/AD-06.md): pyannote segmentation-3.0 finds who speaks when, a speaker-embedding model tells the voices apart.
+     * Both run on sherpa-onnx (`OfflineSpeakerDiarization`). The embedding model is `wespeaker_en_voxceleb_resnet34_LM`, the one pyannote's own
+     * 3.1 pipeline pairs with segmentation-3.0, and VoxCeleb covers speakers of many nationalities and languages, so it is the least tied to one
+     * language of the sherpa-onnx speaker models (the 3D-Speaker ones are Chinese-trained). Voice identity, not words, so Czech is not a special case.
+     * Sources: https://huggingface.co/csukuangfj/sherpa-onnx-pyannote-segmentation-3-0 (converted from pyannote/segmentation-3.0, MIT) and
+     * https://github.com/k2-fsa/sherpa-onnx/releases/tag/speaker-recongition-models (WeSpeaker, Apache-2.0). Checksums are of the files as downloaded
+     * (the embedding one also matches the release's checksum.txt).
+     */
+    const val DIAR_SEGMENTATION_FILE = "model.onnx"
+    const val DIAR_EMBEDDING_FILE = "wespeaker_en_voxceleb_resnet34_LM.onnx"
+
+    val DIARIZATION = ModelSpec(
+        id = "diarization-pyannote3-wespeaker", title = "Speaker diarization (pyannote 3.0 + WeSpeaker ResNet34)", subdir = "diarization-pyannote3-wespeaker",
+        files = listOf(
+            ModelFile(
+                DIAR_SEGMENTATION_FILE, "$HF/csukuangfj/sherpa-onnx-pyannote-segmentation-3-0/resolve/main/model.onnx", 5_992_913L,
+                "220ad67ca923bef2fa91f2390c786097bf305bceb5e261d4af67b38e938e1079",
+            ),
+            ModelFile(
+                DIAR_EMBEDDING_FILE,
+                "https://github.com/k2-fsa/sherpa-onnx/releases/download/speaker-recongition-models/$DIAR_EMBEDDING_FILE", 26_530_550L,
+                "e9848563da86f263117134dfd7ad63c92355b37de492b55e325400c9d9c39012",
+            ),
+        ),
+    )
+
+    val ALL = listOf(GEMMA_E2B, GEMMA_E4B, EMBED, CANARY_1B_V2, DIARIZATION)
     fun byId(id: String): ModelSpec = ALL.first { it.id == id }
 }
