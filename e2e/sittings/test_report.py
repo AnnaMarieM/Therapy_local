@@ -23,11 +23,12 @@ def oracle(docs, truths, diarized=True):
     stored = {}
     for sid, doc in docs.items():
         tr = truths[sid]
-        one = doc["expect"]["speakers"] == 1
+        one = doc["expect"]["voices"] == 1
         sp = {"therapist": "S0", "patient": "S1"}
-        segs = [{"idx": i + 1, "startMs": t["start_ms"], "endMs": t["end_ms"], "speaker": (None if (one or not diarized) else sp[t["speaker"]]), "text": t["text"]}
+        # AD-07: always two speakers; for the one-voice dictation the oracle invents the second one on every other turn
+        segs = [{"idx": i + 1, "startMs": t["start_ms"], "endMs": t["end_ms"], "speaker": (None if not diarized else ("S%d" % (i % 2) if one else sp[t["speaker"]])), "text": t["text"]}
                 for i, t in enumerate(tr["turns"])]
-        smap = None if (one or not diarized) else {"version": 1, "map": {"S0": "therapist", "S1": "patient"}, "source": "llm", "confidence": 0.9, "evidence": ["the therapist asks, the patient answers"]}
+        smap = None if not diarized else {"version": 1, "map": {"S0": "therapist", "S1": "patient"}, "source": "llm", "confidence": 0.9, "evidence": ["the therapist asks, the patient answers"]}
         sessions.append({"client": doc["client"], "session": sid, "transcript": [s["text"] for s in segs], "segments": segs, "speakerMap": smap})
         for pf in doc["facts"]:
             seg = tr["turns"][pf["turn"]]
@@ -54,10 +55,12 @@ def main():
         rep = sum(1 for f in d["facts"] if f["repeat_of"])
         assert s["found"] == new and s["mentions"] == rep and s["extra"] == 0 and not s["missing"], (sid, s)
         assert s["wer"] == 0, (sid, s)
-        one = d["expect"]["speakers"] == 1
+        one = d["expect"]["voices"] == 1
         if one:
-            assert s["speakers_found"] == 0, (sid, s)
+            assert s["speakers_found"] == 2 and s["known_limitation"] == "AD-07", (sid, s)
+            assert "Known limitation (AD-07)" in md
         else:
+            assert s["known_limitation"] is None
             assert s["speakers_found"] == 2 and s["word_attribution_pct"] == 100.0, (sid, s)
             assert all(r["ok"] for r in s["roles"]) and len(s["roles"]) == 2, (sid, s)
     assert "[00:00:00]\nTherapist:" in md or "[00:00:0" in md

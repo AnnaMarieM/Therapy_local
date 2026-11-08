@@ -68,7 +68,7 @@ def overlap(a0, a1, b0, b1):
 def diarization(segs, truth):
     """hyp speaker -> truth speaker by best time overlap; word share given to the right speaker."""
     hyp = sorted({s["speaker"] for s in segs if s["speaker"]})
-    res = {"found": len(hyp), "expected": truth["expect"]["speakers"] if truth else None, "mapping": {}, "word_accuracy_pct": None, "diarized": bool(hyp)}
+    res = {"found": len(hyp), "expected": 2, "mapping": {}, "word_accuracy_pct": None, "diarized": bool(hyp)}
     if not hyp or not truth or not any(s["endMs"] for s in segs):
         return res
     tturns = truth["turns"]
@@ -230,15 +230,20 @@ def build(results, docs, truths, title, note):
             body += [f"Map (version {smap.get('version')}, source {smap.get('source')}, confidence {smap.get('confidence')}): `{json.dumps(smap.get('map'), ensure_ascii=False)}`",
                      f"Evidence: {one_line(json.dumps(ev, ensure_ascii=False) if not isinstance(ev, str) else ev, 400)}"]
         else:
-            body.append("No speaker map stored." + (" (expected for a one-voice recording)" if truth and truth['expect']['speakers'] == 1 else ""))
+            body.append("No speaker map stored.")
         for r in rc:
             body.append(f"- expected {r['speaker']} = {r['expected']}; app: {r['hyp'] or 'no matching speaker'} -> {r['got']}: " + ("OK" if r["ok"] else "WRONG"))
         body.append("")
         # diarization
         body += ["### Diarization", ""]
+        lim = (truth or doc)["expect"].get("limitation")
+        if lim:
+            body += [f"**Known limitation ({lim}):** this recording has {doc['expect']['voices']} real voice; the diarizer is always asked for exactly two speakers, "
+                     "so a second, invented speaker and a role guess are expected. Not a failure; read the transcript to see how it looks.", ""]
         if dia["diarized"]:
+            acc = "n/a (one real voice)" if lim else f"{dia['word_accuracy_pct']}%"
             body += [f"Speakers found {dia['found']}, expected {dia['expected']}. Speaker to truth speaker: `{json.dumps(dia['mapping'])}`. "
-                     f"Words attributed to the right speaker: {dia['word_accuracy_pct']}%."]
+                     f"Words attributed to the right speaker: {acc}."]
         else:
             body += [f"No diarization in the results (speakers found 0, expected {dia['expected']})."]
         spoken = " ".join(t["text"] for t in doc["turns"])
@@ -249,11 +254,11 @@ def build(results, docs, truths, title, note):
         jrep["sittings"][sid] = {
             "present": True, "facts_stored": len(stored), "planted_new": n_new, "found": n_found, "planted_repeats": n_rep, "mentions": n_men,
             "extra": len(extra), "missing": [r["id"] for r in rows if r["status"] == "missing"],
-            "speakers_found": dia["found"], "speakers_expected": dia["expected"], "word_attribution_pct": dia["word_accuracy_pct"],
+            "speakers_found": dia["found"], "speakers_expected": dia["expected"], "word_attribution_pct": dia["word_accuracy_pct"], "known_limitation": lim,
             "roles": [{"speaker": r["speaker"], "expected": r["expected"], "got": r["got"], "ok": r["ok"]} for r in rc], "wer": round(w, 3),
         }
         roles_cell = ("-" if not rc else f"{sum(r['ok'] for r in rc)}/{len(rc)}") if any_map or rc else "-"
-        summary.append((sid, doc["lang"], f"{n_found}/{n_new}", f"{n_men}/{n_rep}", len(extra), f"{dia['found']}/{dia['expected']}", roles_cell))
+        summary.append((sid, doc["lang"], f"{n_found}/{n_new}", f"{n_men}/{n_rep}", len(extra), f"{dia['found']}/{dia['expected']}" + (f" (known limitation {lim})" if lim else ""), roles_cell))
     md += ["| sitting | lang | new found | repeats as mention | extra | speakers found/expected | roles ok |", "|---|---|---|---|---|---|---|"]
     md += ["| " + " | ".join(str(x) for x in row) + " |" for row in summary] + [""]
     md += body

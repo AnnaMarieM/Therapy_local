@@ -1,7 +1,7 @@
 {
  "id": "eva-s_s03",
  "tag": "cs-dictation",
- "what": "Czech, single voice: the therapist dictates a session note (one-speaker fallback)",
+ "what": "Czech, single voice: the therapist dictates a session note (known limitation AD-07: an invented second speaker)",
  "lang": "cs",
  "client": "eva-s",
  "client_name": "Eva S.",
@@ -11,7 +11,9 @@
  },
  "fx": {},
  "expect": {
-  "speakers": 1,
+  "speakers": 2,
+  "voices": 1,
+  "limitation": "AD-07",
   "roles": {}
  },
  "turns": [

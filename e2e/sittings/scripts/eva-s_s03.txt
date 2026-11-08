@@ -1,12 +1,12 @@
-# One voice only: the therapist dictates a session note after the session. Expect the one-speaker fallback (AD-07): no diarization, no role guess.
+# One voice only: the therapist dictates a session note after the session. Known limitation (AD-07): the diarizer is always asked for two speakers, so an invented second speaker and a role guess are expected. This shows how that reads.
 id: eva-s_s03
 tag: cs-dictation
-what: Czech, single voice: the therapist dictates a session note (one-speaker fallback)
+what: Czech, single voice: the therapist dictates a session note (known limitation AD-07: an invented second speaker)
 lang: cs
 client: eva-s | Eva S.
 date: 2026-03-25
 voice: therapist=cs-CZ-AntoninNeural
-expect: speakers=1
+expect: limitation=AD-07
 ---
 D: Poznámka ze sezení s klientkou Evou S., čtyřiadvacátého března. Sezení trvalo padesát minut.
 D: Klientka přišla včas, působila unaveně a mluvila tišeji než obvykle. [[f1|Terapeut: spánek se nelepší|Spánek se nelepší, klientka se pořád budí kolem třetí hodiny ranní.]]

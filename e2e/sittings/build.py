@@ -10,7 +10,8 @@ Script format (UTF-8, one file per sitting):
   date: yyyy-MM-dd
   voice: therapist=<edge voice> patient=<edge voice>     (dictation: therapist only)
   fx: patient.gain_db=-13 patient.reverb_rt60=0.5 patient.reverb_mix=0.45 noise_snr_db=12 patient.rate=-5% ...   (optional)
-  expect: therapist=therapist patient=patient     truth speaker -> expected role   |   speakers=1  (one voice, fallback expected)
+  expect: therapist=therapist patient=patient     truth speaker -> expected role
+                         dictation: limitation=AD-07 (one real voice; the app always asks for two speakers, so an invented second one is expected)
   ---
   T{p=0.4}: text        T therapist, P patient, D therapist dictating (single voice)
                         turn options: p=<pause s before the turn>, o=<s the turn starts before the previous one ends (interruption)>,
@@ -66,13 +67,13 @@ def parse(path: Path):
     voices = dict(kv.split("=") for kv in head["voice"].split())
     fx = dict(kv.split("=") for kv in head.get("fx", "").split())
     expect_raw = dict(kv.split("=") for kv in head["expect"].split())
-    speakers = int(expect_raw.pop("speakers", len(expect_raw)))
+    limitation = expect_raw.pop("limitation", None)  # AD-07: the diarizer is always asked for exactly two speakers
     for who in {t["who"] for t in turns}:
         assert who in voices, f"{sid}: no voice for {who}"
     return {
         "id": sid, "tag": head["tag"], "what": head["what"], "lang": head["lang"], "client": client_id, "client_name": client_name,
         "date": head["date"], "voices": voices, "fx": fx,
-        "expect": {"speakers": speakers, "roles": expect_raw},
+        "expect": {"speakers": 2, "voices": len(voices), "limitation": limitation, "roles": expect_raw},
         "turns": turns, "facts": facts,
     }
 
