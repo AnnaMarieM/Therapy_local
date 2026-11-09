@@ -21,8 +21,8 @@ data class SessionItem(
     val duration: String
 )
 
-/** One transcript segment; [time] is its offset into the session ("mm:ss"). */
-data class TranscriptLine(val idx: Int, val time: String, val text: String)
+/** One transcript segment; [time] is its offset into the session ("mm:ss"). [speaker] is the raw diarization id ("S0"), null when the session was not diarized. */
+data class TranscriptLine(val idx: Int, val time: String, val text: String, val speaker: String? = null)
 
 /** Where a fact was said: the segments around it, with [segIdx] the one holding the evidence. */
 data class FactOccurrence(

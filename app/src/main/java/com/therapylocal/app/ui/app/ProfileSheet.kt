@@ -86,7 +86,12 @@ import com.therapylocal.app.ui.design.Palette
 import com.therapylocal.app.ui.design.Type
 import com.therapylocal.app.ui.design.rememberChoiceState
 import com.therapylocal.app.ui.design.rememberHaptics
+import com.therapylocal.app.data.Role
+import com.therapylocal.app.ui.logic.TranscriptTurns
+import com.therapylocal.app.ui.logic.TurnRow
 import com.therapylocal.app.ui.logic.heroShrink
+import com.therapylocal.app.ui.models.SpeakerRoles
+import kotlinx.coroutines.launch
 import com.therapylocal.app.ui.logic.splitName
 import com.therapylocal.app.ui.models.FactItem
 import com.therapylocal.app.ui.models.FactOccurrence
@@ -557,13 +562,51 @@ private fun TranscriptLayer(t: Layer.Transcript, repo: ClientRepository, sheet: 
             runCatching { if (t.from != null && t.to != null) repo.transcript(t.sessionId, t.from, t.to) else repo.transcript(t.sessionId) }.getOrDefault(emptyList())
         }
     }
+    // The roles are read again after every swap; the lines keep the raw speaker ids, so a swap rewrites nothing.
+    var swaps by remember(t) { mutableStateOf(0) }
+    val roles by produceState<SpeakerRoles?>(null, t.sessionId, swaps) { value = withContext(Dispatchers.IO) { runCatching { repo.speakerRoles(t.sessionId) }.getOrNull() } }
+    val scope = rememberCoroutineScope()
+    val rows = remember(lines, roles) { lines?.let { TranscriptTurns.rows(it, roles?.map.orEmpty()) } }
     LayerFrame(sheet, localDate(t.date), t.title) {
-        val l = lines
+        val l = rows
         when {
             l == null -> item { Label(stringResource(R.string.profile_opening)) }
             l.isEmpty() -> item { Text(stringResource(R.string.profile_transcript_empty), style = Type.BodySmall, color = Palette.InkSoft) }
-            else -> items(l, key = { it.idx }) { line -> Line(line, line.idx == t.highlight) }
+            else -> {
+                if (roles?.canSwap == true) item {
+                    TextAction(stringResource(R.string.transcript_roles_wrong), {
+                        scope.launch { withContext(Dispatchers.IO) { runCatching { repo.swapRoles(t.sessionId) } }; swaps++ }
+                    })
+                    Spacer(Modifier.height(6.dp))
+                }
+                items(l, key = { it.line.idx }) { row -> Turn(row, row.line.idx == t.highlight) }
+            }
         }
+    }
+}
+
+/** A line of a conversation: the speaker's name above the text where a turn starts, the text alone where the same speaker goes on. */
+@Composable
+private fun Turn(row: TurnRow, highlight: Boolean) {
+    if (row.line.speaker == null) return Line(row.line, highlight)
+    val name = when (row.role) {
+        Role.THERAPIST -> stringResource(R.string.speaker_role_therapist)
+        Role.PATIENT -> stringResource(R.string.speaker_role_patient)
+        else -> stringResource(R.string.speaker_numbered, row.number ?: 0)
+    }
+    Column(
+        Modifier.fillMaxWidth().padding(top = if (row.header) 14.dp else 2.dp, bottom = 2.dp).clip(RoundedCornerShape(10.dp))
+            .background(if (highlight) Palette.Tonal else androidx.compose.ui.graphics.Color.Transparent).padding(horizontal = 8.dp, vertical = 6.dp),
+    ) {
+        if (row.header) {
+            Row {
+                Label(name, color = if (row.role == Role.PATIENT) Palette.InkSoft else Palette.Ink)
+                Spacer(Modifier.width(10.dp))
+                Label(row.line.time, color = Palette.InkFaint)
+            }
+            Spacer(Modifier.height(4.dp))
+        }
+        Text(row.line.text, style = Type.BodySmall, color = if (highlight || row.role != Role.PATIENT) Palette.Ink else Palette.InkSoft)
     }
 }
 

@@ -182,7 +182,7 @@ class ClientRepository(context: Context, private val open: (Context) -> MindStor
 
     private fun FactRow.toItem(dates: Map<String, String>) = FactItem(id, heading, content, dates[sessionId].orEmpty(), mentionCount, scope, category)
 
-    private fun SegmentRow.toLine() = TranscriptLine(idx, SessionLogic.formatMinSec(startMs / 1000), text)
+    private fun SegmentRow.toLine() = TranscriptLine(idx, SessionLogic.formatMinSec(startMs / 1000), text, speaker)
 
     private fun snippet(text: String) = if (text.length <= SNIPPET_CHARS) text else text.take(SNIPPET_CHARS).substringBeforeLast(' ') + "…"
 
