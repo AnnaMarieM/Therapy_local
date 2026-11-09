@@ -241,11 +241,29 @@ class Pipeline(
                 run.progress(JobPhase.Checking, i, candidates.size)
             },
         )
+        val lang = language(job)
+        val activeFacts = store.factEmbeddings(job.clientId).filter { it.first.sessionId != sid && it.first.category.isNotBlank() }
+        val activeCentroids = activeFacts.groupBy { it.first.category }
+            .mapValues { (_, pairs) -> com.therapylocal.app.facts.CategoryClusterer.centroid(pairs.map { it.second }) }
+            .filterValues { it != null }
+            .mapValues { it.value!! }
+
         store.replaceSessionFacts(
             sid,
             plan.facts.map { c ->
                 val (promptVersion, model) = keyOf.getValue(c).split('|')
-                NewFact(job.clientId, sid, c.fact.heading, c.fact.content, c.fact.evidence, c.fact.segIdx, c.vec, model, promptVersion)
+                val resolvedCategory = com.therapylocal.app.facts.CategoryClusterer.assignCategory(
+                    fact = c.fact,
+                    factVec = c.vec,
+                    activeCategories = activeCentroids,
+                    language = lang,
+                )
+                NewFact(
+                    job.clientId, sid, c.fact.heading, c.fact.content, c.fact.evidence,
+                    c.fact.segIdx, c.vec, model, promptVersion,
+                    scope = c.fact.scope,
+                    category = resolvedCategory,
+                )
             },
             plan.mentions.map { (factId, f) -> NewMention(factId, sid, f.evidence, f.segIdx) },
         )

@@ -215,6 +215,30 @@ class FactParserTest {
     fun factJsonRoundTrip() {
         val f = Fact("Has a plan", "Client has a plan.", "a quote", 3)
         assertEquals(f, Fact.fromJson(JSONObject(f.toJson().toString())))
+
+        val f2 = Fact("Dnes špatná nálada", "Klient se dnes cítí vyčerpaný a bez energie.", "cítím se vyčerpaný", 1, Fact.SCOPE_SESSION, "Nálada a emoce")
+        assertEquals(f2, Fact.fromJson(JSONObject(f2.toJson().toString())))
+    }
+
+    @Test
+    fun parserExtractsScopeAndCategoryFromCzechAndEnglishKeys() {
+        val rawEn = """{"heading":"Moved house","content":"Client moved to another flat last week.","evidence":"moved last week","scope":"profile","category":"History & Life Events"}"""
+        val factsEn = FactParser.anyFacts(rawEn)
+        assertEquals(1, factsEn.size)
+        assertEquals(Fact.SCOPE_PROFILE, factsEn[0].scope)
+        assertEquals("History & Life Events", factsEn[0].category)
+
+        val rawCs = """{"heading":"Dnes prší","content":"Klient popisuje dnešní deštivé počasí.","evidence":"dneska hrozně prší","rozsah":"sezení","kategorie":"Nálada a emoce"}"""
+        val factsCs = FactParser.anyFacts(rawCs)
+        assertEquals(1, factsCs.size)
+        assertEquals(Fact.SCOPE_SESSION, factsCs[0].scope)
+        assertEquals("Nálada a emoce", factsCs[0].category)
+
+        val rawMissing = """{"heading":"Old fact","content":"Client had no scope or category specified.","evidence":"had no scope"}"""
+        val factsMissing = FactParser.anyFacts(rawMissing)
+        assertEquals(1, factsMissing.size)
+        assertEquals(Fact.SCOPE_PROFILE, factsMissing[0].scope)
+        assertEquals("", factsMissing[0].category)
     }
 
     @Test

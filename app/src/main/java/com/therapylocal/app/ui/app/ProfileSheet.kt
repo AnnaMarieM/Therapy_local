@@ -9,6 +9,7 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -24,9 +25,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -164,6 +167,7 @@ fun ProfileSheet(
     var open by remember { mutableStateOf<Layer?>(null) }
     var confirmClient by remember { mutableStateOf(false) }
     var confirmSession by remember { mutableStateOf<SessionItem?>(null) }
+    var selectedCategory by rememberSaveable { mutableStateOf<String?>(null) }
     val recordRef = remember { BoundsRef() }
     val density = LocalDensity.current
     val openLayer = { l: Layer, _: BoundsRef ->
@@ -174,6 +178,12 @@ fun ProfileSheet(
     if (titleRef != null) {
         val top by remember { derivedStateOf { list.firstVisibleItemIndex == 0 } }
         SideEffect { titleRef.present = top }
+    }
+    val categories = remember(patient.facts) {
+        patient.facts.map { it.category.ifBlank { "Osobní témata" } }.distinct().sorted()
+    }
+    val displayedFacts = remember(patient.facts, selectedCategory) {
+        if (selectedCategory == null) patient.facts else patient.facts.filter { it.category.ifBlank { "Osobní témata" } == selectedCategory }
     }
 
     Box(Modifier.fillMaxSize()) {
@@ -211,10 +221,38 @@ fun ProfileSheet(
                         HitRow(hit, ref) { openLayer(Layer.Transcript(hit.title ?: fromTranscript, hit.sessionId, hit.date, hit.segFrom, hit.segTo, hit.highlight), ref) }
                     }
                 } else {
-                    if (patient.facts.isNotEmpty()) item { Section(stringResource(R.string.profile_section_know)) }
-                    items(patient.facts, key = { "f${it.id}" }) { f ->
-                        val ref = remember { BoundsRef() }
-                        FactRow(f, ref) { openLayer(Layer.Fact(f), ref) }
+                    if (patient.facts.isNotEmpty()) {
+                        item { Section(stringResource(R.string.profile_section_know)) }
+                        if (categories.size > 1) {
+                            item {
+                                LazyRow(
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
+                                ) {
+                                    item {
+                                        val active = selectedCategory == null
+                                        CategoryChip(
+                                            label = "Vše (${patient.facts.size})",
+                                            active = active,
+                                            onClick = { selectedCategory = null },
+                                        )
+                                    }
+                                    items(categories) { cat ->
+                                        val count = patient.facts.count { it.category.ifBlank { "Osobní témata" } == cat }
+                                        val active = selectedCategory == cat
+                                        CategoryChip(
+                                            label = "$cat ($count)",
+                                            active = active,
+                                            onClick = { selectedCategory = if (selectedCategory == cat) null else cat },
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                        items(displayedFacts, key = { "f${it.id}" }) { f ->
+                            val ref = remember { BoundsRef() }
+                            FactRow(f, ref) { openLayer(Layer.Fact(f), ref) }
+                        }
                     }
                     item { Section(stringResource(R.string.profile_section_sessions)) }
                     if (patient.sessions.isEmpty()) item {
@@ -333,8 +371,38 @@ private fun Section(title: String) {
 }
 
 @Composable
+private fun CategoryChip(label: String, active: Boolean, onClick: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(14.dp))
+            .background(if (active) Palette.Ink else Palette.Tonal)
+            .pressable(onClick, label = label, depth = 0.02f)
+            .padding(horizontal = 12.dp, vertical = 6.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = label,
+            style = Type.BodySmall.copy(fontSize = 13.sp),
+            color = if (active) Palette.Paper else Palette.InkSoft,
+        )
+    }
+}
+
+@Composable
 private fun FactRow(f: FactItem, ref: BoundsRef, onOpen: () -> Unit) {
     Column(Modifier.fillMaxWidth().trackBounds(ref).pressable(onOpen, label = stringResource(R.string.profile_fact_open, f.heading), depth = 0.015f).padding(vertical = 16.dp)) {
+        if (f.category.isNotBlank()) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Label(f.category.uppercase(), color = Palette.InkFaint)
+                if (f.scope == "session") {
+                    Spacer(Modifier.width(6.dp))
+                    Text("•", style = Type.BodySmall, color = Palette.InkFaint)
+                    Spacer(Modifier.width(6.dp))
+                    Label("SEZENÍ", color = Palette.InkFaint)
+                }
+            }
+            Spacer(Modifier.height(4.dp))
+        }
         Text(f.heading, style = Type.Title.copy(fontSize = 22.sp, lineHeight = 27.sp), color = Palette.Ink)
         Spacer(Modifier.height(4.dp))
         Text(f.content, style = Type.BodySmall, color = Palette.InkSoft, maxLines = 3)

@@ -9,7 +9,9 @@ data class FactItem(
     val heading: String,
     val content: String,
     val date: String,
-    val mentionCount: Int = 0
+    val mentionCount: Int = 0,
+    val scope: String = "profile",
+    val category: String = "",
 )
 
 /** One recorded session. Its transcript is loaded on demand. */
