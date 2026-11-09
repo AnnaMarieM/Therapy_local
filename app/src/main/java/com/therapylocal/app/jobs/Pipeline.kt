@@ -9,7 +9,9 @@ import com.therapylocal.app.data.Job
 import com.therapylocal.app.data.MindStore
 import com.therapylocal.app.data.NewFact
 import com.therapylocal.app.data.NewMention
-import com.therapylocal.app.data.SegmentBuilder
+import com.therapylocal.app.data.SegmentRow
+import com.therapylocal.app.data.SpeakerMaps
+import com.therapylocal.app.data.TurnRow
 import com.therapylocal.app.data.WindowRow
 import com.therapylocal.app.facts.Candidate
 import com.therapylocal.app.facts.CommitPlanner
@@ -20,13 +22,12 @@ import com.therapylocal.app.facts.Known
 import com.therapylocal.app.facts.Prompts
 import com.therapylocal.app.facts.PromptBudget
 import com.therapylocal.app.facts.PromptLanguage
+import com.therapylocal.app.facts.RoleGuess
 import com.therapylocal.app.facts.TranscriptWindows
 import com.therapylocal.app.facts.Verdict
 import com.therapylocal.app.log.AppLog
 import com.therapylocal.app.log.LogCtx
 import org.json.JSONArray
-import java.io.IOException
-import java.security.GeneralSecurityException
 import kotlin.math.sqrt
 
 /**
@@ -46,6 +47,8 @@ class Pipeline(
     private val finishAudio: (Long, String) -> Unit,
     /** The prompt language ([PromptLanguage]) for a client's language code: Czech only for a Czech app and a Czech client. */
     private val promptLanguage: (clientLanguage: String) -> String = { PromptLanguage.EN },
+    /** True when the diarization model is on the phone; without it TRANSCRIBE takes the chunk path, so an install from before the model existed keeps working. */
+    diarizationReady: () -> Boolean = { true },
 ) {
     /** The language of the prompts for the client of [job]: Czech only for a Czech app and a Czech client. */
     private fun language(job: Job): String = promptLanguage(store.clientLanguage(job.clientId))
@@ -54,37 +57,52 @@ class Pipeline(
 
     val handlers: Map<String, JobHandler> = mapOf(
         JobGraph.TRANSCRIBE to JobHandler(::transcribe),
+        JobGraph.ROLES to JobHandler(::roles),
         JobGraph.WINDOW to JobHandler(::window),
         JobGraph.EXTRACT to JobHandler(::extract),
         JobGraph.COMMIT to JobHandler(::commit),
         JobGraph.CLEANUP to JobHandler(::cleanup),
     )
 
+    private val transcribeFlow = TranscribeFlow(
+        object : TranscribeStore {
+            override fun chunks(recordingId: Long) = store.chunks(recordingId)
+            override fun putChunk(c: ChunkRow) = store.putChunk(c)
+            override fun turns(recordingId: Long) = store.turns(recordingId)
+            override fun replaceTurns(recordingId: Long, turns: List<TurnRow>) = store.replaceTurns(recordingId, turns)
+            override fun setTurnText(recordingId: Long, idx: Int, text: String) { store.setTurnText(recordingId, idx, text) }
+            override fun replaceSegments(session: String, segments: List<SegmentRow>) = store.replaceSegments(session, segments)
+        },
+        chunks, chunk, diarizationReady,
+    )
+
     /**
-     * Transcribes the chunks that have no text yet, one loaded at a time, then rebuilds the session's segments from all of them. A chunk that
+     * Diarizes the recording and transcribes it turn by turn, or, when that cannot be done, chunk by chunk ([TranscribeFlow]). A chunk that
      * cannot be read fails the job (code AUDIO), so the audio is kept and the session is not processed with a hole in it.
      */
     private fun transcribe(job: Job, run: JobContext) {
         val rid = job.recordingId ?: throw JobFailure("NO_RECORDING", permanent = true)
-        val done = store.chunks(rid).filter { it.text != null }.map { it.idx }.toSet()
-        val todo = chunks(rid).filter { it !in done }
-        run.progress(JobPhase.Transcribing, 0, todo.size)
-        val language = store.clientLanguage(job.clientId)
-        todo.forEachIndexed { i, idx ->
+        transcribeFlow.run(rid, job.sessionId, store.clientLanguage(job.clientId), run)
+    }
+
+    /**
+     * Who is the therapist: the LLM reads the start of the transcript and names the therapist and the patient ([RoleGuess]). Skipped for a
+     * transcript with fewer than two speakers and for a session that already has a map (a run again changes nothing). An answer that fails the
+     * check is asked for once more, then the first speaker is taken as the therapist (source `fallback`, confidence 0).
+     */
+    private fun roles(job: Job, run: JobContext) {
+        val sid = job.sessionId
+        val system = promptFor(Prompts.ROLES_SYSTEM, job)
+        val d = RoleStep.decide(store.segments(sid), store.currentSpeakerMap(sid) != null) { input ->
             run.checkStop()
-            val c = try {
-                chunk(rid, idx)
-            } catch (_: IOException) {
-                null
-            } catch (_: GeneralSecurityException) {
-                null
-            } ?: throw JobFailure("AUDIO")
-            store.putChunk(ChunkRow(rid, c.idx, c.startMs, c.endMs, c.overlapMs, run.pool.asr(language).transcribe(c.pcm)))
-            run.progress(JobPhase.Transcribing, i + 1, todo.size)
-        }
-        // A recording without chunks (gone, or too short to have any) leaves the segments as they are.
-        val chunks = store.chunks(rid)
-        if (chunks.isNotEmpty()) store.replaceSegments(job.sessionId, SegmentBuilder.build(chunks))
+            run.pool.llm().ask(system, input, RoleGuess.SCHEMA, MemoryConfig.ROLES_MAX_OUTPUT_TOKENS, MemoryConfig.ROLES_TEMPERATURE, MemoryConfig.ROLES_TOP_K)
+        } ?: return
+        val version = store.appendSpeakerMap(sid, SpeakerMaps.encode(d.guess.map), d.source, d.guess.confidence, JSONArray(d.guess.evidence).toString())
+        AppLog.i(
+            JobRunner.TAG, "roles_done", LogCtx.NONE,
+            "source" to d.source, "version" to version, "speakers" to d.speakers.size, "attempts" to d.attempts, "confidence" to d.guess.confidence, "evidence" to d.guess.evidence.size,
+            "model" to run.pool.llmModel(), "prompt_version" to MemoryConfig.ROLES_PROMPT_VERSION, "prompt_hash" to Prompts.version(system),
+        )
     }
 
     /** Cuts the transcript into embedded windows, then queues the rest of the session's graph. */
@@ -130,6 +148,10 @@ class Pipeline(
                         val windows = windowsOf.getOrPut(job.sessionId) { store.windows(job.sessionId) }
                         val window = windows.firstOrNull { it.idx == job.ref.toIntOrNull() } ?: continue
                         need = maxOf(need, PromptBudget.required(extractSystem, extractUser(job, extractTemplate, window, windows.size), MemoryConfig.EXTRACT_MAX_OUTPUT_TOKENS))
+                    }
+                    JobGraph.ROLES -> {
+                        val text = "ě".repeat(TranscriptWindows.wordsFor(MemoryConfig.ROLES_INPUT_TOKENS) * WORD_CHARS)
+                        need = maxOf(need, PromptBudget.required(prompt(Prompts.named(Prompts.ROLES_SYSTEM, lang)) + RoleGuess.SCHEMA, text, MemoryConfig.ROLES_MAX_OUTPUT_TOKENS))
                     }
                     JobGraph.WINDOW -> {
                         // A word is at most WORD_CHARS characters with its space, an accented one for the safe (high) token estimate.

@@ -1,0 +1,32 @@
+# Patient speaks first and talks far more than the therapist: the role guess must not pick the first speaker as the therapist.
+id: petr-k_s02
+tag: cs-patient-first
+what: Czech, patient speaks first and dominates; therapist says little
+lang: cs
+client: petr-k | Petr K.
+date: 2026-03-17
+voice: therapist=cs-CZ-VlastaNeural patient=cs-CZ-AntoninNeural
+expect: therapist=therapist patient=patient
+---
+P: Tak, já bych rovnou začal, ať ztrácíme čas co nejmíň. Byl to zase týden, že bych nejradši odjel někam do lesa a nevracel se.
+P{p=0.5}: [[f1=petr-k_s01.f2|Honza se mnou pořád nemluví|Honza se mnou pořád nemluví a ve škole mu hrozí pětka z matematiky, to mi napsala třídní.]] Já nevím, jestli se mu mám postavit, nebo ho nechat být.
+T: Dobrý den, pane Kolář. Co jste zkusil?
+P: Zkusil jsem mu v pondělí postavit čaj ke dveřím a nechat tam lístek. Napsal jsem mu: ať ti to pomůže. Nic. Ráno byl čaj studený a lístek zmačkaný v koši. Víte, jak to bolí? Dvacet let jsem se do toho zakousával, abych mu dal všechno, co já jsem neměl, a on mě vůbec nevnímá.
+T: Co jste cítil, když jste ten lístek našel?
+P: Vztek, nejdřív. Pak stud. Pak mi bylo do pláče, což se mi nestává. [[f2|Otec a hřbitov|Pořád myslím na tátu, v neděli jsem byl poprvé na hřbitově a stál jsem tam skoro hodinu.]] Nikdo mi o tom nic neřekl, jak to bude. Že budu stát u kamene a nebudu vědět, co říct.
+T: A co jste mu řekl nakonec?
+P: Nic. Jenom jsem tam stál. Pak jsem odešel a koupil jsem si v obchodě limonádu, protože mě zaplavila ta chuť na pivo. A neudělal jsem to. [[f3=petr-k_s01.f3|Stále bez alkoholu|Je to pořád dvě léta, co jsem nepil, a nechci o to přijít kvůli jednomu špatnému dni.]]
+T: To je silné. Jak jste to zvládl?
+P: Zavolal jsem Lence. Povídali jsme si půl hodiny, na parkovišti před obchodem. [[f4|Lenka chce, aby šel k lékaři na záda|Lenka chce, abych už konečně šel k doktorovi s těmi zády, protože se v noci převaluju a bolí mě ve spodní části.]] Já říkám, že to přejde.
+T: Co si o tom myslíte teď?
+P: Že má pravdu. Ale mám strach z toho, co mi řeknou. Táta taky nešel k doktorovi a vidíte, jak to dopadlo.
+T: Hm. Ten strach je pochopitelný.
+P: A k tomu v práci. [[f5|Nabídka vést tým montérů|Šéf mi nabídl, že bych vedl tým šesti montérů, a mám dát odpověď do konce měsíce.]] Já jsem nikdy nikoho nevedl. Co když to zvorám? Co když mi budou říkat, že jsem mistr, a přitom mi nevěří?
+P: A pak si říkám: Honza ve mně nevidí vzor, tak kdo by ve mně viděl vůdce? Chápete? To jsou takové myšlenky, které se vracejí, hlavně o půl třetí ráno.
+T: Mluvíte o tom otevřeněji než minule.
+P: Asi jo. Sám se divím. Ale taky jsem byl dneska rozhodnutý. [[f6|Nebyl rybařit od podzimu|Na rybách jsem nebyl od loňského podzimu, i když mi to Lenka pořád navrhuje.]] Ale tuhle sobotu mám v plánu, že tam pojedu aspoň na hodinu.
+T: To zní jako dobrý začátek.
+P: Jo. Vezmu si i tátův prut, ten starý. Nevím, jestli ho zvládnu držet, ale zkusím to.
+P: Tak to je asi všechno, co jsem chtěl říct. Teď zase nevím, co bych řekl. Je to divné, takhle brečet před cizím člověkem.
+T: Nejste cizí. A my už skoro končíme. Příště se k té nabídce vrátíme.
+P: Děkuji. Na shledanou.

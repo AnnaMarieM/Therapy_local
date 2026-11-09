@@ -1,12 +1,14 @@
 package com.therapylocal.app.engine
 
+import com.therapylocal.app.asr.DiarTurn
 import com.therapylocal.app.perf.LlmCall
 
 /** Which engine host serves a call. LOCAL = in-process fallback / tests / probes. */
 enum class EngineRole(val proc: String) { LIVE("live"), BATCH("batch"), LOCAL("main") }
 
 /** Fakes are selected by model id in debug, never by a kind. */
-enum class EngineKind { LLM, EMBED, ASR }
+/** [DIARIZE] is last: the wire carries the name, and a test pins the order. */
+enum class EngineKind { LLM, EMBED, ASR, DIARIZE }
 
 /** Fields every log line of one call carries, on both sides of the boundary. */
 data class CallTag(val requestId: String, val loadId: String?, val op: String)
@@ -31,6 +33,9 @@ sealed class EngineOp {
     data class EmbedText(override val tag: CallTag, val handle: Int, val text: String, val query: Boolean) : EngineOp()
     data class EmbedAudio(override val tag: CallTag, val handle: Int, val pcm: ShortArray, val role: String) : EngineOp()
     data class Transcribe(override val tag: CallTag, val handle: Int, val pcm: ShortArray) : EngineOp()
+
+    /** Speaker turns of a whole recording (16 kHz PCM16, up to an hour). [numSpeakersHint] > 0 fixes the speaker count, 0 clusters by threshold. */
+    data class Diarize(override val tag: CallTag, val handle: Int, val pcm: ShortArray, val numSpeakersHint: Int) : EngineOp()
     data class Close(override val tag: CallTag, val handle: Int) : EngineOp()
     data class Status(override val tag: CallTag) : EngineOp()
 
@@ -47,6 +52,9 @@ sealed class EngineReply {
     /** [perf]: ask only (PerfStats in main). */
     data class Text(val text: String, val perf: LlmCall?) : EngineReply()
     data class Vector(val v: FloatArray) : EngineReply()
+
+    /** The reply to [EngineOp.Diarize]: sorted by start. */
+    data class Turns(val turns: List<DiarTurn>) : EngineReply()
     object Done : EngineReply()
 
     /** ArmFaults on a noFaults host. */

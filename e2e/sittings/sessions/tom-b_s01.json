@@ -1,0 +1,211 @@
+{
+ "id": "tom-b_s01",
+ "tag": "en-same-gender",
+ "what": "English 1:1 with two similar male voices (hard for diarization)",
+ "lang": "en",
+ "client": "tom-b",
+ "client_name": "Tom B.",
+ "date": "2026-04-14",
+ "voices": {
+  "therapist": "en-US-AndrewNeural",
+  "patient": "en-US-BrianNeural"
+ },
+ "fx": {},
+ "expect": {
+  "speakers": 2,
+  "voices": 2,
+  "limitation": null,
+  "roles": {
+   "therapist": "therapist",
+   "patient": "patient"
+  }
+ },
+ "turns": [
+  {
+   "who": "therapist",
+   "text": "Hi Tom, welcome. Take a seat anywhere. What would you like to talk about today?"
+  },
+  {
+   "who": "patient",
+   "text": "Hi. Well, I've been putting this off for a while. I think I need to talk about the whole move thing."
+  },
+  {
+   "who": "therapist",
+   "text": "The move. Tell me what's happening."
+  },
+  {
+   "who": "patient",
+   "text": "I've been offered a job as a physiotherapist at a sports clinic in Dublin, and I have to give them an answer by the end of the month. On paper it's a dream. Better pay, better hours."
+  },
+  {
+   "who": "therapist",
+   "text": "But?"
+  },
+  {
+   "who": "patient",
+   "text": "But my stomach turns every time I think about it."
+  },
+  {
+   "who": "therapist",
+   "text": "What does your stomach say?"
+  },
+  {
+   "who": "patient",
+   "text": "That I'm going to mess it up. My girlfriend Sarah has a good job here in Bristol at the hospital, and she doesn't want to move, so it would mean doing long distance."
+  },
+  {
+   "who": "therapist",
+   "text": "How does Sarah feel about you going?"
+  },
+  {
+   "who": "patient",
+   "text": "She says she'll support whatever I decide. Which is kind, but it's also the worst thing, because then it's all on me."
+  },
+  {
+   "who": "therapist",
+   "text": "It sounds like you'd almost rather she told you what to do."
+  },
+  {
+   "who": "patient",
+   "text": "Exactly. Isn't that pathetic?"
+  },
+  {
+   "who": "therapist",
+   "text": "I wouldn't call it pathetic. It's a big decision."
+  },
+  {
+   "who": "patient",
+   "text": "And on top of that I hate flying, I'm properly scared of it, I haven't been on a plane since a bad turbulence flight to Spain six years ago. Dublin is a forty minute flight. I'd have to do it every month to see her."
+  },
+  {
+   "who": "therapist",
+   "text": "Could you go by ferry instead?"
+  },
+  {
+   "who": "patient",
+   "text": "I could, and it takes about nine hours, so that's no good."
+  },
+  {
+   "who": "therapist",
+   "text": "So the fear of flying is part of the weight."
+  },
+  {
+   "who": "patient",
+   "text": "A big part. I've been lying awake working out how many flights a year. Twelve. Twelve flights."
+  },
+  {
+   "who": "therapist",
+   "text": "Have you tried anything for the flying? Any help?"
+  },
+  {
+   "who": "patient",
+   "text": "I did a course once. It was a one-day thing at Heathrow, and I got as far as sitting in a simulator and then I walked out."
+  },
+  {
+   "who": "therapist",
+   "text": "That took courage, even getting that far."
+  },
+  {
+   "who": "patient",
+   "text": "I suppose. My brother Ian lives in Cork and he keeps telling me to just go, that I'm overthinking everything as always."
+  },
+  {
+   "who": "therapist",
+   "text": "What do you make of his advice?"
+  },
+  {
+   "who": "patient",
+   "text": "He's probably right. But he's never been anxious a day in his life, so what does he know?"
+  },
+  {
+   "who": "therapist",
+   "text": "Fair enough. Let's step back. When you imagine saying yes, what do you feel?"
+  },
+  {
+   "who": "patient",
+   "text": "Relief for about ten seconds. Then dread."
+  },
+  {
+   "who": "therapist",
+   "text": "And saying no?"
+  },
+  {
+   "who": "patient",
+   "text": "Relief for about ten seconds. Then regret. It's the same, just in reverse."
+  },
+  {
+   "who": "therapist",
+   "text": "That's very honest. So the answer may not be in the feelings alone."
+  },
+  {
+   "who": "patient",
+   "text": "No. I don't take any medication for the anxiety, the doctor suggested it but I'd rather try talking first."
+  },
+  {
+   "who": "therapist",
+   "text": "Understood. Then let's try something practical. What would a week in Dublin look like? Write down the real details, the commute, the flat, the clinic."
+  },
+  {
+   "who": "patient",
+   "text": "I can do that. I visited the clinic last month, actually. They were really welcoming."
+  },
+  {
+   "who": "therapist",
+   "text": "Good. Then maybe go back for another visit, and treat that as a test flight."
+  },
+  {
+   "who": "patient",
+   "text": "Ha. A test flight. That's actually not bad."
+  },
+  {
+   "who": "therapist",
+   "text": "Shall we meet again next week, before your deadline?"
+  },
+  {
+   "who": "patient",
+   "text": "Yes please. I'll bring the list."
+  }
+ ],
+ "facts": [
+  {
+   "id": "tom-b_s01.f1",
+   "heading": "Job offer in Dublin",
+   "said": "I've been offered a job as a physiotherapist at a sports clinic in Dublin, and I have to give them an answer by the end of the month.",
+   "who": "patient",
+   "turn": 3,
+   "repeat_of": null
+  },
+  {
+   "id": "tom-b_s01.f2",
+   "heading": "Girlfriend Sarah",
+   "said": "My girlfriend Sarah has a good job here in Bristol at the hospital, and she doesn't want to move, so it would mean doing long distance.",
+   "who": "patient",
+   "turn": 7,
+   "repeat_of": null
+  },
+  {
+   "id": "tom-b_s01.f3",
+   "heading": "Fear of flying",
+   "said": "And on top of that I hate flying, I'm properly scared of it, I haven't been on a plane since a bad turbulence flight to Spain six years ago.",
+   "who": "patient",
+   "turn": 13,
+   "repeat_of": null
+  },
+  {
+   "id": "tom-b_s01.f4",
+   "heading": "Brother Ian",
+   "said": "My brother Ian lives in Cork and he keeps telling me to just go, that I'm overthinking everything as always.",
+   "who": "patient",
+   "turn": 21,
+   "repeat_of": null
+  },
+  {
+   "id": "tom-b_s01.f5",
+   "heading": "Does not take medication",
+   "said": "I don't take any medication for the anxiety, the doctor suggested it but I'd rather try talking first.",
+   "who": "patient",
+   "turn": 29,
+   "repeat_of": null
+  }
+ ]
+}

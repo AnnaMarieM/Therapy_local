@@ -87,6 +87,21 @@ class EngineCodecTest {
         }
     }
 
+    @Test fun diarizeAndItsTurnsRoundTrip() {
+        for (n in listOf(0, 1, 60 * 16_000, 5_250_000)) {
+            val pcm = ShortArray(n) { (it * 17).toShort() }
+            val d = roundOp(EngineOp.Diarize(tag, 4, pcm, 2)) as EngineOp.Diarize
+            assertArrayEquals("diarize n=$n", pcm, d.pcm)
+            assertEquals(4, d.handle)
+            assertEquals(2, d.numSpeakersHint)
+        }
+        // the last count is over the inline limit, so the turns travel through shared memory
+        for (count in listOf(0, 3, EngineConfig.INLINE_MAX_BYTES / 12 + 1)) {
+            val turns = EngineReply.Turns(List(count) { com.therapylocal.app.asr.DiarTurn(it * 1000L, it * 1000L + 900, it % 3) })
+            assertEquals("turns count=$count", turns, roundReply(turns))
+        }
+    }
+
     @Test fun repliesRoundTrip() {
         assertEquals(EngineReply.Opened(5, "GPU", 4096, "CPU"), roundReply(EngineReply.Opened(5, "GPU", 4096, "CPU")))
         assertEquals(EngineReply.Opened(5, "CPU", 0, null), roundReply(EngineReply.Opened(5, "CPU", 0, null)))

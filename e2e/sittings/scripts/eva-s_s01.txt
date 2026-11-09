@@ -1,0 +1,83 @@
+# Rapid short turns: one-word answers, back-channels mixed into the other speaker's turn, interruptions. Male therapist, female patient.
+id: eva-s_s01
+tag: cs-rapid
+what: Czech, rapid short turns, one-word answers, back-channels and interruptions
+lang: cs
+client: eva-s | Eva S.
+date: 2026-03-10
+voice: therapist=cs-CZ-AntoninNeural patient=cs-CZ-VlastaNeural
+fx: gap_min=0.08 gap_max=0.3
+expect: therapist=therapist patient=patient
+---
+T: Dobrý den, paní Svobodová. Pojďme na to rychle, mám pro dnešek víc otázek. Spala jste dobře?
+P{p=0.3}: Ne.
+T: Kolik hodin?
+P: Čtyři. Možná pět.
+T: A usínáte těžko, nebo se budíte?
+P: Budím se. Hm.
+T: V kolik?
+P: Kolem třetí. [[f1|Budí se ve tři ráno|Budím se každou noc ve tři ráno a už neusnu.]]
+T{at=0.7}: Hm.
+T: Pracujete?
+P: Ano.
+T: Kde?
+P: V pojišťovně, na call centru. [[f2|Práce na call centru|Jsem čtyři roky operátorka na zákaznické lince jedné pojišťovny.]]
+T: Je to stresující?
+P: Hodně. Hlavně telefony od rozzlobených lidí.
+T: Jíte pravidelně?
+P: Ne.
+T: Snídaně?
+P: Ne. Jenom kafe.
+T: Kolik kaf za den?
+P{o=0.3}: Pět. Šest. [[f3|Pije hodně kávy|Dávám si šest kávy denně, protože jinak bych přes den neprobrala oči.]]
+T: Alkohol?
+P: Ne.
+T: Vůbec?
+P: Vůbec. Nepiju.
+T: Kouříte?
+P: Ano. [[f4|Kouří krabičku denně|Kouřím asi krabičku denně a už jsem to zkoušela pětkrát přestat.]]
+T{at=0.6}: Mhm.
+T: Bydlíte sama?
+P: Ne.
+T: S kým?
+P: S přítelem. A dvěma kočkami. [[f5|Dvě kočky, Mourek a Žofie|Máme doma dvě kočky, jmenují se Mourek a Žofie.]]
+T: Jak se jmenuje přítel?
+P: Tomáš.
+T: Jste spokojená?
+P: Hm. Ano. Většinou.
+T: Většinou?
+P: No, poslední dobou se hádáme. [[f6|Hádky s přítelem Tomášem|S Tomášem se hádáme skoro každý večer kvůli drobnostem, třeba kvůli nádobí.]]
+T{o=0.4}: Kvůli čemu?
+P: Kvůli nádobí. Kvůli všemu.
+T: Bijete se?
+P: Ne. Ne! Nikdy.
+T: Dobře. Co rodina?
+P: Máma žije v Olomouci.
+T: Vídáte ji?
+P: Jednou za měsíc.
+T: A otec?
+P: Ne. Zemřel, když mi bylo dvanáct. [[f7|Otec zemřel v jejích dvanácti|Táta zemřel, když mi bylo dvanáct, a od té doby se bojím, že se něco stane i mámě.]]
+T: Rozumím.
+P{at=0.5}: Hm.
+T: Máte nějaké léky?
+P: Ne.
+T: Žádné?
+P: Žádné. Jenom vitamíny.
+T: Dobře. Chodíte ven?
+P: Málo.
+T: Sportujete?
+P: Dřív jsem plavala. [[f8|Plavání dřív|Dřív jsem třikrát týdně plavala v bazénu, ale už tři roky jsem tam nebyla.]]
+T: Chcete zase?
+P: Možná.
+T: Možná ano, nebo možná ne?
+P: Ano. Chci.
+T: Skvěle. Jak se cítíte teď, jednou větou?
+P{p=0.8}: Unavená a trochu vystrašená.
+T: Čeho se bojíte?
+P: Že to nezvládnu. Že se mi to celé zhroutí.
+T: Rozumím. Dnes jsme si udělali přehled. Příště vezmeme jedno téma, spánek.
+P: Dobře.
+T: Souhlasíte?
+P: Ano.
+T: Děkuji, paní Svobodová.
+P: Děkuji. Na shledanou.

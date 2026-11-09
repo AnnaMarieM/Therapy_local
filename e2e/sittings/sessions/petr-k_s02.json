@@ -1,0 +1,164 @@
+{
+ "id": "petr-k_s02",
+ "tag": "cs-patient-first",
+ "what": "Czech, patient speaks first and dominates; therapist says little",
+ "lang": "cs",
+ "client": "petr-k",
+ "client_name": "Petr K.",
+ "date": "2026-03-17",
+ "voices": {
+  "therapist": "cs-CZ-VlastaNeural",
+  "patient": "cs-CZ-AntoninNeural"
+ },
+ "fx": {},
+ "expect": {
+  "speakers": 2,
+  "voices": 2,
+  "limitation": null,
+  "roles": {
+   "therapist": "therapist",
+   "patient": "patient"
+  }
+ },
+ "turns": [
+  {
+   "who": "patient",
+   "text": "Tak, já bych rovnou začal, ať ztrácíme čas co nejmíň. Byl to zase týden, že bych nejradši odjel někam do lesa a nevracel se."
+  },
+  {
+   "who": "patient",
+   "pause": 0.5,
+   "text": "Honza se mnou pořád nemluví a ve škole mu hrozí pětka z matematiky, to mi napsala třídní. Já nevím, jestli se mu mám postavit, nebo ho nechat být."
+  },
+  {
+   "who": "therapist",
+   "text": "Dobrý den, pane Kolář. Co jste zkusil?"
+  },
+  {
+   "who": "patient",
+   "text": "Zkusil jsem mu v pondělí postavit čaj ke dveřím a nechat tam lístek. Napsal jsem mu: ať ti to pomůže. Nic. Ráno byl čaj studený a lístek zmačkaný v koši. Víte, jak to bolí? Dvacet let jsem se do toho zakousával, abych mu dal všechno, co já jsem neměl, a on mě vůbec nevnímá."
+  },
+  {
+   "who": "therapist",
+   "text": "Co jste cítil, když jste ten lístek našel?"
+  },
+  {
+   "who": "patient",
+   "text": "Vztek, nejdřív. Pak stud. Pak mi bylo do pláče, což se mi nestává. Pořád myslím na tátu, v neděli jsem byl poprvé na hřbitově a stál jsem tam skoro hodinu. Nikdo mi o tom nic neřekl, jak to bude. Že budu stát u kamene a nebudu vědět, co říct."
+  },
+  {
+   "who": "therapist",
+   "text": "A co jste mu řekl nakonec?"
+  },
+  {
+   "who": "patient",
+   "text": "Nic. Jenom jsem tam stál. Pak jsem odešel a koupil jsem si v obchodě limonádu, protože mě zaplavila ta chuť na pivo. A neudělal jsem to. Je to pořád dvě léta, co jsem nepil, a nechci o to přijít kvůli jednomu špatnému dni."
+  },
+  {
+   "who": "therapist",
+   "text": "To je silné. Jak jste to zvládl?"
+  },
+  {
+   "who": "patient",
+   "text": "Zavolal jsem Lence. Povídali jsme si půl hodiny, na parkovišti před obchodem. Lenka chce, abych už konečně šel k doktorovi s těmi zády, protože se v noci převaluju a bolí mě ve spodní části. Já říkám, že to přejde."
+  },
+  {
+   "who": "therapist",
+   "text": "Co si o tom myslíte teď?"
+  },
+  {
+   "who": "patient",
+   "text": "Že má pravdu. Ale mám strach z toho, co mi řeknou. Táta taky nešel k doktorovi a vidíte, jak to dopadlo."
+  },
+  {
+   "who": "therapist",
+   "text": "Hm. Ten strach je pochopitelný."
+  },
+  {
+   "who": "patient",
+   "text": "A k tomu v práci. Šéf mi nabídl, že bych vedl tým šesti montérů, a mám dát odpověď do konce měsíce. Já jsem nikdy nikoho nevedl. Co když to zvorám? Co když mi budou říkat, že jsem mistr, a přitom mi nevěří?"
+  },
+  {
+   "who": "patient",
+   "text": "A pak si říkám: Honza ve mně nevidí vzor, tak kdo by ve mně viděl vůdce? Chápete? To jsou takové myšlenky, které se vracejí, hlavně o půl třetí ráno."
+  },
+  {
+   "who": "therapist",
+   "text": "Mluvíte o tom otevřeněji než minule."
+  },
+  {
+   "who": "patient",
+   "text": "Asi jo. Sám se divím. Ale taky jsem byl dneska rozhodnutý. Na rybách jsem nebyl od loňského podzimu, i když mi to Lenka pořád navrhuje. Ale tuhle sobotu mám v plánu, že tam pojedu aspoň na hodinu."
+  },
+  {
+   "who": "therapist",
+   "text": "To zní jako dobrý začátek."
+  },
+  {
+   "who": "patient",
+   "text": "Jo. Vezmu si i tátův prut, ten starý. Nevím, jestli ho zvládnu držet, ale zkusím to."
+  },
+  {
+   "who": "patient",
+   "text": "Tak to je asi všechno, co jsem chtěl říct. Teď zase nevím, co bych řekl. Je to divné, takhle brečet před cizím člověkem."
+  },
+  {
+   "who": "therapist",
+   "text": "Nejste cizí. A my už skoro končíme. Příště se k té nabídce vrátíme."
+  },
+  {
+   "who": "patient",
+   "text": "Děkuji. Na shledanou."
+  }
+ ],
+ "facts": [
+  {
+   "id": "petr-k_s02.f1",
+   "heading": "Honza se mnou pořád nemluví",
+   "said": "Honza se mnou pořád nemluví a ve škole mu hrozí pětka z matematiky, to mi napsala třídní.",
+   "who": "patient",
+   "turn": 1,
+   "repeat_of": "petr-k_s01.f2"
+  },
+  {
+   "id": "petr-k_s02.f2",
+   "heading": "Otec a hřbitov",
+   "said": "Pořád myslím na tátu, v neděli jsem byl poprvé na hřbitově a stál jsem tam skoro hodinu.",
+   "who": "patient",
+   "turn": 5,
+   "repeat_of": null
+  },
+  {
+   "id": "petr-k_s02.f3",
+   "heading": "Stále bez alkoholu",
+   "said": "Je to pořád dvě léta, co jsem nepil, a nechci o to přijít kvůli jednomu špatnému dni.",
+   "who": "patient",
+   "turn": 7,
+   "repeat_of": "petr-k_s01.f3"
+  },
+  {
+   "id": "petr-k_s02.f4",
+   "heading": "Lenka chce, aby šel k lékaři na záda",
+   "said": "Lenka chce, abych už konečně šel k doktorovi s těmi zády, protože se v noci převaluju a bolí mě ve spodní části.",
+   "who": "patient",
+   "turn": 9,
+   "repeat_of": null
+  },
+  {
+   "id": "petr-k_s02.f5",
+   "heading": "Nabídka vést tým montérů",
+   "said": "Šéf mi nabídl, že bych vedl tým šesti montérů, a mám dát odpověď do konce měsíce.",
+   "who": "patient",
+   "turn": 13,
+   "repeat_of": null
+  },
+  {
+   "id": "petr-k_s02.f6",
+   "heading": "Nebyl rybařit od podzimu",
+   "said": "Na rybách jsem nebyl od loňského podzimu, i když mi to Lenka pořád navrhuje.",
+   "who": "patient",
+   "turn": 16,
+   "repeat_of": null
+  }
+ ]
+}

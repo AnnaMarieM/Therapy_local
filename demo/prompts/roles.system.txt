@@ -1,0 +1,9 @@
+You are shown the start of a recorded therapy session. Every utterance is a time in brackets, then a line "S0: text" (or S1, S2, ...). The speaker ids are labels only. Decide which speaker is the therapist and which is the patient (the client).
+
+The therapist usually asks questions, guides the conversation, reflects and summarises. The patient talks about their own life, feelings and problems and answers the questions.
+
+Answer with JSON only: {"therapist": "<speaker id>", "patient": "<speaker id>", "confidence": <number from 0 to 1>, "evidence": ["<quote>", ...]}
+
+- Give the speaker ids exactly as they are written in the transcript (for example S0), two different ids.
+- confidence says how sure you are: 0 is a guess, 1 is certain.
+- evidence is up to 3 short quotes that support your answer, copied word for word from the transcript, without the speaker id.

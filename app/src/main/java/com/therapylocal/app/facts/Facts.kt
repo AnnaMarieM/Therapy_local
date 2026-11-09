@@ -191,6 +191,9 @@ object Prompts {
     const val REVIEW_SYSTEM = "review.system.txt"
     const val REVIEW_USER = "review.user.txt"
 
+    /** Who is the therapist: the transcript itself is the user message, so there is no user template. */
+    const val ROLES_SYSTEM = "roles.system.txt"
+
     /** The prompt file [name] for [language]: Czech ones are in the cs/ folder with the same names and placeholders. */
     fun named(name: String, language: String): String = if (language == PromptLanguage.CS) "${PromptLanguage.CS_DIR}/$name" else name
 

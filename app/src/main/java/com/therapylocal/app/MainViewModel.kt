@@ -23,6 +23,7 @@ import com.therapylocal.app.models.ModelSetup
 import com.therapylocal.app.models.SetupState
 import com.therapylocal.app.session.SessionController
 import com.therapylocal.app.ui.data.ClientRepository
+import com.therapylocal.app.ui.models.SpeakerRoles
 import com.therapylocal.app.ui.models.SearchHit
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -174,6 +175,33 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     fun pauseRecording() = SessionController.pause()
 
     fun resumeRecording() = SessionController.resume()
+
+    // ---- speaker roles --------------------------------------------------------------------------------------
+
+    private val _roles = MutableStateFlow<Map<String, SpeakerRoles>>(emptyMap())
+
+    /** The current [SpeakerRoles] of every session loaded with [loadRoles] or changed with [swapRoles]; a session without a role guess is absent. */
+    val roles: StateFlow<Map<String, SpeakerRoles>> = _roles.asStateFlow()
+
+    fun loadRoles(sessionId: String) {
+        viewModelScope.launch(Dispatchers.IO) { setRoles(sessionId, clients.speakerRoles(sessionId)) }
+    }
+
+    /** "Is this incorrect?": swaps therapist and patient of [sessionId] off the main thread, then [roles] holds the new version. */
+    fun swapRoles(sessionId: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                clients.swapRoles(sessionId)?.let { setRoles(sessionId, it) }
+            } catch (t: Throwable) {
+                AppLog.eRedacted(TAG, "swap_roles_failed", LogCtx.NONE, t)
+            }
+        }
+    }
+
+    /** The session's transcript as text with role labels (blocking: call off the main thread). */
+    fun formattedTranscript(sessionId: String): String = clients.formattedTranscript(sessionId)
+
+    private fun setRoles(sessionId: String, roles: SpeakerRoles?) = _roles.update { if (roles == null) it - sessionId else it + (sessionId to roles) }
 
     // ---- client search --------------------------------------------------------------------------------------
 

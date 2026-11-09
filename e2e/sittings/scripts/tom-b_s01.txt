@@ -1,0 +1,46 @@
+# Same-gender 1:1: two similar US male voices. Harder for diarization.
+id: tom-b_s01
+tag: en-same-gender
+what: English 1:1 with two similar male voices (hard for diarization)
+lang: en
+client: tom-b | Tom B.
+date: 2026-04-14
+voice: therapist=en-US-AndrewNeural patient=en-US-BrianNeural
+expect: therapist=therapist patient=patient
+---
+T: Hi Tom, welcome. Take a seat anywhere. What would you like to talk about today?
+P: Hi. Well, I've been putting this off for a while. I think I need to talk about the whole move thing.
+T: The move. Tell me what's happening.
+P: [[f1|Job offer in Dublin|I've been offered a job as a physiotherapist at a sports clinic in Dublin, and I have to give them an answer by the end of the month.]] On paper it's a dream. Better pay, better hours.
+T: But?
+P: But my stomach turns every time I think about it.
+T: What does your stomach say?
+P: That I'm going to mess it up. [[f2|Girlfriend Sarah|My girlfriend Sarah has a good job here in Bristol at the hospital, and she doesn't want to move, so it would mean doing long distance.]]
+T: How does Sarah feel about you going?
+P: She says she'll support whatever I decide. Which is kind, but it's also the worst thing, because then it's all on me.
+T: It sounds like you'd almost rather she told you what to do.
+P: Exactly. Isn't that pathetic?
+T: I wouldn't call it pathetic. It's a big decision.
+P: [[f3|Fear of flying|And on top of that I hate flying, I'm properly scared of it, I haven't been on a plane since a bad turbulence flight to Spain six years ago.]] Dublin is a forty minute flight. I'd have to do it every month to see her.
+T: Could you go by ferry instead?
+P: I could, and it takes about nine hours, so that's no good.
+T: So the fear of flying is part of the weight.
+P: A big part. I've been lying awake working out how many flights a year. Twelve. Twelve flights.
+T: Have you tried anything for the flying? Any help?
+P: I did a course once. It was a one-day thing at Heathrow, and I got as far as sitting in a simulator and then I walked out.
+T: That took courage, even getting that far.
+P: I suppose. [[f4|Brother Ian|My brother Ian lives in Cork and he keeps telling me to just go, that I'm overthinking everything as always.]]
+T: What do you make of his advice?
+P: He's probably right. But he's never been anxious a day in his life, so what does he know?
+T: Fair enough. Let's step back. When you imagine saying yes, what do you feel?
+P: Relief for about ten seconds. Then dread.
+T: And saying no?
+P: Relief for about ten seconds. Then regret. It's the same, just in reverse.
+T: That's very honest. So the answer may not be in the feelings alone.
+P: No. [[f5|Does not take medication|I don't take any medication for the anxiety, the doctor suggested it but I'd rather try talking first.]]
+T: Understood. Then let's try something practical. What would a week in Dublin look like? Write down the real details, the commute, the flat, the clinic.
+P: I can do that. I visited the clinic last month, actually. They were really welcoming.
+T: Good. Then maybe go back for another visit, and treat that as a test flight.
+P: Ha. A test flight. That's actually not bad.
+T: Shall we meet again next week, before your deadline?
+P: Yes please. I'll bring the list.

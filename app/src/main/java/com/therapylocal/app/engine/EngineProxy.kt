@@ -36,7 +36,7 @@ class EngineProxy(
             val fields = arrayOf<Pair<String, Any?>>(
                 "engine" to engine, "role" to h.role.proc, "req" to op.tag.requestId, "load_id" to op.tag.loadId, "op" to op.tag.op, "dur_ms" to ms, "ok" to true,
             )
-            if (op is EngineOp.EmbedText || op is EngineOp.EmbedAudio || op is EngineOp.Transcribe) {
+            if (op is EngineOp.EmbedText || op is EngineOp.EmbedAudio || op is EngineOp.Transcribe || op is EngineOp.Diarize) {
                 AppLog.d(tag, EngineEvents.CALL, LogCtx.NONE, *fields)
             } else {
                 AppLog.i(tag, EngineEvents.CALL, LogCtx.NONE, *fields)
@@ -114,7 +114,7 @@ class EngineProxy(
         }
     }
 
-    private fun isTextOp(op: EngineOp) = op is EngineOp.Ask || op is EngineOp.EmbedText || op is EngineOp.EmbedAudio || op is EngineOp.Transcribe
+    private fun isTextOp(op: EngineOp) = op is EngineOp.Ask || op is EngineOp.EmbedText || op is EngineOp.EmbedAudio || op is EngineOp.Transcribe || op is EngineOp.Diarize
 }
 
 /**

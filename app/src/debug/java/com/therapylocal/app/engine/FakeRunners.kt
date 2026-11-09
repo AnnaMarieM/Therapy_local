@@ -45,7 +45,7 @@ internal object FakeRunners {
         val reply = when (kind) {
             EngineKind.LLM -> EngineReply.Opened(0, op.backend, ctx, null)
             EngineKind.EMBED -> EngineReply.Opened(0, op.backend, op.maxTokens, if (op.textOnly) null else "CPU")
-            EngineKind.ASR -> EngineReply.Opened(0, op.backend, 0, null)
+            EngineKind.ASR, EngineKind.DIARIZE -> EngineReply.Opened(0, op.backend, 0, null)   // no fake diarizer: the lab's fake ids never reach this
         }
         return r to reply
     }

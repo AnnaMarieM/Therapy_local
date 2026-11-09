@@ -142,7 +142,7 @@ class EngineFamilyNTest {
         // AD-02: the request has no speech-engine field and the kinds name no speech engine
         val fields = EngineOp.Open::class.java.declaredFields.map { it.name.lowercase() }
         assertTrue("no speech-engine field in $fields", fields.none { "speech" in it || "whisper" in it || "parakeet" in it || "gemma" in it && it != "guardmodel" })
-        assertEquals(listOf("LLM", "EMBED", "ASR"), EngineKind.values().map { it.name })
+        assertEquals(listOf("LLM", "EMBED", "ASR", "DIARIZE"), EngineKind.values().map { it.name })
     }
 
     @Test fun n21_aCanaryOpenCarriesTheClientLanguage() {

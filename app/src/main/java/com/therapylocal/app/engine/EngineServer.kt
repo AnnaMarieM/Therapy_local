@@ -7,6 +7,8 @@ import android.os.SystemClock
 import com.therapylocal.app.engine.runner.AskEngine
 import com.therapylocal.app.engine.runner.AsrEngine
 import com.therapylocal.app.engine.runner.CanaryRunner
+import com.therapylocal.app.engine.runner.DiarizeEngine
+import com.therapylocal.app.engine.runner.DiarizeRunner
 import com.therapylocal.app.engine.runner.EmbedEngine
 import com.therapylocal.app.engine.runner.EmbedRunner
 import com.therapylocal.app.engine.runner.LlmRunner
@@ -46,6 +48,7 @@ class EngineServer(private val context: Context, private val role: EngineRole, p
         is EngineOp.EmbedText -> op.handle
         is EngineOp.EmbedAudio -> op.handle
         is EngineOp.Transcribe -> op.handle
+        is EngineOp.Diarize -> op.handle
         is EngineOp.Close -> op.handle
         else -> null
     }
@@ -68,6 +71,10 @@ class EngineServer(private val context: Context, private val role: EngineRole, p
             is EngineOp.Transcribe -> {
                 val c = runner<AsrEngine>(op.handle, op.tag)
                 synchronized(c) { c.transcribe(op) }
+            }
+            is EngineOp.Diarize -> {
+                val d = runner<DiarizeEngine>(op.handle, op.tag)
+                synchronized(d) { d.diarize(op) }
             }
             is EngineOp.Close -> close(op)
             is EngineOp.Status -> status()
@@ -106,6 +113,7 @@ class EngineServer(private val context: Context, private val role: EngineRole, p
                 EngineKind.LLM -> LlmRunner(context).let { it to it.open(op, sink) }
                 EngineKind.EMBED -> EmbedRunner(context, role, op.textOnly).let { it to it.open(op, sink) }
                 EngineKind.ASR -> CanaryRunner(context).let { it to it.open(op, sink) }
+                EngineKind.DIARIZE -> DiarizeRunner(context).let { it to it.open(op, sink) }
             }
             val handle = nextHandle.getAndIncrement()
             handles[handle] = runner
@@ -114,11 +122,11 @@ class EngineServer(private val context: Context, private val role: EngineRole, p
         }
     }
 
-    /** LIVE: the embedder with the audio encoder. BATCH: the LLM, the text-only embedder and speech recognition. LOCAL: everything. */
+    /** LIVE: the embedder with the audio encoder. BATCH: the LLM, the text-only embedder, speech recognition and diarization. LOCAL: everything. */
     private fun serves(op: EngineOp.Open): Boolean = when (role) {
         EngineRole.LOCAL -> true
         EngineRole.LIVE -> op.kind == EngineKind.EMBED && !op.textOnly
-        EngineRole.BATCH -> op.kind == EngineKind.LLM || op.kind == EngineKind.ASR || (op.kind == EngineKind.EMBED && op.textOnly)
+        EngineRole.BATCH -> op.kind == EngineKind.LLM || op.kind == EngineKind.ASR || op.kind == EngineKind.DIARIZE || (op.kind == EngineKind.EMBED && op.textOnly)
     }
 
     private inline fun <reified R : Runner> runner(handle: Int, tag: CallTag): R {

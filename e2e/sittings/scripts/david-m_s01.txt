@@ -1,0 +1,44 @@
+# 1:1 English, female therapist (British), male patient (US voice).
+id: david-m_s01
+tag: en-1to1
+what: English 1:1, female therapist and male patient
+lang: en
+client: david-m | David M.
+date: 2026-02-10
+voice: therapist=en-GB-SoniaNeural patient=en-US-GuyNeural
+expect: therapist=therapist patient=patient
+---
+T: Good morning, David. Come in and take a seat. How has your week been?
+P: Morning. It's been, I don't know, flat. Not terrible, not good. Just a lot of grey days in a row.
+T: Last time you told me a little about what brought you here. Would you like to start there?
+P: Yeah, I think so. [[f1|Wife Margaret died eight months ago|My wife Margaret died eight months ago, in June, after a long illness, and the house has been unbearably quiet ever since.]]
+T: I'm so sorry. Eight months is not very long.
+P: It doesn't feel long and it doesn't feel short. Everybody told me it'd get easier by now. It hasn't.
+T: What is the quietest part of the day?
+P: The evenings. I used to cook for two. Now I stand in the kitchen and put one potato in the pan, and that's when it hits me.
+T: Tell me about your work. Are you still working?
+P: [[f2|Bus driver for twenty-two years|I've driven city buses for twenty-two years, and honestly the route is the only thing that keeps me going.]] The passengers know me. Some of the regulars have been very kind.
+T: That sounds like a real anchor.
+P: It is. But I'm not sleeping. [[f3|Wakes at four in the morning|I wake up at four in the morning, every single day, and I just lie there until the alarm goes at five.]]
+T: Do you have people around you? Family, friends?
+P: [[f4|Daughter Claire in Manchester|My daughter Claire lives in Manchester and she rings me every Sunday, but she's got two little ones and I don't want to be a burden.]]
+T: Do you tell her how you really feel?
+P: Not really. I say I'm fine. She knows I'm not, but we both pretend.
+T: What do you think would happen if you told her the truth?
+P: She'd drive down. And she'd have to leave the kids with her husband, and I couldn't bear that.
+T: It sounds like you're protecting her. Who protects you?
+P: Nobody, I suppose. [[f5|No drinking since the funeral|I haven't touched a drop of whisky since the funeral, and believe me, I've wanted to.]] That's something I'm proud of.
+T: You should be. That takes real strength.
+P: Thanks. Doctor wanted to put me on tablets, but I said no. [[f6|Has not been back to the allotment|I haven't been back to the allotment since June, Margaret loved it there, the roses were hers.]]
+T: What would it mean to go back?
+P: Seeing the roses without her. I don't know if I can.
+T: Maybe not yet. Perhaps we can keep it in mind as something to work toward.
+P: Maybe. I'd like that. It's just, the weeds must be up to my knees by now.
+T: Is there anything that gives you even a small bit of comfort at the moment?
+P: The dog. [[f7|Dog called Biscuit|We've got an old spaniel called Biscuit, and he sleeps on her side of the bed, so I don't have the heart to move him.]]
+T: That's a lovely detail.
+P: He doesn't know, does he? He still waits at the door at half past four.
+T: Dogs know more than we think.
+P: Yeah. Anyway. I think that's enough for today. I'm a bit wrung out.
+T: That's fine. You did a lot of talking. Shall we meet again in two weeks?
+P: Two weeks, yes. Thank you, doctor.

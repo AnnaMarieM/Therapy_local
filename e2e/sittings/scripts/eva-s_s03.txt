@@ -1,0 +1,19 @@
+# One voice only: the therapist dictates a session note after the session. Known limitation (AD-07): the diarizer is always asked for two speakers, so an invented second speaker and a role guess are expected. This shows how that reads.
+id: eva-s_s03
+tag: cs-dictation
+what: Czech, single voice: the therapist dictates a session note (known limitation AD-07: an invented second speaker)
+lang: cs
+client: eva-s | Eva S.
+date: 2026-03-25
+voice: therapist=cs-CZ-AntoninNeural
+expect: limitation=AD-07
+---
+D: Poznámka ze sezení s klientkou Evou S., čtyřiadvacátého března. Sezení trvalo padesát minut.
+D: Klientka přišla včas, působila unaveně a mluvila tišeji než obvykle. [[f1|Terapeut: spánek se nelepší|Spánek se nelepší, klientka se pořád budí kolem třetí hodiny ranní.]]
+D: Hlavním tématem byl vztah s partnerem Tomášem. [[f2=eva-s_s02.f2|Tomáš chce dítě|Partner Tomáš si přeje dítě, klientka si není jistá a bojí se, že by byla špatná matka.]] Otázku jsme neuzavřeli, je to pro ni zatím příliš těžké téma.
+D: Pozitivně hodnotím, že se klientka po třech letech vrátila k plavání. [[f3|Doporučena večerní rutina|Doporučil jsem večerní rutinu, vypnout obrazovky hodinu před spaním a nepít kávu po čtrnácté hodině.]]
+D: Klientka odmítla léky na spaní, nechce tablety. Respektuji to a nebudu to tlačit.
+D: Rizikové faktory: žádné známky sebepoškozování, klientka to výslovně popřela. Bez myšlenek na ublížení sobě.
+D: [[f4|Příští sezení sedmého dubna|Další sezení jsme domluvili na sedmého dubna ve čtrnáct hodin.]] Do té doby ať si klientka vede deník spánku.
+D: Plán pro příště: probrat strach z mateřství a případně pozvat partnera na jedno společné sezení, pokud s tím klientka bude souhlasit.
+D: Konec poznámky.
