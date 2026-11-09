@@ -1,0 +1,141 @@
+<!-- Moved from the root README.md, which is now the user guide "Mnemothera 101". -->
+<p align="center"><img src="icon.svg" alt="Mnemothera app icon" width="128"></p>
+
+# Mnemothera — Private, Verifiable Memory for Therapists
+
+> **Privacy-First · 100% On-Device · Real-Time Longitudinal Memory for Android**
+> Open-Source License: [MIT](../LICENSE) | Repository: [github.com/AnnaMarieM/Therapy_local](https://github.com/AnnaMarieM/Therapy_local)
+> Formerly known as MindVault / TherapyLocal. The Android package id (`com.therapylocal.app`) and repository name are unchanged.
+
+**Download:** the latest build of `main` is always available as the rolling [`main` release](https://github.com/AnnaMarieM/Therapy_local/releases/tag/main) (`Therapy-main.apk` only).
+
+---
+
+## ⚕️ Medical & Clinical Disclaimer
+
+**Mnemothera is a clinical memory and transcription retrieval tool, NOT a diagnostic medical device.**  
+It does not diagnose mental health conditions, prescribe treatments, or provide clinical advice. All clinical decisions, interpretations, and interventions remain solely the ethical and professional responsibility of the licensed therapist.
+
+---
+
+## 1. What It Is and Who It Is For
+
+**Mnemothera** is an offline-first Android application designed for licensed psychotherapists and counselors who conduct 5–8 emotionally intensive sessions daily.
+
+### The Problem
+Patients often circle back to core emotional themes weeks or months apart (e.g. connecting a workplace conflict in November to a childhood trauma disclosed in May). Reviewing handwritten binders or manual notes between sessions is slow and fragmented. Crucially, therapists **cannot** upload confidential session audio or notes to cloud AI APIs (OpenAI, Anthropic, cloud databases) due to strict doctor-patient confidentiality, ethics, and GDPR/HIPAA regulations.
+
+### The Solution
+Mnemothera operates **100% locally on the therapist's phone**:
+- **Continuous Local Audio Processing:** Records and transcribes audio directly on-device using Whisper / Gemma ASR.
+- **Overlapping Sliding Chunks:** Splits audio into 20-second windows with 5-second overlap to prevent losing thoughts spoken across boundaries.
+- **Persistent Semantic Memory:** Embeds text and audio chunks via Google EmbeddingGemma, indexing them into local storage.
+- **Verifiable Memory Recall:** During or before sessions, searching a topic surfaces the exact past transcript excerpt with date, recording ID, and time range—ensuring zero AI hallucinations.
+
+---
+
+## 2. How to Run It
+
+### Android App (On-Device Inference)
+
+#### Prerequisites
+- Android device (Android 14+, e.g. Google Pixel 8) with USB/Wireless debugging enabled.
+- Android SDK installed (`platforms;android-34`, `build-tools;35.0.0`).
+- Java 17+ / Kotlin.
+
+#### Build and Install
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/AnnaMarieM/Therapy_local.git
+   cd Therapy_local
+   ```
+2. **Or skip the build:** download `Therapy-main.apk` from the [`main` release](https://github.com/AnnaMarieM/Therapy_local/releases/tag/main) and install it with `adb install -r Therapy-main.apk`. The release carries only the APK; its `Therapy-main.apk.sha256` is in the `app-debug` artifact of the CI run that built it.
+3. **Install Docker** (Docker Desktop on Mac/Windows). Builds run in a pinned container, identical locally and in CI; no local JDK or Android SDK is needed.
+   Only if you also open the project in Android Studio, create `local.properties` in the project root (the container ignores it):
+   ```properties
+   sdk.dir=/path/to/your/Android/Sdk
+   # Example Windows: sdk.dir=C\:\\Users\\<username>\\AppData\\Local\\Android\\Sdk
+   ```
+4. **Build the Debug APK** (output: `dist/Therapy-main.apk`):
+   ```bash
+   scripts/build.sh fast        # Windows: .\scripts\build.ps1 fast
+   ```
+5. **Install on Phone via ADB:**
+   ```bash
+   adb install -r dist/Therapy-main.apk
+   adb shell am start -n com.therapylocal.app/.MainActivity
+   ```
+6. **Initial Model Download:**
+   On first launch, the app downloads model weights (~645 MB default) over Wi-Fi directly to the app's isolated storage (`/sdcard/Android/data/com.therapylocal.app/files/models/`). After this initial download, the app functions **completely offline**.
+
+---
+
+## 3. Expertise: What Knowledge We Built In and Where It Comes From
+
+The raw foundation models (Whisper, Gemma) only know how to turn audio into text or output vectors. They do **not** know how to structure clinical therapy continuity.
+
+Our software layer introduces domain-specific architecture:
+1. **20s / 5s Overlapping Audio Chunker (`AppConfig.kt`):** Therapy speech contains hesitant pauses, sighs, and sentence restarts. Standard fixed chunkers cut sentences in half. Our overlap pipeline stitches boundaries together cleanly.
+2. **Deterministic Transcript Cleaning & Merging (`TranscriptClean.kt`, `TranscriptMerge.kt`):** Strips hallucinated repetitions and merges overlapping phonetic boundaries without calling an LLM.
+3. **Grounded Source Attribution (`Search.kt`):** Every surfaced memory is strictly pinned to its recording timestamp (e.g. `Session 1 — Oct 12, 14:20-14:40`). The therapist is shown the **exact verbatim words** said by the patient, preventing model drift or false clinical suggestions.
+4. **Zero-Ideation Guardrails:** Small on-device models must not diagnose or hypothesize. Mnemothera restricts LLM inference to indexing and verbatim similarity retrieval. The clinical intellect remains 100% human.
+5. **Privacy Initials Formatter:** Protects patient dignity by automatically formatting stored records as `First L.` (e.g., *George M.*) rather than full surnames.
+
+---
+
+## 4. The Models and Licenses
+
+Mnemothera utilizes open-weight, edge-optimized models licensed for permissive research and commercial use:
+
+| Model | Purpose | Developer / Source | License & Terms |
+|---|---|---|---|
+| **Canary-1B-v2 (via sherpa-onnx)** | On-device speech-to-text, the default (25 European languages incl. Czech and English); int8 conversion by [fussraider](https://huggingface.co/fussraider/canary-1b-v2-sherpa-onnx-int8) | NVIDIA / k2-fsa | [CC-BY-4.0](https://creativecommons.org/licenses/by/4.0/) (attribution: NVIDIA, nvidia/canary-1b-v2) / [Apache 2.0](https://github.com/k2-fsa/sherpa-onnx/blob/master/LICENSE) |
+| **Whisper (via sherpa-onnx)** | Alternative on-device speech-to-text engine | OpenAI / k2-fsa | [Apache 2.0](https://github.com/k2-fsa/sherpa-onnx/blob/master/LICENSE) / [MIT](https://github.com/openai/whisper/blob/main/LICENSE) |
+| **EmbeddingGemma 2 (740M)** | On-device text and audio semantic embeddings | Google | [Gemma Terms of Use](https://ai.google.dev/gemma/terms) / Apache 2.0 |
+| **Gemma 4 E2B / LiteRT-LM** | On-device local language compression and transcript extraction | Google LiteRT | [Gemma Terms of Use](https://ai.google.dev/gemma/terms) |
+| **pyannote segmentation-3.0 (via sherpa-onnx)** | On-device speaker diarization, step 1: who speaks when | pyannote / k2-fsa (ONNX conversion) | [MIT](https://github.com/pyannote/pyannote-audio/blob/develop/LICENSE) |
+| **WeSpeaker ResNet34 (VoxCeleb, via sherpa-onnx)** | On-device speaker diarization, step 2: speaker voice embeddings that are clustered into speakers | WeSpeaker / k2-fsa | [Apache 2.0](https://github.com/wenet-e2e/wespeaker/blob/master/LICENSE) |
+
+No proprietary or paid cloud APIs are used.
+
+---
+
+## 5. What Our Layer Adds Over the Raw Models
+
+The raw foundation models (Whisper, Gemma) provide only raw transcription and embeddings. Our software layer turns these models into a persistent, verifiable memory pipeline:
+- **Overlapping Segmentation:** Audio is partitioned into 20-second chunks with 5-second overlap to avoid splitting thoughts or hesitant therapy disclosures in half.
+- **Deterministic Cleanup & Merging:** Stitches overlapping transcript boundaries and removes phonetic repetitions (`TranscriptClean.kt`, `TranscriptMerge.kt`).
+- **Verifiable Source Metadata:** Every indexed passage stores its recording ID and start/end time range, allowing therapists to inspect the original context instead of trusting a generated summary.
+- **Unit & Self Tests:** The codebase includes an embedding self-test and six transcript-cleaning and merging tests.
+
+*(Note: We distinguish engineering implementation from benchmark claims. We have not completed a formal comparative accuracy benchmark against the raw model on clinical data yet, and prioritize honest evaluation over synthetic accuracy claims.)*
+
+---
+
+## 6. Where Does Mnemothera Not Work? (Limitations)
+
+We believe in radical transparency about current prototype boundaries:
+1. **Relevance Thresholding:** If a query matches nothing in the patient's history, cosine similarity may still surface the nearest available chunk. A calibrated "No relevant memory found" threshold is currently under active development.
+2. **Noisy Backgrounds:** Heavy background ambient noise (air conditioning, street sounds) degrades on-device 16 kHz acoustic feature extraction.
+3. **Encryption:** Patient data (both databases via SQLCipher, transcripts, queue and extraction cache as AES-256-GCM files) is encrypted at rest under a key unlocked by the therapist's password or strong biometrics. Scope, key handling and limits (forgotten password = data unrecoverable) are in [`docs/SECURITY.md`](SECURITY.md).
+4. **Hardware Requirements:** On-device inference requires an Android phone with at least 6 GB of RAM (tested on Google Pixel 8).
+
+---
+
+## 7. Submission Description (OrganizerHQ)
+
+**Short Pitch (140 characters):**  
+Mnemothera is an offline-first Android assistant providing therapists with 100% private, verifiable memory recall during clinical sessions.
+
+**Full Pitch:**  
+Therapists conduct 5–8 intense emotional sessions daily, struggling to track complex patient histories over months without compromising confidentiality. Mnemothera solves this with an entirely on-device Android co-pilot: it transcribes audio locally using Whisper, generates local semantic embeddings via Google EmbeddingGemma, and retrieves relevant past statements with exact timestamps during sessions. Zero cloud transmission, zero hallucinated diagnoses, 100% verifiable doctor-patient confidentiality.
+
+---
+
+## 8. Basic Hygiene & Security Checklist
+
+- [x] **Repository is public:** [github.com/AnnaMarieM/Therapy_local](https://github.com/AnnaMarieM/Therapy_local)
+- [x] **Open-source license:** MIT license included in root [`LICENSE`](../LICENSE)
+- [x] **API Keys & Secrets:** Zero secrets in code. No cloud API required. `.env` is gitignored; clean `.env.example` provided.
+- [x] **Medical Disclaimer:** Visible at the top of README and embedded in application UI.
+- [x] **Model Attribution:** Complete model names and license links provided in Section 4.
