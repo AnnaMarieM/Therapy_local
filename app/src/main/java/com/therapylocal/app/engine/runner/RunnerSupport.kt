@@ -27,6 +27,7 @@ internal interface EmbedEngine : Runner {
     fun embedAudio(op: EngineOp.EmbedAudio): EngineReply.Vector
 }
 internal interface AsrEngine : Runner { fun transcribe(op: EngineOp.Transcribe): EngineReply.Text }
+internal interface DiarizeEngine : Runner { fun diarize(op: EngineOp.Diarize): EngineReply.Turns }
 
 internal typealias Fields = Array<Pair<String, Any?>>
 

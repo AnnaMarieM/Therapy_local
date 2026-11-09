@@ -42,12 +42,16 @@ Values with spaces or `=` are double-quoted.
 | `model_download`, `model_verify` | Download | bytes fetched, resume offset, sha256 check |
 | `asr_load`, `engine_init`, `engine_warmup` | ASR | which backend loaded (`backend`), model file, size; failed attempts are `backend_failed` with `reason` |
 | `asr_transcribe` | ASR | `engine`, `model`, `backend`, `audio_sec`, `chars`, `rtf` (wall time / audio time), `chars_per_sec` |
+| `diarize_load`, `diarize_create`, `diarize_selftest` | Diarize | speaker diarization (docs/AD/AD-06.md): load through the backend ladder, `model_mb`, `backend`; the self-test runs silence and expects `turns=0` |
+| `diarize` (host), `diarize_done` / `diarize_failed` (main) | Diarize | `audio_sec`, `turns`, `speakers`, `wall_ms`, `backend`, `speakers_hint`. Counts and times only, never audio or text |
 | `embed_load`, `embed_engine_init`, `embed_selftest` | Embed | the self-test logs `sim_related`, `sim_unrelated`, an audio smoke test and `cos_query`, `cos_related`, `cos_unrelated`, `cos_tone`: the cosine of each output to the CPU reference vector of this model file (`embed_golden_missing` when there is none); a cosine under `EmbedGolden.MIN_COSINE` fails the proof. `embed_load_request` carries `max_tokens`, the input size the engine is opened with; `embed_input_changed` (`from`, `to`) says a loaded engine is reloaded because the Settings lookback needs another size |
 | `embed` | Embed | `modality` (audio or text), `role` (document or query), `backend` (text encoder), `audio_backend`, `dim`, `norm`; audio spans add `audio_sec` and `rtf` |
 | `db_create_recording`, `db_insert_chunk`, `db_list_recordings` | DB | row counts and ids; inserts carry `start_ms`, `end_ms`, `overlap_ms` |
 | `chunk_pipeline` | App | the whole chunk: embed audio, transcribe, embed transcript, store |
 | `search`, `search_scan` | Search/App | `kind` (text or voice), `embed_ms`, `scan_ms`, `rows_scanned`, `top` as `rid.idx:score` (audio vector) and `alt` (transcript text vector, for comparison) |
 | `search_collapse` | Search | `raw_hits`, `relevant` (within `SearchConfig.SCORE_MARGIN` of the best), `groups`, `merged` (adjacent chunks merged) |
+| `diarization_skipped` | Diarize | TRANSCRIBE took the chunk path (docs/AD/AD-06.md); the job still succeeds. `reason`: `model_missing` (the diarization files are not on the phone yet), `failed` (the load or the call threw; `type` is the exception class, no message), `too_long` (over `SpeakerDiarizer.MAX_SAMPLES`, two hours) or `one_speaker` (fewer than two speakers found, [AD-07](AD/AD-07.md)). Counts and reasons only |
+| `roles_done` | Jobs | the ROLES job stored a speaker map: `source` (`llm` or `fallback`), `version`, `speakers`, `attempts`, `confidence`, `evidence` (a count), `model`, `prompt_version` (`MemoryConfig.ROLES_PROMPT_VERSION`) and `prompt_hash`. `roles_attempt_failed` is an LLM call that threw. Never the transcript or the quotes |
 | `transcript_merge` | App | `removed_words` per chunk: how many words of each 5 s overlap were dropped when showing the whole recording |
 | `db_delete_recording`, `db_delete_all` | DB | rows removed and rows left |
 | `delete_verified`, `delete_all_verified` | App | counts read back after a delete: `remaining_recordings`, `remaining_chunks`, `audio_files_on_disk` (no audio is ever stored) |

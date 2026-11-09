@@ -43,20 +43,21 @@ class JobGraphTest {
     }
 
     @Test
-    fun aRecordingRunsTranscribeWindowExtractsCommitThenCleanup() {
+    fun aRecordingRunsTranscribeRolesWindowExtractsCommitThenCleanup() {
         JobGraph.enqueueRecording(q, "a_1", recording = 7)
         val ran = drain(windows = mapOf("a_1" to 2))
-        assertEquals(listOf("transcribe(a_1)", "window(a_1)", "extract(a_1,1)", "extract(a_1,2)", "commit(a_1)", "cleanup(a_1)"), ran)
+        assertEquals(listOf("transcribe(a_1)", "roles(a_1)", "window(a_1)", "extract(a_1,1)", "extract(a_1,2)", "commit(a_1)", "cleanup(a_1)"), ran)
         val all = repo.jobs()
         assertTrue(all.all { it.status == JobStatus.Done })
         // The audio's jobs carry the recording, so cleanup knows what to delete and startup knows the recording is queued.
-        assertEquals(setOf(JobGraph.TRANSCRIBE, JobGraph.WINDOW, JobGraph.COMMIT, JobGraph.CLEANUP), all.filter { it.recordingId == 7L }.map { it.kind }.toSet())
+        assertEquals(setOf(JobGraph.TRANSCRIBE, JobGraph.ROLES, JobGraph.WINDOW, JobGraph.COMMIT, JobGraph.CLEANUP), all.filter { it.recordingId == 7L }.map { it.kind }.toSet())
     }
 
     @Test
     fun theCommitWaitsForEveryExtractAndCleanupForTheCommit() {
         val w = JobGraph.enqueueRecording(q, "a_1", 7)
         q.claimNext { true }!!.also { q.complete(it) } // transcribe
+        q.claimNext { true }!!.also { assertEquals(JobGraph.ROLES, it.kind); q.complete(it) }
         val window = q.claimNext { true }!!
         assertEquals(w, window.id)
         JobGraph.expand(q, window, 2, null)
@@ -123,6 +124,7 @@ class JobGraphTest {
         JobGraph.enqueueRecording(q, "a_1", 7)
         val t1 = q.claimNext { true }!!
         q.complete(t1)
+        q.complete(q.claimNext { true }!!) // roles
         val w1 = q.claimNext { true }!!
         JobGraph.expand(q, w1, 1, null)
         q.complete(w1)
@@ -226,5 +228,22 @@ class JobGraphTest {
         val before = repo.jobs().size
         JobGraph.recoverRecordings(q, listOf(7L to "a_1", 8L to "a_2", 9L to "a_3"))
         assertEquals(before, repo.jobs().size)
+    }
+
+    @Test
+    fun rolesRunsAfterTranscribeAndBeforeWindow() {
+        JobGraph.enqueueRecording(q, "a_1", 7)
+        val byKind = repo.jobs().associateBy { it.kind }
+        assertEquals(listOf(byKind.getValue(JobGraph.TRANSCRIBE).id), byKind.getValue(JobGraph.ROLES).dependsOn)
+        assertEquals(listOf(byKind.getValue(JobGraph.ROLES).id), byKind.getValue(JobGraph.WINDOW).dependsOn)
+        assertEquals(7L, byKind.getValue(JobGraph.ROLES).recordingId)
+    }
+
+    @Test
+    fun aQueueWrittenBeforeRolesExistedStillRunsTranscribeThenWindow() {
+        // The old graph: window depends on transcribe only. Nothing queues a roles job for it, and the handlers do not need one.
+        val t = q.enqueue(JobGraph.TRANSCRIBE, "a_1", 7)
+        q.enqueue(JobGraph.WINDOW, "a_1", 7, dependsOn = listOf(t))
+        assertEquals(listOf("transcribe(a_1)", "window(a_1)", "commit(a_1)", "cleanup(a_1)"), drain())
     }
 }

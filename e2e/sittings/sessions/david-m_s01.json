@@ -1,0 +1,219 @@
+{
+ "id": "david-m_s01",
+ "tag": "en-1to1",
+ "what": "English 1:1, female therapist and male patient",
+ "lang": "en",
+ "client": "david-m",
+ "client_name": "David M.",
+ "date": "2026-02-10",
+ "voices": {
+  "therapist": "en-GB-SoniaNeural",
+  "patient": "en-US-GuyNeural"
+ },
+ "fx": {},
+ "expect": {
+  "speakers": 2,
+  "voices": 2,
+  "limitation": null,
+  "roles": {
+   "therapist": "therapist",
+   "patient": "patient"
+  }
+ },
+ "turns": [
+  {
+   "who": "therapist",
+   "text": "Good morning, David. Come in and take a seat. How has your week been?"
+  },
+  {
+   "who": "patient",
+   "text": "Morning. It's been, I don't know, flat. Not terrible, not good. Just a lot of grey days in a row."
+  },
+  {
+   "who": "therapist",
+   "text": "Last time you told me a little about what brought you here. Would you like to start there?"
+  },
+  {
+   "who": "patient",
+   "text": "Yeah, I think so. My wife Margaret died eight months ago, in June, after a long illness, and the house has been unbearably quiet ever since."
+  },
+  {
+   "who": "therapist",
+   "text": "I'm so sorry. Eight months is not very long."
+  },
+  {
+   "who": "patient",
+   "text": "It doesn't feel long and it doesn't feel short. Everybody told me it'd get easier by now. It hasn't."
+  },
+  {
+   "who": "therapist",
+   "text": "What is the quietest part of the day?"
+  },
+  {
+   "who": "patient",
+   "text": "The evenings. I used to cook for two. Now I stand in the kitchen and put one potato in the pan, and that's when it hits me."
+  },
+  {
+   "who": "therapist",
+   "text": "Tell me about your work. Are you still working?"
+  },
+  {
+   "who": "patient",
+   "text": "I've driven city buses for twenty-two years, and honestly the route is the only thing that keeps me going. The passengers know me. Some of the regulars have been very kind."
+  },
+  {
+   "who": "therapist",
+   "text": "That sounds like a real anchor."
+  },
+  {
+   "who": "patient",
+   "text": "It is. But I'm not sleeping. I wake up at four in the morning, every single day, and I just lie there until the alarm goes at five."
+  },
+  {
+   "who": "therapist",
+   "text": "Do you have people around you? Family, friends?"
+  },
+  {
+   "who": "patient",
+   "text": "My daughter Claire lives in Manchester and she rings me every Sunday, but she's got two little ones and I don't want to be a burden."
+  },
+  {
+   "who": "therapist",
+   "text": "Do you tell her how you really feel?"
+  },
+  {
+   "who": "patient",
+   "text": "Not really. I say I'm fine. She knows I'm not, but we both pretend."
+  },
+  {
+   "who": "therapist",
+   "text": "What do you think would happen if you told her the truth?"
+  },
+  {
+   "who": "patient",
+   "text": "She'd drive down. And she'd have to leave the kids with her husband, and I couldn't bear that."
+  },
+  {
+   "who": "therapist",
+   "text": "It sounds like you're protecting her. Who protects you?"
+  },
+  {
+   "who": "patient",
+   "text": "Nobody, I suppose. I haven't touched a drop of whisky since the funeral, and believe me, I've wanted to. That's something I'm proud of."
+  },
+  {
+   "who": "therapist",
+   "text": "You should be. That takes real strength."
+  },
+  {
+   "who": "patient",
+   "text": "Thanks. Doctor wanted to put me on tablets, but I said no. I haven't been back to the allotment since June, Margaret loved it there, the roses were hers."
+  },
+  {
+   "who": "therapist",
+   "text": "What would it mean to go back?"
+  },
+  {
+   "who": "patient",
+   "text": "Seeing the roses without her. I don't know if I can."
+  },
+  {
+   "who": "therapist",
+   "text": "Maybe not yet. Perhaps we can keep it in mind as something to work toward."
+  },
+  {
+   "who": "patient",
+   "text": "Maybe. I'd like that. It's just, the weeds must be up to my knees by now."
+  },
+  {
+   "who": "therapist",
+   "text": "Is there anything that gives you even a small bit of comfort at the moment?"
+  },
+  {
+   "who": "patient",
+   "text": "The dog. We've got an old spaniel called Biscuit, and he sleeps on her side of the bed, so I don't have the heart to move him."
+  },
+  {
+   "who": "therapist",
+   "text": "That's a lovely detail."
+  },
+  {
+   "who": "patient",
+   "text": "He doesn't know, does he? He still waits at the door at half past four."
+  },
+  {
+   "who": "therapist",
+   "text": "Dogs know more than we think."
+  },
+  {
+   "who": "patient",
+   "text": "Yeah. Anyway. I think that's enough for today. I'm a bit wrung out."
+  },
+  {
+   "who": "therapist",
+   "text": "That's fine. You did a lot of talking. Shall we meet again in two weeks?"
+  },
+  {
+   "who": "patient",
+   "text": "Two weeks, yes. Thank you, doctor."
+  }
+ ],
+ "facts": [
+  {
+   "id": "david-m_s01.f1",
+   "heading": "Wife Margaret died eight months ago",
+   "said": "My wife Margaret died eight months ago, in June, after a long illness, and the house has been unbearably quiet ever since.",
+   "who": "patient",
+   "turn": 3,
+   "repeat_of": null
+  },
+  {
+   "id": "david-m_s01.f2",
+   "heading": "Bus driver for twenty-two years",
+   "said": "I've driven city buses for twenty-two years, and honestly the route is the only thing that keeps me going.",
+   "who": "patient",
+   "turn": 9,
+   "repeat_of": null
+  },
+  {
+   "id": "david-m_s01.f3",
+   "heading": "Wakes at four in the morning",
+   "said": "I wake up at four in the morning, every single day, and I just lie there until the alarm goes at five.",
+   "who": "patient",
+   "turn": 11,
+   "repeat_of": null
+  },
+  {
+   "id": "david-m_s01.f4",
+   "heading": "Daughter Claire in Manchester",
+   "said": "My daughter Claire lives in Manchester and she rings me every Sunday, but she's got two little ones and I don't want to be a burden.",
+   "who": "patient",
+   "turn": 13,
+   "repeat_of": null
+  },
+  {
+   "id": "david-m_s01.f5",
+   "heading": "No drinking since the funeral",
+   "said": "I haven't touched a drop of whisky since the funeral, and believe me, I've wanted to.",
+   "who": "patient",
+   "turn": 19,
+   "repeat_of": null
+  },
+  {
+   "id": "david-m_s01.f6",
+   "heading": "Has not been back to the allotment",
+   "said": "I haven't been back to the allotment since June, Margaret loved it there, the roses were hers.",
+   "who": "patient",
+   "turn": 21,
+   "repeat_of": null
+  },
+  {
+   "id": "david-m_s01.f7",
+   "heading": "Dog called Biscuit",
+   "said": "We've got an old spaniel called Biscuit, and he sleeps on her side of the bed, so I don't have the heart to move him.",
+   "who": "patient",
+   "turn": 27,
+   "repeat_of": null
+  }
+ ]
+}

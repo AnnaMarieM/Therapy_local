@@ -30,3 +30,8 @@ qa/eval-audio/
 qa/eval-private/
 .tempmediaStorage/
 /toolchains/
+# Generated sitting audio, per-turn TTS cache and device results: never commit.
+e2e/sittings/audio/
+e2e/sittings/cache/
+e2e/sittings/results/
+e2e/.venv/

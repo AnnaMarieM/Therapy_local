@@ -140,6 +140,25 @@ object MemoryConfig {
     const val REVIEW_TEMPERATURE = 0.1
     const val REVIEW_TOP_K = 1
 
+    /**
+     * How many speakers the diarizer is told to find in a recording (docs/AD/AD-07.md): always two, a therapist and a patient. The app does not
+     * record couples or family sessions, and a fixed count cannot split one voice into a spurious third speaker. A one-voice recording therefore
+     * gets two speakers too (accepted in AD-07). 0 would let the clustering threshold decide. Changing it needs a new decision.
+     */
+    const val DIARIZE_SPEAKERS_HINT = 2
+
+    /** A diarizer host that dies this many times under one recording's transcribe job stops being retried: the job takes the chunk path. */
+    const val DIARIZE_DEATHS_BEFORE_FALLBACK = 2
+
+    /** The role guess (job ROLES) reads the start of the transcript and answers with a small JSON object. */
+    const val ROLES_INPUT_TOKENS = 4000
+    const val ROLES_MAX_OUTPUT_TOKENS = 250
+    const val ROLES_TEMPERATURE = 0.1
+    const val ROLES_TOP_K = 1
+
+    /** Changes with the meaning of the role prompt or its schema; logged with the model id next to the prompt's text hash. */
+    const val ROLES_PROMPT_VERSION = 1
+
     /** Known facts shown to the duplicate review. */
     const val NEIGHBOURS = 10
 
@@ -220,4 +239,6 @@ data class EngineTuning(
     val backoffMs: List<Long> = listOf(0, 500, 1000, 2000, 4000), val backoffCapMs: Long = 10_000,
     val stormDeaths: Int = 6, val stormWindowMs: Long = 120_000, val stableMs: Long = 60_000,
     val idleMs: Long = 120_000, val liveShutdownMs: Long = 5_000, val statusTimeoutMs: Long = 1_000,
+    /** A whole recording at once (an hour on the CPU is minutes); the watchdog also needs no CPU progress, and kills at 3 times this. */
+    val diarizeTimeoutMs: Long = 600_000,
 )

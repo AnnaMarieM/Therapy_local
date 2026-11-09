@@ -47,4 +47,19 @@ class PromptLanguageTest {
         val review = File(dir, "cs/${Prompts.REVIEW_SYSTEM}").readText()
         for (key in listOf("\"duplicate\"", "\"of\"")) assertTrue(key, key in review)
     }
+
+    @Test
+    fun theRolePromptsAskForTheSameJsonKeysAndTheIdsAsGiven() {
+        val dir = File("../demo/prompts")
+        val en = File(dir, Prompts.ROLES_SYSTEM).readText()
+        val cs = File(dir, "cs/${Prompts.ROLES_SYSTEM}").readText()
+        // RoleGuess.parse reads exactly these keys.
+        for (key in listOf("\"therapist\"", "\"patient\"", "\"confidence\"", "\"evidence\"")) {
+            assertTrue(key, key in en)
+            assertTrue(key, key in cs)
+        }
+        // The ids are checked against the real ones, so both prompts must say to copy them as written.
+        assertTrue("exactly" in en && "S0" in en)
+        assertTrue("přesně" in cs && "S0" in cs)
+    }
 }

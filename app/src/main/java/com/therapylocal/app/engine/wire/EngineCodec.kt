@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.os.Parcel
 import android.os.SharedMemory
 import com.therapylocal.app.BuildConfig
+import com.therapylocal.app.asr.DiarTurn
 import com.therapylocal.app.config.EngineConfig
 import com.therapylocal.app.engine.CallTag
 import com.therapylocal.app.engine.EngineError
@@ -15,6 +16,24 @@ import com.therapylocal.app.perf.LlmCall
 
 /** True for ops whose payload is the user's text: a failure of one is captured without its message. */
 val EngineOp.isText: Boolean get() = this is EngineOp.Ask || this is EngineOp.EmbedText
+
+/**
+ * The wire form of speaker turns, pure so a JVM test pins it: 12 bytes per turn (start ms, end ms, speaker, big-endian ints), so an hour of
+ * audio with thousands of turns stays small. Milliseconds fit an Int for 24 days of audio.
+ */
+object TurnsWire {
+    fun pack(turns: List<DiarTurn>): ByteArray {
+        val bb = java.nio.ByteBuffer.allocate(turns.size * 12)
+        for (t in turns) bb.putInt(Math.toIntExact(t.startMs)).putInt(Math.toIntExact(t.endMs)).putInt(t.speaker)
+        return bb.array()
+    }
+
+    fun unpack(bytes: ByteArray): List<DiarTurn> {
+        require(bytes.size % 12 == 0) { "turns payload is ${bytes.size} bytes" }
+        val bb = java.nio.ByteBuffer.wrap(bytes)
+        return List(bytes.size / 12) { DiarTurn(bb.getInt().toLong(), bb.getInt().toLong(), bb.getInt()) }
+    }
+}
 
 /**
  * The only codec between the engine types and a `Bundle`. PCM always travels through [Shm]; a string over
@@ -72,6 +91,12 @@ object EngineCodec {
                     b.putInt("handle", op.handle)
                     putPcm(b, op.pcm)
                 }
+                is EngineOp.Diarize -> {
+                    b.putString(T, "diarize")
+                    b.putInt("handle", op.handle)
+                    b.putInt("speakers", op.numSpeakersHint)
+                    putPcm(b, op.pcm)
+                }
                 is EngineOp.Close -> {
                     b.putString(T, "close")
                     b.putInt("handle", op.handle)
@@ -105,6 +130,7 @@ object EngineCodec {
             "embed_text" -> EngineOp.EmbedText(tag, b.getInt("handle"), getStr(b, "text"), b.getBoolean("query"))
             "embed_audio" -> EngineOp.EmbedAudio(tag, b.getInt("handle"), getPcm(b), b.getString("role").orEmpty())
             "transcribe" -> EngineOp.Transcribe(tag, b.getInt("handle"), getPcm(b))
+            "diarize" -> EngineOp.Diarize(tag, b.getInt("handle"), getPcm(b), b.getInt("speakers"))
             "close" -> EngineOp.Close(tag, b.getInt("handle"))
             "status" -> EngineOp.Status(tag)
             "clear_logs" -> EngineOp.ClearLogs(tag)
@@ -143,6 +169,10 @@ object EngineCodec {
                     b.putString(T, "vector")
                     b.putFloatArray("v", reply.v)
                 }
+                is EngineReply.Turns -> {
+                    b.putString(T, "turns")
+                    putBytes(b, "turns", TurnsWire.pack(reply.turns))
+                }
                 EngineReply.Done -> b.putString(T, "done")
                 EngineReply.Refused -> b.putString(T, "refused")
                 is EngineReply.HostStatus -> {
@@ -170,6 +200,7 @@ object EngineCodec {
                 if (b.getBoolean("hasPerf")) LlmCall(b.getInt("pTok"), b.getDouble("pTokS"), b.getInt("dTok"), b.getDouble("dTokS"), b.getLong("wall")) else null,
             )
             "vector" -> EngineReply.Vector(b.getFloatArray("v") ?: FloatArray(0))
+            "turns" -> EngineReply.Turns(TurnsWire.unpack(getBytes(b, "turns")))
             "done" -> EngineReply.Done
             "refused" -> EngineReply.Refused
             "status" -> EngineReply.HostStatus(b.getInt("pid"), b.getLong("uptime"), b.getLong("pss"), b.getStringArrayList("handles") ?: emptyList())
@@ -225,6 +256,22 @@ object EngineCodec {
             b.putInt("$key.n", bytes.size)
             b.putParcelable("$key.shm", Shm.bytes(bytes))
         }
+    }
+
+    /** Raw bytes: inline up to the same limit as a string, else through shared memory. */
+    private fun putBytes(b: Bundle, key: String, bytes: ByteArray) {
+        if (ShmMath.goesInline(bytes.size)) {
+            b.putByteArray(key, bytes)
+        } else {
+            b.putInt("$key.n", bytes.size)
+            b.putParcelable("$key.shm", Shm.bytes(bytes))
+        }
+    }
+
+    @Suppress("DEPRECATION")
+    private fun getBytes(b: Bundle, key: String): ByteArray {
+        val shm = b.getParcelable<SharedMemory>("$key.shm") ?: return b.getByteArray(key) ?: ByteArray(0)
+        return Shm.readBytes(shm, b.getInt("$key.n"))
     }
 
     @Suppress("DEPRECATION")

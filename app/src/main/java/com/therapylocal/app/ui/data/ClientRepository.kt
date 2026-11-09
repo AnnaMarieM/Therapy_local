@@ -3,7 +3,11 @@ package com.therapylocal.app.ui.data
 import android.content.Context
 import com.therapylocal.app.data.FactRow
 import com.therapylocal.app.data.MindStore
+import com.therapylocal.app.R
+import com.therapylocal.app.data.Role
 import com.therapylocal.app.data.SegmentRow
+import com.therapylocal.app.data.SpeakerMaps
+import com.therapylocal.app.data.TranscriptFormat
 import com.therapylocal.app.log.AppLog
 import com.therapylocal.app.log.LogCtx
 import com.therapylocal.app.data.PendingAudio
@@ -17,6 +21,7 @@ import com.therapylocal.app.ui.models.FactItem
 import com.therapylocal.app.ui.models.FactOccurrence
 import com.therapylocal.app.ui.models.Patient
 import com.therapylocal.app.ui.models.SearchHit
+import com.therapylocal.app.ui.models.SpeakerRoles
 import com.therapylocal.app.ui.models.SessionItem
 import com.therapylocal.app.ui.models.TranscriptLine
 
@@ -119,6 +124,34 @@ class ClientRepository(context: Context, private val open: (Context) -> MindStor
     }
 
     fun transcript(session: String): List<TranscriptLine> = store.segments(session).map { it.toLine() }
+
+    /** The current roles of [session], null until they were guessed (no map: a one-speaker or older session). */
+    fun speakerRoles(session: String): SpeakerRoles? = store.currentSpeakerMap(session)?.let(SpeakerRoles::of)
+
+    /**
+     * "Is this incorrect?": therapist and patient trade places. Appends the swapped map as the next version (source `user`, confidence 1.0) and
+     * returns the new state; null, and nothing changed, when there is nothing to swap. The transcript is not rewritten: utterances keep their
+     * raw speaker ids and the roles are resolved when it is read. Blocking: [com.therapylocal.app.MainViewModel.swapRoles] runs it off the main thread.
+     */
+    fun swapRoles(session: String): SpeakerRoles? {
+        val version = SpeakerMaps.appendSwap(store.currentSpeakerMap(session)) { json, source, confidence, evidence -> store.appendSpeakerMap(session, json, source, confidence, evidence) }
+        AppLog.i(TAG, "roles_swapped", LogCtx.NONE, "version" to version)
+        return if (version == null) null else speakerRoles(session)
+    }
+
+    /**
+     * The transcript of [session] as text with the roles of the current map as labels ([TranscriptFormat]): the therapist and the patient by
+     * [roleName] (string resources by default), anyone else as "Speaker 1", "Speaker 2". Without a map every speaker has the neutral label.
+     */
+    fun formattedTranscript(
+        session: String,
+        roleName: (Role) -> String = { if (it == Role.THERAPIST) appContext.getString(R.string.speaker_role_therapist) else appContext.getString(R.string.speaker_role_patient) },
+    ): String {
+        val segments = store.segments(session)
+        val neutral = TranscriptFormat.neutralLabels(segments)
+        val map = store.currentSpeakerMap(session)?.let { SpeakerMaps.decode(it.mapJson) }.orEmpty()
+        return TranscriptFormat.format(segments, TranscriptFormat.roleLabel(map, roleName, neutral))
+    }
 
     /**
      * The client's transcript windows closest to [vec] (a query embedding, text or audio), then [text] matched in fact headings and

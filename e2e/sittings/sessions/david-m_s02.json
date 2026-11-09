@@ -1,0 +1,899 @@
+{
+ "id": "david-m_s02",
+ "tag": "en-long",
+ "what": "English, one long follow-up session (about 22 minutes) for memory and timing",
+ "lang": "en",
+ "client": "david-m",
+ "client_name": "David M.",
+ "date": "2026-05-12",
+ "voices": {
+  "therapist": "en-GB-SoniaNeural",
+  "patient": "en-US-GuyNeural"
+ },
+ "fx": {
+  "patient.rate": "-8%",
+  "gap_min": "0.5",
+  "gap_max": "1.3"
+ },
+ "expect": {
+  "speakers": 2,
+  "voices": 2,
+  "limitation": null,
+  "roles": {
+   "therapist": "therapist",
+   "patient": "patient"
+  }
+ },
+ "turns": [
+  {
+   "who": "therapist",
+   "text": "Hello David, come in. It's good to see you again. It's been three months since we last met. How are you?"
+  },
+  {
+   "who": "patient",
+   "text": "Hello. Yes, it has been a while, hasn't it? I'm all right, I think. Better than February, anyway. I nearly cancelled today, to be honest, but Claire made me promise."
+  },
+  {
+   "who": "therapist",
+   "text": "I'm glad she did. Where would you like to begin?"
+  },
+  {
+   "who": "patient",
+   "text": "I think with the anniversary. It's coming up in June, a year since Margaret passed. Margaret died a year ago this June, and I keep counting the weeks to the day, it's eight weeks now. And I keep thinking, what am I supposed to do on the day?"
+  },
+  {
+   "who": "therapist",
+   "text": "What do you imagine yourself doing?"
+  },
+  {
+   "who": "patient",
+   "text": "Part of me wants to take the day off, go to the cemetery, sit there. Part of me wants to work and not think about it at all. I've been going back and forth for weeks."
+  },
+  {
+   "who": "therapist",
+   "text": "Both of those are understandable. What did you do on her birthday, in March?"
+  },
+  {
+   "who": "patient",
+   "text": "I took a bunch of flowers to the grave. I stood there for ten minutes and felt like an idiot, to be honest. I didn't know what to say. I just told her about the weather."
+  },
+  {
+   "who": "therapist",
+   "text": "Telling her about the weather sounds very much like the two of you."
+  },
+  {
+   "who": "patient",
+   "text": "It does. We talked about the weather all the time. Fifty years of marriage, nearly, and half of it was about whether it'd rain."
+  },
+  {
+   "who": "patient",
+   "text": "We were married for forty-six years, we met at a dance in Harrogate when I was nineteen and she was seventeen. She laughed at my dancing. She said, you'll have to do better than that. And I did try."
+  },
+  {
+   "who": "therapist",
+   "text": "What a wonderful memory."
+  },
+  {
+   "who": "patient",
+   "text": "I don't tell it to anyone. It feels like if I tell it, it'll wear out."
+  },
+  {
+   "who": "therapist",
+   "text": "Perhaps telling it to me can be a way of keeping it safe rather than using it up."
+  },
+  {
+   "who": "patient",
+   "text": "Hm. I hadn't thought of it like that. Maybe."
+  },
+  {
+   "who": "therapist",
+   "text": "How has your sleep been since February?"
+  },
+  {
+   "who": "patient",
+   "text": "I still wake up at four in the morning, nearly every day, though I do get back to sleep now about half the time. That's a change. Used to be never."
+  },
+  {
+   "who": "therapist",
+   "text": "What changed?"
+  },
+  {
+   "who": "patient",
+   "text": "I don't know. I started listening to the radio, the late night talk programme, quietly. The voices help. It's like having somebody in the house."
+  },
+  {
+   "who": "therapist",
+   "text": "That sounds like a sensible thing to do."
+  },
+  {
+   "who": "patient",
+   "text": "It's the only thing I've found that works. The doctor offered tablets again and I said no again."
+  },
+  {
+   "who": "therapist",
+   "text": "How do you feel about that decision?"
+  },
+  {
+   "who": "patient",
+   "text": "Fine. I don't want to feel nothing. I want to feel it, if that makes sense. Even when it's bad."
+  },
+  {
+   "who": "therapist",
+   "text": "It makes complete sense. Feeling it is part of grieving."
+  },
+  {
+   "who": "patient",
+   "text": "That's what the lady at the bereavement group said."
+  },
+  {
+   "who": "therapist",
+   "text": "You've been going to a group?"
+  },
+  {
+   "who": "patient",
+   "text": "I joined a bereavement group that meets on Thursday evenings at the church hall, I've been to five meetings so far. Claire found it online. I thought it'd be awful, a lot of people crying in a circle. But it's not like that. There's tea, and biscuits, and a woman called Pauline who runs it, she lost her husband to cancer too."
+  },
+  {
+   "who": "therapist",
+   "text": "What's it like to be with people who understand?"
+  },
+  {
+   "who": "patient",
+   "text": "Easier than I thought. Nobody tells me it gets better. They just nod. I can say Margaret's name and nobody flinches."
+  },
+  {
+   "who": "therapist",
+   "text": "That's a gift."
+  },
+  {
+   "who": "patient",
+   "text": "It is. I almost stayed away. The first time I sat in the car park for twenty minutes with the engine running."
+  },
+  {
+   "who": "therapist",
+   "text": "And what made you go in?"
+  },
+  {
+   "who": "patient",
+   "text": "A man tapped on my window. He said, are you coming in for the tea? That was Ray. He drives lorries, or he did. We get on."
+  },
+  {
+   "who": "therapist",
+   "text": "It sounds like Ray was kind to you."
+  },
+  {
+   "who": "patient",
+   "text": "He was. He's a quiet bloke. We just sit next to each other."
+  },
+  {
+   "who": "therapist",
+   "text": "Let's talk about work. How has it been on the buses?"
+  },
+  {
+   "who": "patient",
+   "text": "Busy. I'm still driving the same route, the forty-two, from the bus station out to the hospital, and I'm doing my twenty-third year in the job. The regulars have been wonderful."
+  },
+  {
+   "who": "therapist",
+   "text": "Tell me about one of them."
+  },
+  {
+   "who": "patient",
+   "text": "There's an old fella, Mr Okafor. Ninety-one. He gets on at the market every Tuesday and always sits in the front seat. He said to me one day, I'm sorry about your wife. I hadn't told him. Somebody must have mentioned it. And he took my hand off the gearstick, only for a second, and squeezed it. I almost drove into the kerb."
+  },
+  {
+   "who": "therapist",
+   "text": "That's a lovely thing."
+  },
+  {
+   "who": "patient",
+   "text": "It was. I think about it often."
+  },
+  {
+   "who": "therapist",
+   "text": "How is your energy at the depot? Do your colleagues know?"
+  },
+  {
+   "who": "patient",
+   "text": "Most of them. My supervisor, Colin, he offered me time off in the winter and I refused. Now he's started giving me the early shifts, five thirty starts, because he knows I'm awake anyway."
+  },
+  {
+   "who": "therapist",
+   "text": "That's thoughtful of him."
+  },
+  {
+   "who": "patient",
+   "text": "Yes. He's a decent man, but he doesn't say much. My supervisor Colin has put me on the early shifts, starting at five thirty, since he knows I'm awake at that hour anyway. I'm not complaining."
+  },
+  {
+   "who": "therapist",
+   "text": "And how are you with the evening, after the shift? You said it was the hardest part."
+  },
+  {
+   "who": "patient",
+   "text": "Better. Now I go to the bereavement group on Thursdays, and on the other days I walk the dog. Biscuit still sleeps on her side of the bed, and he is fourteen now, he has a bad hip, and I lift him up there every night. The vet said he's got a year or two, maybe."
+  },
+  {
+   "who": "therapist",
+   "text": "And how do you feel about that?"
+  },
+  {
+   "who": "patient",
+   "text": "It frightens me. When he goes, that's the last thing that she touched. Do you see what I mean? He was her dog before he was mine. She picked him from the litter."
+  },
+  {
+   "who": "therapist",
+   "text": "So Biscuit carries a lot of meaning."
+  },
+  {
+   "who": "patient",
+   "text": "A lot more than a dog should. I know it's silly."
+  },
+  {
+   "who": "therapist",
+   "text": "It isn't silly at all."
+  },
+  {
+   "who": "patient",
+   "text": "I've been wondering whether to get a puppy. Claire says no. She thinks it would be too much. But I don't want a puppy, I decided that last week. I just want to look after Biscuit for as long as he's got."
+  },
+  {
+   "who": "therapist",
+   "text": "That sounds like a thoughtful decision."
+  },
+  {
+   "who": "patient",
+   "text": "It feels right. Anyway."
+  },
+  {
+   "who": "therapist",
+   "text": "Is there something else on your mind?"
+  },
+  {
+   "who": "patient",
+   "text": "Yes. The allotment."
+  },
+  {
+   "who": "therapist",
+   "text": "You mentioned it last time. The roses."
+  },
+  {
+   "who": "patient",
+   "text": "I went back. I went back to the allotment on the second Saturday in April, and cleared about half of the weeds before I had to stop. I thought it'd be worse. When I opened the shed there was her gardening hat on the hook and her gloves on the bench with the shape of her fingers still in them."
+  },
+  {
+   "who": "therapist",
+   "text": "What did you do?"
+  },
+  {
+   "who": "patient",
+   "text": "I sat down on an upturned bucket and cried for ten minutes. Then I got up and pulled a bit of bindweed. That's what she'd have said. Pull the bindweed, David, before it pulls you."
+  },
+  {
+   "who": "therapist",
+   "text": "She sounds like a wise woman."
+  },
+  {
+   "who": "patient",
+   "text": "She was. She wasn't clever in a book way, but she knew things about people."
+  },
+  {
+   "who": "therapist",
+   "text": "What are you going to do with the plot?"
+  },
+  {
+   "who": "patient",
+   "text": "I want to put new rose bushes where hers were, the same variety, it's called Gertrude Jekyll, a pink one, and I've ordered six. They come in the autumn. Bare roots, in a box."
+  },
+  {
+   "who": "therapist",
+   "text": "That sounds like a lovely way to honour her."
+  },
+  {
+   "who": "patient",
+   "text": "I think she'd laugh at me. A bus driver with a rose catalogue."
+  },
+  {
+   "who": "therapist",
+   "text": "Perhaps she would. Laughing with love."
+  },
+  {
+   "who": "patient",
+   "text": "Yes. She would."
+  },
+  {
+   "who": "therapist",
+   "text": "How's Claire been through all this?"
+  },
+  {
+   "who": "patient",
+   "text": "Better. Claire drove down from Manchester with the two little ones at Easter, Poppy is six and Jack is three, and they stayed four days. The house had never been so loud. I loved it. I was exhausted by the third day, but I loved it."
+  },
+  {
+   "who": "therapist",
+   "text": "What was it like having children in the house again?"
+  },
+  {
+   "who": "patient",
+   "text": "Noisy. Messy. Poppy found Margaret's old jewellery box in the wardrobe and wanted to try everything on. I nearly said no. And then I thought, no, why not? She'd have loved that."
+  },
+  {
+   "who": "therapist",
+   "text": "What did you let her do?"
+  },
+  {
+   "who": "patient",
+   "text": "Everything. She wore Margaret's pearls for the entire afternoon and told me she was a queen."
+  },
+  {
+   "who": "therapist",
+   "text": "That sounds very special."
+  },
+  {
+   "who": "patient",
+   "text": "It was. I had to leave the room for a minute. But a good kind of leaving the room."
+  },
+  {
+   "who": "therapist",
+   "text": "Did you tell Claire how you were feeling?"
+  },
+  {
+   "who": "patient",
+   "text": "I did, finally. On the last night, after the kids were asleep. I said, I haven't been fine, love. And she said, I know, Dad. We both cried. Then she said she'd been so afraid of saying it. We'd been pretending for months."
+  },
+  {
+   "who": "therapist",
+   "text": "That must have been a relief."
+  },
+  {
+   "who": "patient",
+   "text": "A huge relief. Now we speak on the phone twice a week, not only Sunday."
+  },
+  {
+   "who": "therapist",
+   "text": "Let's go back to something you said at the beginning. You mentioned the anniversary and what to do on the day."
+  },
+  {
+   "who": "patient",
+   "text": "Yes. I think I want to do both. Go to the cemetery in the morning with Claire. She's coming. And then take the afternoon shift. Colin said it's fine. I'd rather have the bus around me than the house."
+  },
+  {
+   "who": "therapist",
+   "text": "That sounds like a plan that holds both sides."
+  },
+  {
+   "who": "patient",
+   "text": "Yes. And Pauline from the group suggested I write Margaret a letter and read it out loud at the grave. I'm not sure about that."
+  },
+  {
+   "who": "therapist",
+   "text": "What worries you about it?"
+  },
+  {
+   "who": "patient",
+   "text": "That I'll cry so much I can't read it. That I'll say the wrong things."
+  },
+  {
+   "who": "therapist",
+   "text": "There are no wrong things in a letter like that."
+  },
+  {
+   "who": "patient",
+   "text": "I know. It's just it's the last conversation, isn't it?"
+  },
+  {
+   "who": "therapist",
+   "text": "It doesn't have to be the last. You can write to her again next year, and on her birthday."
+  },
+  {
+   "who": "patient",
+   "text": "Oh. I hadn't thought of that. I can keep writing."
+  },
+  {
+   "who": "therapist",
+   "text": "You can."
+  },
+  {
+   "who": "patient",
+   "text": "Right. Well, that makes it less frightening. I might start writing it this week."
+  },
+  {
+   "who": "therapist",
+   "text": "You could start with what you want her to know."
+  },
+  {
+   "who": "patient",
+   "text": "That's easy. I want her to know I'm doing all right. That I'm eating properly. I've started cooking proper meals again, a shepherd's pie on Sundays, enough for three days, and I don't feel sad when I'm making it any more."
+  },
+  {
+   "who": "therapist",
+   "text": "That is a big change from the one potato in the pan."
+  },
+  {
+   "who": "patient",
+   "text": "You remembered that."
+  },
+  {
+   "who": "therapist",
+   "text": "I did."
+  },
+  {
+   "who": "patient",
+   "text": "Well. That's why you're good at this."
+  },
+  {
+   "who": "therapist",
+   "text": "Thank you. What else would you tell her?"
+  },
+  {
+   "who": "patient",
+   "text": "That I still wear my wedding ring. I'm still wearing my wedding ring, and I don't plan to take it off, whatever anyone says. Somebody at the group said you should move it to the other hand after a year. I don't think I'll do that."
+  },
+  {
+   "who": "therapist",
+   "text": "There's no rule. It's yours to decide."
+  },
+  {
+   "who": "patient",
+   "text": "Good. I thought as much."
+  },
+  {
+   "who": "therapist",
+   "text": "Before we get to practical things, you said something in February that I'd like to return to, about the day she died. Would that be all right?"
+  },
+  {
+   "who": "patient",
+   "text": "I suppose so. I've thought about it a lot since."
+  },
+  {
+   "who": "therapist",
+   "text": "Only if you want to."
+  },
+  {
+   "who": "patient",
+   "text": "No, it's all right. I think it needs saying again. I was on shift the morning Margaret died, I was at the far end of the route when the hospice rang, and I got there twenty minutes too late. Twenty minutes. I've gone over those twenty minutes more times than I can count."
+  },
+  {
+   "who": "therapist",
+   "text": "What do you tell yourself about them?"
+  },
+  {
+   "who": "patient",
+   "text": "That I should have taken the day off. The nurse had said it could be any day now, and I thought, no, she's been saying that for weeks, I'll go and do the morning run and come back. I wanted to have some normal."
+  },
+  {
+   "who": "therapist",
+   "text": "Wanting some normal after months of caring for her is human."
+  },
+  {
+   "who": "patient",
+   "text": "That's what Pauline said. And Ray said the same thing. He told me about his own wife. She went in the night and he was asleep in the chair, and he's carried that for six years."
+  },
+  {
+   "who": "therapist",
+   "text": "How did it feel to hear that from him?"
+  },
+  {
+   "who": "patient",
+   "text": "Strange. Like I wasn't the only one who had been carrying it. Ray's wife died six years ago, and he still sets two cups out in the morning and then puts one back. I could have hugged him, but we're not that sort of men. We shook hands."
+  },
+  {
+   "who": "therapist",
+   "text": "A handshake can say a great deal."
+  },
+  {
+   "who": "patient",
+   "text": "It did. He held on a bit longer than normal."
+  },
+  {
+   "who": "therapist",
+   "text": "Do you want to say something to Margaret about those twenty minutes, in the letter?"
+  },
+  {
+   "who": "patient",
+   "text": "I think I do. I think I want to say sorry. And I want to say I know she'd tell me off for saying sorry."
+  },
+  {
+   "who": "therapist",
+   "text": "What would she say?"
+  },
+  {
+   "who": "patient",
+   "text": "She'd say, don't be daft, David, I knew you were coming. She always knew. She'd have the kettle on in her head before I'd got through the door."
+  },
+  {
+   "who": "therapist",
+   "text": "It sounds like you can hear her voice quite clearly."
+  },
+  {
+   "who": "patient",
+   "text": "I can. That's the odd thing. I thought I'd lose it. I thought the sound would go in a few months, but it hasn't. I hear her telling me to put a coat on, every morning when it's cold."
+  },
+  {
+   "who": "therapist",
+   "text": "And do you?"
+  },
+  {
+   "who": "patient",
+   "text": "Every time. Ha. Even in July."
+  },
+  {
+   "who": "therapist",
+   "text": "How are you feeling about the thought of the year turning?"
+  },
+  {
+   "who": "patient",
+   "text": "Frightened and relieved. Relieved that I made it through the full set of seasons. Frightened because after the anniversary, people expect you to be over it. The neighbours stop bringing casseroles. Everyone goes back to their lives."
+  },
+  {
+   "who": "therapist",
+   "text": "Have the neighbours been bringing food?"
+  },
+  {
+   "who": "patient",
+   "text": "Mrs Hargreaves next door brought a casserole every Friday for months. Last week she didn't. I felt strangely abandoned, which is ridiculous. She's eighty."
+  },
+  {
+   "who": "therapist",
+   "text": "It's not ridiculous. It's a loss of care, even a small one."
+  },
+  {
+   "who": "patient",
+   "text": "Yes. That's it. It's the end of being looked after."
+  },
+  {
+   "who": "therapist",
+   "text": "Do you think you could ask for what you need?"
+  },
+  {
+   "who": "patient",
+   "text": "I don't know how. I've never been good at it. Margaret did all of that for me. She knew when I needed something before I did."
+  },
+  {
+   "who": "therapist",
+   "text": "That's a skill you might have to learn now."
+  },
+  {
+   "who": "patient",
+   "text": "At sixty-eight? Ha. Well. Perhaps."
+  },
+  {
+   "who": "therapist",
+   "text": "What might be a small first step?"
+  },
+  {
+   "who": "patient",
+   "text": "I could go round to Mrs Hargreaves and say thank you. And maybe cook her something, a shepherd's pie. Return the favour. I'm going to take Mrs Hargreaves a shepherd's pie on Friday, to say thank you for all the casseroles."
+  },
+  {
+   "who": "therapist",
+   "text": "That sounds like a lovely idea, and it's a way of staying in contact."
+  },
+  {
+   "who": "patient",
+   "text": "Yes. She'll like that. She likes a bit of fuss."
+  },
+  {
+   "who": "therapist",
+   "text": "What else would help you feel less alone after the anniversary?"
+  },
+  {
+   "who": "patient",
+   "text": "I've been thinking about that too. Ray asked me if I fancied a couple of days away. Ray and I are going to Whitby for three days in August, to do some sea fishing, and I haven't been to the seaside since Margaret was well. I said yes before I could change my mind."
+  },
+  {
+   "who": "therapist",
+   "text": "How did that feel, saying yes?"
+  },
+  {
+   "who": "patient",
+   "text": "Like stepping off a kerb. A bit of a wobble and then you're across."
+  },
+  {
+   "who": "therapist",
+   "text": "That's a nice way of putting it."
+  },
+  {
+   "who": "patient",
+   "text": "Margaret used to say I overthought everything and then did it anyway. Maybe she's right."
+  },
+  {
+   "who": "therapist",
+   "text": "And Biscuit? Who will look after him?"
+  },
+  {
+   "who": "patient",
+   "text": "Claire's offered to come. Or Mrs Hargreaves. I'll sort something. He'd hate the kennel. Biscuit can't go to a kennel because of his hip and his nerves, he shakes for a week afterwards, so someone has to stay with him."
+  },
+  {
+   "who": "therapist",
+   "text": "Good to think about that in advance."
+  },
+  {
+   "who": "patient",
+   "text": "Yes. I'm learning to plan, aren't I? It's like being a different man."
+  },
+  {
+   "who": "therapist",
+   "text": "Or the same man, doing something new."
+  },
+  {
+   "who": "patient",
+   "text": "Hm. Yes. That's better."
+  },
+  {
+   "who": "therapist",
+   "text": "Let's talk a little about money, or practical matters. Are there worries about the house?"
+  },
+  {
+   "who": "patient",
+   "text": "No. I have the pension and it's paid off, the mortgage, thank God. I don't have any money worries at all, the house has been paid off since two thousand and twelve, so that's one thing she left me with no trouble."
+  },
+  {
+   "who": "therapist",
+   "text": "That must be a relief."
+  },
+  {
+   "who": "patient",
+   "text": "It is. Though I'd give it all up to have the trouble back."
+  },
+  {
+   "who": "therapist",
+   "text": "I know."
+  },
+  {
+   "who": "patient",
+   "text": "Hm. Yes."
+  },
+  {
+   "who": "therapist",
+   "text": "Are there things you are avoiding?"
+  },
+  {
+   "who": "patient",
+   "text": "Her clothes. Still in the wardrobe. Claire offered to help me go through them and I said not yet."
+  },
+  {
+   "who": "therapist",
+   "text": "How would you feel about doing it with her one day?"
+  },
+  {
+   "who": "patient",
+   "text": "Probably OK, when it's the right time. Not before the anniversary."
+  },
+  {
+   "who": "therapist",
+   "text": "That's fine. There's no hurry."
+  },
+  {
+   "who": "patient",
+   "text": "Right. I don't think I'll ever give her coat away. The green one. She wore it for thirty years."
+  },
+  {
+   "who": "therapist",
+   "text": "You could keep a few special things."
+  },
+  {
+   "who": "patient",
+   "text": "I'll keep the coat and the hat. And the pearls for Poppy when she's older."
+  },
+  {
+   "who": "therapist",
+   "text": "That sounds right."
+  },
+  {
+   "who": "patient",
+   "text": "Yes. I like that. Pearls for Poppy."
+  },
+  {
+   "who": "therapist",
+   "text": "How do you feel, saying it?"
+  },
+  {
+   "who": "patient",
+   "text": "Calm. A bit sad but calm. It's an odd thing, grief. It comes in waves and then in between there's a flat sea and you think, oh, I could float here for a while."
+  },
+  {
+   "who": "therapist",
+   "text": "That's a lovely image."
+  },
+  {
+   "who": "patient",
+   "text": "Pauline said it first. I stole it."
+  },
+  {
+   "who": "therapist",
+   "text": "Borrowed it, I'd say."
+  },
+  {
+   "who": "patient",
+   "text": "Ha. Borrowed."
+  },
+  {
+   "who": "therapist",
+   "text": "We're coming up on time. Is there anything that you'd like to say before we stop?"
+  },
+  {
+   "who": "patient",
+   "text": "Just that I'm glad I came. I thought I wouldn't be able to say any of this out loud. And I did. All of it."
+  },
+  {
+   "who": "therapist",
+   "text": "You did, David. You told me about Margaret, about the group, about Biscuit and the allotment. That's a lot of ground."
+  },
+  {
+   "who": "patient",
+   "text": "It is. I feel lighter. I'll try to carry that out of the door with me."
+  },
+  {
+   "who": "therapist",
+   "text": "Let's meet again in three weeks, after the anniversary. And if it's a hard day, you can call the clinic and leave a message."
+  },
+  {
+   "who": "patient",
+   "text": "I will. Thank you, doctor."
+  },
+  {
+   "who": "therapist",
+   "text": "Take care, David."
+  },
+  {
+   "who": "patient",
+   "text": "And you. Goodbye."
+  }
+ ],
+ "facts": [
+  {
+   "id": "david-m_s02.f1",
+   "heading": "Margaret's first anniversary is in June",
+   "said": "Margaret died a year ago this June, and I keep counting the weeks to the day, it's eight weeks now.",
+   "who": "patient",
+   "turn": 3,
+   "repeat_of": "david-m_s01.f1"
+  },
+  {
+   "id": "david-m_s02.f2",
+   "heading": "Married for forty-six years",
+   "said": "We were married for forty-six years, we met at a dance in Harrogate when I was nineteen and she was seventeen.",
+   "who": "patient",
+   "turn": 10,
+   "repeat_of": null
+  },
+  {
+   "id": "david-m_s02.f3",
+   "heading": "Still wakes at four",
+   "said": "I still wake up at four in the morning, nearly every day, though I do get back to sleep now about half the time.",
+   "who": "patient",
+   "turn": 16,
+   "repeat_of": "david-m_s01.f3"
+  },
+  {
+   "id": "david-m_s02.f4",
+   "heading": "Joined a bereavement group at the church hall",
+   "said": "I joined a bereavement group that meets on Thursday evenings at the church hall, I've been to five meetings so far.",
+   "who": "patient",
+   "turn": 26,
+   "repeat_of": null
+  },
+  {
+   "id": "david-m_s02.f5",
+   "heading": "Still driving the number forty-two route",
+   "said": "I'm still driving the same route, the forty-two, from the bus station out to the hospital, and I'm doing my twenty-third year in the job.",
+   "who": "patient",
+   "turn": 36,
+   "repeat_of": "david-m_s01.f2"
+  },
+  {
+   "id": "david-m_s02.f6",
+   "heading": "Supervisor Colin gives him early shifts",
+   "said": "My supervisor Colin has put me on the early shifts, starting at five thirty, since he knows I'm awake at that hour anyway.",
+   "who": "patient",
+   "turn": 44,
+   "repeat_of": null
+  },
+  {
+   "id": "david-m_s02.f7",
+   "heading": "Biscuit the spaniel is still on her side of the bed",
+   "said": "Biscuit still sleeps on her side of the bed, and he is fourteen now, he has a bad hip, and I lift him up there every night.",
+   "who": "patient",
+   "turn": 46,
+   "repeat_of": "david-m_s01.f7"
+  },
+  {
+   "id": "david-m_s02.f8",
+   "heading": "Does not want a puppy",
+   "said": "But I don't want a puppy, I decided that last week. I just want to look after Biscuit for as long as he's got.",
+   "who": "patient",
+   "turn": 52,
+   "repeat_of": null
+  },
+  {
+   "id": "david-m_s02.f9",
+   "heading": "Went back to the allotment in April",
+   "said": "I went back to the allotment on the second Saturday in April, and cleared about half of the weeds before I had to stop.",
+   "who": "patient",
+   "turn": 58,
+   "repeat_of": null
+  },
+  {
+   "id": "david-m_s02.f10",
+   "heading": "Plans to plant her roses back",
+   "said": "I want to put new rose bushes where hers were, the same variety, it's called Gertrude Jekyll, a pink one, and I've ordered six.",
+   "who": "patient",
+   "turn": 64,
+   "repeat_of": null
+  },
+  {
+   "id": "david-m_s02.f11",
+   "heading": "Claire and the grandchildren visited at Easter",
+   "said": "Claire drove down from Manchester with the two little ones at Easter, Poppy is six and Jack is three, and they stayed four days.",
+   "who": "patient",
+   "turn": 70,
+   "repeat_of": "david-m_s01.f4"
+  },
+  {
+   "id": "david-m_s02.f12",
+   "heading": "Cooks proper meals again",
+   "said": "I've started cooking proper meals again, a shepherd's pie on Sundays, enough for three days, and I don't feel sad when I'm making it any more.",
+   "who": "patient",
+   "turn": 94,
+   "repeat_of": null
+  },
+  {
+   "id": "david-m_s02.f13",
+   "heading": "Still wears his wedding ring",
+   "said": "I'm still wearing my wedding ring, and I don't plan to take it off, whatever anyone says.",
+   "who": "patient",
+   "turn": 100,
+   "repeat_of": null
+  },
+  {
+   "id": "david-m_s02.f15",
+   "heading": "Was at work when Margaret died",
+   "said": "I was on shift the morning Margaret died, I was at the far end of the route when the hospice rang, and I got there twenty minutes too late.",
+   "who": "patient",
+   "turn": 106,
+   "repeat_of": null
+  },
+  {
+   "id": "david-m_s02.f16",
+   "heading": "Ray lost his wife six years ago",
+   "said": "Ray's wife died six years ago, and he still sets two cups out in the morning and then puts one back.",
+   "who": "patient",
+   "turn": 112,
+   "repeat_of": null
+  },
+  {
+   "id": "david-m_s02.f17",
+   "heading": "Plans to cook for Mrs Hargreaves",
+   "said": "I'm going to take Mrs Hargreaves a shepherd's pie on Friday, to say thank you for all the casseroles.",
+   "who": "patient",
+   "turn": 134,
+   "repeat_of": null
+  },
+  {
+   "id": "david-m_s02.f18",
+   "heading": "Trip to Whitby with Ray in August",
+   "said": "Ray and I are going to Whitby for three days in August, to do some sea fishing, and I haven't been to the seaside since Margaret was well.",
+   "who": "patient",
+   "turn": 138,
+   "repeat_of": null
+  },
+  {
+   "id": "david-m_s02.f19",
+   "heading": "Biscuit cannot go to kennels",
+   "said": "Biscuit can't go to a kennel because of his hip and his nerves, he shakes for a week afterwards, so someone has to stay with him.",
+   "who": "patient",
+   "turn": 144,
+   "repeat_of": null
+  },
+  {
+   "id": "david-m_s02.f14",
+   "heading": "No money worries, house is paid off",
+   "said": "I don't have any money worries at all, the house has been paid off since two thousand and twelve, so that's one thing she left me with no trouble.",
+   "who": "patient",
+   "turn": 150,
+   "repeat_of": null
+  }
+ ]
+}

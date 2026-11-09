@@ -113,6 +113,7 @@ class PipelineHarness(private val context: Context, val name: String, private va
             Prompts.EXTRACT_USER to "{{TEXT}}",
             Prompts.REVIEW_SYSTEM to "review",
             Prompts.REVIEW_USER to "{{KNOWN}}\n---\n{{FACT}}",
+            Prompts.ROLES_SYSTEM to "roles",
         )
 
         /** Every table of the database. */

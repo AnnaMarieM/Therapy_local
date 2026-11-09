@@ -1,0 +1,167 @@
+{
+ "id": "petr-k_s03",
+ "tag": "cs-en-mixed",
+ "what": "Czech with English words mixed in",
+ "lang": "cs",
+ "client": "petr-k",
+ "client_name": "Petr K.",
+ "date": "2026-04-07",
+ "voices": {
+  "therapist": "cs-CZ-VlastaNeural",
+  "patient": "cs-CZ-AntoninNeural"
+ },
+ "fx": {},
+ "expect": {
+  "speakers": 2,
+  "voices": 2,
+  "limitation": null,
+  "roles": {
+   "therapist": "therapist",
+   "patient": "patient"
+  }
+ },
+ "turns": [
+  {
+   "who": "therapist",
+   "text": "Dobrý den, pane Kolář. Minule jste mluvil o nabídce vést tým. Jak jste se rozhodl?"
+  },
+  {
+   "who": "patient",
+   "text": "Dobrý den. Tak já to vzal. Nastoupil jsem jako team leader a od prvního dubna vedu šest montérů. Je to novinka, ale už po týdnu jsem zjistil, že to není jen práce s kabely."
+  },
+  {
+   "who": "therapist",
+   "text": "Co je jiné?"
+  },
+  {
+   "who": "patient",
+   "text": "Firma zavedla nový systém, říká se mu SmartPlan. Všechno se zadává do dashboardu, deadliny, reporty, a já mám každé ráno meeting přes Teams. Já jsem zvyklý na papír a tužku. Mám pocit, že se blížím k burnoutu, protože po každém meetingu jsem úplně vyždímaný."
+  },
+  {
+   "who": "therapist",
+   "text": "Co se děje, když ten pocit přijde?"
+  },
+  {
+   "who": "patient",
+   "text": "Zhoupne se mi žaludek, mám pocit, že všichni čekají nějaký feedback a já nevím, co říct. Manažer po mně chtěl, abych dělal ještě takzvaný weekly report. A já nevím, jak ho napsat, tak ho píšu dvakrát."
+  },
+  {
+   "who": "therapist",
+   "text": "Požádal jste někoho o pomoc?"
+  },
+  {
+   "who": "patient",
+   "text": "Kolega Martin mi ukázal šablonu v Excelu, to mi hodně pomohlo. Ale stejně mám pocit, že na to nemám a že jsem se do něčeho zapletl, z čeho se nedá vycouvat. Je to takový stres management, který se nikdo neučí."
+  },
+  {
+   "who": "therapist",
+   "text": "A vaše zdraví? Sleep, jídlo, pohyb?"
+  },
+  {
+   "who": "patient",
+   "text": "Spím tak čtyři hodiny. Na firemním teambuildingu minulý týden všichni pili pivo a já jsem si objednal jen colu, protože alkohol nepiju už dva roky. Kolegové se divili, ale nikdo to nekomentoval."
+  },
+  {
+   "who": "therapist",
+   "text": "Jak jste se při tom cítil?"
+  },
+  {
+   "who": "patient",
+   "text": "Docela hrdě, abych pravdu řekl. Ale pak jsem přijel domů a byl jsem na dně."
+  },
+  {
+   "who": "therapist",
+   "text": "A doma? Jak se daří s Honzou?"
+  },
+  {
+   "who": "patient",
+   "text": "Tam je zlepšení. Honza mě minulý týden pozval na koncert jeho oblíbené kapely do Prahy a jedeme spolu v sobotu vlakem. Řekl to jako mimochodem, jako že mám volný lístek navíc. Ale pro mě to byl obrovský moment."
+  },
+  {
+   "who": "therapist",
+   "text": "To zní jako velký posun."
+  },
+  {
+   "who": "patient",
+   "text": "Jo. Určitě se budu snažit, ať to nezkazím. Nebudu se ptát na školu, nebudu mu dávat žádné rady. Prostě budu poslouchat to jejich, jak tomu říkají, hip hop nebo co to je."
+  },
+  {
+   "who": "therapist",
+   "text": "A co dovolená? Zmiňoval jste, že byste potřeboval pauzu."
+  },
+  {
+   "who": "patient",
+   "text": "S Lenkou jsme zamluvili dovolenou v Chorvatsku na osm dní v červenci, v kempu u Zadaru. Poprvé po pěti letech. Říkala, že mě tam nenechá ani s notebookem, ani s mobilem na mailu."
+  },
+  {
+   "who": "therapist",
+   "text": "To je dobrý nápad. A co ta záda?"
+  },
+  {
+   "who": "patient",
+   "text": "Byl jsem u doktora. Nic vážného, říkal jen vyhřezlou ploténku v počátku a poslal mě na rehabilitaci. Takže jsem zbytečně panikařil."
+  },
+  {
+   "who": "therapist",
+   "text": "Vidíte, strach z neznámého je často horší než výsledek."
+  },
+  {
+   "who": "patient",
+   "text": "Přesně. Příště bych to nechal na dřív."
+  },
+  {
+   "who": "therapist",
+   "text": "Dnes jsme probrali spoustu věcí. Co si z dnešního setkání odnesete?"
+  },
+  {
+   "who": "patient",
+   "text": "Že nemusím být perfektní lídr, stačí, když budu normální chlap, co se snaží."
+  },
+  {
+   "who": "therapist",
+   "text": "To je dobré shrnutí. Uvidíme se za dva týdny."
+  }
+ ],
+ "facts": [
+  {
+   "id": "petr-k_s03.f1",
+   "heading": "Vzal místo team leadera",
+   "said": "Nastoupil jsem jako team leader a od prvního dubna vedu šest montérů.",
+   "who": "patient",
+   "turn": 1,
+   "repeat_of": "petr-k_s02.f5"
+  },
+  {
+   "id": "petr-k_s03.f2",
+   "heading": "Stres a pocit vyhoření",
+   "said": "Mám pocit, že se blížím k burnoutu, protože po každém meetingu jsem úplně vyždímaný.",
+   "who": "patient",
+   "turn": 3,
+   "repeat_of": null
+  },
+  {
+   "id": "petr-k_s03.f3",
+   "heading": "Na teambuildingu nepil",
+   "said": "Na firemním teambuildingu minulý týden všichni pili pivo a já jsem si objednal jen colu, protože alkohol nepiju už dva roky.",
+   "who": "patient",
+   "turn": 9,
+   "repeat_of": "petr-k_s01.f3"
+  },
+  {
+   "id": "petr-k_s03.f4",
+   "heading": "Honza ho pozval na koncert",
+   "said": "Honza mě minulý týden pozval na koncert jeho oblíbené kapely do Prahy a jedeme spolu v sobotu vlakem.",
+   "who": "patient",
+   "turn": 13,
+   "repeat_of": null
+  },
+  {
+   "id": "petr-k_s03.f5",
+   "heading": "Dovolená v Chorvatsku",
+   "said": "S Lenkou jsme zamluvili dovolenou v Chorvatsku na osm dní v červenci, v kempu u Zadaru.",
+   "who": "patient",
+   "turn": 17,
+   "repeat_of": null
+  }
+ ]
+}
