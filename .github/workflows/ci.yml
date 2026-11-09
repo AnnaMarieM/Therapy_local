@@ -265,8 +265,9 @@ jobs:
           mkdir -p lanes
           python3 qa/stress-summary.py --matrix lanes >> "$GITHUB_STEP_SUMMARY"
 
-  # Rolling "main" prerelease holding the latest APK. Reuses the APK built above and
-  # waits for unit and emulator tests, so the build runs in parallel with them.
+  # Rolling "main" prerelease: only Therapy-main.apk, replaced on every push to main. Reuses the APK built above and
+  # waits for unit and emulator tests, so the build runs in parallel with them. (GitHub itself adds the "Source code"
+  # zip/tar.gz to every release; a workflow cannot remove them.)
   release-main:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: [build, android-test, stress, reproducible-arm, ad-immutable]
@@ -286,11 +287,12 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         run: |
+          # Check the APK arrived intact; the hash file itself is not published
           sha256sum -c Therapy-main.apk.sha256
-          # Drop the previous release and its tag so no old builds are kept
+          # Drop the previous release, its assets and its tag so only the newest build is kept
           gh release delete main --cleanup-tag --yes || true
-          gh release create main Therapy-main.apk Therapy-main.apk.sha256 \
+          gh release create main Therapy-main.apk \
             --target "$GITHUB_SHA" \
             --prerelease \
             --title "Latest main build" \
-            --notes "Automated build of \`main\` at ${GITHUB_SHA}. Replaced on every push to main."
+            --notes "Latest build of main (${GITHUB_SHA::7}). Download Therapy-main.apk on your phone and open it to install."
