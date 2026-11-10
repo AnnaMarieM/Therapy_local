@@ -11,3 +11,4 @@ Each record is immutable once merged (see [`AGENTS.md`](../../AGENTS.md); CI job
 | [AD-05](AD-05.md) | One pinned look: bundled static fonts, pinned font scale, weight and density, explicit colours, deterministic breakpoints | 2026-11-06 23:40 CET | Martin Hajný (@hajnina) | Accepted |
 | [AD-06](AD-06.md) | Speaker diarization is a model role: pyannote segmentation plus a WeSpeaker embedding in `:batch`; diarize first, then transcribe per turn | 2026-11-08 23:54 CET | Martin Hajný (@hajnina) | Accepted |
 | [AD-07](AD-07.md) | The diarizer always looks for exactly two speakers (therapist and patient) | 2026-11-09 00:12 CET | Martin Hajný (@hajnina) | Accepted |
+| [AD-09](AD-09.md) | The NPU runs only on SoCs validated on our own hardware, through the model catalogue; otherwise GPU, then CPU | 2026-11-07 02:08 CET | Martin Hajný (@hajnina) | Accepted; phone verification pending |
