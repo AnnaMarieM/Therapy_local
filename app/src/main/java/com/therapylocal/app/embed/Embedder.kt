@@ -18,7 +18,6 @@ import com.therapylocal.app.models.BackendGuard
 import com.therapylocal.app.models.BackendLadder
 import com.therapylocal.app.log.AppLog
 import com.therapylocal.app.log.LogCtx
-import com.therapylocal.app.memory.LlmMemory
 import com.therapylocal.app.models.Backends
 import com.therapylocal.app.models.ModelRegistry
 import com.therapylocal.app.models.Accelerators
@@ -199,17 +198,15 @@ class Embedder(
     private val guardModel get() = if (textOnly) modelId else "${modelId}+audio"
 
     /**
-     * Why [name] is not tried now, or null: the accelerator's own availability, then the one memory rule every GPU/NPU load follows
-     * ([LlmMemory.gate]: the model's size plus a headroom must be free). No device is judged by its name or total RAM; a phone that cannot
-     * take the GPU shows it as a strike in [BackendGuard] (the engine host dies, not the app), and the CPU is tried next.
+     * Why [name] is not tried now, or null: only the accelerator's own availability (a missing runtime library). Free memory is never
+     * checked (AD-08). No device is judged by its name or total RAM; a phone that cannot take the GPU shows it as a strike in
+     * [BackendGuard] (the engine host dies, not the app), and the CPU is tried next.
      */
     private fun memoryGate(name: String): String? = com.therapylocal.app.engine.LabWiring.gate(realGate(name))
 
     private fun realGate(name: String): String? {
         Accelerators.unavailable(context, name, modelId, ModelRuntime.LITERT)?.let { return it }
-        if (BackendPolicy.forcing()) return null
-        if (Accelerators.get(name)?.takesSystemMemory != true) return null
-        return LlmMemory.gateForCost(context, MemoryConfig.embedGpuCostBytes(maxTokens))
+        return null
     }
 
     private fun audioBackendName() = if (textOnly) "none" else "CPU"
@@ -305,7 +302,7 @@ class Embedder(
     }
 
     /**
-     * The system asked for memory back: unload. The next load is gated by the memory that is free then ([LlmMemory.gate]), so there is no
+     * The system asked for memory back: unload. The next load is not gated by free memory (AD-08), so there is no
      * timed "CPU only" period: it depended on which instance had seen the pressure.
      */
     fun releaseForMemory() {

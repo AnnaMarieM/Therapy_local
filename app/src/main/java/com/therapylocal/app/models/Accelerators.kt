@@ -21,10 +21,8 @@ data class Accelerator(
     val id: String,
     /** Lower is tried first. The built-ins are NPU 100, GPU 200, CPU 1000; a dedicated chip usually goes before them. */
     val priority: Int,
-    /** True for the CPU: always tried last, never blocked, no memory gate. There must be one. */
+    /** True for the CPU: always tried last, never blocked. There must be one. */
     val fallback: Boolean = false,
-    /** Takes its memory from the system (Android cannot reclaim it), so it is only tried when the model fits in what is free. */
-    val takesSystemMemory: Boolean = !fallback,
     /** Model ids it serves (as in [ModelSpec.id], without "+audio"); null serves every model. A chip built for one model lists only that. */
     val models: Set<String>? = null,
     /** Why it cannot be used on this phone (a library or device feature missing), or null when it can. Must not throw, must be cheap. */

@@ -64,7 +64,7 @@ Model and backend events (tag `Memory` for the LLM, `Embed` for the embedder, `A
 |---|---|
 | `memory_llm_load_request`, `embed_load_request` | model, file size, context, audio, order asked for, debug override, cooldown left |
 | `ladder_start` | `candidates`, `history` (every backend's state/strikes/proven before, e.g. `GPU=proven/0/proven_before`), full memory and thermal picture |
-| `backend_skipped` | `reason` (missing library, `not enough free memory (… MB free, … MB needed)`, the guard's block or demotion) |
+| `backend_skipped` | `reason` (missing library, the guard's block or demotion; never free memory, AD-08) |
 | `backend_skipped_blocked` | the record that blocked it: state, strikes, when, why |
 | `backend_attempting` | `note=attempting`, attempt n of m, record before, memory before |
 | `backend_phase` | `phase` (create, initialize, test), free memory. Written and **flushed to disk** before each native step, so after a native kill it is the last line. The step is also in the next start's `backend_died_while_loading` |
@@ -164,7 +164,7 @@ To join the host files to the right run, take `client_sid` from `host_start` and
 
 ### Debug override and force
 
-The developer screen can force a backend (`BackendPolicy.override`). With `BackendPolicy.force` also on, the engines skip the free-memory gate and the guard's blocks and demotions and try exactly that one accelerator (a missing runtime library still refuses it). The engine process then either survives or dies, and main goes on; this is how a host death on real hardware is provoked. `force` is for debug and QA only and no release path sets it. The QA probe sets it with an extra:
+The developer screen can force a backend (`BackendPolicy.override`). With `BackendPolicy.force` also on, the engines skip the guard's blocks and demotions and try exactly that one accelerator (a missing runtime library still refuses it). The engine process then either survives or dies, and main goes on; this is how a host death on real hardware is provoked. `force` is for debug and QA only and no release path sets it. The QA probe sets it with an extra:
 
 ```bash
 adb shell am start -n com.therapylocal.app.qa/com.therapylocal.app.debug.MemProbeActivity --es variant e4b --es backend GPU --ez force true --es tag e4b_gpu_forced
@@ -179,7 +179,7 @@ adb shell am start -n com.therapylocal.app.qa/com.therapylocal.app.debug.Backend
 adb shell cat /sdcard/Android/data/com.therapylocal.app.qa/files/out/backendprobe_emb_gpu.json
 ```
 
-`--es model embed|embed_audio|canary`, `--es backend GPU|NPU|NNAPI|CPU`, `--ei calls 3`. Without `force` the real ladder decides (gate, blocks); with it the gate and blocks are skipped. The file holds the backend used, `open_ms`, per-call milliseconds, a CPU reference run (always forced to the CPU), `cosine_vs_cpu` per fixed input (embeddings) or `text_equals_cpu` (Canary, an 8 s synthetic clip), and any error. `--es backend CPU --ez golden true` also writes the CPU vectors in the format of `assets/embed_golden.json`.
+`--es model embed|embed_audio|canary`, `--es backend GPU|NPU|NNAPI|CPU`, `--ei calls 3`. Without `force` the real ladder decides (blocks); with it the blocks are skipped. The file holds the backend used, `open_ms`, per-call milliseconds, a CPU reference run (always forced to the CPU), `cosine_vs_cpu` per fixed input (embeddings) or `text_equals_cpu` (Canary, an 8 s synthetic clip), and any error. `--es backend CPU --ez golden true` also writes the CPU vectors in the format of `assets/embed_golden.json`.
 
 *To revisit after the strike, deferral and fault-injection steps land:* `job_deferred` and `fault_plan_ignored` fields, the immediate strike line, and the debug fault points.
 
