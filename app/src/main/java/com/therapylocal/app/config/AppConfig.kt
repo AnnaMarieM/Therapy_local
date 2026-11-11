@@ -72,7 +72,7 @@ object EmbeddingConfig {
 
     /**
      * The input sizes the LiteRT build of the model has (128..8192, powers of two; the engine is opened with one of them and its buffers are
-     * sized for it, see [MemoryConfig.EMBED_GPU_BASE_BYTES]). The smallest one that holds what is needed is used, not the full 8192.
+     * sized for it, see AD-08). The smallest one that holds what is needed is used, not the full 8192.
      */
     val INPUT_SIZES = listOf(128, 256, 512, 1024, 2048, 4096, 8192)
 
@@ -104,28 +104,6 @@ object EmbeddingConfig {
 /** The background pipeline that turns a session's transcript into facts (see [com.therapylocal.app.jobs.Pipeline]). */
 object MemoryConfig {
     const val LLM_MAX_TOKENS = 6144
-
-    /**
-     * The GPU and NPU take the model's memory from the system and Android cannot reclaim it (measured: E4B took 3,469 MiB for a 3,490 MiB file, E2B
-     * 1,669 MiB for 2,468 MiB), so they are only used when this fraction of the file plus [GPU_HEADROOM_BYTES] is free. On the CPU the model is mapped
-     * from storage and Android can reclaim it under pressure, so the CPU is the fallback: slower, but the app is not killed.
-     */
-    const val GPU_MEMORY_FACTOR = 1.0
-    const val GPU_HEADROOM_BYTES = 1L shl 30
-
-    /**
-     * What EmbeddingGemma's GPU load takes from the system, by input size. It is not the 485 MB file: the engine builds its graph (about a
-     * thousand kernels) and its buffers for the input size it is opened with. Measured on the Galaxy Tab S7 (Adreno 650, QA build,
-     * `BackendProbeActivity`, forced, 2026-11-07): the fall in available memory while loading was about 110 MB at 1024 tokens and 250 MB at
-     * 2048; at 4096 it was at least 1.5 GB and lmkd killed `:live` at the low watermark, and at 8192 at least 2.2 GB with the same kill. So the
-     * cost grows faster than the size, and the full 8192 is what blew up. The line below stays above every point (about 4.7 times the
-     * measurement at 1024, 3.7 times at 2048, 1.1 times the 4096 lower bound), so a free-memory check against it plus the headroom is safe,
-     * and a phone that is genuinely short of memory is still refused. The phone's measurement at 1024 and 8192 confirms or corrects it.
-     */
-    const val EMBED_GPU_BASE_BYTES = 100L shl 20
-    const val EMBED_GPU_BYTES_PER_TOKEN = 420_000L
-
-    fun embedGpuCostBytes(tokens: Int): Long = EMBED_GPU_BASE_BYTES + EMBED_GPU_BYTES_PER_TOKEN * tokens
 
     /** Transcript windows, in estimated tokens: each is embedded for search and read by the LLM once. */
     const val WINDOW_TOKENS = 1000

@@ -5,8 +5,8 @@ import android.content.Context
 import android.os.Debug
 
 /**
- * Memory telemetry for the log lines. It decides nothing: whether a GPU/NPU load is tried is [LlmMemory.gate] (the model's size plus a
- * headroom must be free), and whether a phone can really run it is what [com.therapylocal.app.models.BackendGuard] learns by trying.
+ * Memory telemetry for the log lines. It decides nothing: whether a GPU/NPU load is tried never depends on free memory (AD-08), and whether a phone
+ * can really run it is what [com.therapylocal.app.models.BackendGuard] learns by trying.
  * Nothing here looks at the device's name, its SoC or its total RAM to choose a backend.
  */
 object DeviceMemory {

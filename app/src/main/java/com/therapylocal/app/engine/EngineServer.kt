@@ -38,7 +38,10 @@ class EngineServer(private val context: Context, private val role: EngineRole, p
         val model = (op as? EngineOp.Open)?.model ?: r?.model
         val backend = (op as? EngineOp.Open)?.backend ?: r?.backend
         Faults.at("before:${op.tag.op}", role, op, model, backend)
-        val reply = dispatch(op, phases)
+        // The long calls log what this process holds while they run (HostMemory); the frequent short ones (embed, status, close) do not.
+        val reply = if (op is EngineOp.Open || op is EngineOp.Ask || op is EngineOp.Transcribe || op is EngineOp.Diarize)
+            HostMemory.around(op.tag.op, model, backend) { dispatch(op, phases) }
+        else dispatch(op, phases)
         Faults.at("after:${op.tag.op}", role, op, model, backend)
         return Faults.reply(role, op, reply)
     }
