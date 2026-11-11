@@ -40,7 +40,7 @@ The app walks you through a few short screens. Tap the button on the right of th
 
 > **Do not lose your password.** It locks everything in the app, and nobody can recover it, not even the people who made the app. If you forget it, the only way back in is **Forgot password** (*Zapomenuté heslo*) › **Erase and start again…** (*Vymazat a začít znovu…*), which deletes every client and session on the device. If fingerprint unlock is on, you can use it to set a new password instead. Write the password down somewhere safe.
 
-**The first download.** After the password, the app downloads the files it needs to understand speech and to read sessions. This is several GB, so stay on **Wi-Fi** and keep the phone charging. The top of the home screen shows **Getting ready** (*Připravuje se*) and how much is downloaded. You can already add clients and record while it downloads; those sessions are processed once it has finished. After that, the app works fully offline.
+**The first download.** After the password, the app downloads the files it needs to understand speech and to read sessions. This is several GB, so stay on **Wi-Fi** and keep the phone charging. On mobile data the app asks first: **Download now** (*Stáhnout hned*), **Wait for Wi-Fi** (*Počkat na Wi-Fi*) or **Not now** (*Teď ne*). A download that waits for Wi-Fi pauses when Wi-Fi drops and continues by itself when it is back. The top of the home screen shows **Getting ready** (*Připravuje se*) and how much is downloaded. You can already add clients and record while it downloads; those sessions are processed once it has finished. After that, the app works fully offline.
 
 ## Everyday use
 
@@ -108,7 +108,7 @@ No. Recording, writing down and noting all happen on the device. The internet is
 If fingerprint unlock is on, tap **Forgot password** (*Zapomenuté heslo*) and use your fingerprint to set a new one. Otherwise the data cannot be opened again: you can only erase everything and start over.
 
 **The first start is taking a long time.**
-The first download is several GB. Keep the app on Wi-Fi and the phone charging. If the connection drops, the home screen shows **Setup paused · Try again**; tap it to continue where it stopped.
+The first download is several GB. Keep the app on Wi-Fi and the phone charging. If the connection drops, the home screen shows **Setup paused · Try again**; tap it to continue where it stopped. If it shows **Waiting for Wi-Fi · Use mobile data** (*Čeká se na Wi-Fi · Použít mobilní data*), the download continues on Wi-Fi; tap it to download over mobile data instead.
 
 **A session says it could not be processed.**
 Tap **Retry** at the top of the home screen. Nothing is lost; the recording is kept until it has been processed.

@@ -40,6 +40,7 @@ Values with spaces or `=` are double-quoted.
 | `chunk_dropped_short` | Audio | the trailing chunk added too little new audio (`new_ms` against `min_new_ms`) and was not kept |
 | `audio_wav_encode` / `audio_to_float` | ASR / Embed | preprocessing: WAV for the audio embedder, float for Canary |
 | `model_download`, `model_verify` | Download | bytes fetched, resume offset, sha256 check |
+| `setup_needed`, `download_needs_consent`, `download_network_choice` | Models | the model download and its network (issue #55): `setup_needed` queues it with `missing_mb` and `wifi_only` (true: it runs only on an unmetered network and pauses when that goes); `download_needs_consent` means the phone is on a metered network and the user is asked (`missing_mb`); `download_network_choice` is the answer, `choice` = `now` (any network), `wifi` or `not_now` |
 | `asr_load`, `engine_init`, `engine_warmup` | ASR | which backend loaded (`backend`), model file, size; failed attempts are `backend_failed` with `reason` |
 | `asr_transcribe` | ASR | `engine`, `model`, `backend`, `audio_sec`, `chars`, `rtf` (wall time / audio time), `chars_per_sec` |
 | `diarize_load`, `diarize_create`, `diarize_selftest` | Diarize | speaker diarization (docs/AD/AD-06.md): load through the backend ladder, `model_mb`, `backend`; the self-test runs silence and expects `turns=0` |
