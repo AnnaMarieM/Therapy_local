@@ -6,6 +6,7 @@ import android.content.Context
 import android.database.Cursor
 import net.zetetic.database.sqlcipher.SQLiteDatabase
 import net.zetetic.database.sqlcipher.SQLiteOpenHelper
+import com.therapylocal.app.summary.SummaryRepo
 import com.therapylocal.app.vault.Vault
 import com.therapylocal.app.ui.logic.ClientDisambiguation
 import com.therapylocal.app.ui.logic.DisambiguationTarget
@@ -69,6 +70,15 @@ data class FactRow(
 /** Where a fact was said: its first occurrence ([first]) or a later mention. */
 data class Occurrence(val sessionId: String, val startedAt: Long, val evidence: String, val segIdx: Int, val first: Boolean)
 
+/**
+ * The last-session summary of one session and what it was made from (docs/AD/AD-12.md). [provenance] is the same record windows and facts carry
+ * (docs/AD/AD-10.md): the transcript hash, the speaker-map version (0: no map), the prompt version (prompts, format and limits) and the model;
+ * [method] is the long-transcript method and its tuning. [stale] is the stored flag, set by [MindStore.refreshSummaryStale].
+ */
+data class SummaryRow(
+    val sessionId: String, val text: String, val provenance: Provenance, val method: String, val stale: Boolean, val createdAt: Long,
+)
+
 data class SessionDelete(val promoted: Int, val deleted: Int)
 
 /**
@@ -77,7 +87,7 @@ data class SessionDelete(val promoted: Int, val deleted: Int)
  * Every foreign key cascades, so deleting a client or a session removes everything stored for it. Write-ahead logging keeps UI reads from waiting on the runner.
  */
 class MindStore(context: Context, name: String, password: ByteArray) :
-    SQLiteOpenHelper(context, name, password, null, VERSION, 0, null, null, true), JobRepo {
+    SQLiteOpenHelper(context, name, password, null, VERSION, 0, null, null, true), JobRepo, SummaryRepo {
 
     /** Once closed, a holder that kept this store (a runner finishing a step) must not reopen the file, which may be being erased. */
     @Volatile
@@ -179,6 +189,9 @@ class MindStore(context: Context, name: String, password: ByteArray) :
         if (deleted) refreshDisplayNames()
         return deleted
     }
+
+    /** The client of [session], or "" when there is no such session. */
+    fun clientOfSession(session: String): String = query("SELECT client_id FROM sessions WHERE id = ?", session) { it.getString(0) }.firstOrNull().orEmpty()
 
     /** Does nothing if the session already exists. */
     fun createSession(id: String, clientId: String, startedAt: Long) {
@@ -295,8 +308,38 @@ class MindStore(context: Context, name: String, password: ByteArray) :
             SpeakerMapRow(it.getString(0), it.getInt(1), it.getString(2), it.getString(3), it.getDouble(4), it.getString(5), it.getLong(6))
         }
 
+    override fun summary(session: String): SummaryRow? =
+        query("SELECT session_id, text, method, created_at, prov_transcript_sha, prov_speaker_map_version, prov_prompt_version, prov_model, stale FROM session_summaries WHERE session_id = ?", session) {
+            SummaryRow(it.getString(0), it.getString(1), Provenance(it.getString(4), it.getInt(5), it.getString(6), it.getString(7)), it.getString(2), it.getInt(8) != 0, it.getLong(3))
+        }.firstOrNull()
+
+    /** Replaces the session's summary whole; the new row is not stale. */
+    override fun putSummary(row: SummaryRow) {
+        writableDatabase.insertWithOnConflict(
+            "session_summaries", null,
+            ContentValues().apply {
+                put("session_id", row.sessionId); put("text", row.text); put("method", row.method); put("created_at", row.createdAt)
+                row.provenance.put(this)
+                put("stale", if (row.stale) 1 else 0)
+            },
+            SQLiteDatabase.CONFLICT_REPLACE,
+        )
+    }
+
+    /**
+     * Sets the stale flag of the session's summary: stale when made from another transcript than the current one, from another speaker map
+     * (the summary names who said what, so a roles swap changes it; this is the one derived item that compares the map, AD-10), or with
+     * another prompt or model than [promptVersion] and [model]. Like [refreshStale]; a session without a summary is left alone.
+     */
+    override fun refreshSummaryStale(session: String, promptVersion: String, model: String) {
+        writableDatabase.execSQL(
+            "UPDATE session_summaries SET stale = (prov_transcript_sha <> ? OR prov_speaker_map_version <> ? OR prov_prompt_version <> ? OR prov_model <> ?) WHERE session_id = ?",
+            arrayOf<Any?>(currentTranscript(session)?.sha256.orEmpty(), currentSpeakerMap(session)?.version ?: Provenance.NO_MAP, promptVersion, model, session),
+        )
+    }
+
     /** The latest version, or null before roles were guessed. */
-    fun currentSpeakerMap(session: String): SpeakerMapRow? = speakerMaps(session).lastOrNull()
+    override fun currentSpeakerMap(session: String): SpeakerMapRow? = speakerMaps(session).lastOrNull()
 
     // ---- segments and windows ------------------------------------------------------------------------------------
 
@@ -324,13 +367,13 @@ class MindStore(context: Context, name: String, password: ByteArray) :
     }
 
     /** The latest transcript version, or null before the session was transcribed. */
-    fun currentTranscript(session: String): TranscriptVersion? =
+    override fun currentTranscript(session: String): TranscriptVersion? =
         query("SELECT session_id, version, sha256, recording_id, audio_sha256, created_at FROM transcripts WHERE session_id = ? ORDER BY version DESC LIMIT 1", session) {
             TranscriptVersion(it.getString(0), it.getInt(1), it.getString(2), if (it.isNull(3)) null else it.getLong(3), it.getStringOrNull(4), it.getLong(5))
         }.firstOrNull()
 
     /** The segments of the current transcript version. */
-    fun segments(session: String): List<SegmentRow> =
+    override fun segments(session: String): List<SegmentRow> =
         query("SELECT s.idx, s.start_ms, s.end_ms, s.text, s.speaker FROM segments s WHERE s.session_id = ? AND s.version = $CURRENT_VERSION ORDER BY s.idx", session) { segmentOf(it) }
 
     /** The segments of one stored [version] of the transcript. */
@@ -569,7 +612,7 @@ class MindStore(context: Context, name: String, password: ByteArray) :
         const val NAME = "mind.db"
 
         /** Bumped whenever the schema changes; there are no migrations, a database of another version is wiped (AD-11). */
-        private const val VERSION = 5
+        private const val VERSION = 6
 
         // Both cascade: deleting a recording or a session removes them.
         private const val DIARIZATION_TURNS_SQL = """CREATE TABLE diarization_turns(
@@ -592,6 +635,14 @@ class MindStore(context: Context, name: String, password: ByteArray) :
 
         /** The segments of a transcript are those of its session's latest version; `s` is the segments table. */
         private const val CURRENT_VERSION = "(SELECT MAX(t.version) FROM transcripts t WHERE t.session_id = s.session_id)"
+
+        // One summary per session (replaced whole), gone with its session. Provenance as for windows and facts (AD-10), plus the method.
+        private const val SESSION_SUMMARIES_SQL = """CREATE TABLE session_summaries(
+                 session_id TEXT PRIMARY KEY REFERENCES sessions(id) ON DELETE CASCADE,
+                 text TEXT NOT NULL,
+                 method TEXT NOT NULL,
+                 created_at INTEGER NOT NULL,
+                 ${Provenance.COLUMNS})"""
 
         private const val FACT_COLUMNS =
             "SELECT f.id, f.client_id, f.session_id, f.heading, f.content, f.evidence, f.seg_idx, f.created_at, (SELECT COUNT(*) FROM mentions m WHERE m.fact_id = f.id), f.scope, f.category"
@@ -704,6 +755,7 @@ class MindStore(context: Context, name: String, password: ByteArray) :
                  PRIMARY KEY(job_id, depends_on))""",
             DIARIZATION_TURNS_SQL,
             SPEAKER_MAPS_SQL,
+            SESSION_SUMMARIES_SQL,
         )
 
         @SuppressLint("StaticFieldLeak") // built from the application context only

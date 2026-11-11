@@ -1,6 +1,6 @@
 # Long-term memory
 
-A journal that remembers for you, on the phone, with Gemma 4 (E2B or E4B, LiteRT-LM) and EmbeddingGemma. Each client has a list of facts: a **heading** (about 6 words) and **content** (1-3 short factual sentences, no interpretation or advice). Every fact keeps a verbatim quote and the transcript segment it came from, so tapping it shows the conversation around it, plus every later passage, in any session, where it came up again. The app gives no insights and writes no summaries. The app shows only the facts and each session's full transcript.
+A journal that remembers for you, on the phone, with Gemma 4 (E2B or E4B, LiteRT-LM) and EmbeddingGemma. Each client has a list of facts: a **heading** (about 6 words) and **content** (1-3 short factual sentences, no interpretation or advice). Every fact keeps a verbatim quote and the transcript segment it came from, so tapping it shows the conversation around it, plus every later passage, in any session, where it came up again. The app gives no insights. It writes one thing besides the facts: a short summary of a session in a fixed clinical format (SOAP), made from its transcript and roles and shown for a client's last session ([AD-12](AD/AD-12.md), proposed, not yet decided). Otherwise it shows only the facts and each session's full transcript.
 
 Facts are append-only: a fact that changes over time is not updated. A stale fact is superseded by a rebuild, never edited ([AD-10](AD/AD-10.md)).
 
@@ -20,6 +20,7 @@ Everything lives in `mind.db` (SQLCipher, see [SECURITY.md](SECURITY.md)), opene
 | `mentions(id, fact_id, session_id, evidence, seg_idx, created_at)` | A later session where the fact came up again (never the fact's own session) |
 | `extract_cache(session_id, idx, key, json)` | Extraction result per window, keyed by prompt version and model |
 | `review_cache(session_id, cand_key, verdict)` | The LLM's duplicate verdict per candidate |
+| `session_summaries(session_id, text, method, created_at, prov_*, stale)` | The session's summary and its provenance (AD-10 columns); stale when the transcript, the roles, the prompts or the model changed since ([AD-12](AD/AD-12.md)) |
 | `jobs(id, kind, session_id, recording_id, ref, status, attempts, max_attempts, error_code, created_at, updated_at)` | The job queue. `error_code` is a short code, never raw error text |
 | `job_deps(job_id, depends_on)` | Job dependencies |
 
@@ -39,6 +40,8 @@ transcribe(recording) -> window(session) -> extract(session, 1..n) -> commit(ses
 3. **extract(i)** asks Gemma for the facts of window *i*: one JSON object per line, twice, then a constrained schema as a last resort. A fact is kept only if its evidence quote occurs in the window; the quote is mapped to the segment of its first word.
 4. **commit** has two phases. Phase A, outside any transaction, is `CommitPlanner`: for each candidate in order, the nearest facts of the client's earlier sessions with cosine at least 0.6 are shown to Gemma, which answers whether it is a duplicate. No neighbour above the floor, or an unreadable reply twice, means a new fact. A candidate repeating a fact of an earlier session becomes a mention; one repeating a fact this session already adds is dropped. Phase B is one short transaction that replaces the session's facts and mentions with the plan.
 5. **cleanup** moves the encrypted audio (`PendingAudio`) to `retained/<session>/<recording>` and deletes the recording row; its chunks go with it, the transcript versions stay. The retained audio is deleted after `PendingAudio.RETENTION_DAYS` (7) days, or at once with its session, its client or a vault erase ([AD-10](AD/AD-10.md)). Audio leaves the pending folder only here, after everything else is stored.
+
+6. **summary** (proposed, [AD-12](AD/AD-12.md)) is queued behind `window` of a new session and on demand; it is not a dependency of `commit`. It writes the session's summary with the configured method (`SummaryConfig`, map-reduce over the windows by default) and stores it in `session_summaries` with the same provenance columns as windows and facts. A roles swap makes it stale (new speaker-map version) and queues it again.
 
 Every handler can run again and ends in the same state: derived results are written whole (superseded: old generation out, new one in, one transaction) and the transcript only grows by a version when its content changed and LLM answers are cached under the prompt version (a short hash of the resolved prompt text) and the model.
 
@@ -61,6 +64,7 @@ Queue rules (`JobQueue`):
 - **D9. Inputs are immutable and versioned; every derived item records what it came from.** The raw transcript is append-only by version and content hash, audio is referenced by hash while it is retained (7 days), the speaker map is append-only. Windows and facts carry transcript hash, speaker-map version, prompt version and model and a stored stale flag; a rebuild supersedes stale items in client and session order. One vault key and one database stay. Full record: [AD-10](AD/AD-10.md) (proposed).
 - **D10. No migrations and no compatibility code before the first release.** The schema is one create path; a database of another version is wiped. Full record: [AD-11](AD/AD-11.md) (proposed).
 - **D8. An engine host that crashes exits quietly** (native signal handler `_exit(100 + signal)`, Java crash `halt(13)`), so the system shows no "keeps stopping" dialog and writes no tombstone for a background host. Full record: [AD-04](AD/AD-04.md).
+- **D11. The app writes one summary per session** (SOAP, short paragraphs, from the transcript with the confirmed roles), as a `summary` job on the same queue and model; it is stale after a roles swap and rebuilt. This reverses "writes no summaries" and is **proposed, not decided**. Full record: [AD-12](AD/AD-12.md).
 
 ## Live cues
 During a session `LiveCues` embeds the last seconds of audio directly (EmbeddingGemma audio, no transcript) and compares them with the client's fact embeddings. Scores are averaged over ticks per fact, and the top 10 above the floor are shown by heading. Audio stays in an in-memory ring of `LiveCueConfig.MAX_LOOKBACK_S` (327 s) and is never written. Settings are read at session start, from "Knobs for nerds" in the settings (`LiveCueSettings`, values clamped):

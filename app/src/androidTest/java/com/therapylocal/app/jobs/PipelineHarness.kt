@@ -114,11 +114,15 @@ class PipelineHarness(private val context: Context, val name: String, private va
             Prompts.REVIEW_SYSTEM to "review",
             Prompts.REVIEW_USER to "{{KNOWN}}\n---\n{{FACT}}",
             Prompts.ROLES_SYSTEM to "roles",
+            com.therapylocal.app.config.SummaryConfig.PROMPT_FINAL_SYSTEM to "summary",
+            com.therapylocal.app.config.SummaryConfig.PROMPT_FINAL_USER to "{{TEXT}}",
+            com.therapylocal.app.config.SummaryConfig.PROMPT_NOTES_SYSTEM to "summary-notes",
+            com.therapylocal.app.config.SummaryConfig.PROMPT_NOTES_USER to "{{TEXT}}",
         )
 
         /** Every table of the database. */
         val TABLES = listOf(
-            "clients", "sessions", "recordings", "chunks", "segments", "windows", "facts", "mentions", "extract_cache", "review_cache", "jobs", "job_deps",
+            "clients", "sessions", "recordings", "chunks", "segments", "windows", "facts", "mentions", "extract_cache", "review_cache", "jobs", "job_deps", "session_summaries",
         )
     }
 }
@@ -136,6 +140,7 @@ class FakeLlm(private val catalogue: List<Said>) : Llm {
             val k = known.lines().indexOfFirst { it.substringAfter(": ").substringBefore(": ") == heading }
             if (k < 0) """{"duplicate": false}""" else """{"duplicate": true, "of": "K${k + 1}"}"""
         }
+        "summary", "summary-notes" -> "Subjective: a short stand-in summary that is long enough to be kept."
         else -> error("unexpected prompt")
     }
 

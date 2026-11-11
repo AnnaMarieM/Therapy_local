@@ -5,6 +5,7 @@ import com.therapylocal.app.engine.EngineUnavailable
 import com.therapylocal.app.audio.AudioChunk
 import com.therapylocal.app.config.EmbeddingConfig
 import com.therapylocal.app.config.MemoryConfig
+import com.therapylocal.app.config.SummaryConfig
 import com.therapylocal.app.data.ChunkRow
 import com.therapylocal.app.data.Job
 import com.therapylocal.app.data.MindStore
@@ -29,6 +30,11 @@ import com.therapylocal.app.facts.TranscriptWindows
 import com.therapylocal.app.facts.Verdict
 import com.therapylocal.app.log.AppLog
 import com.therapylocal.app.log.LogCtx
+import com.therapylocal.app.summary.MapReduceSummary
+import com.therapylocal.app.summary.SessionSummaries
+import com.therapylocal.app.summary.SummaryAsk
+import com.therapylocal.app.summary.SummaryMethod
+import com.therapylocal.app.summary.SummaryPrompts
 import org.json.JSONArray
 import kotlin.math.sqrt
 
@@ -51,7 +57,11 @@ class Pipeline(
     private val promptLanguage: (clientLanguage: String) -> String = { PromptLanguage.EN },
     /** True when the diarization model is on the phone; without it TRANSCRIBE takes the chunk path, so an install from before the model existed keeps working. */
     diarizationReady: () -> Boolean = { true },
+    /** How a transcript becomes a summary; replaceable while the long-transcript benchmark is open (docs/AD/AD-12.md). */
+    private val summaryMethod: SummaryMethod = MapReduceSummary(),
 ) {
+    private val summaries = SessionSummaries(store)
+
     /** The language of the prompts for the client of [job]: Czech only for a Czech app and a Czech client. */
     private fun language(job: Job): String = promptLanguage(store.clientLanguage(job.clientId))
 
@@ -64,6 +74,7 @@ class Pipeline(
         JobGraph.EXTRACT to JobHandler(::extract),
         JobGraph.COMMIT to JobHandler(::commit),
         JobGraph.CLEANUP to JobHandler(::cleanup),
+        JobGraph.SUMMARY to JobHandler(::summary),
     )
 
     private val transcribeFlow = TranscribeFlow(
@@ -107,6 +118,24 @@ class Pipeline(
         )
     }
 
+    /**
+     * The last-session summary: [SessionSummaries.build] with the configured [summaryMethod] through the pool's LLM, stored with the transcript
+     * hash, speaker-map version, prompt version and model. Logs counts only, never the transcript or the summary.
+     */
+    private fun summary(job: Job, run: JobContext) {
+        val prompts = SummaryPrompts.load(prompt, language(job))
+        val ask = SummaryAsk { system, user, maxOut ->
+            run.checkStop()
+            run.pool.llm().ask(system, user, null, maxOut, SummaryConfig.TEMPERATURE, SummaryConfig.TOP_K)
+        }
+        val r = summaries.build(job.sessionId, prompts, run.pool.llmModel(), summaryMethod, ask) { done, total -> run.progress(JobPhase.Reading, done, total) }
+        AppLog.i(
+            JobRunner.TAG, if (r == null) "summary_skipped" else "summary_done", LogCtx.NONE,
+            "calls" to r?.calls, "chars" to r?.chars, "speaker_map_version" to r?.speakerMapVersion,
+            "model" to run.pool.llmModel(), "prompt_version" to prompts.version(), "method" to summaryMethod.id,
+        )
+    }
+
     /** Cuts the transcript into embedded windows, then queues the rest of the session's graph. */
     private fun window(job: Job, run: JobContext) {
         val words = TranscriptWindows.wordsFor(MemoryConfig.WINDOW_TOKENS)
@@ -125,6 +154,8 @@ class Pipeline(
         val sessions = store.sessions(job.clientId).map { it.id }
         val at = sessions.indexOf(job.sessionId)
         if (at >= 0) JobGraph.expand(queue, job, rows.size, sessions.getOrNull(at - 1), sessions.getOrNull(at + 1))
+        // The roles are known by now (the roles job is before this one), so the summary reads the current map.
+        JobGraph.enqueueSummary(queue, job.sessionId, listOf(job.id))
     }
 
     private fun extractUser(job: Job, template: String, window: com.therapylocal.app.data.WindowRef, parts: Int): String {
@@ -164,6 +195,7 @@ class Pipeline(
                         val text = "ě".repeat(TranscriptWindows.wordsFor(MemoryConfig.WINDOW_TOKENS) * WORD_CHARS)
                         need = maxOf(need, PromptBudget.required(extractSystem, Prompts.fill(extractTemplate, mapOf("TEXT" to text, "CLIENT" to "x".repeat(40))), MemoryConfig.EXTRACT_MAX_OUTPUT_TOKENS))
                     }
+                    JobGraph.SUMMARY -> need = maxOf(need, MapReduceSummary.requiredContext(SummaryPrompts.load(prompt, lang)))
                     JobGraph.COMMIT -> {
                         val known = "ě".repeat(MemoryConfig.NEIGHBOURS * REVIEW_FACT_CHARS)
                         val user = Prompts.fill(prompt(Prompts.named(Prompts.REVIEW_USER, lang)), mapOf("KNOWN" to known, "FACT" to "ě".repeat(REVIEW_FACT_CHARS)))
