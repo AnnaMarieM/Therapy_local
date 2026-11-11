@@ -17,3 +17,4 @@ Each record is immutable once merged (see [`AGENTS.md`](../../AGENTS.md); CI job
 | [AD-11](AD-11.md) | No migrations and no compatibility code before the first release; a database of another schema version is wiped | 2026-11-11 16:50 CET | Martin Hajný (@hajnina) | Accepted |
 | [AD-12](AD-12.md) | The app writes one summary per session, from the transcript, on the phone (reverses "writes no summaries" in `docs/MEMORY.md`) | 2026-11-11 23:31 CET | Martin Hajný (@hajnina) | Accepted |
 | [AD-13](AD-13.md) | CI is built for wall-clock time: maximum parallelism and caching, and no loss of test robustness | 2026-11-11 23:27 CET | Martin Hajný (@hajnina) | Accepted |
+| [AD-15](AD-15.md) | Every pull request shows screenshots of all screens at every layout size (one file per screenshot, step-by-step walkthrough), built by CI from the QA build with fake data and posted as one sticky PR comment | 2026-11-12 00:34 CET | Martin Hajný (@hajnina) | Accepted |
