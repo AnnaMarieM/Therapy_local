@@ -28,7 +28,8 @@ echo "QNN host libs: $SDK"; ls "$SDK" | head -20
 QAIRT_SEEN=$(find "$(dirname "$SDK")/../.." -maxdepth 4 -type d -name '2.*' 2>/dev/null | head -3 | tr '\n' ' ')
 echo "QAIRT dirs in SDK package: $QAIRT_SEEN"
 strings "$SDK/libQnnHtp.so" | grep -m3 -E "QNN_SDK_VERSION|2\.50|backend_build_id" || true
-case "$QAIRT_SEEN" in *"$WANT_QAIRT"*) echo "QAIRT version OK: $WANT_QAIRT";; *) echo "QAIRT MISMATCH: wanted $WANT_QAIRT"; exit 3;; esac
+# the version is read from the host library itself (the SDK package has no versioned folder)
+if strings "$SDK/libQnnHtp.so" | grep -q "v$WANT_QAIRT"; then echo "QAIRT version OK: $WANT_QAIRT"; else echo "QAIRT MISMATCH: wanted $WANT_QAIRT"; exit 3; fi
 echo "app runtime: qnn-runtime 2.50.0, litert-npu-runtime-qualcomm 2.3.0"
 
 # licence gate
