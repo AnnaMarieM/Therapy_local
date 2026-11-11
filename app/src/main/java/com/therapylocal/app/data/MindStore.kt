@@ -90,7 +90,10 @@ data class FactRow(
 )
 
 /** Where a fact was said: its first occurrence ([first]) or a later mention; [speaker] is the raw diarization id, [role] the current role. */
-data class Occurrence(val sessionId: String, val startedAt: Long, val evidence: String, val segIdx: Int, val first: Boolean, val speaker: String? = null, val role: Role? = null)
+data class Occurrence(val sessionId: String, val startedAt: Long, val evidence: String, val segIdx: Int, val first: Boolean, val speaker: String? = null, val role: Role? = null,
+    /** The last segment of the quote and its time range, as stored (AD-14); [segTo] equals [segIdx] and the times are 0 for rows from before they were stored. */
+    val segTo: Int = segIdx, val startMs: Long = 0, val endMs: Long = 0,
+)
 
 /**
  * The last-session summary of one session and what it was made from (docs/AD/AD-12.md). [provenance] is the same record windows and facts carry
@@ -560,12 +563,12 @@ class MindStore(context: Context, name: String, password: ByteArray) :
      */
     fun factOccurrences(factId: Long, includeTherapist: Boolean = false): List<Occurrence> {
         val all = query(
-            """SELECT f.session_id, s.started_at, f.evidence, f.seg_idx, 1, f.speaker FROM facts f JOIN sessions s ON s.id = f.session_id WHERE f.id = ?
+            """SELECT f.session_id, s.started_at, f.evidence, f.seg_idx, 1, f.speaker, f.seg_to, f.start_ms, f.end_ms FROM facts f JOIN sessions s ON s.id = f.session_id WHERE f.id = ?
                UNION ALL
-               SELECT m.session_id, s.started_at, m.evidence, m.seg_idx, 0, m.speaker FROM mentions m JOIN sessions s ON s.id = m.session_id WHERE m.fact_id = ?
+               SELECT m.session_id, s.started_at, m.evidence, m.seg_idx, 0, m.speaker, m.seg_to, m.start_ms, m.end_ms FROM mentions m JOIN sessions s ON s.id = m.session_id WHERE m.fact_id = ?
                ORDER BY 5 DESC, 2, 4""",
             factId.toString(), factId.toString(),
-        ) { Occurrence(it.getString(0), it.getLong(1), it.getString(2), it.getInt(3), it.getInt(4) == 1, it.getStringOrNull(5)) }
+        ) { Occurrence(it.getString(0), it.getLong(1), it.getString(2), it.getInt(3), it.getInt(4) == 1, it.getStringOrNull(5), segTo = it.getInt(6), startMs = it.getLong(7), endMs = it.getLong(8)) }
         val maps = all.map { it.sessionId }.distinct().associateWith { currentSpeakerMap(it)?.let { m -> SpeakerMaps.decode(m.mapJson) } }
         return all.map { it.copy(role = FactSpeakers.roleOf(it.speaker, maps[it.sessionId])) }.filter { it.first || FactSpeakers.visible(it.role, includeTherapist) }
     }

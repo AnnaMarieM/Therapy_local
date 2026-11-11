@@ -1,6 +1,15 @@
 package com.therapylocal.app.ui
 
 import android.content.Context
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.size
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.unit.dp
+import com.therapylocal.app.ui.design.LocalWindowSizeOverride
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -29,6 +38,8 @@ import com.therapylocal.app.data.MindStore
 import com.therapylocal.app.data.NewFact
 import com.therapylocal.app.data.NewMention
 import com.therapylocal.app.data.Provenance
+import com.therapylocal.app.data.Role
+import com.therapylocal.app.data.SpeakerMaps
 import com.therapylocal.app.data.SegmentRow
 import com.therapylocal.app.data.WindowRow
 import com.therapylocal.app.memory.Cue
@@ -80,11 +91,13 @@ class ProfileUiTest {
         store.createClient(CLIENT, "Ana")
         store.createSession(S1, CLIENT, DAY_1)
         store.createSession(S2, CLIENT, DAY_1 + WEEK)
-        store.appendTranscript(S1, LINES_1.mapIndexed { i, t -> SegmentRow(i, i * 5_000L, i * 5_000L + 5_000, t) })
-        store.appendTranscript(S2, LINES_2.mapIndexed { i, t -> SegmentRow(i, i * 5_000L, i * 5_000L + 5_000, t) })
+        store.appendTranscript(S1, LINES_1.mapIndexed { i, t -> SegmentRow(i, i * 5_000L, i * 5_000L + 5_000, t, if (i % 2 == 0) "S0" else "S1") })
+        store.appendTranscript(S2, LINES_2.mapIndexed { i, t -> SegmentRow(i, i * 5_000L, i * 5_000L + 5_000, t, if (i % 2 == 0) "S0" else "S1") })
+        for (sid in listOf(S1, S2)) store.appendSpeakerMap(sid, SpeakerMaps.encode(mapOf("S0" to Role.THERAPIST, "S1" to Role.PATIENT)), "llm", 0.9)
         store.replaceWindows(S1, listOf(WindowRow(0, 0, LINES_1.lastIndex, LINES_1.joinToString(" "), QUERY_VEC, "fake")), Provenance("", Provenance.NO_MAP, "t", "fake"))
-        val fact = store.insertFact(NewFact(CLIENT, S1, HEADING, CONTENT, LINES_1[3], 3, embedding = null, provenance = Provenance("", Provenance.NO_MAP, "test", "fake")))
-        store.addMention(NewMention(fact, S2, LINES_2[2], 2))
+        // The quote runs over a turn change: segments 3 (patient) and 4 (therapist), 15 s..25 s, as extraction stores it (AD-14).
+        val fact = store.insertFact(NewFact(CLIENT, S1, HEADING, CONTENT, LINES_1[3], 3, embedding = null, provenance = Provenance("", Provenance.NO_MAP, "test", "fake"), segTo = 4, startMs = 15_000, endMs = 25_000, speaker = "S1"))
+        store.addMention(NewMention(fact, S2, LINES_2[1], 1, "S1", 1, 5_000, 10_000))
     }
 
     @After
@@ -96,12 +109,17 @@ class ProfileUiTest {
 
     private fun profile(search: SearchActions = noSearch()) {
         val patient = repo.patient(CLIENT)
+        // A fixed-size window, so the test sees the same page on a phone, an emulator and a tablet (as AdaptiveLayoutTest).
         compose.setContent {
-            PaperTheme {
-                ProfileSheet(
-                    sheet = rememberSheetState(), patient = patient, repo = repo, status = null, processingSession = null, search = search,
-                    sessionActive = false, requestMic = {}, onClose = {}, onRecord = {}, onDeleteClient = {}, onDeleteSession = {},
-                )
+            CompositionLocalProvider(LocalWindowSizeOverride provides (HOST_W to HOST_H)) {
+                PaperTheme {
+                    Box(Modifier.size(HOST_W.dp, HOST_H.dp)) {
+                        ProfileSheet(
+                            sheet = rememberSheetState(), patient = patient, repo = repo, status = null, processingSession = null, search = search,
+                            sessionActive = false, requestMic = {}, onClose = {}, onRecord = {}, onDeleteClient = {}, onDeleteSession = {},
+                        )
+                    }
+                }
             }
         }
     }
@@ -109,20 +127,86 @@ class ProfileUiTest {
     private fun noSearch() = SearchActions(SearchState(), "Not in this test", {}, { false }, {}, {})
 
     @Test
-    fun tappingAFactShowsWhereItWasFirstSaidAndWhereItCameUpAgain() {
+    fun tappingAFactOpensTheTranscriptWithItsLinesHighlightedAndLabelled() {
         profile()
         compose.onNode(hasText("CAME UP 2 TIMES")).assertExists()
-        compose.onNode(hasText(HEADING) and hasClickAction()).performClick()
+        openFact()
 
-        compose.waitUntilAtLeastOneExists(hasText("FIRST HEARD", substring = true), TIMEOUT_MS)
-        // The page is a lazy list: on a short screen its lower parts are only built once scrolled to, as a reader would.
-        seeInLayer(hasText(LINES_1[3]))
-        // The transcript around the first occurrence: three segments either side of the evidence, no further.
-        seeInLayer(hasText(LINES_1[0]))
-        seeInLayer(hasText(LINES_1[6]))
-        compose.onNode(hasText(LINES_1[7])).assertDoesNotExist()
+        // The first occurrence: the whole session, the fact's two lines (they cross a turn change) marked, the rest not.
+        seeInLayer(hasText(LINES_1[3]) and isSelected())
+        seeInLayer(hasText(LINES_1[4]) and isSelected())
+        seeInLayer(hasText(LINES_1[2]) and isNotSelected())
+        seeInLayer(hasText(LINES_1[5]) and isNotSelected())
+        seeInLayer(hasText(LINES_1[7]))
+        // Each line shows what the transcript shows: its time and who said it.
+        compose.onNode(hasText(LINES_1[3]) and hasText("00:15") and hasText("PATIENT")).assertExists()
+        compose.onNode(hasText(LINES_1[4]) and hasText("00:20") and hasText("THERAPIST")).assertExists()
+        compose.onNode(hasText(LINES_2[1])).assertDoesNotExist() // the other session is not in this one
+    }
+
+    @Test
+    fun theOtherSessionsThatHeardItAreReachableAndOpenAtTheirOwnLine() {
+        profile()
+        openFact()
         seeInLayer(hasText("CAME UP AGAIN", substring = true))
-        seeInLayer(hasText(LINES_2[2]))
+        compose.onNode(hasText("CAME UP AGAIN", substring = true) and hasClickAction()).performClick()
+
+        compose.waitUntilAtLeastOneExists(hasText(LINES_2[1]) and isSelected(), TIMEOUT_MS)
+        seeInLayer(hasText(LINES_2[1]) and isSelected())
+        seeInLayer(hasText(LINES_2[0]) and isNotSelected())
+        compose.onNode(hasText(LINES_1[3])).assertDoesNotExist()
+        // And back to the first.
+        seeInLayer(hasText("FIRST HEARD", substring = true))
+        compose.onNode(hasText("FIRST HEARD", substring = true) and hasClickAction()).performClick()
+        compose.waitUntilAtLeastOneExists(hasText(LINES_1[3]) and isSelected(), TIMEOUT_MS)
+    }
+
+    @Test
+    fun theHighlightStaysUntilALineIsTapped() {
+        profile()
+        openFact()
+        seeInLayer(hasText(LINES_1[3]) and isSelected())
+        compose.waitForIdle()
+        compose.onNode(hasText(LINES_1[3]) and isSelected()).assertExists() // still there a moment later
+        compose.onNode(hasText(LINES_1[6])).performClick()
+        compose.onNode(hasText(LINES_1[3]) and isSelected()).assertDoesNotExist()
+        compose.onNode(hasText(LINES_1[3])).assertExists()
+    }
+
+    @Test
+    fun aLongTranscriptIsScrolledToTheFactsLineWithoutTheReaderScrolling() {
+        store.createSession(S3, CLIENT, DAY_1 + 2 * WEEK)
+        store.appendTranscript(S3, (0 until LONG).map { SegmentRow(it, it * 5_000L, it * 5_000L + 5_000, "long line $it", if (it % 2 == 0) "S0" else "S1") })
+        store.insertFact(NewFact(CLIENT, S3, "Far down", "Said late in a long session.", "long line 31", 31, embedding = null, provenance = Provenance("", Provenance.NO_MAP, "test", "fake"), segTo = 31, startMs = 155_000, endMs = 160_000, speaker = "S1"))
+        compose.setContent {
+            CompositionLocalProvider(LocalWindowSizeOverride provides (HOST_W to HOST_H)) {
+                PaperTheme { Box(Modifier.size(HOST_W.dp, HOST_H.dp)) { ProfileSheet(rememberSheetState(), repo.patient(CLIENT), repo, null, null, noSearch(), false, {}, {}, {}, onDeleteClient = {}, onDeleteSession = {}) } }
+            }
+        }
+        compose.onAllNodes(hasScrollToNodeAction()).onFirst().performScrollToNode(hasText("Far down") and hasClickAction())
+        compose.onNode(hasText("Far down") and hasClickAction()).performClick()
+
+        // No scrollTo here: the page itself brought the line up.
+        compose.waitUntilAtLeastOneExists(hasText("long line 31") and isSelected(), TIMEOUT_MS)
+        compose.waitForIdle()
+        compose.onNode(hasText("long line 31") and isSelected()).assertIsDisplayed()
+    }
+
+    @Test
+    fun aFactWhoseLinesAreNoLongerThereShowsTheTranscriptWithoutAHighlight() {
+        // The session is transcribed again and its lines now start 2 s later: the stored range no longer points at the same words.
+        store.appendTranscript(S1, LINES_1.mapIndexed { i, t -> SegmentRow(i, i * 5_000L + 2_000, i * 5_000L + 7_000, "$t.", if (i % 2 == 0) "S0" else "S1") })
+        profile()
+        openFact()
+
+        compose.waitUntilAtLeastOneExists(hasText("The passage it came from is not stored", ignoreCase = true), TIMEOUT_MS)
+        seeInLayer(hasText("${LINES_1[3]}."))
+        compose.onAllNodes(isSelected()).assertCountEquals(0)
+    }
+
+    private fun openFact() {
+        compose.onNode(hasText(HEADING) and hasClickAction()).performClick()
+        compose.waitUntilAtLeastOneExists(hasText(CONTENT), TIMEOUT_MS)
     }
 
     /** Scrolls the layer on top (the last scrolling list on screen) until [m] is built, then checks it is there. */
@@ -130,6 +214,9 @@ class ProfileUiTest {
         compose.onAllNodes(hasScrollToNodeAction()).onLast().performScrollToNode(m)
         compose.onNode(m).assertExists()
     }
+
+    private fun isSelected() = SemanticsMatcher.expectValue(SemanticsProperties.Selected, true)
+    private fun isNotSelected() = SemanticsMatcher.expectValue(SemanticsProperties.Selected, false)
 
     @Test
     fun aSessionOpensItsTranscript() {
@@ -286,6 +373,10 @@ class ProfileUiTest {
         const val CLIENT = "ana"
         const val S1 = "ana_s1"
         const val S2 = "ana_s2"
+        const val S3 = "ana_s3"
+        const val LONG = 40
+        const val HOST_W = 411
+        const val HOST_H = 740
         const val DAY_1 = 1_767_225_600_000L // 2026-01-01
         const val WEEK = 7 * 24 * 3_600_000L
         const val TIMEOUT_MS = 5_000L

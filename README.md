@@ -76,7 +76,7 @@ After a session ends, the phone writes it down and notes the important things in
 
 On the client's page you find:
 
-- **What you know** (*Co víte*): the facts noted from the sessions. Tap one to see when it was first heard, when it came up again, and the exact words.
+- **What you know** (*Co víte*): the facts noted from the sessions. Tap one to open the transcript of the session where it was first heard, scrolled to its line (with the time and who said it) and highlighted; tap any line to clear the highlight. If it came up in later sessions they are listed under the fact: tap one to jump to its line there.
 - **Sessions** (*Sezení*): every recorded session. Tap one to read its transcript.
 - A search box, **Search what was said** (*Hledat v řečeném*). Type a word, or hold the microphone button and speak.
 
