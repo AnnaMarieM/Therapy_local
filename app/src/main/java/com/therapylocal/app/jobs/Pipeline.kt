@@ -19,6 +19,7 @@ import com.therapylocal.app.data.WindowRow
 import com.therapylocal.app.facts.Candidate
 import com.therapylocal.app.facts.CommitPlanner
 import com.therapylocal.app.facts.Fact
+import com.therapylocal.app.facts.ExtractionDialogue
 import com.therapylocal.app.facts.FactParser
 import com.therapylocal.app.facts.FactSpans
 import com.therapylocal.app.facts.FactSchemas
@@ -140,7 +141,9 @@ class Pipeline(
     /** Cuts the transcript into embedded windows, then queues the rest of the session's graph. */
     private fun window(job: Job, run: JobContext) {
         val words = TranscriptWindows.wordsFor(MemoryConfig.WINDOW_TOKENS)
-        val spans = TranscriptWindows.bySegments(store.segments(job.sessionId), words, TranscriptWindows.wordsFor(MemoryConfig.WINDOW_OVERLAP_TOKENS))
+        // The windows are the dialogue with the role labels of the map current now; its version goes into their provenance and the extraction key.
+        val map = store.currentSpeakerMap(job.sessionId)
+        val spans = ExtractionDialogue.windows(store.segments(job.sessionId), map?.mapJson, words, TranscriptWindows.wordsFor(MemoryConfig.WINDOW_OVERLAP_TOKENS))
         run.progress(JobPhase.Reading, 0, spans.size)
         val transcript = store.currentTranscript(job.sessionId) ?: throw JobFailure("NO_TRANSCRIPT", permanent = true)
         val rows = spans.mapIndexed { i, s ->
@@ -150,7 +153,7 @@ class Pipeline(
         }
         store.replaceWindows(
             job.sessionId, rows,
-            Provenance(transcript.sha256, store.currentSpeakerMap(job.sessionId)?.version ?: Provenance.NO_MAP, MemoryConfig.WINDOW_CUT_VERSION, rows.firstOrNull()?.embedModel ?: EmbeddingConfig.MODEL_ID),
+            Provenance(transcript.sha256, map?.version ?: Provenance.NO_MAP, MemoryConfig.WINDOW_CUT_VERSION, rows.firstOrNull()?.embedModel ?: EmbeddingConfig.MODEL_ID),
         )
         val sessions = store.sessions(job.clientId).map { it.id }
         val at = sessions.indexOf(job.sessionId)
@@ -218,12 +221,13 @@ class Pipeline(
         run.progress(JobPhase.Reading, idx, windows.size)
         val system = promptFor(Prompts.EXTRACT_SYSTEM, job)
         val template = promptFor(Prompts.EXTRACT_USER, job)
-        // Prompt version | model | window text: a window cut or transcribed differently is read again.
-        val key = "${Prompts.version(system, template)}|${run.pool.llmModel()}|${Prompts.hash(window.text)}"
+        // Prompt version | model | speaker-map version | window text: a window cut or transcribed differently, or labelled by another map, is read again.
+        val key = ExtractionDialogue.cacheKey(Prompts.version(system, template), run.pool.llmModel(), window.speakerMapVersion, window.text)
         if (store.extractCache(job.sessionId, idx)?.first == key) return
         val user = extractUser(job, template, window, windows.size)
         val segments = store.segments(job.sessionId).filter { it.idx in window.segFrom..window.segTo }
-        val facts = extractFacts(run.pool.llm(), system, user, window.text).map { f ->
+        // A quote is grounded in the segment texts, never in the labels or times of the dialogue.
+        val facts = extractFacts(run.pool.llm(), system, user, ExtractionDialogue.groundingText(segments, window.segFrom, window.segTo)).map { f ->
             val (from, to) = FactParser.segmentSpan(f.evidence, segments) ?: (window.segFrom to window.segFrom)
             f.copy(segIdx = from, segEnd = to)
         }
@@ -286,7 +290,6 @@ class Pipeline(
         )
         val lang = language(job)
         val transcriptSha = store.currentTranscript(sid)?.sha256.orEmpty()
-        val speakerMapVersion = store.currentSpeakerMap(sid)?.version ?: Provenance.NO_MAP
         // Every stored fact, the therapist's too: the category centroids and the duplicate check must not depend on who is shown.
         val activeFacts = store.factEmbeddings(job.clientId, includeTherapist = true).filter { it.first.sessionId != sid && it.first.category.isNotBlank() }
         val activeCentroids = activeFacts.groupBy { it.first.category }
@@ -299,7 +302,8 @@ class Pipeline(
             sid,
             plan.facts.map { c ->
                 val span = FactSpans.of(c.fact.segIdx, c.fact.segEnd, segments)
-                val (promptVersion, model) = keyOf.getValue(c).split('|')
+                // The facts say which prompt, model and speaker map the extraction used (from its cache key), not what is current at commit.
+                val (promptVersion, model, mapVersion) = keyOf.getValue(c).split('|')
                 val resolvedCategory = com.therapylocal.app.facts.CategoryClusterer.assignCategory(
                     fact = c.fact,
                     factVec = c.vec,
@@ -308,7 +312,7 @@ class Pipeline(
                 )
                 NewFact(
                     job.clientId, sid, c.fact.heading, c.fact.content, c.fact.evidence,
-                    c.fact.segIdx, c.vec, Provenance(transcriptSha, speakerMapVersion, promptVersion, model),
+                    c.fact.segIdx, c.vec, Provenance(transcriptSha, mapVersion.toInt(), promptVersion, model),
                     scope = c.fact.scope,
                     category = resolvedCategory,
                     segTo = span?.segTo ?: c.fact.segEnd, startMs = span?.startMs ?: 0, endMs = span?.endMs ?: 0, speaker = span?.speaker,

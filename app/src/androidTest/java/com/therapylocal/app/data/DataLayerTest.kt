@@ -121,11 +121,31 @@ class DataLayerTest {
         assertEquals(listOf("S1", 1, 2, 1000L, 2900L, Role.PATIENT), listOf(f.speaker, f.segIdx, f.segTo, f.startMs, f.endMs, f.role))
         assertEquals(listOf("said by patient", "said by therapist"), store.facts("c", includeTherapist = true).map { it.heading })
 
-        // A swap appends a map; the same stored rows now show the other fact. Nothing was extracted or written again.
+        // A swap appends a map: the read-time filter follows it at once (the safety net), and the facts are stale, because the extraction
+        // input carried the old labels (AD-14 amends AD-10 point 5). A rebuild extracts again from the new labels and is not stale.
+        store.refreshStale("s1", "facts", "p1", "gemma")
+        assertFalse(store.hasStale("s1"))
         SpeakerMaps.appendSwap(store.currentSpeakerMap("s1")) { json, source, conf, ev -> store.appendSpeakerMap("s1", json, source, conf, ev) }
         assertEquals(listOf("said by therapist"), store.facts("c").map { it.heading })
         store.refreshStale("s1", "facts", "p1", "gemma")
-        assertFalse("a speaker-map change does not make facts stale (AD-10)", store.hasStale("s1"))
+        assertTrue("a roles swap makes the session's facts stale", store.hasStale("s1"))
+        store.replaceSessionFacts("s1", listOf(spanFact("said by patient", "S0", 2, v.sha256).copy(provenance = Provenance(v.sha256, 2, "p1", "gemma"))), emptyList())
+        store.refreshStale("s1", "facts", "p1", "gemma")
+        assertFalse(store.hasStale("s1"))
+    }
+
+    @Test
+    fun aRolesSwapMakesWindowsStaleToo() {
+        val store = store()
+        val v = store.appendTranscript("s1", listOf(seg(1, "a")))
+        store.appendSpeakerMap("s1", SpeakerMaps.encode(mapOf("S0" to Role.THERAPIST, "S1" to Role.PATIENT)), "llm", 0.9)
+        store.replaceWindows("s1", listOf(window()), Provenance(v.sha256, 1, "cut", "embedder"))
+        assertEquals(1, store.windows("s1").single().speakerMapVersion)
+        store.refreshStale("s1", "windows", "cut", "embedder")
+        assertFalse(store.hasStale("s1"))
+        SpeakerMaps.appendSwap(store.currentSpeakerMap("s1")) { json, source, conf, ev -> store.appendSpeakerMap("s1", json, source, conf, ev) }
+        store.refreshStale("s1", "windows", "cut", "embedder")
+        assertTrue(store.hasStale("s1"))
     }
 
     @Test

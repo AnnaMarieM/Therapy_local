@@ -34,7 +34,8 @@ data class SpeakerMapRow(val sessionId: String, val version: Int, val mapJson: S
 /** An embedded stretch of transcript covering segments [segFrom]..[segTo]. */
 data class WindowRow(val idx: Int, val segFrom: Int, val segTo: Int, val text: String, val embedding: FloatArray, val embedModel: String)
 
-data class WindowRef(val sessionId: String, val idx: Int, val segFrom: Int, val segTo: Int, val text: String)
+/** [speakerMapVersion] is the map whose role labels are in [text] (0: no map, neutral labels). */
+data class WindowRef(val sessionId: String, val idx: Int, val segFrom: Int, val segTo: Int, val text: String, val speakerMapVersion: Int = Provenance.NO_MAP)
 
 /**
  * [provenance] is what the fact was extracted and committed from. [segIdx]..[segTo] are the transcript segments of its quote, [startMs] and
@@ -411,13 +412,15 @@ class MindStore(context: Context, name: String, password: ByteArray) :
 
     /**
      * Sets the stale flag of the session's rows in [table] ("windows" or "facts"): stale when made from another transcript than the current one,
-     * or with another prompt or model than [promptVersion] and [model] (AD-10). A rebuild writes new rows, which start out not stale.
+     * from another speaker map than the current one, or with another prompt or model than [promptVersion] and [model] (AD-10, amended by AD-14:
+     * the extraction input carries the role labels, so a roles swap changes what a window and its facts mean). A rebuild writes new rows, which
+     * start out not stale.
      */
     fun refreshStale(session: String, table: String, promptVersion: String, model: String) {
         require(table == "windows" || table == "facts")
         writableDatabase.execSQL(
-            "UPDATE $table SET stale = (prov_transcript_sha <> ? OR prov_prompt_version <> ? OR prov_model <> ?) WHERE session_id = ?",
-            arrayOf(currentTranscript(session)?.sha256.orEmpty(), promptVersion, model, session),
+            "UPDATE $table SET stale = (prov_transcript_sha <> ? OR prov_speaker_map_version <> ? OR prov_prompt_version <> ? OR prov_model <> ?) WHERE session_id = ?",
+            arrayOf<Any?>(currentTranscript(session)?.sha256.orEmpty(), currentSpeakerMap(session)?.version ?: Provenance.NO_MAP, promptVersion, model, session),
         )
     }
 
@@ -440,8 +443,8 @@ class MindStore(context: Context, name: String, password: ByteArray) :
 
     /** In order, without their embeddings. */
     fun windows(session: String): List<WindowRef> =
-        query("SELECT session_id, idx, seg_from, seg_to, text FROM windows WHERE session_id = ? ORDER BY idx", session) {
-            WindowRef(it.getString(0), it.getInt(1), it.getInt(2), it.getInt(3), it.getString(4))
+        query("SELECT session_id, idx, seg_from, seg_to, text, prov_speaker_map_version FROM windows WHERE session_id = ? ORDER BY idx", session) {
+            WindowRef(it.getString(0), it.getInt(1), it.getInt(2), it.getInt(3), it.getString(4), it.getInt(5))
         }
 
     fun hasWindows(session: String): Boolean = query("SELECT 1 FROM windows WHERE session_id = ? LIMIT 1", session) { true }.isNotEmpty()
