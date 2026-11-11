@@ -1,0 +1,79 @@
+name: Emulator AVD
+description: >
+  Enables KVM and makes sure the AVD with its quick-boot snapshot exists: restored from the Actions cache, otherwise created (one retry for the
+  SDK download that sometimes arrives corrupt) and saved to the cache right away, so a cancelled run (the concurrency group cancels the
+  superseded one) no longer throws a freshly made AVD away. The caller's own emulator-runner step then boots it.
+inputs:
+  profile:  { description: "Device profile", required: true }
+  ram-size: { description: "RAM, e.g. 2048M; empty = profile default", default: "" }
+  key:      { description: "Cache key", required: true }
+runs:
+  using: composite
+  steps:
+    # Hardware acceleration for the emulator on GitHub's Linux runners
+    - name: Enable KVM
+      shell: bash
+      run: |
+        echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+        sudo udevadm control --reload-rules
+        sudo udevadm trigger --name-match=kvm
+    # emulator-runner runs `sdkmanager --install` for the emulator and the system image on every job, even when the AVD comes from the cache
+    # (about 55 s measured). Cached here, those installs find the packages in place and finish at once.
+    - id: sdk-cache
+      uses: actions/cache/restore@v4
+      with:
+        path: |
+          /usr/local/lib/android/sdk/emulator
+          /usr/local/lib/android/sdk/system-images/android-34/google_apis/x86_64
+        key: android-sdk-emulator-34-google_apis-x86_64
+    - id: avd-cache
+      uses: actions/cache/restore@v4
+      with:
+        path: |
+          ~/.android/avd/*
+          ~/.android/adb*
+        key: ${{ inputs.key }}
+    - name: Create the AVD and its snapshot
+      id: avd1
+      continue-on-error: true   # the SDK download sometimes arrives corrupt ("Error on ZipFile unknown archive"): one retry below
+      if: steps.avd-cache.outputs.cache-hit != 'true'
+      uses: reactivecircus/android-emulator-runner@v2
+      with:
+        api-level: 34
+        arch: x86_64
+        target: google_apis
+        profile: ${{ inputs.profile }}
+        ram-size: ${{ inputs.ram-size }}
+        force-avd-creation: false
+        disable-animations: false
+        emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+        script: echo "AVD snapshot generated for the cache"
+    - name: Create the AVD and its snapshot (retry)
+      if: steps.avd-cache.outputs.cache-hit != 'true' && steps.avd1.outcome == 'failure'
+      uses: reactivecircus/android-emulator-runner@v2
+      with:
+        api-level: 34
+        arch: x86_64
+        target: google_apis
+        profile: ${{ inputs.profile }}
+        ram-size: ${{ inputs.ram-size }}
+        force-avd-creation: false
+        disable-animations: false
+        emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+        script: echo "AVD snapshot generated for the cache"
+    - name: Save the AVD to the cache
+      if: steps.avd-cache.outputs.cache-hit != 'true'
+      uses: actions/cache/save@v4
+      with:
+        path: |
+          ~/.android/avd/*
+          ~/.android/adb*
+        key: ${{ inputs.key }}
+    - name: Save the emulator and system image to the cache
+      if: steps.sdk-cache.outputs.cache-hit != 'true'
+      uses: actions/cache/save@v4
+      with:
+        path: |
+          /usr/local/lib/android/sdk/emulator
+          /usr/local/lib/android/sdk/system-images/android-34/google_apis/x86_64
+        key: android-sdk-emulator-34-google_apis-x86_64

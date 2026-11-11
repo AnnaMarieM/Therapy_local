@@ -16,7 +16,62 @@ permissions:
   contents: read
 
 jobs:
+  # Docs-only pull requests (nothing but docs/, log/, e2e/ and top-level Markdown, .claude/) skip the build and emulator lanes. Everything else, every
+  # push to main, and any doubt (the diff cannot be read) runs the full graph. ad-immutable and powershell-syntax never depend on this job, so
+  # they report on every PR; a skipped job counts as passed for branch protection.
+  changes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      code: ${{ steps.diff.outputs.code }}
+    steps:
+      - uses: actions/checkout@v4
+        if: github.event_name == 'pull_request'
+        with:
+          fetch-depth: 0
+      - id: diff
+        run: |
+          code=true
+          if [[ "${{ github.event_name }}" == pull_request ]]; then
+            if files="$(git diff --name-only "${{ github.event.pull_request.base.sha }}...${{ github.event.pull_request.head.sha }}")" && [[ -n "$files" ]]; then
+              if ! grep -vE '^(docs/|log/|e2e/.*\.md$|\.claude/|[^/]+\.md$|LICENSE$)' <<<"$files" >/dev/null; then code=false; fi
+            fi
+          fi
+          echo "code=$code"
+          echo "code=$code" >> "$GITHUB_OUTPUT"
+
+  # The APKs, as fast as possible: the emulator lanes wait for this job only. Lint, unit tests and the release-variant checks run beside it in `build`.
+  apk:
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      # Restore only: `build` (which resolves a superset of the dependencies) saves the Gradle cache
+      - uses: actions/cache/restore@v4
+        with:
+          path: ~/.gradle-therapy-builder
+          key: gradle-${{ hashFiles('**/*.gradle.kts', 'gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: gradle-
+      - uses: ./.github/actions/builder-image
+      # The same script developers run locally, in the pinned container. `fast` builds exactly what `full` ships.
+      - name: Build the APKs
+        run: scripts/build.sh fast
+      - uses: actions/upload-artifact@v4
+        with:
+          name: app-debug
+          path: |
+            dist/Therapy-main.apk
+            dist/Therapy-main-androidTest.apk
+            dist/Therapy-main.apk.sha256
+          retention-days: 14
+
+  # Lint, JVM unit tests and verifyNoFaultsInRelease (release, feel and qa carry no fault code) in the pinned container. The other half of
+  # what `scripts/build.sh full` does; the APKs come from `apk`, in parallel.
   build:
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -27,42 +82,15 @@ jobs:
           path: ~/.gradle-therapy-builder
           key: gradle-${{ hashFiles('**/*.gradle.kts', 'gradle/wrapper/gradle-wrapper.properties') }}
           restore-keys: gradle-
-      # The same script developers run locally: lint, unit tests and the debug APK in the pinned container
-      - name: Build
-        run: scripts/build.sh
+      - uses: ./.github/actions/builder-image
+      - name: Lint, unit tests and release checks
+        run: scripts/build.sh checks
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: unit-test-report
           path: app/build/reports/tests/testDebugUnitTest
           retention-days: 7
-      - uses: actions/upload-artifact@v4
-        with:
-          name: app-debug
-          path: |
-            dist/Therapy-main.apk
-            dist/Therapy-main-androidTest.apk
-            dist/Therapy-main.apk.sha256
-          retention-days: 14
-
-  # Proves the Docker builder gives the same bytes on arm64 (aapt2 emulated) as on x86_64: same script, hashes must match.
-  reproducible-arm:
-    needs: build
-    runs-on: ubuntu-24.04-arm
-    timeout-minutes: 30
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
-        with:
-          name: app-debug
-          path: x86
-      - name: Build on arm64
-        run: scripts/build.sh fast
-      - name: Compare with the x86_64 build
-        run: |
-          echo "x86_64: $(cut -d' ' -f1 x86/Therapy-main.apk.sha256)"
-          echo "arm64 : $(cut -d' ' -f1 dist/Therapy-main.apk.sha256)"
-          diff <(cut -d' ' -f1 x86/Therapy-main.apk.sha256) <(cut -d' ' -f1 dist/Therapy-main.apk.sha256)
 
   # Linux containers do not run on GitHub's Windows runners, so only the PowerShell entry point's syntax is checked here.
   powershell-syntax:
@@ -90,7 +118,7 @@ jobs:
   # The existing tests plus the CORE tier of the engine stress lab (catalogue section 5). FULL-only, LMK and SLOW tests run in the lanes below
   # and in stress-nightly.yml. Every lane leaves an artifact (logs, logcat, exit records, per-test JSON) and a job summary, also when it failed.
   android-test:
-    needs: build
+    needs: apk
     runs-on: ubuntu-latest
     timeout-minutes: 40
     # The same tests on a phone and on a tablet, so the two-pane layout and the size-dependent tests run on a real tablet screen too.
@@ -105,46 +133,11 @@ jobs:
         with:
           name: app-debug
           path: dist
-      # Hardware acceleration for the emulator on GitHub's Linux runners
-      - name: Enable KVM
-        run: |
-          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
-          sudo udevadm control --reload-rules
-          sudo udevadm trigger --name-match=kvm
-      # The AVD is cached by api-target-profile-ram and made once (boot stays under 3 min on a hit)
-      - uses: actions/cache@v4
-        id: avd-cache
+      # KVM, then the AVD with its snapshot: cached by api-target-profile-ram, made once and saved at once (boot stays under 3 min on a hit)
+      - uses: ./.github/actions/avd
         with:
-          path: |
-            ~/.android/avd/*
-            ~/.android/adb*
+          profile: ${{ matrix.device }}
           key: avd-34-google_apis-${{ matrix.device }}-default
-      - name: Create the AVD and its snapshot
-        id: avd1
-        continue-on-error: true   # the SDK download sometimes arrives corrupt ("Error on ZipFile unknown archive"): one retry below
-        if: steps.avd-cache.outputs.cache-hit != 'true'
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: 34
-          arch: x86_64
-          target: google_apis
-          profile: ${{ matrix.device }}
-          force-avd-creation: false
-          disable-animations: false
-          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
-          script: echo "AVD snapshot generated for the cache"
-      - name: Create the AVD and its snapshot (retry)
-        if: steps.avd-cache.outputs.cache-hit != 'true' && steps.avd1.outcome == 'failure'
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: 34
-          arch: x86_64
-          target: google_apis
-          profile: ${{ matrix.device }}
-          force-avd-creation: false
-          disable-animations: false
-          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
-          script: echo "AVD snapshot generated for the cache"
       - name: Instrumented tests
         uses: reactivecircus/android-emulator-runner@v2
         with:
@@ -170,7 +163,7 @@ jobs:
   # The FULL tier of the engine stress lab on two shards (catalogue section 5): a memory-poor phone (2 GB), real separate processes.
   # CORE tests carry both tiers and ran above, so the shards skip them.
   stress:
-    needs: build
+    needs: apk
     runs-on: ubuntu-latest
     timeout-minutes: 40
     strategy:
@@ -185,46 +178,11 @@ jobs:
         with:
           name: app-debug
           path: dist
-      - name: Enable KVM
-        run: |
-          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
-          sudo udevadm control --reload-rules
-          sudo udevadm trigger --name-match=kvm
-      - uses: actions/cache@v4
-        id: avd-cache
+      - uses: ./.github/actions/avd
         with:
-          path: |
-            ~/.android/avd/*
-            ~/.android/adb*
+          profile: pixel_6
+          ram-size: 2048M
           key: avd-34-google_apis-pixel_6-2048
-      - name: Create the AVD and its snapshot
-        id: avd1
-        continue-on-error: true   # the SDK download sometimes arrives corrupt ("Error on ZipFile unknown archive"): one retry below
-        if: steps.avd-cache.outputs.cache-hit != 'true'
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: 34
-          arch: x86_64
-          target: google_apis
-          profile: pixel_6
-          ram-size: 2048M
-          force-avd-creation: false
-          disable-animations: false
-          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
-          script: echo "AVD snapshot generated for the cache"
-      - name: Create the AVD and its snapshot (retry)
-        if: steps.avd-cache.outputs.cache-hit != 'true' && steps.avd1.outcome == 'failure'
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: 34
-          arch: x86_64
-          target: google_apis
-          profile: pixel_6
-          ram-size: 2048M
-          force-avd-creation: false
-          disable-animations: false
-          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
-          script: echo "AVD snapshot generated for the cache"
       - name: Stress tests (FULL, shard ${{ matrix.shard }} of 2)
         uses: reactivecircus/android-emulator-runner@v2
         with:
@@ -250,8 +208,8 @@ jobs:
 
   # One page: every lane of this run, test by lane (ok / FAIL / skip, with the stall in ms).
   stress-report:
-    needs: [android-test, stress]
-    if: always()
+    needs: [changes, android-test, stress]
+    if: always() && needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -266,11 +224,11 @@ jobs:
           python3 qa/stress-summary.py --matrix lanes >> "$GITHUB_STEP_SUMMARY"
 
   # Rolling "main" prerelease: only Therapy-main.apk, replaced on every push to main. Reuses the APK built above and
-  # waits for unit and emulator tests, so the build runs in parallel with them. (GitHub itself adds the "Source code"
+  # waits for unit and emulator tests, which run in parallel with each other. (GitHub itself adds the "Source code"
   # zip/tar.gz to every release; a workflow cannot remove them.)
   release-main:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: [build, android-test, stress, reproducible-arm, ad-immutable]
+    needs: [apk, build, android-test, stress, ad-immutable]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:

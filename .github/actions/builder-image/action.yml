@@ -1,0 +1,39 @@
+name: Builder image
+description: >
+  Makes the pinned builder image (docker/Dockerfile) available under the tag scripts/build.sh uses, so its own `docker build` is a no-op.
+  Restores the image from the Actions cache when the Dockerfile is unchanged, otherwise builds it with retries (apt and the SDK/NDK
+  downloads fail now and then) and saves it. Never changes what the image contains: same Dockerfile, same bytes.
+runs:
+  using: composite
+  steps:
+    - id: tag
+      shell: bash
+      run: echo "tag=therapy-builder:$(sha256sum docker/Dockerfile | cut -c1-12)" >> "$GITHUB_OUTPUT"
+    - id: restore
+      uses: actions/cache/restore@v4
+      with:
+        path: ~/builder-image.tar
+        key: builder-image-${{ runner.arch }}-${{ hashFiles('docker/Dockerfile') }}
+    - name: Load the cached image
+      if: steps.restore.outputs.cache-hit == 'true'
+      shell: bash
+      run: docker load -i ~/builder-image.tar
+    - name: Build the image (3 attempts)
+      if: steps.restore.outputs.cache-hit != 'true'
+      shell: bash
+      run: |
+        for attempt in 1 2 3; do
+          if docker build --progress=plain -t "${{ steps.tag.outputs.tag }}" docker; then exit 0; fi
+          echo "::warning::builder image build failed (attempt $attempt of 3)"
+          sleep $((attempt * 20))
+        done
+        exit 1
+    - name: Save the image
+      if: steps.restore.outputs.cache-hit != 'true'
+      shell: bash
+      run: docker save -o ~/builder-image.tar "${{ steps.tag.outputs.tag }}"
+    - if: steps.restore.outputs.cache-hit != 'true'
+      uses: actions/cache/save@v4
+      with:
+        path: ~/builder-image.tar
+        key: builder-image-${{ runner.arch }}-${{ hashFiles('docker/Dockerfile') }}
