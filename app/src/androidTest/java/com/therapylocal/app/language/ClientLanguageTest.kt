@@ -87,8 +87,10 @@ class ClientLanguageTest {
             override fun onCreate(db: SQLiteDatabase) {
                 db.execSQL("CREATE TABLE clients(id TEXT PRIMARY KEY, name TEXT NOT NULL, created_at INTEGER NOT NULL)")
                 db.execSQL("INSERT INTO clients VALUES('ana', 'Ana', 1)")
-                // Every real v1 database already had its segments table, which the v4 migration alters.
-                db.execSQL("CREATE TABLE segments(session_id TEXT NOT NULL, idx INTEGER NOT NULL, text TEXT NOT NULL)")
+                // Every real v1 database already had its segments, windows and facts tables, which the v4 and v5 migrations alter.
+                db.execSQL("CREATE TABLE segments(session_id TEXT NOT NULL, idx INTEGER NOT NULL, start_ms INTEGER NOT NULL, end_ms INTEGER NOT NULL, text TEXT NOT NULL)")
+                db.execSQL("CREATE TABLE windows(session_id TEXT NOT NULL, idx INTEGER NOT NULL, embed_model TEXT NOT NULL)")
+                db.execSQL("CREATE TABLE facts(id INTEGER PRIMARY KEY AUTOINCREMENT, session_id TEXT NOT NULL, llm_model TEXT NOT NULL, prompt_version TEXT NOT NULL)")
             }
 
             override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {}
