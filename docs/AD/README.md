@@ -15,5 +15,5 @@ Each record is immutable once merged (see [`AGENTS.md`](../../AGENTS.md); CI job
 | [AD-09](AD-09.md) | The NPU runs only on SoCs validated on our own hardware, through the model catalogue; otherwise GPU, then CPU | 2026-11-07 02:08 CET | Martin Hajný (@hajnina) | Accepted; phone verification pending |
 | [AD-10](AD-10.md) | Immutable versioned inputs (transcript by hash, audio by hash, speaker map) and one provenance mechanism with a stored stale flag on every derived item; one vault key, one database | 2026-11-11 16:50 CET | Martin Hajný (@hajnina) | Accepted |
 | [AD-11](AD-11.md) | No migrations and no compatibility code before the first release; a database of another schema version is wiped | 2026-11-11 16:50 CET | Martin Hajný (@hajnina) | Accepted |
-| [AD-13](AD-13.md) | CI is built for wall-clock time: maximum parallelism and caching, and no loss of test robustness | 2026-11-11 23:27 CET | Martin Hajný (@hajnina) | Accepted |
 | [AD-12](AD-12.md) | The app writes one summary per session, from the transcript, on the phone (reverses "writes no summaries" in `docs/MEMORY.md`) | 2026-11-11 23:31 CET | Martin Hajný (@hajnina) | Accepted |
+| [AD-13](AD-13.md) | CI is built for wall-clock time: maximum parallelism and caching, and no loss of test robustness | 2026-11-11 23:27 CET | Martin Hajný (@hajnina) | Accepted |
