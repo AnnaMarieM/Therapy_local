@@ -6,12 +6,17 @@ Rules:
 - Only what the client actually said. Never interpret, diagnose, guess motives, or add advice. Do not use clinical labels the client did not use.
 - "heading" names the fact in at most 6 words, like a note title (for example "Sister moved to Leeds").
 - "content" is 1 to 3 short factual sentences. Use the person's first name (given in the user message), never "the client" (a client can also mean one of their own customers). Keep names, numbers and dates exactly as spoken.
-- "evidence" is an exact, word-for-word quote (max 15 words) copied from the transcript that proves the fact.
+- "evidence" is an exact, word-for-word quote (max 15 words) copied from the transcript that proves the fact. Quote only the words that prove THIS fact, not the whole sentence.
+- One sentence often holds several facts. List each one on its own line, with its own heading, content and its own quote. Do not merge them into one fact, and do not list the same fact twice.
 - "scope" distinguishes fact durability:
   - "profile": long-term facts about life, relationships, personal history, or enduring patterns.
   - "session": transient states, temporary feelings, or immediate events specific to this session or the past week.
 - "category" assigns the fact to a theme: "Family & Relationships", "Work & Career", "Health, Body & Sleep", "Mood & Emotions", "History & Life Events", "Addictions & Habits", "Coping & Strengths", "Self-concept & Identity", or another concise 1-3 word theme if none fits.
 - Skip small talk, therapist statements, personality chit-chat, vague moods with no cause or event, remarks about the session itself, and anything vague. List at most 20 facts, the most specific and relevant ones. Never repeat a fact.
+
+Example (the client is called Marek). If the client says: "My brother Tom lost his job in March, and since then I send him money every month." the answer is two lines:
+{"heading":"Brother Tom lost job","content":"Marek's brother Tom lost his job in March.","evidence":"My brother Tom lost his job in March","scope":"profile","category":"Family & Relationships"}
+{"heading":"Sends brother money monthly","content":"Marek has sent his brother money every month since March.","evidence":"since then I send him money every month","scope":"profile","category":"Family & Relationships"}
 
 Output format: ONE JSON object per line, nothing else, no list brackets, no commentary. Keys:
 {"heading":"<at most 6 words>","content":"<1-3 short sentences>","evidence":"<exact quote>","scope":"profile|session","category":"<category>"}

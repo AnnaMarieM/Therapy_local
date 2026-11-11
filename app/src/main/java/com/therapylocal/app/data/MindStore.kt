@@ -36,7 +36,11 @@ data class WindowRow(val idx: Int, val segFrom: Int, val segTo: Int, val text: S
 
 data class WindowRef(val sessionId: String, val idx: Int, val segFrom: Int, val segTo: Int, val text: String)
 
-/** [provenance] is what the fact was extracted and committed from. */
+/**
+ * [provenance] is what the fact was extracted and committed from. [segIdx]..[segTo] are the transcript segments of its quote, [startMs] and
+ * [endMs] their time range, and [speaker] the raw diarization id of the first segment (null: the recording was not diarized). The role is not
+ * stored: it is resolved from the speaker map when the fact is read ([FactSpeakers]).
+ */
 data class NewFact(
     val clientId: String,
     val sessionId: String,
@@ -48,11 +52,23 @@ data class NewFact(
     val provenance: Provenance,
     val scope: String = "profile",
     val category: String = "",
+    val segTo: Int = segIdx,
+    val startMs: Long = 0,
+    val endMs: Long = 0,
+    val speaker: String? = null,
 )
 
-data class NewMention(val factId: Long, val sessionId: String, val evidence: String, val segIdx: Int)
+/** A later mention of a fact; the span and [speaker] are those of a fact ([NewFact]), so a mention can take over as the fact when its session is deleted. */
+data class NewMention(
+    val factId: Long, val sessionId: String, val evidence: String, val segIdx: Int, val speaker: String? = null,
+    val segTo: Int = segIdx, val startMs: Long = 0, val endMs: Long = 0,
+)
 
-/** A fact as the app reads it. */
+/**
+ * A fact as the app reads it. [segIdx]..[segTo] is the segment range of its quote (what a click on the fact jumps to), [startMs]..[endMs] its
+ * time range, [speaker] the raw diarization id and [role] what the session's current speaker map makes of it (null: unresolved). [mentionCount]
+ * counts only mentions that are visible under the same filter as the fact.
+ */
 data class FactRow(
     val id: Long,
     val clientId: String,
@@ -65,10 +81,15 @@ data class FactRow(
     val mentionCount: Int,
     val scope: String = "profile",
     val category: String = "",
+    val speaker: String? = null,
+    val segTo: Int = segIdx,
+    val startMs: Long = 0,
+    val endMs: Long = 0,
+    val role: Role? = null,
 )
 
-/** Where a fact was said: its first occurrence ([first]) or a later mention. */
-data class Occurrence(val sessionId: String, val startedAt: Long, val evidence: String, val segIdx: Int, val first: Boolean)
+/** Where a fact was said: its first occurrence ([first]) or a later mention; [speaker] is the raw diarization id, [role] the current role. */
+data class Occurrence(val sessionId: String, val startedAt: Long, val evidence: String, val segIdx: Int, val first: Boolean, val speaker: String? = null, val role: Role? = null)
 
 /**
  * The last-session summary of one session and what it was made from (docs/AD/AD-12.md). [provenance] is the same record windows and facts carry
@@ -218,10 +239,10 @@ class MindStore(context: Context, name: String, password: ByteArray) :
         var deleted = 0
         for (factId in query("SELECT id FROM facts WHERE session_id = ?", id) { it.getLong(0) }) {
             val next = query(
-                """SELECT m.session_id, m.evidence, m.seg_idx FROM mentions m JOIN sessions s ON s.id = m.session_id
+                """SELECT m.session_id, m.evidence, m.seg_idx, m.seg_to, m.start_ms, m.end_ms, m.speaker FROM mentions m JOIN sessions s ON s.id = m.session_id
                    WHERE m.fact_id = ? AND m.session_id <> ? ORDER BY s.started_at, m.seg_idx, m.id LIMIT 1""",
                 factId.toString(), id,
-            ) { ContentValues().apply { put("session_id", it.getString(0)); put("evidence", it.getString(1)); put("seg_idx", it.getInt(2)) } }.firstOrNull()
+            ) { ContentValues().apply { put("session_id", it.getString(0)); put("evidence", it.getString(1)); put("seg_idx", it.getInt(2)); put("seg_to", it.getInt(3)); put("start_ms", it.getLong(4)); put("end_ms", it.getLong(5)); put("speaker", it.getStringOrNull(6)) } }.firstOrNull()
             if (next == null) {
                 db.delete("facts", "id = ?", arrayOf(factId.toString()))
                 deleted++
@@ -459,50 +480,92 @@ class MindStore(context: Context, name: String, password: ByteArray) :
             put("seg_idx", f.segIdx); if (f.embedding != null) put("embedding", VectorMath.toBlob(f.embedding))
             put("created_at", System.currentTimeMillis())
             put("scope", f.scope); put("category", f.category)
+            put("seg_to", f.segTo); put("start_ms", f.startMs); put("end_ms", f.endMs); if (f.speaker != null) put("speaker", f.speaker)
             f.provenance.put(this)
         },
     )
 
     private fun addMention(db: SQLiteDatabase, m: NewMention): Boolean = db.insertWithOnConflict(
         "mentions", null,
-        ContentValues().apply { put("fact_id", m.factId); put("session_id", m.sessionId); put("evidence", m.evidence); put("seg_idx", m.segIdx); put("created_at", System.currentTimeMillis()) },
+        ContentValues().apply { put("fact_id", m.factId); put("session_id", m.sessionId); put("evidence", m.evidence); put("seg_idx", m.segIdx); put("created_at", System.currentTimeMillis()); put("seg_to", m.segTo); put("start_ms", m.startMs); put("end_ms", m.endMs); if (m.speaker != null) put("speaker", m.speaker) },
         SQLiteDatabase.CONFLICT_IGNORE,
     ) != -1L
 
-    /** Oldest first. */
-    fun facts(client: String): List<FactRow> = query("$FACT_COLUMNS FROM facts f WHERE f.client_id = ? ORDER BY f.created_at, f.id", client) { factOf(it) }
+    /**
+     * The facts of [client], oldest first. Only the patient's by default: a fact is shown unless the current speaker map of its session makes
+     * its speaker the therapist (or anyone else); facts with no resolvable speaker are shown. [includeTherapist] returns every stored fact.
+     * Every UI-facing read goes through this default; only the pipeline and the debug export ask for all.
+     */
+    fun facts(client: String, includeTherapist: Boolean = false): List<FactRow> =
+        resolved(client, query("$FACT_COLUMNS FROM facts f WHERE f.client_id = ? ORDER BY f.created_at, f.id", client) { factOf(it) }, includeTherapist)
 
-    /** All facts of [client] that have an embedding, oldest first. */
-    fun factEmbeddings(client: String): List<Pair<FactRow, FloatArray>> =
-        query("$FACT_COLUMNS, f.embedding FROM facts f WHERE f.client_id = ? AND f.embedding IS NOT NULL ORDER BY f.created_at, f.id", client) {
-            factOf(it) to VectorMath.fromBlob(it.getBlob(11))
-        }
+    /** The facts of [client] that have an embedding, oldest first; patient's only unless [includeTherapist] (see [facts]). */
+    fun factEmbeddings(client: String, includeTherapist: Boolean = false): List<Pair<FactRow, FloatArray>> =
+        withVectors(client, query("$FACT_COLUMNS, f.embedding FROM facts f WHERE f.client_id = ? AND f.embedding IS NOT NULL ORDER BY f.created_at, f.id", client) { factOf(it) to VectorMath.fromBlob(it.getBlob(EMBEDDING_COLUMN)) }, includeTherapist)
 
     /**
-     * The [k] facts of [client] closest to [vec], best first. With [beforeSession], only facts first seen in sessions that started before it
-     * (in [sessions] order), so a session is only ever compared with what was known when it took place.
+     * The [k] facts of [client] closest to [vec], best first; patient's only unless [includeTherapist] (see [facts]), filtered before the best
+     * [k] are taken. With [beforeSession], only facts first seen in sessions that started before it (in [sessions] order), so a session is only
+     * ever compared with what was known when it took place.
      */
-    fun nearestFacts(client: String, vec: FloatArray, k: Int, beforeSession: String? = null): List<Pair<FactRow, Float>> = VectorMath.topK(
-        if (beforeSession == null) {
-            query("$FACT_COLUMNS, f.embedding FROM facts f WHERE f.client_id = ? AND f.embedding IS NOT NULL", client) { factOf(it) to VectorMath.fromBlob(it.getBlob(11)) }
-        } else {
-            query(
-                """$FACT_COLUMNS, f.embedding FROM facts f JOIN sessions o ON o.id = f.session_id JOIN sessions b ON b.id = ?
-                   WHERE f.client_id = ? AND f.embedding IS NOT NULL AND (o.started_at < b.started_at OR (o.started_at = b.started_at AND o.id < b.id))""",
-                beforeSession, client,
-            ) { factOf(it) to VectorMath.fromBlob(it.getBlob(11)) }
-        },
+    fun nearestFacts(client: String, vec: FloatArray, k: Int, beforeSession: String? = null, includeTherapist: Boolean = false): List<Pair<FactRow, Float>> = VectorMath.topK(
+        withVectors(
+            client,
+            if (beforeSession == null) {
+                query("$FACT_COLUMNS, f.embedding FROM facts f WHERE f.client_id = ? AND f.embedding IS NOT NULL", client) { factOf(it) to VectorMath.fromBlob(it.getBlob(EMBEDDING_COLUMN)) }
+            } else {
+                query(
+                    """$FACT_COLUMNS, f.embedding FROM facts f JOIN sessions o ON o.id = f.session_id JOIN sessions b ON b.id = ?
+                       WHERE f.client_id = ? AND f.embedding IS NOT NULL AND (o.started_at < b.started_at OR (o.started_at = b.started_at AND o.id < b.id))""",
+                    beforeSession, client,
+                ) { factOf(it) to VectorMath.fromBlob(it.getBlob(EMBEDDING_COLUMN)) }
+            },
+            includeTherapist,
+        ),
         vec, k,
     )
 
-    /** The fact's first occurrence, then its mentions, in session order. */
-    fun factOccurrences(factId: Long): List<Occurrence> = query(
-        """SELECT f.session_id, s.started_at, f.evidence, f.seg_idx, 1 FROM facts f JOIN sessions s ON s.id = f.session_id WHERE f.id = ?
-           UNION ALL
-           SELECT m.session_id, s.started_at, m.evidence, m.seg_idx, 0 FROM mentions m JOIN sessions s ON s.id = m.session_id WHERE m.fact_id = ?
-           ORDER BY 5 DESC, 2, 4""",
-        factId.toString(), factId.toString(),
-    ) { Occurrence(it.getString(0), it.getLong(1), it.getString(2), it.getInt(3), it.getInt(4) == 1) }
+    /** The current speaker map of each session of [client] that has one, as raw id to role. */
+    private fun roleMaps(client: String): Map<String, Map<String, Role>> = query(
+        """SELECT m.session_id, m.map_json FROM speaker_maps m JOIN sessions s ON s.id = m.session_id
+           WHERE s.client_id = ? AND m.version = (SELECT MAX(x.version) FROM speaker_maps x WHERE x.session_id = m.session_id)""",
+        client,
+    ) { it.getString(0) to SpeakerMaps.decode(it.getString(1)) }.toMap()
+
+    /**
+     * Gives each fact its role from the current speaker maps, counts only the mentions visible under the same rule, and drops the facts the
+     * rule hides. The one place where a role is applied to a stored fact (docs/AD/AD-14.md).
+     */
+    private fun resolved(client: String, rows: List<FactRow>, includeTherapist: Boolean): List<FactRow> {
+        if (rows.isEmpty()) return rows
+        val maps = roleMaps(client)
+        val mentions = query("SELECT m.fact_id, m.session_id, m.speaker FROM mentions m JOIN facts f ON f.id = m.fact_id WHERE f.client_id = ?", client) { Triple(it.getLong(0), it.getString(1), it.getStringOrNull(2)) }
+            .filter { (_, session, speaker) -> FactSpeakers.visible(FactSpeakers.roleOf(speaker, maps[session]), includeTherapist) }
+            .groupingBy { it.first }.eachCount()
+        return rows.map { it.copy(role = FactSpeakers.roleOf(it.speaker, maps[it.sessionId]), mentionCount = mentions[it.id] ?: 0) }
+            .filter { FactSpeakers.visible(it.role, includeTherapist) }
+    }
+
+    private fun withVectors(client: String, pairs: List<Pair<FactRow, FloatArray>>, includeTherapist: Boolean): List<Pair<FactRow, FloatArray>> {
+        val byId = resolved(client, pairs.map { it.first }, includeTherapist).associateBy { it.id }
+        return pairs.mapNotNull { (f, v) -> byId[f.id]?.let { it to v } }
+    }
+
+    /**
+     * The fact's first occurrence, then its mentions, in session order. A mention is left out when it was said by someone the default filter
+     * hides, unless [includeTherapist]; the first occurrence is the fact itself and is always returned.
+     */
+    fun factOccurrences(factId: Long, includeTherapist: Boolean = false): List<Occurrence> {
+        val all = query(
+            """SELECT f.session_id, s.started_at, f.evidence, f.seg_idx, 1, f.speaker FROM facts f JOIN sessions s ON s.id = f.session_id WHERE f.id = ?
+               UNION ALL
+               SELECT m.session_id, s.started_at, m.evidence, m.seg_idx, 0, m.speaker FROM mentions m JOIN sessions s ON s.id = m.session_id WHERE m.fact_id = ?
+               ORDER BY 5 DESC, 2, 4""",
+            factId.toString(), factId.toString(),
+        ) { Occurrence(it.getString(0), it.getLong(1), it.getString(2), it.getInt(3), it.getInt(4) == 1, it.getStringOrNull(5)) }
+        val maps = all.map { it.sessionId }.distinct().associateWith { currentSpeakerMap(it)?.let { m -> SpeakerMaps.decode(m.mapJson) } }
+        return all.map { it.copy(role = FactSpeakers.roleOf(it.speaker, maps[it.sessionId])) }.filter { it.first || FactSpeakers.visible(it.role, includeTherapist) }
+    }
 
     // ---- caches ---------------------------------------------------------------------------------------------------
 
@@ -606,13 +669,14 @@ class MindStore(context: Context, name: String, password: ByteArray) :
     private fun factOf(c: Cursor) = FactRow(
         c.getLong(0), c.getString(1), c.getString(2), c.getString(3), c.getString(4),
         c.getString(5), c.getInt(6), c.getLong(7), c.getInt(8), c.getString(9), c.getString(10),
+        speaker = c.getStringOrNull(11), segTo = c.getInt(12), startMs = c.getLong(13), endMs = c.getLong(14),
     )
 
     companion object {
         const val NAME = "mind.db"
 
         /** Bumped whenever the schema changes; there are no migrations, a database of another version is wiped (AD-11). */
-        private const val VERSION = 6
+        private const val VERSION = 7
 
         // Both cascade: deleting a recording or a session removes them.
         private const val DIARIZATION_TURNS_SQL = """CREATE TABLE diarization_turns(
@@ -645,7 +709,8 @@ class MindStore(context: Context, name: String, password: ByteArray) :
                  ${Provenance.COLUMNS})"""
 
         private const val FACT_COLUMNS =
-            "SELECT f.id, f.client_id, f.session_id, f.heading, f.content, f.evidence, f.seg_idx, f.created_at, (SELECT COUNT(*) FROM mentions m WHERE m.fact_id = f.id), f.scope, f.category"
+            "SELECT f.id, f.client_id, f.session_id, f.heading, f.content, f.evidence, f.seg_idx, f.created_at, (SELECT COUNT(*) FROM mentions m WHERE m.fact_id = f.id), f.scope, f.category, f.speaker, f.seg_to, f.start_ms, f.end_ms"
+        private const val EMBEDDING_COLUMN = 15
 
         private val SCHEMA = listOf(
             "CREATE TABLE clients(id TEXT PRIMARY KEY, name TEXT NOT NULL, created_at INTEGER NOT NULL, language TEXT NOT NULL DEFAULT 'en', first_name TEXT NOT NULL DEFAULT '', last_name TEXT NOT NULL DEFAULT '')",
@@ -712,6 +777,10 @@ class MindStore(context: Context, name: String, password: ByteArray) :
                  created_at INTEGER NOT NULL,
                  scope TEXT NOT NULL DEFAULT 'profile',
                  category TEXT NOT NULL DEFAULT '',
+                 speaker TEXT,
+                 seg_to INTEGER NOT NULL,
+                 start_ms INTEGER NOT NULL DEFAULT 0,
+                 end_ms INTEGER NOT NULL DEFAULT 0,
                  ${Provenance.COLUMNS})""",
             "CREATE INDEX facts_client ON facts(client_id)",
             "CREATE INDEX facts_session ON facts(session_id)",
@@ -721,6 +790,10 @@ class MindStore(context: Context, name: String, password: ByteArray) :
                  session_id TEXT NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,
                  evidence TEXT NOT NULL,
                  seg_idx INTEGER NOT NULL,
+                 seg_to INTEGER NOT NULL,
+                 start_ms INTEGER NOT NULL DEFAULT 0,
+                 end_ms INTEGER NOT NULL DEFAULT 0,
+                 speaker TEXT,
                  created_at INTEGER NOT NULL,
                  UNIQUE(fact_id, session_id, seg_idx))""",
             "CREATE INDEX mentions_session ON mentions(session_id)",
