@@ -1,0 +1,45 @@
+name: embed-aot
+on:
+  push:
+    branches: [ci/embed-aot-sm8750]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  aot:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@v4
+      - name: Free disk
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+          sudo docker image prune -af || true
+          df -h / /mnt
+          sudo mkdir -p /mnt/aot && sudo chown "$USER" /mnt/aot
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: libs for QNN host libraries
+        run: sudo apt-get update && sudo apt-get install -y libc++1 libatomic1
+      - name: Compile
+        run: |
+          set -o pipefail
+          ./scripts/embed-aot.sh /mnt/aot 2>&1 | tee /mnt/aot/compile.log
+          free -g
+      - name: Upload (licence gate passed in script; retention 3 days)
+        uses: actions/upload-artifact@v4
+        with:
+          name: embeddinggemma-2-740m_ours_SM8750
+          path: |
+            /mnt/aot/out/*.litertlm
+            /mnt/aot/out/LICENSE-embeddinggemma.txt
+            /mnt/aot/out/NOTICE.txt
+          retention-days: 3
+      - name: Log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: compile-log
+          path: /mnt/aot/compile.log
+          retention-days: 3
