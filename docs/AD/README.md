@@ -17,3 +17,4 @@ Each record is immutable once merged (see [`AGENTS.md`](../../AGENTS.md); CI job
 | [AD-11](AD-11.md) | No migrations and no compatibility code before the first release; a database of another schema version is wiped | 2026-11-11 16:50 CET | Martin Hajný (@hajnina) | Accepted |
 | [AD-12](AD-12.md) | The app writes one summary per session, from the transcript, on the phone (reverses "writes no summaries" in `docs/MEMORY.md`) | 2026-11-11 23:31 CET | Martin Hajný (@hajnina) | Accepted |
 | [AD-13](AD-13.md) | CI is built for wall-clock time: maximum parallelism and caching, and no loss of test robustness | 2026-11-11 23:27 CET | Martin Hajný (@hajnina) | Accepted |
+| [AD-14](AD-14.md) | Facts are extracted from the role-labelled dialogue, store who said them, and are shown patient-only by default; a roles swap re-runs extraction | 2026-11-12 00:36 CET | Martin Hajný (@hajnina) | Accepted; amends AD-10 point 5 (a roles swap now makes facts stale) |
