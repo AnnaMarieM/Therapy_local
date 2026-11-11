@@ -1,0 +1,30 @@
+name: AVD warm
+
+# Keeps the emulator caches that ci.yml's emulator lanes restore alive and in the default branch's scope (a cache made on a PR branch is invisible to
+# other branches, and a cache unused for 7 days is evicted). Runs the same composite action ci.yml uses, with the same keys, so every PR restores them.
+on:
+  schedule:
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  warm:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { profile: pixel_6,      ram: "",      key: avd-34-google_apis-pixel_6-default }
+          - { profile: pixel_tablet, ram: "",      key: avd-34-google_apis-pixel_tablet-default }
+          - { profile: pixel_6,      ram: "2048M", key: avd-34-google_apis-pixel_6-2048 }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/avd
+        with:
+          profile: ${{ matrix.profile }}
+          ram-size: ${{ matrix.ram }}
+          key: ${{ matrix.key }}

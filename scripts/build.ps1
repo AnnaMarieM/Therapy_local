@@ -1,10 +1,11 @@
 # The Windows entry point to the pinned builder. Same container and same docker/inside.sh as scripts/build.sh.
-# Usage: .\scripts\build.ps1 [full|fast]
+# Usage: .\scripts\build.ps1 [full|fast|checks]
 #   full (default)  clean, lint, unit tests, debug APK and test APK
 #   fast            clean and the two APKs only
+#   checks          lint, unit tests and verifyNoFaultsInRelease only
 # Output: dist\Therapy-main.apk, dist\Therapy-main-androidTest.apk, dist\Therapy-main.apk.sha256
 # Needs Docker Desktop (Linux containers). On Windows-on-Arm the x86_64 aapt2 runs under software emulation inside the container.
-param([ValidateSet('full', 'fast')][string]$Mode = 'full')
+param([ValidateSet('full', 'fast', 'checks')][string]$Mode = 'full')
 $ErrorActionPreference = 'Stop'
 
 $root = Split-Path -Parent $PSScriptRoot
