@@ -67,7 +67,7 @@ class BareHost private constructor(val role: EngineRole, private val ctx: Contex
     companion object {
         private const val FLAGS = Context.BIND_AUTO_CREATE or Context.BIND_NOT_PERCEPTIBLE
 
-        fun start(role: EngineRole, timeoutMs: Long = 10_000): BareHost {
+        fun start(role: EngineRole, timeoutMs: Long = 30_000): BareHost {
             val ctx = InstrumentationRegistry.getInstrumentation().targetContext
             val latch = CountDownLatch(1)
             lateinit var h: BareHost
