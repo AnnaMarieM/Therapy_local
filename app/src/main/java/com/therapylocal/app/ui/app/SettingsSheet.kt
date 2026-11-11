@@ -52,6 +52,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -359,6 +360,8 @@ private fun openAppSettings(ctx: Context) {
 
 @Composable
 private fun LanguageChoice(activity: androidx.fragment.app.FragmentActivity?) {
+    // Read so a switch redraws the marks: it arrives as a new configuration, not a new activity (#71), and nothing else here changes.
+    LocalConfiguration.current
     val selected = LocaleStore.current(LocalContext.current).tag
     Languages.all.forEach { language ->
         val on = language.tag == selected

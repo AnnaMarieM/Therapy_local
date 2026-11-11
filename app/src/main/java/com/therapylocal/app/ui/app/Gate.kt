@@ -58,6 +58,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -461,6 +462,8 @@ private fun OfferBiometric(onDone: () -> Unit) {
 /** A quiet row of the languages on the lock screen, so the app can be switched before signing in. */
 @Composable
 private fun LanguageSwitch(activity: androidx.fragment.app.FragmentActivity?) {
+    // Read so a switch redraws the marks: it arrives as a new configuration, not a new activity (#71), and nothing else here changes.
+    LocalConfiguration.current
     val selected = LocaleStore.current(LocalContext.current).tag
     Row(Modifier.fillMaxWidth().padding(top = 18.dp), horizontalArrangement = Arrangement.spacedBy(18.dp)) {
         Languages.all.forEach { language ->
