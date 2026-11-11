@@ -150,8 +150,8 @@ class SummaryMethodTest {
     @Test
     fun promptsGetTheFormatAndLimitsFromTheOnePlace() {
         val loaded = SummaryPrompts.load({ name -> "$name|{{FORMAT}}|{{MAX_WORDS}}|{{MAX_SENTENCES}}|{{NOTES_WORDS}}|{{TEXT}}" }, "en")
-        for (s in SummaryConfig.SECTIONS) assertTrue(s.label in loaded.finalSystem)
-        assertTrue("|${SummaryConfig.MAX_WORDS_PER_SECTION}|${SummaryConfig.MAX_SENTENCES_PER_SECTION}|" in loaded.finalSystem)
+        for (s in SummaryConfig.format(SummaryConfig.DEFAULT_FORMAT_ID).sections) assertTrue(s.label in loaded.finalSystem)
+        assertTrue("|${SummaryConfig.format(SummaryConfig.DEFAULT_FORMAT_ID).maxWords}|${SummaryConfig.format(SummaryConfig.DEFAULT_FORMAT_ID).maxSentences}|" in loaded.finalSystem)
         assertTrue("|${SummaryConfig.NOTES_MAX_WORDS}|" in loaded.notesSystem)
         // The user templates keep their placeholders for the method to fill.
         assertTrue("{{TEXT}}" in loaded.finalUser && "{{TEXT}}" in loaded.notesUser)
@@ -175,11 +175,11 @@ class SummaryMethodTest {
 
     @Test
     fun theFormatIdIsPartOfThePromptVersionSoSwitchingItMakesSummariesStale() {
-        assertTrue(SummaryConfig.FORMAT_ID in SummaryConfig.FORMATS)
-        assertTrue(SummaryConfig.fingerprint().split("|").first() == SummaryConfig.FORMAT_ID)
+        assertTrue(SummaryConfig.DEFAULT_FORMAT_ID in SummaryConfig.FORMATS)
+        assertTrue(SummaryConfig.fingerprint().split("|").first() == SummaryConfig.DEFAULT_FORMAT_ID)
         // The version is a hash of the prompt texts and the fingerprint: a different fingerprint gives a different version.
         val a = com.therapylocal.app.facts.Prompts.version("s", "u", "n", "nu", SummaryConfig.fingerprint())
-        val b = com.therapylocal.app.facts.Prompts.version("s", "u", "n", "nu", SummaryConfig.fingerprint().replaceFirst(SummaryConfig.FORMAT_ID, "dap"))
+        val b = com.therapylocal.app.facts.Prompts.version("s", "u", "n", "nu", SummaryConfig.fingerprint().replaceFirst(SummaryConfig.DEFAULT_FORMAT_ID, "dap"))
         assertTrue(a != b)
     }
 
@@ -188,7 +188,7 @@ class SummaryMethodTest {
         for (lang in listOf("en", "cs")) {
             val loaded = SummaryPrompts.load({ name -> java.io.File("../demo/prompts", name).readText() }, lang)
             assertTrue("{{FORMAT}}" !in loaded.notesSystem)
-            for (sec in SummaryConfig.SECTIONS) assertTrue(sec.label in loaded.finalSystem && sec.label !in loaded.notesSystem && sec.label !in loaded.notesUser)
+            for (sec in SummaryConfig.format(SummaryConfig.DEFAULT_FORMAT_ID).sections) assertTrue(sec.label in loaded.finalSystem && sec.label !in loaded.notesSystem && sec.label !in loaded.notesUser)
         }
     }
 

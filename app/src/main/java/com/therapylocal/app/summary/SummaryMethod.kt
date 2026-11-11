@@ -12,23 +12,25 @@ fun interface SummaryAsk {
 }
 
 /** The four prompt texts of a summary, with their placeholders already filled except {{TEXT}}, {{PART}} and {{PARTS}}. */
-class SummaryPrompts(val finalSystem: String, val finalUser: String, val notesSystem: String, val notesUser: String) {
-    /** Changes whenever a prompt text, the format or a limit changes ([SummaryConfig.fingerprint]); stored with every summary. */
-    fun version(): String = Prompts.version(finalSystem, finalUser, notesSystem, notesUser, SummaryConfig.fingerprint())
+class SummaryPrompts(val finalSystem: String, val finalUser: String, val notesSystem: String, val notesUser: String, val formatId: String = SummaryConfig.DEFAULT_FORMAT_ID) {
+    /** Changes whenever a prompt text, the format or a limit changes ([SummaryConfig.fingerprint], which leads with the format id); stored with every summary. */
+    fun version(): String = Prompts.version(finalSystem, finalUser, notesSystem, notesUser, SummaryConfig.fingerprint(formatId))
 
     companion object {
-        /** Reads the four files with [prompt] and fills the format and limits into the system prompts. */
-        fun load(prompt: (String) -> String, language: String): SummaryPrompts {
+        /** Reads the four files with [prompt] (the final system prompt is the one of the format [formatId]) and fills the format and limits into the system prompts. */
+        fun load(prompt: (String) -> String, language: String, formatId: String = SummaryConfig.DEFAULT_FORMAT_ID): SummaryPrompts {
             fun named(n: String) = prompt(Prompts.named(n, language))
+            val format = SummaryConfig.format(formatId)
             val vars = mapOf(
-                "FORMAT" to SummaryConfig.formatInstruction(),
-                "MAX_WORDS" to SummaryConfig.MAX_WORDS_PER_SECTION.toString(),
-                "MAX_SENTENCES" to SummaryConfig.MAX_SENTENCES_PER_SECTION.toString(),
+                "FORMAT" to format.instruction(),
+                "MAX_WORDS" to format.maxWords.toString(),
+                "MAX_SENTENCES" to format.maxSentences.toString(),
                 "NOTES_WORDS" to SummaryConfig.NOTES_MAX_WORDS.toString(),
             )
             return SummaryPrompts(
-                Prompts.fill(named(SummaryConfig.PROMPT_FINAL_SYSTEM), vars), named(SummaryConfig.PROMPT_FINAL_USER),
+                Prompts.fill(named(format.systemPrompt), vars), named(SummaryConfig.PROMPT_FINAL_USER),
                 Prompts.fill(named(SummaryConfig.PROMPT_NOTES_SYSTEM), vars), named(SummaryConfig.PROMPT_NOTES_USER),
+                format.id,
             )
         }
     }
