@@ -59,6 +59,8 @@ class Pipeline(
     diarizationReady: () -> Boolean = { true },
     /** How a transcript becomes a summary; replaceable while the long-transcript benchmark is open (docs/AD/AD-12.md). */
     private val summaryMethod: SummaryMethod = TreeSummary(),
+    /** The id of the summary format the therapist chose (read when a summary job runs, so a change reaches jobs already queued). */
+    private val summaryFormat: () -> String = { SummaryConfig.DEFAULT_FORMAT_ID },
 ) {
     private val summaries = SessionSummaries(store)
 
@@ -123,7 +125,7 @@ class Pipeline(
      * hash, speaker-map version, prompt version and model. Logs counts only, never the transcript or the summary.
      */
     private fun summary(job: Job, run: JobContext) {
-        val prompts = SummaryPrompts.load(prompt, language(job))
+        val prompts = SummaryPrompts.load(prompt, language(job), summaryFormat())
         val ask = SummaryAsk { system, user, maxOut ->
             run.checkStop()
             run.pool.llm().ask(system, user, null, maxOut, SummaryConfig.TEMPERATURE, SummaryConfig.TOP_K)
@@ -132,7 +134,7 @@ class Pipeline(
         AppLog.i(
             JobRunner.TAG, if (r == null) "summary_skipped" else "summary_done", LogCtx.NONE,
             "calls" to r?.calls, "levels" to r?.levels, "forced_splits" to r?.forcedSplits, "chars" to r?.chars, "speaker_map_version" to r?.speakerMapVersion,
-            "model" to run.pool.llmModel(), "prompt_version" to prompts.version(), "method" to summaryMethod.id,
+            "model" to run.pool.llmModel(), "prompt_version" to prompts.version(), "format" to prompts.formatId, "method" to summaryMethod.id,
         )
     }
 

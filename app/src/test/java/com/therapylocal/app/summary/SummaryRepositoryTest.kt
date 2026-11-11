@@ -118,6 +118,6 @@ class SummaryRepositoryTest {
         // The system prompts take the format and limits only from the config placeholders, the user prompts the text.
         val system = File(dir, SummaryConfig.PROMPT_FINAL_SYSTEM).readText()
         for (p in listOf("FORMAT", "MAX_WORDS", "MAX_SENTENCES")) assertTrue(p, "{{$p}}" in system)
-        for (sec in SummaryConfig.SECTIONS) assertTrue("section heading is not written in the prompt file: ${sec.label}", sec.label !in system)
+        for (sec in SummaryConfig.format(SummaryConfig.DEFAULT_FORMAT_ID).sections) assertTrue("section heading is not written in the prompt file: ${sec.label}", sec.label !in system)
     }
 }
