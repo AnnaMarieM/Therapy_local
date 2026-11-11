@@ -312,6 +312,8 @@ private fun TechnicalSettingsSheet(
                 when (setup.state) {
                     SetupState.Ready -> Row2(stringResource(R.string.settings_processing_ready), stringResource(R.string.settings_processing_ready_body), null) {}
                     SetupState.Failed -> Row2(stringResource(R.string.settings_processing_paused), setup.message ?: stringResource(R.string.settings_processing_paused_body), stringResource(R.string.settings_processing_try_again)) { ModelSetup.retry(ctx) }
+                    SetupState.WaitingForWifi -> Row2(stringResource(R.string.setup_waiting_wifi_title), stringResource(R.string.setup_waiting_wifi_body), stringResource(R.string.setup_use_mobile_data)) { ModelSetup.askMobileData(ctx) }
+                    SetupState.Declined -> Row2(stringResource(R.string.settings_processing_paused), stringResource(R.string.setup_declined_body), stringResource(R.string.settings_processing_try_again)) { ModelSetup.retry(ctx) }
                     else -> {
                         val eta = setup.etaSeconds?.let { stringResource(R.string.settings_processing_eta_left, ModelSetup.formatEta(ctx, it)) } ?: ""
                         Column(Modifier.padding(vertical = 16.dp)) {

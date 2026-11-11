@@ -236,6 +236,9 @@ private fun Main(viewModel: MainViewModel, openSessionRequest: Int, onDeveloper:
             ) else emptyList(),
         )
         SetupState.Checking -> ClientStatus(t.str(R.string.mindvault_setup_getting_ready), busy = true)
+        SetupState.Confirm -> ClientStatus(t.str(R.string.mindvault_setup_getting_ready))
+        SetupState.WaitingForWifi -> ClientStatus(t.str(R.string.setup_waiting_wifi_line)) { ModelSetup.askMobileData(ctx) }
+        SetupState.Declined -> ClientStatus(t.str(R.string.mindvault_setup_paused), Palette.Rec) { ModelSetup.retry(ctx) }
     }
     val clientName = { id: String -> clients.firstOrNull { it.id == id }?.name ?: id.replaceFirstChar { it.uppercase() } }
     val elapsed = { SessionController.state.value.clock.elapsedMs(SystemClock.elapsedRealtime()) }
@@ -484,6 +487,13 @@ private fun Main(viewModel: MainViewModel, openSessionRequest: Int, onDeveloper:
             onDismiss = { confirmDiscard = false },
         )
     }
+    // The download would use mobile data: nothing is fetched until the user says how (issue #55).
+    if (setup.state == SetupState.Confirm) MobileDataDialog(
+        ModelSetup.formatBytes(ctx, setup.totalBytes - setup.doneBytes),
+        onDownload = { ModelSetup.downloadNow(ctx) },
+        onWait = { ModelSetup.waitForWifi(ctx) },
+        onNotNow = { ModelSetup.notNow(ctx) },
+    )
     // Back, or a tap beside it, keeps the session: nothing is thrown away without being asked to.
     if (confirmShort) {
         val e = session.ended
