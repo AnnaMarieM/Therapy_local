@@ -3,12 +3,14 @@ package com.therapylocal.app.jobs
 import com.therapylocal.app.engine.EngineDied
 import com.therapylocal.app.engine.EngineUnavailable
 import com.therapylocal.app.audio.AudioChunk
+import com.therapylocal.app.config.EmbeddingConfig
 import com.therapylocal.app.config.MemoryConfig
 import com.therapylocal.app.data.ChunkRow
 import com.therapylocal.app.data.Job
 import com.therapylocal.app.data.MindStore
 import com.therapylocal.app.data.NewFact
 import com.therapylocal.app.data.NewMention
+import com.therapylocal.app.data.Provenance
 import com.therapylocal.app.data.SegmentRow
 import com.therapylocal.app.data.SpeakerMaps
 import com.therapylocal.app.data.TurnRow
@@ -71,7 +73,7 @@ class Pipeline(
             override fun turns(recordingId: Long) = store.turns(recordingId)
             override fun replaceTurns(recordingId: Long, turns: List<TurnRow>) = store.replaceTurns(recordingId, turns)
             override fun setTurnText(recordingId: Long, idx: Int, text: String) { store.setTurnText(recordingId, idx, text) }
-            override fun replaceSegments(session: String, segments: List<SegmentRow>) = store.replaceSegments(session, segments)
+            override fun appendTranscript(session: String, segments: List<SegmentRow>, recordingId: Long?, audioSha: String?) { store.appendTranscript(session, segments, recordingId, audioSha) }
         },
         chunks, chunk, diarizationReady,
     )
@@ -110,12 +112,16 @@ class Pipeline(
         val words = TranscriptWindows.wordsFor(MemoryConfig.WINDOW_TOKENS)
         val spans = TranscriptWindows.bySegments(store.segments(job.sessionId), words, TranscriptWindows.wordsFor(MemoryConfig.WINDOW_OVERLAP_TOKENS))
         run.progress(JobPhase.Reading, 0, spans.size)
+        val transcript = store.currentTranscript(job.sessionId) ?: throw JobFailure("NO_TRANSCRIPT", permanent = true)
         val rows = spans.mapIndexed { i, s ->
             run.checkStop()
             val embed = run.pool.embed()
             WindowRow(i + 1, s.segFrom, s.segTo, s.text, embedFitting(embed, s.text), embed.model)
         }
-        store.replaceWindows(job.sessionId, rows)
+        store.replaceWindows(
+            job.sessionId, rows,
+            Provenance(transcript.sha256, store.currentSpeakerMap(job.sessionId)?.version ?: Provenance.NO_MAP, MemoryConfig.WINDOW_CUT_VERSION, rows.firstOrNull()?.embedModel ?: EmbeddingConfig.MODEL_ID),
+        )
         val sessions = store.sessions(job.clientId).map { it.id }
         val at = sessions.indexOf(job.sessionId)
         if (at >= 0) JobGraph.expand(queue, job, rows.size, sessions.getOrNull(at - 1), sessions.getOrNull(at + 1))
@@ -242,6 +248,8 @@ class Pipeline(
             },
         )
         val lang = language(job)
+        val transcriptSha = store.currentTranscript(sid)?.sha256.orEmpty()
+        val speakerMapVersion = store.currentSpeakerMap(sid)?.version ?: Provenance.NO_MAP
         val activeFacts = store.factEmbeddings(job.clientId).filter { it.first.sessionId != sid && it.first.category.isNotBlank() }
         val activeCentroids = activeFacts.groupBy { it.first.category }
             .mapValues { (_, pairs) -> com.therapylocal.app.facts.CategoryClusterer.centroid(pairs.map { it.second }) }
@@ -260,7 +268,7 @@ class Pipeline(
                 )
                 NewFact(
                     job.clientId, sid, c.fact.heading, c.fact.content, c.fact.evidence,
-                    c.fact.segIdx, c.vec, model, promptVersion,
+                    c.fact.segIdx, c.vec, Provenance(transcriptSha, speakerMapVersion, promptVersion, model),
                     scope = c.fact.scope,
                     category = resolvedCategory,
                 )

@@ -2,10 +2,10 @@
 
 A journal that remembers for you, on the phone, with Gemma 4 (E2B or E4B, LiteRT-LM) and EmbeddingGemma. Each client has a list of facts: a **heading** (about 6 words) and **content** (1-3 short factual sentences, no interpretation or advice). Every fact keeps a verbatim quote and the transcript segment it came from, so tapping it shows the conversation around it, plus every later passage, in any session, where it came up again. The app gives no insights and writes no summaries. The app shows only the facts and each session's full transcript.
 
-Facts are append-only: a fact that changes over time is not updated.
+Facts are append-only: a fact that changes over time is not updated. A stale fact is superseded by a rebuild, never edited ([AD-10](AD/AD-10.md)).
 
 ## One database
-Everything lives in `mind.db` (SQLCipher, see [SECURITY.md](SECURITY.md)), opened once per process by `MindStore.get` after unlock, with WAL and `foreign_keys=ON`. Every foreign key cascades on delete. Opening it deletes the legacy `recordings.db` and `memory.db`; their data is not migrated.
+Everything lives in `mind.db` (SQLCipher, see [SECURITY.md](SECURITY.md)), opened once per process by `MindStore.get` after unlock, with WAL and `foreign_keys=ON`. Every foreign key cascades on delete. There are no schema migrations: a database of another schema version is wiped and recreated ([AD-11](AD/AD-11.md)).
 
 | Table | Holds |
 |---|---|
@@ -13,14 +13,17 @@ Everything lives in `mind.db` (SQLCipher, see [SECURITY.md](SECURITY.md)), opene
 | `sessions(id, client_id, started_at, ended_at)` | |
 | `recordings(id, session_id, started_at, engine, model, chunk_seconds)` | A recording until its session is processed |
 | `chunks(recording_id, idx, start_ms, end_ms, overlap_ms, text)` | Raw speech-recognition output per audio chunk; `text` is empty until transcribed |
-| `segments(session_id, idx, start_ms, end_ms, text)` | The session's transcript with timestamps, derived from `chunks` (rebuilt whole) |
-| `windows(session_id, idx, seg_from, seg_to, text, embedding, embed_model)` | About 1000-token windows over the segments, for extraction and search |
-| `facts(id, client_id, session_id, heading, content, evidence, seg_idx, embedding, llm_model, prompt_version, created_at)` | The fact's first occurrence. `embedding` is of `DOC_PREFIX + heading + ". " + content`. `llm_model` and `prompt_version` are for debugging and never shown |
+| `transcripts(session_id, version, sha256, recording_id, audio_sha256, created_at)` | The raw transcript as append-only versions: `sha256` is the hash of the segments, `audio_sha256` the hash of the audio they came from ([AD-10](AD/AD-10.md)) |
+| `segments(session_id, version, idx, start_ms, end_ms, text, speaker)` | The segments of one transcript version; the current transcript is the session's highest version. Derived from `chunks` or the diarized turns |
+| `windows(session_id, idx, seg_from, seg_to, text, embedding, embed_model, prov_*, stale)` | About 1000-token windows over the segments, for extraction and search |
+| `facts(id, client_id, session_id, heading, content, evidence, seg_idx, embedding, created_at, prov_*, stale)` | The fact's first occurrence. `embedding` is of `DOC_PREFIX + heading + ". " + content`. The provenance (`prov_*`) and `stale` are for the rebuild and never shown |
 | `mentions(id, fact_id, session_id, evidence, seg_idx, created_at)` | A later session where the fact came up again (never the fact's own session) |
 | `extract_cache(session_id, idx, key, json)` | Extraction result per window, keyed by prompt version and model |
 | `review_cache(session_id, cand_key, verdict)` | The LLM's duplicate verdict per candidate |
 | `jobs(id, kind, session_id, recording_id, ref, status, attempts, max_attempts, error_code, created_at, updated_at)` | The job queue. `error_code` is a short code, never raw error text |
 | `job_deps(job_id, depends_on)` | Job dependencies |
+
+`windows` and `facts` (and a session summary later) carry the same provenance columns `prov_transcript_sha`, `prov_speaker_map_version`, `prov_prompt_version`, `prov_model` and the flag `stale` (`Provenance`, `MindStore.refreshStale`).
 
 Deleting a client removes everything of it, jobs included. Deleting a session removes its rows; a fact first seen in it moves to its next mention (D2).
 
@@ -31,13 +34,13 @@ All processing runs as jobs in `mind.db`, so it survives a crash or a lock (`job
 transcribe(recording) -> window(session) -> extract(session, 1..n) -> commit(session) -> cleanup(recording)
 ```
 
-1. **transcribe** fills in the chunks that have no text yet, with Canary 1B v2, the only speech recogniser ([AD-02](AD/AD-02.md)). `SegmentBuilder` then rebuilds the segments from the overlapping chunks, keeping their timestamps.
+1. **transcribe** fills in the chunks that have no text yet, with Canary 1B v2, the only speech recogniser ([AD-02](AD/AD-02.md)). `SegmentBuilder` then builds the segments from the overlapping chunks, keeping their timestamps, and `appendTranscript` stores them as the next transcript version with the hash of the audio (the same content again writes nothing).
 2. **window** cuts the segments into windows (1000 tokens, 50 overlap, estimated at 1.4 tokens per word), embeds them with `DOC_PREFIX` and adds the rest of the graph. A window over the embedder's limit is embedded in halves and averaged.
 3. **extract(i)** asks Gemma for the facts of window *i*: one JSON object per line, twice, then a constrained schema as a last resort. A fact is kept only if its evidence quote occurs in the window; the quote is mapped to the segment of its first word.
 4. **commit** has two phases. Phase A, outside any transaction, is `CommitPlanner`: for each candidate in order, the nearest facts of the client's earlier sessions with cosine at least 0.6 are shown to Gemma, which answers whether it is a duplicate. No neighbour above the floor, or an unreadable reply twice, means a new fact. A candidate repeating a fact of an earlier session becomes a mention; one repeating a fact this session already adds is dropped. Phase B is one short transaction that replaces the session's facts and mentions with the plan.
-5. **cleanup** deletes the encrypted audio (`PendingAudio`) and the recording row; its chunks go with it, the segments stay. Audio is deleted only here, after everything else is stored.
+5. **cleanup** moves the encrypted audio (`PendingAudio`) to `retained/<session>/<recording>` and deletes the recording row; its chunks go with it, the transcript versions stay. The retained audio is deleted after `PendingAudio.RETENTION_DAYS` (7) days, or at once with its session, its client or a vault erase ([AD-10](AD/AD-10.md)). Audio leaves the pending folder only here, after everything else is stored.
 
-Every handler can run again and ends in the same state: results are written whole (delete, then insert) and LLM answers are cached under the prompt version (a short hash of the resolved prompt text) and the model.
+Every handler can run again and ends in the same state: derived results are written whole (superseded: old generation out, new one in, one transaction) and the transcript only grows by a version when its content changed and LLM answers are cached under the prompt version (a short hash of the resolved prompt text) and the model.
 
 Queue rules (`JobQueue`):
 - A job is claimed only when all its dependencies are done and its kind may run now: the models it needs are downloaded (`ModelSetup.isReady`) and no session is recording (D3).
@@ -55,6 +58,8 @@ Queue rules (`JobQueue`):
 - **D5. The CI emulator runs debug builds with an `x86_64` ABI added** (debug and androidTest only). The end-to-end tests use fake `Llm`, `Embed` and `Asr` ports and never load the LiteRT or sherpa native libraries.
 - **D6. Model inference runs in separate processes** (`:live` for live cues and search, `:batch` for the session pipeline). They are stateless model servers; the queue, vault, database, ladder and guard stay in the app process, so a model crash never closes the app. Full record: [AD-01](AD/AD-01.md).
 - **D7. One model per role: Canary 1B v2 is the only speech recogniser** (chosen for its Czech). Gemma 4 is text only and processes the transcribed chunks, and EmbeddingGemma 2 still embeds audio. Whisper, Parakeet and Gemma speech recognition are removed. Full record: [AD-02](AD/AD-02.md).
+- **D9. Inputs are immutable and versioned; every derived item records what it came from.** The raw transcript is append-only by version and content hash, audio is referenced by hash while it is retained (7 days), the speaker map is append-only. Windows and facts carry transcript hash, speaker-map version, prompt version and model and a stored stale flag; a rebuild supersedes stale items in client and session order. One vault key and one database stay. Full record: [AD-10](AD/AD-10.md) (proposed).
+- **D10. No migrations and no compatibility code before the first release.** The schema is one create path; a database of another version is wiped. Full record: [AD-11](AD/AD-11.md) (proposed).
 - **D8. An engine host that crashes exits quietly** (native signal handler `_exit(100 + signal)`, Java crash `halt(13)`), so the system shows no "keeps stopping" dialog and writes no tombstone for a background host. Full record: [AD-04](AD/AD-04.md).
 - **D9. The NPU runs only on SoCs validated on our own hardware** (each recorded in the model catalogue, `ModelRegistry.BACKEND_BUILDS`); every other device uses the GPU, then the CPU. Full record: [AD-09](AD/AD-09.md).
 

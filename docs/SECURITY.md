@@ -25,13 +25,16 @@ Everything the app stores about patients is encrypted under one data key (DEK) t
 | Data | Where | How |
 |---|---|---|
 | `mind.db`, the only database (clients, sessions, transcripts with timestamps, windows and embeddings, facts, mentions and evidence quotes, LLM caches, the job queue) | internal `databases/` | SQLCipher (AES-256), DEK as raw key, incl. journal/WAL |
-| Audio of a recording until its session is processed | internal `files/memory/audio/<recording>/<idx>.pcm` | SecureFile: magic `TLV1` + AES-256-GCM, AAD = file name, atomic write. Deleted by the session's last job (`cleanup`) |
+| Audio of a recording until its session is processed | internal `files/memory/audio/<recording>/<idx>.pcm` | SecureFile: magic `TLV1` + AES-256-GCM, AAD = file name, atomic write. Moved by the session's last job (`cleanup`) to `retained/` |
+| Audio of a processed recording, kept for 7 days | internal `files/memory/retained/<session>/<recording>/<idx>.pcm` | Same SecureFile format. Deleted after `PendingAudio.RETENTION_DAYS` = 7 days, at once with its session or client, and by a vault erase. Debug and qa builds also write a decrypted wav to external storage (`DebugAudio`); the release build has no such code ([AD-10](AD/AD-10.md)) |
 | Log fields `client` and `session` | `logs/tl.log` | written as an 8-hex HMAC pseudonym keyed by the DEK (`locked` while locked) |
 | Foreground notification | lock screen | private visibility; the public version only reads "Building client memory" |
 
 There are no transcript, cache or queue files: all of that is in `mind.db`. Job errors are stored as short codes, never as exception messages (they can quote patient text). Live-cue and search audio stays in RAM and is never written.
 
 Opening the database or a patient file while locked fails closed (`VaultLockedException`).
+
+**Deleting a patient is a row delete.** One DEK covers the whole database ([AD-10](AD/AD-10.md) records why per-patient keys were not chosen). SQLite does not wipe freed pages and the write-ahead log keeps frames until a checkpoint, so after a delete the removed rows can remain in `mind.db` and `mind.db-wal`, encrypted under the same DEK, until the space is reused. Whoever holds the DEK can read them; an attacker without it cannot. This is accepted; `PRAGMA secure_delete` and a checkpoint after a delete are the cheap mitigations still to be tried on a QA device.
 
 ## What is NOT encrypted, and why
 

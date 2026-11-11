@@ -13,3 +13,5 @@ Each record is immutable once merged (see [`AGENTS.md`](../../AGENTS.md); CI job
 | [AD-07](AD-07.md) | The diarizer always looks for exactly two speakers (therapist and patient) | 2026-11-09 00:12 CET | Martin Hajný (@hajnina) | Accepted |
 | [AD-08](AD-08.md) | The GPU and NPU are tried every time: no free-memory gate; only a missing runtime library or the guard skips a backend | 2026-11-11 00:01 CET | Martin Hajný (@hajnina) | Accepted |
 | [AD-09](AD-09.md) | The NPU runs only on SoCs validated on our own hardware, through the model catalogue; otherwise GPU, then CPU | 2026-11-07 02:08 CET | Martin Hajný (@hajnina) | Accepted; phone verification pending |
+| [AD-10](AD-10.md) | Immutable versioned inputs (transcript by hash, audio by hash, speaker map) and one provenance mechanism with a stored stale flag on every derived item; one vault key, one database | 2026-11-11 16:50 CET | Martin Hajný (@hajnina) | Accepted |
+| [AD-11](AD-11.md) | No migrations and no compatibility code before the first release; a database of another schema version is wiped | 2026-11-11 16:50 CET | Martin Hajný (@hajnina) | Accepted |

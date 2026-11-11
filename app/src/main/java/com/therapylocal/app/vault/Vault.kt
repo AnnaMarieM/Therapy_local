@@ -245,7 +245,7 @@ object Vault {
         keyFile(context).delete()
         File(keyFile(context).parentFile, "$KEY_FILE.tmp").delete()
         runCatching { keyStore().deleteEntry(BIOMETRIC_ALIAS) }
-        (MindStore.LEGACY + MindStore.NAME).forEach { context.deleteDatabase(it) }
+        context.deleteDatabase(MindStore.NAME)
         MemoryFiles.secureRoot(context).deleteRecursively()
         com.therapylocal.app.data.DebugAudio.deleteAll(context)
         File(MemoryFiles.devRoot(context), "in").deleteRecursively()

@@ -68,7 +68,7 @@ class LayoutStabilityTest {
         repo = ClientRepository(context) { store }
         store.createClient(CLIENT, "Ana")
         store.createSession(SESSION, CLIENT, 1_767_225_600_000L)
-        store.replaceSegments(SESSION, listOf(SegmentRow(0, 0, 5_000, "We talked about the move.")))
+        store.appendTranscript(SESSION, listOf(SegmentRow(0, 0, 5_000, "We talked about the move.")))
     }
 
     @After

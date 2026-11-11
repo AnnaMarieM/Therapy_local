@@ -19,8 +19,6 @@ import com.therapylocal.app.ui.data.ClientRepository
 import com.therapylocal.app.ui.design.PaperTheme
 import com.therapylocal.app.ui.motion.rememberSheetState
 import com.therapylocal.app.data.MindStore
-import net.zetetic.database.sqlcipher.SQLiteDatabase
-import net.zetetic.database.sqlcipher.SQLiteOpenHelper
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -30,7 +28,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 /**
- * Per-client transcription language, on the device: the stored language and its migration, the language the transcriber is asked for,
+ * Per-client transcription language, on the device: the stored language, the language the transcriber is asked for,
  * the Canary download the settings require, and the pickers. Nothing here downloads a model or loads a native speech library.
  */
 @RunWith(AndroidJUnit4::class)
@@ -52,7 +50,6 @@ class ClientLanguageTest {
     @After
     fun cleanUp() {
         harnesses.forEach { it.close() }
-        context.deleteDatabase(MIGRATION_DB)
         prefs.edit().apply {
             KEYS.forEach { k ->
                 when (val v = savedPrefs[k]) {
@@ -78,30 +75,6 @@ class ClientLanguageTest {
 
         h.store.setClientLanguage("tom", "cs")
         assertEquals("cs", h.store.clientLanguage("tom"))
-    }
-
-    @Test
-    fun aDatabaseFromBeforeLanguagesOpensWithEveryClientEnglish() {
-        context.deleteDatabase(MIGRATION_DB)
-        object : SQLiteOpenHelper(context, MIGRATION_DB, "test password".toByteArray(), null, 1, 0, null, null, true) {
-            override fun onCreate(db: SQLiteDatabase) {
-                db.execSQL("CREATE TABLE clients(id TEXT PRIMARY KEY, name TEXT NOT NULL, created_at INTEGER NOT NULL)")
-                db.execSQL("INSERT INTO clients VALUES('ana', 'Ana', 1)")
-                // Every real v1 database already had its segments table, which the v4 migration alters.
-                db.execSQL("CREATE TABLE segments(session_id TEXT NOT NULL, idx INTEGER NOT NULL, text TEXT NOT NULL)")
-            }
-
-            override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {}
-        }.also { it.writableDatabase.close() }
-
-        val store = MindStore(context, MIGRATION_DB, "test password".toByteArray())
-        try {
-            assertEquals("en", store.clientLanguage("ana"))
-            store.createClient("jana", "Jana", "cs")
-            assertEquals(listOf("ana" to "en", "jana" to "cs"), store.clients().map { it.id to it.language })
-        } finally {
-            store.close()
-        }
     }
 
     @Test
@@ -175,7 +148,6 @@ class ClientLanguageTest {
     }
 
     private companion object {
-        const val MIGRATION_DB = "lang-migration.db"
         val KEYS = listOf("default_language", "client_languages", "engine", "whisper_size")
     }
 }

@@ -4,6 +4,7 @@ import com.therapylocal.app.asr.SpeakerDiarizer
 import com.therapylocal.app.audio.AudioChunk
 import com.therapylocal.app.config.ChunkConfig
 import com.therapylocal.app.config.MemoryConfig
+import com.therapylocal.app.data.AudioHash
 import com.therapylocal.app.data.ChunkAudio
 import com.therapylocal.app.data.ChunkRow
 import com.therapylocal.app.data.Piece
@@ -30,7 +31,8 @@ interface TranscribeStore {
     fun turns(recordingId: Long): List<TurnRow>
     fun replaceTurns(recordingId: Long, turns: List<TurnRow>)
     fun setTurnText(recordingId: Long, idx: Int, text: String)
-    fun replaceSegments(session: String, segments: List<SegmentRow>)
+    /** Stores the next transcript version (docs/AD/AD-10.md); the same content as the current one writes nothing. */
+    fun appendTranscript(session: String, segments: List<SegmentRow>, recordingId: Long?, audioSha: String?)
 }
 
 /**
@@ -68,6 +70,15 @@ class TranscribeFlow(
         return Outcome(reason == null, reason)
     }
 
+    /** The hash of the audio this transcript is made from, null when it cannot be read: it is a reference to the input, never a reason to fail. */
+    private fun audioHash(rid: Long): String? = try {
+        AudioHash.of(chunkFiles(rid)) { idx -> chunk(rid, idx) }
+    } catch (_: IOException) {
+        null
+    } catch (_: GeneralSecurityException) {
+        null
+    }
+
     private fun readChunk(rid: Long, idx: Int): AudioChunk = try {
         chunk(rid, idx)
     } catch (_: IOException) {
@@ -88,7 +99,7 @@ class TranscribeFlow(
             run.progress(JobPhase.Transcribing, i + 1, todo.size)
         }
         val chunks = store.chunks(rid)
-        if (chunks.isNotEmpty()) store.replaceSegments(session, SegmentBuilder.build(chunks))
+        if (chunks.isNotEmpty()) store.appendTranscript(session, SegmentBuilder.build(chunks), rid, audioHash(rid))
     }
 
     /** The turns without text, each cut from the saved chunks (the whole recording is not held while Canary is loaded), then the utterances. */
@@ -100,7 +111,7 @@ class TranscribeFlow(
             store.setTurnText(rid, t.idx, run.pool.asr(language).transcribe(audio.slice(t.startMs, t.endMs)).trim())
             run.progress(JobPhase.Transcribing, i + 1, pending.size)
         }
-        store.replaceSegments(session, UtteranceBuilder.build(store.turns(rid).map { Piece(it.startMs, it.endMs, it.text.orEmpty(), it.speaker) }))
+        store.appendTranscript(session, UtteranceBuilder.build(store.turns(rid).map { Piece(it.startMs, it.endMs, it.text.orEmpty(), it.speaker) }), rid, audioHash(rid))
     }
 
     /**

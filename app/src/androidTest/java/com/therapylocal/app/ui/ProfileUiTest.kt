@@ -28,6 +28,7 @@ import com.therapylocal.app.config.LiveCueSettings
 import com.therapylocal.app.data.MindStore
 import com.therapylocal.app.data.NewFact
 import com.therapylocal.app.data.NewMention
+import com.therapylocal.app.data.Provenance
 import com.therapylocal.app.data.SegmentRow
 import com.therapylocal.app.data.WindowRow
 import com.therapylocal.app.memory.Cue
@@ -79,10 +80,10 @@ class ProfileUiTest {
         store.createClient(CLIENT, "Ana")
         store.createSession(S1, CLIENT, DAY_1)
         store.createSession(S2, CLIENT, DAY_1 + WEEK)
-        store.replaceSegments(S1, LINES_1.mapIndexed { i, t -> SegmentRow(i, i * 5_000L, i * 5_000L + 5_000, t) })
-        store.replaceSegments(S2, LINES_2.mapIndexed { i, t -> SegmentRow(i, i * 5_000L, i * 5_000L + 5_000, t) })
-        store.replaceWindows(S1, listOf(WindowRow(0, 0, LINES_1.lastIndex, LINES_1.joinToString(" "), QUERY_VEC, "fake")))
-        val fact = store.insertFact(NewFact(CLIENT, S1, HEADING, CONTENT, LINES_1[3], 3, embedding = null, llmModel = "fake", promptVersion = "test"))
+        store.appendTranscript(S1, LINES_1.mapIndexed { i, t -> SegmentRow(i, i * 5_000L, i * 5_000L + 5_000, t) })
+        store.appendTranscript(S2, LINES_2.mapIndexed { i, t -> SegmentRow(i, i * 5_000L, i * 5_000L + 5_000, t) })
+        store.replaceWindows(S1, listOf(WindowRow(0, 0, LINES_1.lastIndex, LINES_1.joinToString(" "), QUERY_VEC, "fake")), Provenance("", Provenance.NO_MAP, "t", "fake"))
+        val fact = store.insertFact(NewFact(CLIENT, S1, HEADING, CONTENT, LINES_1[3], 3, embedding = null, provenance = Provenance("", Provenance.NO_MAP, "test", "fake")))
         store.addMention(NewMention(fact, S2, LINES_2[2], 2))
     }
 

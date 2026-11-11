@@ -21,7 +21,7 @@ data class RecordingRow(val id: Long, val sessionId: String?, val startedAt: Lon
 /** Raw speech-recognition output of one chunk; [text] is null until it has been transcribed. It shares [overlapMs] with the previous chunk. */
 data class ChunkRow(val recordingId: Long, val idx: Int, val startMs: Long, val endMs: Long, val overlapMs: Long, val text: String?)
 
-/** One utterance. [speaker] is the raw diarization id ("S0", "S1", ...); null when the recording was not diarized (or is older than diarization). */
+/** One utterance. [speaker] is the raw diarization id ("S0", "S1", ...); null when the recording was not diarized. */
 data class SegmentRow(val idx: Int, val startMs: Long, val endMs: Long, val text: String, val speaker: String? = null)
 
 /** One stretch of one speaker found by diarization, kept until it is transcribed; [text] is null until then. */
@@ -35,6 +35,7 @@ data class WindowRow(val idx: Int, val segFrom: Int, val segTo: Int, val text: S
 
 data class WindowRef(val sessionId: String, val idx: Int, val segFrom: Int, val segTo: Int, val text: String)
 
+/** [provenance] is what the fact was extracted and committed from. */
 data class NewFact(
     val clientId: String,
     val sessionId: String,
@@ -43,15 +44,14 @@ data class NewFact(
     val evidence: String,
     val segIdx: Int,
     val embedding: FloatArray?,
-    val llmModel: String,
-    val promptVersion: String,
+    val provenance: Provenance,
     val scope: String = "profile",
     val category: String = "",
 )
 
 data class NewMention(val factId: Long, val sessionId: String, val evidence: String, val segIdx: Int)
 
-/** A fact as the app reads it. Provenance (model, prompt version) is never read back: it is for debugging the database only. */
+/** A fact as the app reads it. */
 data class FactRow(
     val id: Long,
     val clientId: String,
@@ -108,31 +108,15 @@ class MindStore(context: Context, name: String, password: ByteArray) :
         SCHEMA.forEach(db::execSQL)
     }
 
-    override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-        if (oldVersion < 2) db.execSQL("ALTER TABLE clients ADD COLUMN language TEXT NOT NULL DEFAULT 'en'")
-        if (oldVersion < 3) {
-            db.execSQL("ALTER TABLE clients ADD COLUMN first_name TEXT NOT NULL DEFAULT ''")
-            db.execSQL("ALTER TABLE clients ADD COLUMN last_name TEXT NOT NULL DEFAULT ''")
-            val cursor = db.rawQuery("SELECT id, name FROM clients", null)
-            val updates = mutableListOf<Triple<String, String, String>>()
-            while (cursor.moveToNext()) {
-                val id = cursor.getString(0)
-                val name = cursor.getString(1)
-                val parts = name.trim().split(Regex("\\s+"), limit = 2)
-                val first = parts.getOrNull(0) ?: ""
-                val last = parts.getOrNull(1)?.trimEnd('.') ?: ""
-                updates.add(Triple(id, first, last))
-            }
-            cursor.close()
-            for ((id, first, last) in updates) {
-                db.execSQL("UPDATE clients SET first_name = ?, last_name = ? WHERE id = ?", arrayOf(first, last, id))
-            }
-        }
-        if (oldVersion < 4) {
-            db.execSQL("ALTER TABLE segments ADD COLUMN speaker TEXT")
-            db.execSQL(DIARIZATION_TURNS_SQL)
-            db.execSQL(SPEAKER_MAPS_SQL)
-        }
+    /** Any other schema version is a test database: it is wiped and recreated (AD-11). */
+    override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) = recreate(db)
+
+    override fun onDowngrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) = recreate(db)
+
+    private fun recreate(db: SQLiteDatabase) {
+        val tables = query(db, "SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE 'android_%'") { it.getString(0) }
+        tables.forEach { db.execSQL("DROP TABLE IF EXISTS $it") }
+        onCreate(db)
     }
 
     // ---- clients and sessions ----------------------------------------------------------------------------------
@@ -316,26 +300,67 @@ class MindStore(context: Context, name: String, password: ByteArray) :
 
     // ---- segments and windows ------------------------------------------------------------------------------------
 
-    fun replaceSegments(session: String, segments: List<SegmentRow>) = tx { db ->
-        db.delete("segments", "session_id = ?", arrayOf(session))
+    /**
+     * Stores [segments] as the next transcript version of [session] and returns it; content equal to the current version, by hash, writes
+     * nothing and returns the current one. Versions are never changed (AD-10). [audioSha] is [AudioHash.of] the audio the text came from.
+     */
+    fun appendTranscript(session: String, segments: List<SegmentRow>, recordingId: Long? = null, audioSha: String? = null): TranscriptVersion = tx { db ->
+        val sha = TranscriptHash.of(segments)
+        val head = currentTranscript(session)
+        if (head?.sha256 == sha) return@tx head
+        val v = TranscriptVersion(session, (head?.version ?: 0) + 1, sha, recordingId, audioSha, System.currentTimeMillis())
+        db.insertOrThrow("transcripts", null, ContentValues().apply {
+            put("session_id", session); put("version", v.version); put("sha256", sha); put("created_at", v.createdAt)
+            if (recordingId != null) put("recording_id", recordingId)
+            if (audioSha != null) put("audio_sha256", audioSha)
+        })
         for (s in segments) {
-            db.insertOrThrow("segments", null, ContentValues().apply { put("session_id", session); put("idx", s.idx); put("start_ms", s.startMs); put("end_ms", s.endMs); put("text", s.text); if (s.speaker != null) put("speaker", s.speaker) })
+            db.insertOrThrow("segments", null, ContentValues().apply {
+                put("session_id", session); put("version", v.version); put("idx", s.idx); put("start_ms", s.startMs); put("end_ms", s.endMs); put("text", s.text)
+                if (s.speaker != null) put("speaker", s.speaker)
+            })
         }
+        v
     }
 
+    /** The latest transcript version, or null before the session was transcribed. */
+    fun currentTranscript(session: String): TranscriptVersion? =
+        query("SELECT session_id, version, sha256, recording_id, audio_sha256, created_at FROM transcripts WHERE session_id = ? ORDER BY version DESC LIMIT 1", session) {
+            TranscriptVersion(it.getString(0), it.getInt(1), it.getString(2), if (it.isNull(3)) null else it.getLong(3), it.getStringOrNull(4), it.getLong(5))
+        }.firstOrNull()
+
+    /** The segments of the current transcript version. */
     fun segments(session: String): List<SegmentRow> =
-        query("SELECT idx, start_ms, end_ms, text, speaker FROM segments WHERE session_id = ? ORDER BY idx", session) { SegmentRow(it.getInt(0), it.getLong(1), it.getLong(2), it.getString(3), it.getStringOrNull(4)) }
+        query("SELECT s.idx, s.start_ms, s.end_ms, s.text, s.speaker FROM segments s WHERE s.session_id = ? AND s.version = $CURRENT_VERSION ORDER BY s.idx", session) { segmentOf(it) }
+
+    /** The segments of one stored [version] of the transcript. */
+    fun segments(session: String, version: Int): List<SegmentRow> =
+        query("SELECT idx, start_ms, end_ms, text, speaker FROM segments WHERE session_id = ? AND version = ? ORDER BY idx", session, version.toString()) { segmentOf(it) }
 
     /** How far the transcript of [session] reaches, 0 before it is transcribed. */
-    fun transcriptLengthMs(session: String): Long = query("SELECT COALESCE(MAX(end_ms), 0) FROM segments WHERE session_id = ?", session) { it.getLong(0) }.first()
+    fun transcriptLengthMs(session: String): Long =
+        query("SELECT COALESCE(MAX(s.end_ms), 0) FROM segments s WHERE s.session_id = ? AND s.version = $CURRENT_VERSION", session) { it.getLong(0) }.first()
 
     /** Segments [seg] - [r] .. [seg] + [r] of [session], in order. */
     fun segmentsAround(session: String, seg: Int, r: Int): List<SegmentRow> =
-        query("SELECT idx, start_ms, end_ms, text, speaker FROM segments WHERE session_id = ? AND idx BETWEEN ? AND ? ORDER BY idx", session, (seg - r).toString(), (seg + r).toString()) {
-            SegmentRow(it.getInt(0), it.getLong(1), it.getLong(2), it.getString(3), it.getStringOrNull(4))
-        }
+        query("SELECT s.idx, s.start_ms, s.end_ms, s.text, s.speaker FROM segments s WHERE s.session_id = ? AND s.version = $CURRENT_VERSION AND s.idx BETWEEN ? AND ? ORDER BY s.idx", session, (seg - r).toString(), (seg + r).toString()) { segmentOf(it) }
 
-    fun replaceWindows(session: String, windows: List<WindowRow>) = tx { db ->
+    /**
+     * Sets the stale flag of the session's rows in [table] ("windows" or "facts"): stale when made from another transcript than the current one,
+     * or with another prompt or model than [promptVersion] and [model] (AD-10). A rebuild writes new rows, which start out not stale.
+     */
+    fun refreshStale(session: String, table: String, promptVersion: String, model: String) {
+        require(table == "windows" || table == "facts")
+        writableDatabase.execSQL(
+            "UPDATE $table SET stale = (prov_transcript_sha <> ? OR prov_prompt_version <> ? OR prov_model <> ?) WHERE session_id = ?",
+            arrayOf(currentTranscript(session)?.sha256.orEmpty(), promptVersion, model, session),
+        )
+    }
+
+    fun hasStale(session: String): Boolean =
+        query("SELECT 1 FROM windows WHERE session_id = ? AND stale = 1 UNION ALL SELECT 1 FROM facts WHERE session_id = ? AND stale = 1 LIMIT 1", session, session) { true }.isNotEmpty()
+
+    fun replaceWindows(session: String, windows: List<WindowRow>, provenance: Provenance) = tx { db ->
         db.delete("windows", "session_id = ?", arrayOf(session))
         for (w in windows) {
             db.insertOrThrow(
@@ -343,6 +368,7 @@ class MindStore(context: Context, name: String, password: ByteArray) :
                 ContentValues().apply {
                     put("session_id", session); put("idx", w.idx); put("seg_from", w.segFrom); put("seg_to", w.segTo); put("text", w.text)
                     put("embedding", VectorMath.toBlob(w.embedding)); put("embed_model", w.embedModel)
+                    provenance.put(this)
                 },
             )
         }
@@ -372,7 +398,10 @@ class MindStore(context: Context, name: String, password: ByteArray) :
     /** False if this fact already has a mention at that place. */
     fun addMention(m: NewMention): Boolean = addMention(writableDatabase, m)
 
-    /** In one transaction: the facts and mentions of [session] are replaced by [facts] and [mentions] (the mentions of its old facts go with them). */
+    /**
+     * In one transaction: the facts and mentions of [session] are superseded by [facts] and [mentions] (AD-10): a fact is never edited, the
+     * old generation goes with its mentions and the new one takes its place.
+     */
     fun replaceSessionFacts(session: String, facts: List<NewFact>, mentions: List<NewMention>) = tx { db ->
         db.delete("mentions", "session_id = ?", arrayOf(session))
         db.delete("facts", "session_id = ?", arrayOf(session))
@@ -385,8 +414,9 @@ class MindStore(context: Context, name: String, password: ByteArray) :
         ContentValues().apply {
             put("client_id", f.clientId); put("session_id", f.sessionId); put("heading", f.heading); put("content", f.content); put("evidence", f.evidence)
             put("seg_idx", f.segIdx); if (f.embedding != null) put("embedding", VectorMath.toBlob(f.embedding))
-            put("llm_model", f.llmModel); put("prompt_version", f.promptVersion); put("created_at", System.currentTimeMillis())
+            put("created_at", System.currentTimeMillis())
             put("scope", f.scope); put("category", f.category)
+            f.provenance.put(this)
         },
     )
 
@@ -508,11 +538,15 @@ class MindStore(context: Context, name: String, password: ByteArray) :
 
     // ---- helpers -------------------------------------------------------------------------------------------------
 
-    private fun <T> query(sql: String, vararg args: String, map: (Cursor) -> T): List<T> {
+    private fun <T> query(sql: String, vararg args: String, map: (Cursor) -> T): List<T> = query(readableDatabase, sql, *args, map = map)
+
+    private fun <T> query(db: SQLiteDatabase, sql: String, vararg args: String, map: (Cursor) -> T): List<T> {
         val out = ArrayList<T>()
-        readableDatabase.rawQuery(sql, args.takeIf { it.isNotEmpty() }).use { c -> while (c.moveToNext()) out += map(c) }
+        db.rawQuery(sql, args.takeIf { it.isNotEmpty() }).use { c -> while (c.moveToNext()) out += map(c) }
         return out
     }
+
+    private fun segmentOf(c: Cursor) = SegmentRow(c.getInt(0), c.getLong(1), c.getLong(2), c.getString(3), c.getStringOrNull(4))
 
     private fun <T> tx(block: (SQLiteDatabase) -> T): T {
         val db = writableDatabase
@@ -534,12 +568,10 @@ class MindStore(context: Context, name: String, password: ByteArray) :
     companion object {
         const val NAME = "mind.db"
 
-        /** The two databases before this one. Their data is not migrated. */
-        val LEGACY = listOf("recordings.db", "memory.db")
+        /** Bumped whenever the schema changes; there are no migrations, a database of another version is wiped (AD-11). */
+        private const val VERSION = 5
 
-        private const val VERSION = 4
-
-        // Shared by onCreate and the version 4 upgrade. Both cascade: deleting a recording or a session removes them.
+        // Both cascade: deleting a recording or a session removes them.
         private const val DIARIZATION_TURNS_SQL = """CREATE TABLE diarization_turns(
                  recording_id INTEGER NOT NULL REFERENCES recordings(id) ON DELETE CASCADE,
                  idx INTEGER NOT NULL,
@@ -557,6 +589,9 @@ class MindStore(context: Context, name: String, password: ByteArray) :
                  evidence_json TEXT NOT NULL,
                  created_at INTEGER NOT NULL,
                  PRIMARY KEY(session_id, version))"""
+
+        /** The segments of a transcript are those of its session's latest version; `s` is the segments table. */
+        private const val CURRENT_VERSION = "(SELECT MAX(t.version) FROM transcripts t WHERE t.session_id = s.session_id)"
 
         private const val FACT_COLUMNS =
             "SELECT f.id, f.client_id, f.session_id, f.heading, f.content, f.evidence, f.seg_idx, f.created_at, (SELECT COUNT(*) FROM mentions m WHERE m.fact_id = f.id), f.scope, f.category"
@@ -585,14 +620,25 @@ class MindStore(context: Context, name: String, password: ByteArray) :
                  overlap_ms INTEGER NOT NULL,
                  text TEXT,
                  PRIMARY KEY(recording_id, idx))""",
-            """CREATE TABLE segments(
+            // The raw transcript, append-only by version. recording_id has no foreign key: cleanup deletes the recording, the retained audio is found by its id.
+            """CREATE TABLE transcripts(
                  session_id TEXT NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,
+                 version INTEGER NOT NULL,
+                 sha256 TEXT NOT NULL,
+                 recording_id INTEGER,
+                 audio_sha256 TEXT,
+                 created_at INTEGER NOT NULL,
+                 PRIMARY KEY(session_id, version))""",
+            """CREATE TABLE segments(
+                 session_id TEXT NOT NULL,
+                 version INTEGER NOT NULL,
                  idx INTEGER NOT NULL,
                  start_ms INTEGER NOT NULL,
                  end_ms INTEGER NOT NULL,
                  text TEXT NOT NULL,
                  speaker TEXT,
-                 PRIMARY KEY(session_id, idx))""",
+                 PRIMARY KEY(session_id, version, idx),
+                 FOREIGN KEY(session_id, version) REFERENCES transcripts(session_id, version) ON DELETE CASCADE)""",
             """CREATE TABLE windows(
                  session_id TEXT NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,
                  idx INTEGER NOT NULL,
@@ -601,6 +647,7 @@ class MindStore(context: Context, name: String, password: ByteArray) :
                  text TEXT NOT NULL,
                  embedding BLOB NOT NULL,
                  embed_model TEXT NOT NULL,
+                 ${Provenance.COLUMNS},
                  PRIMARY KEY(session_id, idx))""",
             """CREATE TABLE facts(
                  id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -611,11 +658,10 @@ class MindStore(context: Context, name: String, password: ByteArray) :
                  evidence TEXT NOT NULL,
                  seg_idx INTEGER NOT NULL,
                  embedding BLOB,
-                 llm_model TEXT NOT NULL,
-                 prompt_version TEXT NOT NULL,
                  created_at INTEGER NOT NULL,
                  scope TEXT NOT NULL DEFAULT 'profile',
-                 category TEXT NOT NULL DEFAULT '')""",
+                 category TEXT NOT NULL DEFAULT '',
+                 ${Provenance.COLUMNS})""",
             "CREATE INDEX facts_client ON facts(client_id)",
             "CREATE INDEX facts_session ON facts(session_id)",
             """CREATE TABLE mentions(
@@ -664,10 +710,9 @@ class MindStore(context: Context, name: String, password: ByteArray) :
         @Volatile
         private var instance: MindStore? = null
 
-        /** The process-wide store, opened on first use (needs the vault unlocked). The first open also deletes the legacy databases. */
+        /** The process-wide store, opened on first use (needs the vault unlocked). */
         fun get(context: Context): MindStore = instance ?: synchronized(this) {
             instance ?: context.applicationContext.let { app ->
-                LEGACY.forEach { app.deleteDatabase(it) }
                 MindStore(app, NAME, Vault.dbPassword()).also { instance = it }
             }
         }

@@ -109,6 +109,9 @@ object MemoryConfig {
     const val WINDOW_TOKENS = 1000
     const val WINDOW_OVERLAP_TOKENS = 50
 
+    /** The cut configuration as the "prompt version" in the provenance of a window (docs/AD/AD-10.md): a change of either number makes windows stale. */
+    const val WINDOW_CUT_VERSION = "t$WINDOW_TOKENS-o$WINDOW_OVERLAP_TOKENS"
+
     const val EXTRACT_MAX_OUTPUT_TOKENS = 1600
     const val EXTRACT_TEMPERATURE = 0.1
     const val EXTRACT_TOP_K = 20

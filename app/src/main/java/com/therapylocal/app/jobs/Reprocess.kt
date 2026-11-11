@@ -1,6 +1,8 @@
 package com.therapylocal.app.jobs
 
 import android.content.Context
+import com.therapylocal.app.config.EmbeddingConfig
+import com.therapylocal.app.config.MemoryConfig
 import com.therapylocal.app.data.MindStore
 import com.therapylocal.app.facts.PromptLanguage
 import com.therapylocal.app.facts.Prompts
@@ -12,8 +14,10 @@ import com.therapylocal.app.perf.PerfStats
 import com.therapylocal.app.ui.logic.Progress
 
 /**
- * Reading sessions again from their stored transcripts, e.g. after the app language changed (the facts are written in the language of the
- * prompts). A session is stale when the facts cached for any of its windows were made with other prompts or another model than those in use now.
+ * Rebuilding what was derived from stored transcripts, e.g. after the app language or the model changed (docs/AD/AD-10.md). A session is stale
+ * when a window or fact of it is flagged stale (made from another transcript, prompt or model than now), or when the facts cached for any of
+ * its windows were made with other prompts or another model (that also covers a session whose extraction gave no fact to flag). Sessions are
+ * listed oldest first per client, the order the facts must be committed in.
  */
 object Reprocess {
     /** The [sessions] to read again (oldest first per client) and what [transcriptMs] of interview that is. */
@@ -23,7 +27,7 @@ object Reprocess {
             PerfStats.perMinute(ModelSetup.gemma(context).id)?.rereadMs(transcriptMs)?.let { (it * Progress.PADDING).toLong() }
     }
 
-    /** Sessions without open jobs whose cached facts do not match the current prompts and model. Needs the vault unlocked. */
+    /** Sessions without open jobs that need a rebuild, oldest first per client. Needs the vault unlocked. */
     fun plan(context: Context): Plan {
         val store = MindStore.get(context)
         val queue = Jobs.queue(context)
@@ -38,11 +42,13 @@ object Reprocess {
                 MemoryFiles.prompt(context, Prompts.named(Prompts.EXTRACT_SYSTEM, lang)),
                 MemoryFiles.prompt(context, Prompts.named(Prompts.EXTRACT_USER, lang)),
             )
-            for (s in store.sessions(client.id).sortedBy { it.startedAt }) {
+            for (s in store.sessions(client.id)) {
                 if (s.id in busy) continue
                 val windows = store.windows(s.id)
                 if (windows.isEmpty()) continue
-                if (windows.all { w -> store.extractCache(s.id, w.idx)?.first == "$version|$model|${Prompts.hash(w.text)}" }) continue
+                store.refreshStale(s.id, "windows", MemoryConfig.WINDOW_CUT_VERSION, EmbeddingConfig.MODEL_ID)
+                store.refreshStale(s.id, "facts", version, model)
+                if (!store.hasStale(s.id) && windows.all { w -> store.extractCache(s.id, w.idx)?.first == "$version|$model|${Prompts.hash(w.text)}" }) continue
                 sessions += s.id
                 ms += store.transcriptLengthMs(s.id)
             }
