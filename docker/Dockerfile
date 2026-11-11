@@ -19,6 +19,18 @@ ENV ANDROID_HOME=/opt/android-sdk \
     LANG=C.UTF-8 \
     TZ=UTC
 
+# apt reads from a list of mirrors instead of only Ubuntu's own hosts: the mirror method moves on to the next one when a host fails, so an
+# outage of archive.ubuntu.com, security.ubuntu.com or ports.ubuntu.com no longer fails every build (Canonical's outage of 2026-11-11 did).
+# Every mirror serves the same signed archive, so apt still verifies each index against Ubuntu's key. Retries cover short network blips.
+RUN . /etc/os-release \
+    && if [ "$(dpkg --print-architecture)" = amd64 ]; then \
+         printf '%s\n' http://archive.ubuntu.com/ubuntu http://azure.archive.ubuntu.com/ubuntu http://mirrors.edge.kernel.org/ubuntu > /etc/apt/mirrors.txt; \
+       else \
+         printf '%s\n' http://ports.ubuntu.com/ubuntu-ports http://mirrors.ocf.berkeley.edu/ubuntu-ports > /etc/apt/mirrors.txt; \
+       fi \
+    && printf 'deb mirror+file:/etc/apt/mirrors.txt %s main restricted universe multiverse\n' "$VERSION_CODENAME" "$VERSION_CODENAME-updates" "$VERSION_CODENAME-security" > /etc/apt/sources.list \
+    && printf '%s\n' 'Acquire::Retries "5";' 'Acquire::http::Timeout "30";' > /etc/apt/apt.conf.d/80-retries
+
 RUN apt-get update \
     && apt-get install -y --no-install-recommends unzip curl ca-certificates \
     && if [ "$(uname -m)" != x86_64 ]; then apt-get install -y --no-install-recommends qemu-user-static libc6-amd64-cross libgcc-s1-amd64-cross libstdc++6-amd64-cross; fi \
