@@ -19,7 +19,7 @@ import kotlin.concurrent.thread
 
 /**
  * QA build only. Loads one Gemma build and writes exact memory counters after every step to files/out/memprobe_<tag>.json:
- *   Add --ez force true to skip the free-memory gate and the guard blocks and try only the first backend (the engine process may die; main must not).
+ *   Add --ez force true to skip the guard blocks and try only the first backend (the engine process may die; main must not).
  *   adb shell am start -n com.therapylocal.app.qa/com.therapylocal.app.debug.MemProbeActivity --es variant e4b --es backend GPU --ei ctx 6144 --ei calls 2 --es tag e4b_gpu
  * No patient data: the prompt is a made-up Czech transcript. Errors are written to the same file.
  */

@@ -57,7 +57,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -85,6 +88,7 @@ import com.therapylocal.app.ui.design.paper
 import com.therapylocal.app.ui.design.rememberChoiceState
 import com.therapylocal.app.ui.design.rememberHaptics
 import com.therapylocal.app.ui.motion.Axis
+import com.therapylocal.app.ui.motion.GestureMath
 import com.therapylocal.app.ui.motion.Side
 import com.therapylocal.app.ui.motion.axisDrag
 import com.therapylocal.app.ui.motion.axisDragHandler
@@ -226,7 +230,9 @@ private fun Welcome(onBack: () -> Unit, onDone: () -> Unit) {
         Dots(pager.currentPage, count, Modifier.padding(start = 26.dp, top = 26.dp))
         HorizontalPager(pager, Modifier.weight(1f).fillMaxWidth(), userScrollEnabled = false) { i ->
             val offset = (pager.currentPage - i + pager.currentPageOffsetFraction)
-            Box(Modifier.fillMaxSize().graphicsLayer { alpha = 1f - kotlin.math.abs(offset).coerceIn(0f, 1f) * 0.6f; translationX = offset * size.width * 0.25f }) {
+            // Gone by half-way, like the steps around it: the parallax keeps the old page partly on screen until the pager settles, so any
+            // alpha left at a whole page away shows as a ghost over the new one and then blinks out.
+            Box(Modifier.fillMaxSize().graphicsLayer { alpha = GestureMath.pagerPageAlpha(offset); translationX = offset * size.width * 0.25f }) {
                 if (i < PAGES.size) WelcomePage(PAGES[i]) else PermissionsPage()
             }
         }
@@ -341,7 +347,7 @@ internal fun rememberShake(): Pair<Animatable<Float, *>, suspend () -> Unit> {
 }
 
 @Composable
-private fun CreatePassword(onBack: () -> Unit, onCreated: () -> Unit) {
+internal fun CreatePassword(onBack: () -> Unit, onCreated: () -> Unit) {
     val ctx = LocalContext.current
     val scope = rememberCoroutineScope()
     val haptics = rememberHaptics()
@@ -354,6 +360,7 @@ private fun CreatePassword(onBack: () -> Unit, onCreated: () -> Unit) {
     val matches = password == confirm
     val valid = longEnough && matches && confirm.isNotEmpty()
     val (shake, kick) = rememberShake()
+    val repeatFocus = remember { FocusRequester() }
 
     val create = create@{
         if (busy) return@create
@@ -389,9 +396,9 @@ private fun CreatePassword(onBack: () -> Unit, onCreated: () -> Unit) {
             Text(stringResource(R.string.gate_pw_body), style = Type.Body, color = Palette.InkSoft)
             Spacer(Modifier.height(30.dp))
             Column(Modifier.offset { IntOffset(shake.value.roundToInt(), 0) }) {
-                PaperField(password, { password = it; error = null }, pluralStringResource(R.plurals.gate_pw_hint, MIN_PASSWORD, MIN_PASSWORD), secret = true, enabled = !busy, imeAction = ImeAction.Next)
+                PaperField(password, { password = it; error = null }, pluralStringResource(R.plurals.gate_pw_hint, MIN_PASSWORD, MIN_PASSWORD), secret = true, enabled = !busy, imeAction = ImeAction.Next, onIme = { repeatFocus.requestFocus() })
                 Spacer(Modifier.height(22.dp))
-                PaperField(confirm, { confirm = it; error = null }, stringResource(R.string.gate_pw_confirm_hint), secret = true, enabled = !busy, error = confirm.isNotEmpty() && !matches && confirm.length >= password.length, onIme = create)
+                PaperField(confirm, { confirm = it; error = null }, stringResource(R.string.gate_pw_confirm_hint), secret = true, enabled = !busy, error = confirm.isNotEmpty() && !matches && confirm.length >= password.length, onIme = create, modifier = Modifier.focusRequester(repeatFocus))
             }
             Spacer(Modifier.height(12.dp))
             Label(error ?: if (busy) stringResource(R.string.gate_securing) else " ", color = if (error != null) Palette.Rec else Palette.InkSoft)
@@ -461,6 +468,8 @@ private fun OfferBiometric(onDone: () -> Unit) {
 /** A quiet row of the languages on the lock screen, so the app can be switched before signing in. */
 @Composable
 private fun LanguageSwitch(activity: androidx.fragment.app.FragmentActivity?) {
+    // Read so a switch redraws the marks: it arrives as a new configuration, not a new activity (#71), and nothing else here changes.
+    LocalConfiguration.current
     val selected = LocaleStore.current(LocalContext.current).tag
     Row(Modifier.fillMaxWidth().padding(top = 18.dp), horizontalArrangement = Arrangement.spacedBy(18.dp)) {
         Languages.all.forEach { language ->
@@ -696,7 +705,7 @@ private fun Unlock(onOpen: () -> Unit, onErased: () -> Unit, onResetPassword: ()
 }
 
 @Composable
-private fun ResetPassword(onBack: () -> Unit, onDone: () -> Unit) {
+internal fun ResetPassword(onBack: () -> Unit, onDone: () -> Unit) {
     val ctx = LocalContext.current
     val scope = rememberCoroutineScope()
     val haptics = rememberHaptics()
@@ -709,6 +718,7 @@ private fun ResetPassword(onBack: () -> Unit, onDone: () -> Unit) {
     val matches = password == confirm
     val valid = longEnough && matches && confirm.isNotEmpty()
     val (shake, kick) = rememberShake()
+    val repeatFocus = remember { FocusRequester() }
 
     val save = save@{
         if (busy) return@save
@@ -744,9 +754,9 @@ private fun ResetPassword(onBack: () -> Unit, onDone: () -> Unit) {
             Text(stringResource(R.string.gate_pw_reset_body, stringResource(R.string.app_name)), style = Type.Body, color = Palette.InkSoft)
             Spacer(Modifier.height(30.dp))
             Column(Modifier.offset { IntOffset(shake.value.roundToInt(), 0) }) {
-                PaperField(password, { password = it; error = null }, pluralStringResource(R.plurals.gate_pw_hint, MIN_PASSWORD, MIN_PASSWORD), secret = true, enabled = !busy, imeAction = ImeAction.Next)
+                PaperField(password, { password = it; error = null }, pluralStringResource(R.plurals.gate_pw_hint, MIN_PASSWORD, MIN_PASSWORD), secret = true, enabled = !busy, imeAction = ImeAction.Next, onIme = { repeatFocus.requestFocus() })
                 Spacer(Modifier.height(22.dp))
-                PaperField(confirm, { confirm = it; error = null }, stringResource(R.string.gate_pw_confirm_hint), secret = true, enabled = !busy, error = confirm.isNotEmpty() && !matches && confirm.length >= password.length, onIme = save)
+                PaperField(confirm, { confirm = it; error = null }, stringResource(R.string.gate_pw_confirm_hint), secret = true, enabled = !busy, error = confirm.isNotEmpty() && !matches && confirm.length >= password.length, onIme = save, modifier = Modifier.focusRequester(repeatFocus))
             }
             Spacer(Modifier.height(12.dp))
             Label(error ?: if (busy) stringResource(R.string.gate_securing) else " ", color = if (error != null) Palette.Rec else Palette.InkSoft)
