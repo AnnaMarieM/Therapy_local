@@ -21,6 +21,7 @@ import com.therapylocal.app.models.Accelerators
 import com.therapylocal.app.log.LogCtx
 import com.therapylocal.app.models.LiteRtBindings
 import com.therapylocal.app.models.ModelRegistry
+import com.therapylocal.app.models.NpuRuntime
 import com.therapylocal.app.perf.LlmCall
 
 /**
@@ -41,8 +42,9 @@ internal class LlmRunner(private val context: Context) : AskEngine {
     fun open(op: EngineOp.Open, phases: PhaseSink): EngineReply.Opened {
         ExperimentalFlags.enableBenchmark = true
         val spec = ModelRegistry.byId(op.model)
-        val file = spec.file(context, spec.files.first())
         val name = op.backend
+        // The NPU runs its own build of the model, made for this SoC (AD-09); another backend its own build if the catalogue has one, else the default file.
+        val file = if (name == "NPU") npuFile(spec.id) else ModelRegistry.fileFor(context, spec, name)
         val f = callFields(op.tag)
         val be: Backend = LiteRtBindings.backend(context, name)
         val config = EngineConfig(modelPath = file.path, backend = be, audioBackend = null, visionBackend = null, maxNumTokens = op.maxTokens, cacheDir = context.cacheDir.path)
@@ -70,6 +72,14 @@ internal class LlmRunner(private val context: Context) : AskEngine {
         backend = name
         maxTokens = op.maxTokens
         return EngineReply.Opened(0, name, op.maxTokens, null)
+    }
+
+    /** The NPU file of [model] for this device, whose own metadata must name this SoC: a file for another chip would fail inside the driver. */
+    private fun npuFile(model: String): java.io.File {
+        val soc = NpuRuntime.deviceSoc()
+        val file = checkNotNull(NpuRuntime.modelFile(context, model, soc)) { "no validated NPU model for $soc ($model)" }
+        NpuBundleCheck.verify(file, soc)
+        return file
     }
 
     /** The backend proof (LlmProof.kt): a fixed reformat-as-JSON task, checked strictly. A wrong answer throws, so the ladder strikes the backend. */

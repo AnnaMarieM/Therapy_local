@@ -351,6 +351,7 @@ private fun PrepareDialog(s: UiState, onRetry: () -> Unit) {
                     }
                     SetupState.Failed -> Text(progress.message ?: "Download failed", color = MaterialTheme.colorScheme.error, fontSize = 12.sp)
                     SetupState.Checking -> { Text("Checking files", fontSize = 13.sp); LinearProgressIndicator(Modifier.fillMaxWidth()) }
+                    SetupState.Confirm, SetupState.WaitingForWifi, SetupState.Declined -> Text("Not downloading over mobile data until you allow it", fontSize = 13.sp)
                     SetupState.Ready -> if (s.phase == Phase.Preparing) {
                         LinearProgressIndicator(Modifier.fillMaxWidth())
                         Text(s.prepareMsg, fontSize = 12.sp)
@@ -361,6 +362,7 @@ private fun PrepareDialog(s: UiState, onRetry: () -> Unit) {
         },
         confirmButton = {
             if (progress.state == SetupState.Failed) TextButton(onClick = { ModelSetup.retry(context) }) { Text("Retry") }
+            else if (progress.state in listOf(SetupState.Confirm, SetupState.WaitingForWifi, SetupState.Declined)) TextButton(onClick = { ModelSetup.downloadNow(context) }) { Text("Use mobile data") }
             else if (s.phase == Phase.Failed) TextButton(onClick = onRetry) { Text("Retry") }
         },
     )

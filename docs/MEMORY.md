@@ -65,6 +65,7 @@ Queue rules (`JobQueue`):
 - **D10. No migrations and no compatibility code before the first release.** The schema is one create path; a database of another version is wiped. Full record: [AD-11](AD/AD-11.md) (proposed).
 - **D8. An engine host that crashes exits quietly** (native signal handler `_exit(100 + signal)`, Java crash `halt(13)`), so the system shows no "keeps stopping" dialog and writes no tombstone for a background host. Full record: [AD-04](AD/AD-04.md).
 - **D11. The app writes one summary per session** (SOAP, short paragraphs, from the transcript with the confirmed roles), as a `summary` job on the same queue and model; it is stale after a roles swap and rebuilt. This reverses "writes no summaries" and is **proposed, not decided**. Full record: [AD-12](AD/AD-12.md).
+- **D9. The NPU runs only on SoCs validated on our own hardware** (each recorded in the model catalogue, `ModelRegistry.BACKEND_BUILDS`); every other device uses the GPU, then the CPU. Full record: [AD-09](AD/AD-09.md).
 
 ## Live cues
 During a session `LiveCues` embeds the last seconds of audio directly (EmbeddingGemma audio, no transcript) and compares them with the client's fact embeddings. Scores are averaged over ticks per fact, and the top 10 above the floor are shown by heading. Audio stays in an in-memory ring of `LiveCueConfig.MAX_LOOKBACK_S` (327 s) and is never written. Settings are read at session start, from "Knobs for nerds" in the settings (`LiveCueSettings`, values clamped):

@@ -52,6 +52,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -312,6 +313,8 @@ private fun TechnicalSettingsSheet(
                 when (setup.state) {
                     SetupState.Ready -> Row2(stringResource(R.string.settings_processing_ready), stringResource(R.string.settings_processing_ready_body), null) {}
                     SetupState.Failed -> Row2(stringResource(R.string.settings_processing_paused), setup.message ?: stringResource(R.string.settings_processing_paused_body), stringResource(R.string.settings_processing_try_again)) { ModelSetup.retry(ctx) }
+                    SetupState.WaitingForWifi -> Row2(stringResource(R.string.setup_waiting_wifi_title), stringResource(R.string.setup_waiting_wifi_body), stringResource(R.string.setup_use_mobile_data)) { ModelSetup.askMobileData(ctx) }
+                    SetupState.Declined -> Row2(stringResource(R.string.settings_processing_paused), stringResource(R.string.setup_declined_body), stringResource(R.string.settings_processing_try_again)) { ModelSetup.retry(ctx) }
                     else -> {
                         val eta = setup.etaSeconds?.let { stringResource(R.string.settings_processing_eta_left, ModelSetup.formatEta(ctx, it)) } ?: ""
                         Column(Modifier.padding(vertical = 16.dp)) {
@@ -359,6 +362,8 @@ private fun openAppSettings(ctx: Context) {
 
 @Composable
 private fun LanguageChoice(activity: androidx.fragment.app.FragmentActivity?) {
+    // Read so a switch redraws the marks: it arrives as a new configuration, not a new activity (#71), and nothing else here changes.
+    LocalConfiguration.current
     val selected = LocaleStore.current(LocalContext.current).tag
     Languages.all.forEach { language ->
         val on = language.tag == selected
@@ -777,7 +782,8 @@ fun ChangePasswordSheet(
 }
 
 /**
- * Adding a client: a first name and, if you like, a surname, shortened automatically to distinguish clients.
+ * Adding a client: a first name and, if you like, a surname, shortened automatically to distinguish clients. The Add button under the form
+ * is always there; the swipe from right to left (and its hint, which only shows after a pause) is a shortcut to the same action.
  */
 @Composable
 fun AddClientSheet(
@@ -810,6 +816,14 @@ fun AddClientSheet(
             LanguagePicker(language, { language = it })
             Spacer(Modifier.height(14.dp))
             Text(stringResource(R.string.settings_addclient_note, stringResource(R.string.app_name)), style = Type.BodySmall, color = Palette.InkFaint)
+            Spacer(Modifier.height(30.dp))
+            // A gesture is never the only way: the hint below shows only after a pause and takes taps only while it shows, so the action has a
+            // button that is always there (#74).
+            PillButton(
+                text = if (error == null) stringResource(R.string.settings_addclient_button_named, name) else stringResource(R.string.settings_addclient_button),
+                onClick = add,
+                enabled = error == null,
+            )
         }
         SwipeHints(
             bar,
