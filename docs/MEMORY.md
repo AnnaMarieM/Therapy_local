@@ -5,7 +5,7 @@ A journal that remembers for you, on the phone, with Gemma 4 (E2B or E4B, LiteRT
 Facts are append-only: a fact that changes over time is not updated. A stale fact is superseded by a rebuild, never edited ([AD-10](AD/AD-10.md)).
 
 ## One database
-Everything lives in `mind.db` (SQLCipher, see [SECURITY.md](SECURITY.md)), opened once per process by `MindStore.get` after unlock, with WAL and `foreign_keys=ON`. Every foreign key cascades on delete. Opening it deletes the legacy `recordings.db` and `memory.db`; their data is not migrated.
+Everything lives in `mind.db` (SQLCipher, see [SECURITY.md](SECURITY.md)), opened once per process by `MindStore.get` after unlock, with WAL and `foreign_keys=ON`. Every foreign key cascades on delete. There are no schema migrations: a database of another schema version is wiped and recreated ([AD-11](AD/AD-11.md)).
 
 | Table | Holds |
 |---|---|
@@ -13,17 +13,17 @@ Everything lives in `mind.db` (SQLCipher, see [SECURITY.md](SECURITY.md)), opene
 | `sessions(id, client_id, started_at, ended_at)` | |
 | `recordings(id, session_id, started_at, engine, model, chunk_seconds)` | A recording until its session is processed |
 | `chunks(recording_id, idx, start_ms, end_ms, overlap_ms, text)` | Raw speech-recognition output per audio chunk; `text` is empty until transcribed |
-| `transcripts(session_id, version, sha256, source, segment_count, recording_id, audio_sha256, created_at)` | The raw transcript as append-only versions: `sha256` is the hash of the segments, `audio_sha256` the hash of the audio they came from. Never updated (trigger) ([AD-10](AD/AD-10.md)) |
+| `transcripts(session_id, version, sha256, recording_id, audio_sha256, created_at)` | The raw transcript as append-only versions: `sha256` is the hash of the segments, `audio_sha256` the hash of the audio they came from ([AD-10](AD/AD-10.md)) |
 | `segments(session_id, version, idx, start_ms, end_ms, text, speaker)` | The segments of one transcript version; the current transcript is the session's highest version. Derived from `chunks` or the diarized turns |
 | `windows(session_id, idx, seg_from, seg_to, text, embedding, embed_model, prov_*, stale)` | About 1000-token windows over the segments, for extraction and search |
-| `facts(id, client_id, session_id, heading, content, evidence, seg_idx, embedding, llm_model, prompt_version, created_at, prov_*, stale)` | The fact's first occurrence. `embedding` is of `DOC_PREFIX + heading + ". " + content`. `llm_model` and `prompt_version` are the same values as `prov_model` and `prov_prompt_version`; the provenance and `stale` are read by the rebuild and never shown |
+| `facts(id, client_id, session_id, heading, content, evidence, seg_idx, embedding, created_at, prov_*, stale)` | The fact's first occurrence. `embedding` is of `DOC_PREFIX + heading + ". " + content`. The provenance (`prov_*`) and `stale` are for the rebuild and never shown |
 | `mentions(id, fact_id, session_id, evidence, seg_idx, created_at)` | A later session where the fact came up again (never the fact's own session) |
 | `extract_cache(session_id, idx, key, json)` | Extraction result per window, keyed by prompt version and model |
 | `review_cache(session_id, cand_key, verdict)` | The LLM's duplicate verdict per candidate |
 | `jobs(id, kind, session_id, recording_id, ref, status, attempts, max_attempts, error_code, created_at, updated_at)` | The job queue. `error_code` is a short code, never raw error text |
 | `job_deps(job_id, depends_on)` | Job dependencies |
 
-Every derived table (`windows`, `facts`; a session summary later) carries the same provenance columns `prov_transcript_sha`, `prov_speaker_map_version`, `prov_prompt_version`, `prov_model` and the computed flag `stale` (`Provenance`, `Derived`, `MindStore.refreshStale`). Unknown provenance of migrated rows is never stale.
+`windows` and `facts` (and a session summary later) carry the same provenance columns `prov_transcript_sha`, `prov_speaker_map_version`, `prov_prompt_version`, `prov_model` and the flag `stale` (`Provenance`, `MindStore.refreshStale`).
 
 Deleting a client removes everything of it, jobs included. Deleting a session removes its rows; a fact first seen in it moves to its next mention (D2).
 
@@ -59,6 +59,7 @@ Queue rules (`JobQueue`):
 - **D6. Model inference runs in separate processes** (`:live` for live cues and search, `:batch` for the session pipeline). They are stateless model servers; the queue, vault, database, ladder and guard stay in the app process, so a model crash never closes the app. Full record: [AD-01](AD/AD-01.md).
 - **D7. One model per role: Canary 1B v2 is the only speech recogniser** (chosen for its Czech). Gemma 4 is text only and processes the transcribed chunks, and EmbeddingGemma 2 still embeds audio. Whisper, Parakeet and Gemma speech recognition are removed. Full record: [AD-02](AD/AD-02.md).
 - **D9. Inputs are immutable and versioned; every derived item records what it came from.** The raw transcript is append-only by version and content hash, audio is referenced by hash while it is retained (7 days), the speaker map is append-only. Windows and facts carry transcript hash, speaker-map version, prompt version and model and a stored stale flag; a rebuild supersedes stale items in client and session order. One vault key and one database stay. Full record: [AD-10](AD/AD-10.md) (proposed).
+- **D10. No migrations and no compatibility code before the first release.** The schema is one create path; a database of another version is wiped. Full record: [AD-11](AD/AD-11.md) (proposed).
 - **D8. An engine host that crashes exits quietly** (native signal handler `_exit(100 + signal)`, Java crash `halt(13)`), so the system shows no "keeps stopping" dialog and writes no tombstone for a background host. Full record: [AD-04](AD/AD-04.md).
 
 ## Live cues

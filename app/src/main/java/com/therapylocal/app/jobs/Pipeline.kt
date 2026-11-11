@@ -73,7 +73,7 @@ class Pipeline(
             override fun turns(recordingId: Long) = store.turns(recordingId)
             override fun replaceTurns(recordingId: Long, turns: List<TurnRow>) = store.replaceTurns(recordingId, turns)
             override fun setTurnText(recordingId: Long, idx: Int, text: String) { store.setTurnText(recordingId, idx, text) }
-            override fun appendTranscript(session: String, segments: List<SegmentRow>, source: String, recordingId: Long?, audioSha: String?) { store.appendTranscript(session, segments, source, recordingId, audioSha) }
+            override fun appendTranscript(session: String, segments: List<SegmentRow>, recordingId: Long?, audioSha: String?) { store.appendTranscript(session, segments, recordingId, audioSha) }
         },
         chunks, chunk, diarizationReady,
     )
@@ -112,7 +112,7 @@ class Pipeline(
         val words = TranscriptWindows.wordsFor(MemoryConfig.WINDOW_TOKENS)
         val spans = TranscriptWindows.bySegments(store.segments(job.sessionId), words, TranscriptWindows.wordsFor(MemoryConfig.WINDOW_OVERLAP_TOKENS))
         run.progress(JobPhase.Reading, 0, spans.size)
-        val transcript = store.currentTranscript(job.sessionId)
+        val transcript = store.currentTranscript(job.sessionId) ?: throw JobFailure("NO_TRANSCRIPT", permanent = true)
         val rows = spans.mapIndexed { i, s ->
             run.checkStop()
             val embed = run.pool.embed()
@@ -120,7 +120,7 @@ class Pipeline(
         }
         store.replaceWindows(
             job.sessionId, rows,
-            Provenance(transcript?.sha256 ?: Provenance.UNKNOWN_TEXT, store.currentSpeakerMap(job.sessionId)?.version ?: Provenance.NO_MAP, MemoryConfig.WINDOW_CUT_VERSION, rows.firstOrNull()?.embedModel ?: EmbeddingConfig.MODEL_ID),
+            Provenance(transcript.sha256, store.currentSpeakerMap(job.sessionId)?.version ?: Provenance.NO_MAP, MemoryConfig.WINDOW_CUT_VERSION, rows.firstOrNull()?.embedModel ?: EmbeddingConfig.MODEL_ID),
         )
         val sessions = store.sessions(job.clientId).map { it.id }
         val at = sessions.indexOf(job.sessionId)
@@ -248,8 +248,7 @@ class Pipeline(
             },
         )
         val lang = language(job)
-        // The transcript the windows (and so the facts) were cut from, and the roles as they are now.
-        val transcriptSha = store.windows(sid).firstOrNull()?.transcriptSha ?: Provenance.UNKNOWN_TEXT
+        val transcriptSha = store.currentTranscript(sid)?.sha256.orEmpty()
         val speakerMapVersion = store.currentSpeakerMap(sid)?.version ?: Provenance.NO_MAP
         val activeFacts = store.factEmbeddings(job.clientId).filter { it.first.sessionId != sid && it.first.category.isNotBlank() }
         val activeCentroids = activeFacts.groupBy { it.first.category }
@@ -269,11 +268,9 @@ class Pipeline(
                 )
                 NewFact(
                     job.clientId, sid, c.fact.heading, c.fact.content, c.fact.evidence,
-                    c.fact.segIdx, c.vec, model, promptVersion,
+                    c.fact.segIdx, c.vec, Provenance(transcriptSha, speakerMapVersion, promptVersion, model),
                     scope = c.fact.scope,
                     category = resolvedCategory,
-                    transcriptSha = transcriptSha,
-                    speakerMapVersion = speakerMapVersion,
                 )
             },
             plan.mentions.map { (factId, f) -> NewMention(factId, sid, f.evidence, f.segIdx) },

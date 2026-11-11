@@ -14,7 +14,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Test
 import com.therapylocal.app.data.AudioHash
-import com.therapylocal.app.data.TranscriptVersions
 import kotlin.coroutines.cancellation.CancellationException
 
 /** The TRANSCRIBE job on test doubles: diarized, each way of falling back to the chunk path, and a restart (docs/AD/AD-06.md, AD-07). */
@@ -25,14 +24,13 @@ class TranscribeFlowTest {
     private class Store(var rows: List<ChunkRow>) : TranscribeStore {
         var turns = emptyList<TurnRow>()
         var segments = emptyList<SegmentRow>()
-        val sources = ArrayList<String>()
         val audioShas = ArrayList<String?>()
         override fun chunks(recordingId: Long) = rows
         override fun putChunk(c: ChunkRow) { rows = (rows.filter { it.idx != c.idx } + c).sortedBy { it.idx } }
         override fun turns(recordingId: Long) = turns
         override fun replaceTurns(recordingId: Long, turns: List<TurnRow>) { this.turns = turns }
         override fun setTurnText(recordingId: Long, idx: Int, text: String) { turns = turns.map { if (it.idx == idx) it.copy(text = text) else it } }
-        override fun appendTranscript(session: String, segments: List<SegmentRow>, source: String, recordingId: Long?, audioSha: String?) { this.segments = segments; sources += source; audioShas += audioSha }
+        override fun appendTranscript(session: String, segments: List<SegmentRow>, recordingId: Long?, audioSha: String?) { this.segments = segments; audioShas += audioSha }
     }
 
     private class FakeDiarizer(val result: () -> List<DiarTurn>) : Diarizer {
@@ -93,16 +91,11 @@ class TranscribeFlowTest {
     }
 
     @Test
-    fun theTranscriptIsStoredAsAVersionWithItsSourceAndTheHashOfTheAudio() {
+    fun theTranscriptIsStoredWithTheHashOfTheAudio() {
         val diarized = Store(rows())
         flow(diarized).run(rid, "s", "en", context(FakeDiarizer { turns(Triple(0, 10, 0), Triple(10, 30, 1)) }))
-        assertEquals(listOf(TranscriptVersions.DIARIZED), diarized.sources)
         assertEquals(AudioHash.of(listOf(0, 1)) { chunk(it) }, diarized.audioShas.single())
         assertTrue(diarized.audioShas.single()!!.length == 64)
-
-        val chunked = Store(rows())
-        flow(chunked, ready = false).run(rid, "s", "en", context(null))
-        assertEquals(listOf(TranscriptVersions.CHUNKS), chunked.sources)
     }
 
     @Test

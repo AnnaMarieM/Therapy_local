@@ -26,7 +26,7 @@ class App : Application() {
         if (role != null) {
             // Fatal native signals end the host with _exit(100 + signal) instead of a tombstone and the system crash dialog (AD-04).
             com.therapylocal.app.engine.NativeQuietCrash.installLogged()
-            // A host needs no SQLCipher, device facts, startup recovery, display config, speech migration or vault: main owns them.
+            // A host needs no SQLCipher, device facts, startup recovery, display config or vault: main owns them.
             AppLog.logMemory(this, tag = "Memory", evt = "app_start")
             return
         }

@@ -835,7 +835,3 @@ fun AddClientSheet(
         },
     )
 }
-
-/** Legacy helper; preview is computed by [ClientDisambiguation]. */
-internal fun displayName(first: String, last: String): String =
-    ClientDisambiguation.preview(first, last, emptyList())

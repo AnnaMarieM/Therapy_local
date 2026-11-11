@@ -61,7 +61,7 @@ object DevHarness {
             if (store.segments(sid).isEmpty()) {
                 val raw = File(root, "in/$file").readText()
                 val text = if (job.optBoolean("stripLabels")) TranscriptWindows.stripSpeakerLabels(raw) else raw
-                store.appendTranscript(sid, text.lines().filter { it.isNotBlank() }.mapIndexed { i, line -> SegmentRow(i + 1, 0, 0, line.trim()) }, com.therapylocal.app.data.TranscriptVersions.IMPORT)
+                store.appendTranscript(sid, text.lines().filter { it.isNotBlank() }.mapIndexed { i, line -> SegmentRow(i + 1, 0, 0, line.trim()) })
             }
             JobGraph.enqueueTranscript(queue, sid)
         }

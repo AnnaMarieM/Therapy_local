@@ -62,7 +62,7 @@ class AdaptiveLayoutTest(private val name: String, private val w: Int, private v
         repo = ClientRepository(context) { store }
         store.createClient(CLIENT, "Ana")
         store.createSession(SESSION, CLIENT, 1_767_225_600_000L)
-        store.appendTranscript(SESSION, listOf(SegmentRow(0, 0, 5_000, "We talked about the move.")), "import")
+        store.appendTranscript(SESSION, listOf(SegmentRow(0, 0, 5_000, "We talked about the move.")))
     }
 
     @After

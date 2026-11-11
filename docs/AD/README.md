@@ -13,3 +13,4 @@ Each record is immutable once merged (see [`AGENTS.md`](../../AGENTS.md); CI job
 | [AD-07](AD-07.md) | The diarizer always looks for exactly two speakers (therapist and patient) | 2026-11-09 00:12 CET | Martin Hajný (@hajnina) | Accepted |
 | [AD-08](AD-08.md) | The GPU and NPU are tried every time: no free-memory gate; only a missing runtime library or the guard skips a backend | 2026-11-11 00:01 CET | Martin Hajný (@hajnina) | Accepted |
 | [AD-10](AD-10.md) | Immutable versioned inputs (transcript by hash, audio by hash, speaker map) and one provenance mechanism with a stored stale flag on every derived item; one vault key, one database | pending (to be set on acceptance) | pending (Martin Hajný, @hajnina) | Proposed |
+| [AD-11](AD-11.md) | No migrations and no compatibility code before the first release; a database of another schema version is wiped | pending (to be set on acceptance) | pending (Martin Hajný, @hajnina) | Proposed |

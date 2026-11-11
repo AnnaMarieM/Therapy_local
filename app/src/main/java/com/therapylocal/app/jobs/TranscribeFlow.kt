@@ -12,7 +12,6 @@ import com.therapylocal.app.data.QuietCut
 import com.therapylocal.app.data.SegmentBuilder
 import com.therapylocal.app.data.SegmentRow
 import com.therapylocal.app.data.TimedTurn
-import com.therapylocal.app.data.TranscriptVersions
 import com.therapylocal.app.data.TurnPlanner
 import com.therapylocal.app.data.TurnRow
 import com.therapylocal.app.data.UtteranceBuilder
@@ -33,7 +32,7 @@ interface TranscribeStore {
     fun replaceTurns(recordingId: Long, turns: List<TurnRow>)
     fun setTurnText(recordingId: Long, idx: Int, text: String)
     /** Stores the next transcript version (docs/AD/AD-10.md); the same content as the current one writes nothing. */
-    fun appendTranscript(session: String, segments: List<SegmentRow>, source: String, recordingId: Long?, audioSha: String?)
+    fun appendTranscript(session: String, segments: List<SegmentRow>, recordingId: Long?, audioSha: String?)
 }
 
 /**
@@ -100,7 +99,7 @@ class TranscribeFlow(
             run.progress(JobPhase.Transcribing, i + 1, todo.size)
         }
         val chunks = store.chunks(rid)
-        if (chunks.isNotEmpty()) store.appendTranscript(session, SegmentBuilder.build(chunks), TranscriptVersions.CHUNKS, rid, audioHash(rid))
+        if (chunks.isNotEmpty()) store.appendTranscript(session, SegmentBuilder.build(chunks), rid, audioHash(rid))
     }
 
     /** The turns without text, each cut from the saved chunks (the whole recording is not held while Canary is loaded), then the utterances. */
@@ -112,7 +111,7 @@ class TranscribeFlow(
             store.setTurnText(rid, t.idx, run.pool.asr(language).transcribe(audio.slice(t.startMs, t.endMs)).trim())
             run.progress(JobPhase.Transcribing, i + 1, pending.size)
         }
-        store.appendTranscript(session, UtteranceBuilder.build(store.turns(rid).map { Piece(it.startMs, it.endMs, it.text.orEmpty(), it.speaker) }), TranscriptVersions.DIARIZED, rid, audioHash(rid))
+        store.appendTranscript(session, UtteranceBuilder.build(store.turns(rid).map { Piece(it.startMs, it.endMs, it.text.orEmpty(), it.speaker) }), rid, audioHash(rid))
     }
 
     /**
