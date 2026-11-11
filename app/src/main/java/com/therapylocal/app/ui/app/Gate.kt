@@ -57,6 +57,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
@@ -341,7 +343,7 @@ internal fun rememberShake(): Pair<Animatable<Float, *>, suspend () -> Unit> {
 }
 
 @Composable
-private fun CreatePassword(onBack: () -> Unit, onCreated: () -> Unit) {
+internal fun CreatePassword(onBack: () -> Unit, onCreated: () -> Unit) {
     val ctx = LocalContext.current
     val scope = rememberCoroutineScope()
     val haptics = rememberHaptics()
@@ -354,6 +356,7 @@ private fun CreatePassword(onBack: () -> Unit, onCreated: () -> Unit) {
     val matches = password == confirm
     val valid = longEnough && matches && confirm.isNotEmpty()
     val (shake, kick) = rememberShake()
+    val repeatFocus = remember { FocusRequester() }
 
     val create = create@{
         if (busy) return@create
@@ -389,9 +392,9 @@ private fun CreatePassword(onBack: () -> Unit, onCreated: () -> Unit) {
             Text(stringResource(R.string.gate_pw_body), style = Type.Body, color = Palette.InkSoft)
             Spacer(Modifier.height(30.dp))
             Column(Modifier.offset { IntOffset(shake.value.roundToInt(), 0) }) {
-                PaperField(password, { password = it; error = null }, pluralStringResource(R.plurals.gate_pw_hint, MIN_PASSWORD, MIN_PASSWORD), secret = true, enabled = !busy, imeAction = ImeAction.Next)
+                PaperField(password, { password = it; error = null }, pluralStringResource(R.plurals.gate_pw_hint, MIN_PASSWORD, MIN_PASSWORD), secret = true, enabled = !busy, imeAction = ImeAction.Next, onIme = { repeatFocus.requestFocus() })
                 Spacer(Modifier.height(22.dp))
-                PaperField(confirm, { confirm = it; error = null }, stringResource(R.string.gate_pw_confirm_hint), secret = true, enabled = !busy, error = confirm.isNotEmpty() && !matches && confirm.length >= password.length, onIme = create)
+                PaperField(confirm, { confirm = it; error = null }, stringResource(R.string.gate_pw_confirm_hint), secret = true, enabled = !busy, error = confirm.isNotEmpty() && !matches && confirm.length >= password.length, onIme = create, modifier = Modifier.focusRequester(repeatFocus))
             }
             Spacer(Modifier.height(12.dp))
             Label(error ?: if (busy) stringResource(R.string.gate_securing) else " ", color = if (error != null) Palette.Rec else Palette.InkSoft)
@@ -696,7 +699,7 @@ private fun Unlock(onOpen: () -> Unit, onErased: () -> Unit, onResetPassword: ()
 }
 
 @Composable
-private fun ResetPassword(onBack: () -> Unit, onDone: () -> Unit) {
+internal fun ResetPassword(onBack: () -> Unit, onDone: () -> Unit) {
     val ctx = LocalContext.current
     val scope = rememberCoroutineScope()
     val haptics = rememberHaptics()
@@ -709,6 +712,7 @@ private fun ResetPassword(onBack: () -> Unit, onDone: () -> Unit) {
     val matches = password == confirm
     val valid = longEnough && matches && confirm.isNotEmpty()
     val (shake, kick) = rememberShake()
+    val repeatFocus = remember { FocusRequester() }
 
     val save = save@{
         if (busy) return@save
@@ -744,9 +748,9 @@ private fun ResetPassword(onBack: () -> Unit, onDone: () -> Unit) {
             Text(stringResource(R.string.gate_pw_reset_body, stringResource(R.string.app_name)), style = Type.Body, color = Palette.InkSoft)
             Spacer(Modifier.height(30.dp))
             Column(Modifier.offset { IntOffset(shake.value.roundToInt(), 0) }) {
-                PaperField(password, { password = it; error = null }, pluralStringResource(R.plurals.gate_pw_hint, MIN_PASSWORD, MIN_PASSWORD), secret = true, enabled = !busy, imeAction = ImeAction.Next)
+                PaperField(password, { password = it; error = null }, pluralStringResource(R.plurals.gate_pw_hint, MIN_PASSWORD, MIN_PASSWORD), secret = true, enabled = !busy, imeAction = ImeAction.Next, onIme = { repeatFocus.requestFocus() })
                 Spacer(Modifier.height(22.dp))
-                PaperField(confirm, { confirm = it; error = null }, stringResource(R.string.gate_pw_confirm_hint), secret = true, enabled = !busy, error = confirm.isNotEmpty() && !matches && confirm.length >= password.length, onIme = save)
+                PaperField(confirm, { confirm = it; error = null }, stringResource(R.string.gate_pw_confirm_hint), secret = true, enabled = !busy, error = confirm.isNotEmpty() && !matches && confirm.length >= password.length, onIme = save, modifier = Modifier.focusRequester(repeatFocus))
             }
             Spacer(Modifier.height(12.dp))
             Label(error ?: if (busy) stringResource(R.string.gate_securing) else " ", color = if (error != null) Palette.Rec else Palette.InkSoft)
