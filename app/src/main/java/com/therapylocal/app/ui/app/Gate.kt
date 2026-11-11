@@ -87,6 +87,7 @@ import com.therapylocal.app.ui.design.paper
 import com.therapylocal.app.ui.design.rememberChoiceState
 import com.therapylocal.app.ui.design.rememberHaptics
 import com.therapylocal.app.ui.motion.Axis
+import com.therapylocal.app.ui.motion.GestureMath
 import com.therapylocal.app.ui.motion.Side
 import com.therapylocal.app.ui.motion.axisDrag
 import com.therapylocal.app.ui.motion.axisDragHandler
@@ -228,7 +229,9 @@ private fun Welcome(onBack: () -> Unit, onDone: () -> Unit) {
         Dots(pager.currentPage, count, Modifier.padding(start = 26.dp, top = 26.dp))
         HorizontalPager(pager, Modifier.weight(1f).fillMaxWidth(), userScrollEnabled = false) { i ->
             val offset = (pager.currentPage - i + pager.currentPageOffsetFraction)
-            Box(Modifier.fillMaxSize().graphicsLayer { alpha = 1f - kotlin.math.abs(offset).coerceIn(0f, 1f) * 0.6f; translationX = offset * size.width * 0.25f }) {
+            // Gone by half-way, like the steps around it: the parallax keeps the old page partly on screen until the pager settles, so any
+            // alpha left at a whole page away shows as a ghost over the new one and then blinks out.
+            Box(Modifier.fillMaxSize().graphicsLayer { alpha = GestureMath.pagerPageAlpha(offset); translationX = offset * size.width * 0.25f }) {
                 if (i < PAGES.size) WelcomePage(PAGES[i]) else PermissionsPage()
             }
         }
