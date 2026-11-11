@@ -777,7 +777,8 @@ fun ChangePasswordSheet(
 }
 
 /**
- * Adding a client: a first name and, if you like, a surname, shortened automatically to distinguish clients.
+ * Adding a client: a first name and, if you like, a surname, shortened automatically to distinguish clients. The Add button under the form
+ * is always there; the swipe from right to left (and its hint, which only shows after a pause) is a shortcut to the same action.
  */
 @Composable
 fun AddClientSheet(
@@ -810,6 +811,14 @@ fun AddClientSheet(
             LanguagePicker(language, { language = it })
             Spacer(Modifier.height(14.dp))
             Text(stringResource(R.string.settings_addclient_note, stringResource(R.string.app_name)), style = Type.BodySmall, color = Palette.InkFaint)
+            Spacer(Modifier.height(30.dp))
+            // A gesture is never the only way: the hint below shows only after a pause and takes taps only while it shows, so the action has a
+            // button that is always there (#74).
+            PillButton(
+                text = if (error == null) stringResource(R.string.settings_addclient_button_named, name) else stringResource(R.string.settings_addclient_button),
+                onClick = add,
+                enabled = error == null,
+            )
         }
         SwipeHints(
             bar,

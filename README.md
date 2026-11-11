@@ -54,7 +54,7 @@ The app walks you through a few short screens. Tap the button on the right of th
 
 1. On the home screen, scroll the list of names to the end, to **New client** (*Nový klient*). With no clients yet it is the only entry.
 2. Tap it, or swipe from right to left to **add a client** (*přidat klienta*).
-3. Type the **First name** (*Křestní jméno*) and **Surname** (*Příjmení*) and confirm with **add** (*přidat*). Keep names short; everything else the app learns comes from the sessions.
+3. Type the **First name** (*Křestní jméno*) and **Surname** (*Příjmení*), then tap the **Add …** (*Přidat …*) button under the form, or swipe from right to left. Keep names short; everything else the app learns comes from the sessions.
 
 To open a client later, tap their name on the home screen.
 
