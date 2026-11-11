@@ -158,6 +158,7 @@ class ModelPool(
                 JobGraph.WINDOW -> Needs(embed = true)
                 JobGraph.EXTRACT -> Needs(llm = true)
                 JobGraph.COMMIT -> Needs(embed = true, llm = true)
+                JobGraph.SUMMARY -> Needs(llm = true)
                 JobGraph.CLEANUP -> Needs()
                 else -> null
             }

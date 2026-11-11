@@ -22,7 +22,12 @@ import com.therapylocal.app.memory.MemoryFiles
 import com.therapylocal.app.models.ModelSetup
 import com.therapylocal.app.models.SetupState
 import com.therapylocal.app.session.SessionController
+import com.therapylocal.app.data.JobStatus
+import com.therapylocal.app.jobs.JobGraph
+import com.therapylocal.app.jobs.Jobs
+import com.therapylocal.app.summary.SessionSummary
 import com.therapylocal.app.ui.data.ClientRepository
+import com.therapylocal.app.ui.data.SessionSummaryRepository
 import com.therapylocal.app.ui.models.SpeakerRoles
 import com.therapylocal.app.ui.models.SearchHit
 import kotlinx.coroutines.CancellationException
@@ -31,7 +36,9 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -191,10 +198,58 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     fun swapRoles(sessionId: String) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                clients.swapRoles(sessionId)?.let { setRoles(sessionId, it) }
+                clients.swapRoles(sessionId)?.let {
+                    setRoles(sessionId, it)
+                    // The summary was made with the old roles: marked stale and, if there was one, made again.
+                    summaryRepo.onRolesSwapped(sessionId)
+                    refreshSummaries()
+                }
             } catch (t: Throwable) {
                 AppLog.eRedacted(TAG, "swap_roles_failed", LogCtx.NONE, t)
             }
+        }
+    }
+
+    private val summaryRepo = SessionSummaryRepository.create(app)
+    private val _lastSummaries = MutableStateFlow<Map<String, SessionSummary>>(emptyMap())
+
+    /** The last-session summary of every client loaded with [loadLastSummary], by client id; a client without a transcript is absent. State: none, generating, ready, stale. */
+    val lastSummaries: StateFlow<Map<String, SessionSummary>> = _lastSummaries.asStateFlow()
+
+    private val summaryClients = java.util.concurrent.ConcurrentHashMap.newKeySet<String>()
+
+    fun loadLastSummary(clientId: String) {
+        summaryClients += clientId
+        viewModelScope.launch(Dispatchers.IO) { refreshSummary(clientId) }
+    }
+
+    /** Makes the summary of [sessionId] again (replaced when done; its state is generating meanwhile). */
+    fun regenerateSummary(sessionId: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                summaryRepo.regenerate(sessionId)
+                refreshSummaries()
+            } catch (t: Throwable) {
+                AppLog.eRedacted(TAG, "regenerate_summary_failed", LogCtx.NONE, t)
+            }
+        }
+    }
+
+    private fun refreshSummaries() = summaryClients.toList().forEach { refreshSummary(it) }
+
+    private fun refreshSummary(clientId: String) {
+        try {
+            val s = summaryRepo.lastSessionSummary(clientId)
+            _lastSummaries.update { if (s == null) it - clientId else it + (clientId to s) }
+        } catch (t: Throwable) {
+            AppLog.eRedacted(TAG, "load_summary_failed", LogCtx.NONE, t)
+        }
+    }
+
+    init {
+        // A summary job starting or finishing changes the state of a summary; progress ticks of other jobs do not.
+        viewModelScope.launch(Dispatchers.IO) {
+            Jobs.snapshot.map { snap -> snap.jobs.any { it.kind == JobGraph.SUMMARY && (it.status == JobStatus.Pending || it.status == JobStatus.Running) } }.distinctUntilChanged().collect { refreshSummaries() }
         }
     }
 
