@@ -1,5 +1,7 @@
 name: CI
 
+# Built for wall-clock time: maximum parallelism and caching, no loss of test robustness (AD-13, docs/AD/AD-13.md).
+
 on:
   pull_request:
     branches: [main]
