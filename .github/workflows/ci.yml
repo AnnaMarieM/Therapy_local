@@ -121,11 +121,12 @@ jobs:
     needs: apk
     runs-on: ubuntu-latest
     timeout-minutes: 40
-    # The same tests on a phone and on a tablet, so the two-pane layout and the size-dependent tests run on a real tablet screen too.
+    # The same tests on a phone and on a tablet, each split into 3 shards (the whole run peaks at 9 emulator jobs, so two runs fit the 20-job cap), so the two-pane layout and the size-dependent tests run on a real tablet screen too.
     strategy:
       fail-fast: false
       matrix:
         device: [pixel_6, pixel_tablet]
+        shard: [0, 1, 2]
     steps:
       - uses: actions/checkout@v4
       # The APKs the pinned builder produced: the tests run against exactly what gets released
@@ -148,19 +149,19 @@ jobs:
           force-avd-creation: false
           disable-animations: true
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
-          script: SKIP_BUILD=1 OUT_DIR=out INSTR_ARGS="-e notAnnotation com.therapylocal.app.engine.stress.FullOnly,com.therapylocal.app.engine.stress.Lmk,com.therapylocal.app.engine.stress.Slow -e lane android-test-${{ matrix.device }} -e commit ${{ github.sha }}" qa/run-device-tests.sh
+          script: SKIP_BUILD=1 OUT_DIR=out INSTR_ARGS="-e notAnnotation com.therapylocal.app.engine.stress.FullOnly,com.therapylocal.app.engine.stress.Lmk,com.therapylocal.app.engine.stress.Slow -e numShards 3 -e shardIndex ${{ matrix.shard }} -e lane android-test-${{ matrix.device }}-${{ matrix.shard }} -e commit ${{ github.sha }}" qa/run-device-tests.sh
       - name: Job summary
         if: always()
-        run: python3 qa/stress-summary.py out/stress/results.jsonl --title "android-test (${{ matrix.device }})" >> "$GITHUB_STEP_SUMMARY"
+        run: python3 qa/stress-summary.py out/stress/results.jsonl --title "android-test (${{ matrix.device }}, shard ${{ matrix.shard }} of 3)" >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: stress-android-test-${{ matrix.device }}
+          name: stress-android-test-${{ matrix.device }}-${{ matrix.shard }}
           path: out
           retention-days: 7
           if-no-files-found: warn
 
-  # The FULL tier of the engine stress lab on two shards (catalogue section 5): a memory-poor phone (2 GB), real separate processes.
+  # The FULL tier of the engine stress lab on three shards (catalogue section 5): a memory-poor phone (2 GB), real separate processes.
   # CORE tests carry both tiers and ran above, so the shards skip them.
   stress:
     needs: apk
@@ -172,6 +173,7 @@ jobs:
         include:
           - { lane: stress-a, shard: 0 }
           - { lane: stress-b, shard: 1 }
+          - { lane: stress-c, shard: 2 }
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
@@ -183,7 +185,7 @@ jobs:
           profile: pixel_6
           ram-size: 2048M
           key: avd-34-google_apis-pixel_6-2048
-      - name: Stress tests (FULL, shard ${{ matrix.shard }} of 2)
+      - name: Stress tests (FULL, shard ${{ matrix.shard }} of 3)
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 34
@@ -194,7 +196,7 @@ jobs:
           force-avd-creation: false
           disable-animations: true
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
-          script: SKIP_BUILD=1 OUT_DIR=out INSTR_ARGS="-e annotation com.therapylocal.app.engine.stress.Full -e notAnnotation com.therapylocal.app.engine.stress.Core -e numShards 2 -e shardIndex ${{ matrix.shard }} -e lane ${{ matrix.lane }} -e scale 1 -e commit ${{ github.sha }}" qa/run-device-tests.sh
+          script: SKIP_BUILD=1 OUT_DIR=out INSTR_ARGS="-e annotation com.therapylocal.app.engine.stress.Full -e notAnnotation com.therapylocal.app.engine.stress.Core -e numShards 3 -e shardIndex ${{ matrix.shard }} -e lane ${{ matrix.lane }} -e scale 1 -e commit ${{ github.sha }}" qa/run-device-tests.sh
       - name: Job summary
         if: always()
         run: python3 qa/stress-summary.py out/stress/results.jsonl --title "${{ matrix.lane }}" >> "$GITHUB_STEP_SUMMARY"
