@@ -2,6 +2,7 @@ package com.therapylocal.app.models
 
 import android.content.Context
 import android.os.Build
+import com.therapylocal.app.config.EmbeddingConfig
 import java.io.File
 
 /**
@@ -29,9 +30,21 @@ object NpuRuntime {
 
     /** Why the NPU cannot run [model] on this device: no validated NPU build for its SoC, or the file is not on the phone yet. Null when it can. */
     fun modelReason(context: Context, model: String, soc: String = deviceSoc()): String? {
+        if (model.substringBefore('+') == EmbeddingConfig.MODEL_ID && experimentFile(context) != null) return null
         val build = ModelRegistry.backendBuild(model, "NPU", soc)
             ?: return "no validated NPU model for $soc (${model.substringBefore('+')}; validated on ${ModelRegistry.BACKEND_BUILDS.filter { it.modelId == model.substringBefore('+') && it.accelerator == "NPU" }.mapNotNull { it.soc }.ifEmpty { listOf("no device") }.joinToString()})"
         return if (build.spec.isReady(context)) null else "NPU model file for $soc not downloaded (${build.spec.files.first().name})"
+    }
+
+    /**
+     * QA build only, for NPU experiments (AD-09): `files/models/npu/embed_override.txt` holds the name of another bundle in that folder to load on the NPU in
+     * place of the catalogue's for the embedder. It is compared with the same CPU golden vectors, so only a bundle of the same model can pass the proof.
+     */
+    fun experimentFile(context: Context): File? {
+        if (com.therapylocal.app.BuildConfig.BUILD_TYPE != "qa") return null
+        val dir = File(context.getExternalFilesDir(null), "models/npu")
+        val name = File(dir, "embed_override.txt").takeIf { it.exists() }?.readText()?.trim().orEmpty()
+        return name.takeIf { it.isNotEmpty() }?.let { File(dir, it) }?.takeIf { it.exists() }
     }
 
     /** The NPU file for [model] on this device, or null. */

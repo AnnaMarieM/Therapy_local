@@ -47,7 +47,8 @@ internal class EmbedRunner(private val context: Context, private val role: Engin
         val spec = ModelRegistry.byId(op.model)
         val name = op.backend
         // The NPU runs its own build of the model, made for this SoC (AD-09); another backend its own build if the catalogue has one, else the default file.
-        val file = if (name == "NPU") {
+        val experiment = if (name == "NPU") NpuRuntime.experimentFile(context) else null
+        val file = if (experiment != null) experiment else if (name == "NPU") {
             val soc = NpuRuntime.deviceSoc()
             checkNotNull(NpuRuntime.modelFile(context, spec.id, soc)) { "no validated NPU model for $soc (${spec.id})" }.also { NpuBundleCheck.verify(it, soc) }
         } else ModelRegistry.fileFor(context, spec, name)
