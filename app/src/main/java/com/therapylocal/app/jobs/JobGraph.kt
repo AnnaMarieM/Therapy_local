@@ -24,12 +24,21 @@ object JobGraph {
     const val COMMIT = "commit"
     const val CLEANUP = "cleanup"
 
+    /**
+     * The last-session summary (docs/AD/AD-12.md): not part of the chain above, so a failed summary never blocks the facts. Queued behind the
+     * window job of a new session (after the roles are known) and again, on its own, to rebuild (roles swapped, "regenerate").
+     */
+    const val SUMMARY = "summary"
+
     /** After a recording has stopped and every chunk is saved. Returns the window job. */
     fun enqueueRecording(queue: JobQueue, session: String, recording: Long): Long {
         val transcribe = queue.enqueue(TRANSCRIBE, session, recording)
         val roles = queue.enqueue(ROLES, session, recording, dependsOn = listOf(transcribe))
         return queue.enqueue(WINDOW, session, recording, dependsOn = listOf(roles))
     }
+
+    /** Queues the summary of [session] (once: an unfinished one is reused). [after] are jobs that must finish first. */
+    fun enqueueSummary(queue: JobQueue, session: String, after: List<Long> = emptyList()): Long = queue.enqueue(SUMMARY, session, dependsOn = after)
 
     /** A session whose segments are already stored (the developer harness imports text transcripts): no audio, no cleanup. */
     fun enqueueTranscript(queue: JobQueue, session: String): Long = queue.enqueue(WINDOW, session)
