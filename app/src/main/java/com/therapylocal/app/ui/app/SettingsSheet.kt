@@ -69,6 +69,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.therapylocal.app.BuildConfig
 import com.therapylocal.app.R
 import com.therapylocal.app.config.LiveCueSettings
+import com.therapylocal.app.config.SummaryFormatSetting
+import com.therapylocal.app.ui.data.SessionSummaryRepository
 import com.therapylocal.app.config.liveCueSettings
 import com.therapylocal.app.config.saveLiveCueSettings
 import com.therapylocal.app.embed.Engines
@@ -177,6 +179,9 @@ fun SettingsSheet(
                         DisplayConfig.setKeepScreenAwake(ctx, on)
                     }
                 }
+
+                item { Group(stringResource(R.string.settings_group_summary_format)) }
+                item { SummaryFormat() }
 
                 item { Group(stringResource(R.string.settings_group_privacy)) }
                 item {
@@ -469,6 +474,18 @@ private fun Knob(title: String, value: String, position: Float, range: ClosedFlo
             modifier = Modifier.semantics { contentDescription = title },
         )
     }
+}
+
+/** The summary format of the vault. Moving the slider shows the example of each stop; leaving it on another one applies it (stale summaries, last sessions written again). */
+@Composable
+private fun SummaryFormat() {
+    val ctx = LocalContext.current
+    val scope = rememberCoroutineScope()
+    var format by remember { mutableStateOf(SummaryFormatSetting.get(ctx)) }
+    SummaryFormatPicker(
+        format, { format = it },
+        onSettle = { id -> scope.launch(Dispatchers.IO) { SessionSummaryRepository.create(ctx).changeFormat(id) } },
+    )
 }
 
 /** The language new clients start with. A client's own language is set in the client's profile. */

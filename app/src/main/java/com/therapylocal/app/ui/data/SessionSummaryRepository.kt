@@ -1,6 +1,8 @@
 package com.therapylocal.app.ui.data
 
 import android.content.Context
+import com.therapylocal.app.config.SummaryConfig
+import com.therapylocal.app.config.SummaryFormatSetting
 import com.therapylocal.app.data.JobStatus
 import com.therapylocal.app.data.MindStore
 import com.therapylocal.app.facts.PromptLanguage
@@ -33,6 +35,11 @@ class SessionSummaryRepository(
     private val generating: (session: String) -> Boolean,
     /** Queues a SUMMARY job (once per session) and starts the runner. */
     private val enqueue: (session: String) -> Unit,
+    /** The ids of every client in the vault (for rebuilding after a format change). */
+    private val clients: () -> List<String> = { emptyList() },
+    /** The id of the summary format in use, and storing a new one (the vault-wide setting). */
+    private val format: () -> String = { SummaryConfig.DEFAULT_FORMAT_ID },
+    private val saveFormat: (String) -> Unit = {},
 ) {
     private fun summaries() = SessionSummaries(repo())
 
@@ -44,6 +51,29 @@ class SessionSummaryRepository(
     /** Makes the summary again from the current transcript, roles and prompts, replacing the old one when done. A no-op while one is being made. */
     fun regenerate(session: String) {
         if (!generating(session)) enqueue(session)
+    }
+
+    /** The id of the summary format in use. */
+    fun format(): String = format.invoke()
+
+    /**
+     * Chooses the summary format for the whole vault. A change is stored first (the prompt version of every summary now differs, so each shows
+     * as stale) and then the summary of every client's last session that has one is made again with the existing SUMMARY job. Older sessions
+     * are only flagged stale when viewed. Returns false, and does nothing, when [id] is the format in use or is not registered.
+     */
+    fun changeFormat(id: String): Boolean {
+        if (id !in SummaryConfig.FORMATS || id == format()) return false
+        saveFormat(id)
+        var rebuilt = 0
+        for (client in clients()) {
+            val session = lastSession(client) ?: continue
+            if (repo().summary(session) == null) continue // nothing to replace; its first one is made with the format then in use
+            summaries().refreshStale(session, promptVersion(session), model())
+            regenerate(session)
+            rebuilt++
+        }
+        AppLog.i(TAG, "summary_format_changed", LogCtx.NONE, "format" to id, "rebuilt" to rebuilt)
+        return true
     }
 
     /**
@@ -68,7 +98,7 @@ class SessionSummaryRepository(
                 lastSession = { client -> store().sessions(client).lastOrNull { store().transcriptLengthMs(it.id) > 0 }?.id },
                 promptVersion = { session ->
                     val language = PromptLanguage.choose(LocaleStore.current(app).tag, store().clientLanguage(store().clientOfSession(session)))
-                    SummaryPrompts.load({ MemoryFiles.prompt(app, it) }, language).version()
+                    SummaryPrompts.load({ MemoryFiles.prompt(app, it) }, language, SummaryFormatSetting.get(app)).version()
                 },
                 model = { ModelSetup.gemma(app).id },
                 // A failed job is not "generating": the state falls back to none or stale and regenerate replaces it.
@@ -79,6 +109,9 @@ class SessionSummaryRepository(
                     JobGraph.enqueueSummary(queue, session)
                     MemoryService.resumePending(app)
                 },
+                clients = { store().clients().map { it.id } },
+                format = { SummaryFormatSetting.get(app) },
+                saveFormat = { SummaryFormatSetting.set(app, it) },
             )
         }
     }

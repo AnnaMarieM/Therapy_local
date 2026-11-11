@@ -24,7 +24,7 @@ data class SummarySection(val label: String, val text: String)
 
 /**
  * What a screen needs of the summary of one session. [text] is the last summary made, if any, also while [state] is [SummaryState.Generating]
- * or [SummaryState.Stale] (the screen decides whether to show it); [sections] is [text] split at the headings of [SummaryConfig.SECTIONS].
+ * or [SummaryState.Stale] (the screen decides whether to show it); [sections] is [text] split at the headings of the registered formats ([SummaryConfig.ALL_LABELS]).
  */
 data class SessionSummary(val sessionId: String, val state: SummaryState, val text: String?, val sections: List<SummarySection>, val generatedAt: Long?) {
     companion object {
@@ -131,10 +131,10 @@ class SessionSummaries(private val repo: SummaryRepo, private val clock: () -> L
     }
 }
 
-/** Splits a summary at the headings of [SummaryConfig.SECTIONS]. Pure Kotlin. */
+/** Splits a summary at the headings of any registered format (the stored row does not say which one wrote it). Pure Kotlin. */
 object SummarySections {
     fun parse(text: String): List<SummarySection> {
-        val labels = SummaryConfig.SECTIONS.map { it.label }
+        val labels = SummaryConfig.ALL_LABELS
         val heading = Regex("^\\s*[*#_ ]*(${labels.joinToString("|") { Regex.escape(it) }})[*_ ]*(?::[*_ ]*(.*)|)$", RegexOption.IGNORE_CASE)
         val out = ArrayList<SummarySection>()
         var label = ""
