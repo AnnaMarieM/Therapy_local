@@ -5,7 +5,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.hasContentDescription
+import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.performClick
@@ -27,13 +34,25 @@ class SummaryFormatPickerTest {
     private var shown by mutableStateOf("soap")
     private val settled = ArrayList<String>()
 
-    private fun show() = compose.setContent { PaperTheme { SummaryFormatPicker(shown, { shown = it }, onSettle = { settled += it }) } }
+    /** A fixed phone-sized, scrollable host, so the result does not depend on the emulator's window; what must be seen is scrolled to first. */
+    private fun show() = compose.setContent {
+        PaperTheme {
+            Column(Modifier.size(360.dp, 640.dp).verticalScroll(rememberScrollState())) {
+                SummaryFormatPicker(shown, { shown = it }, onSettle = { settled += it })
+            }
+        }
+    }
+
+    /** The stop names and section headings are drawn in capitals ([com.therapylocal.app.ui.app.Label]), so text is matched without case. */
+    private fun text(t: String, substring: Boolean = false) = hasText(t, substring = substring, ignoreCase = true)
+
+    private fun androidx.compose.ui.test.SemanticsNodeInteraction.assertShown() = performScrollTo().assertIsDisplayed()
 
     @Test
     fun everyStopIsNamedAndTheDefaultExampleShows() {
         show()
-        for (name in listOf("SOAP", "DAP", "BIRP", "Narrative")) compose.onNode(hasText(name)).assertIsDisplayed()
-        compose.onNode(hasText("Subjective", substring = true)).assertIsDisplayed()
+        for (name in listOf("SOAP", "DAP", "BIRP", "Narrative")) compose.onNode(text(name)).assertShown()
+        compose.onNode(text("Subjective", substring = true)).assertShown()
     }
 
     @Test
@@ -42,27 +61,27 @@ class SummaryFormatPickerTest {
         val slider = compose.onNode(hasContentDescription("Summary format"))
         slider.performSemanticsAction(SemanticsActions.SetProgress) { it(1f) }
         compose.runOnIdle { assertEquals("dap", shown) }
-        compose.onNode(hasText("Data", substring = true)).assertIsDisplayed()
-        compose.onNode(hasText("Subjective", substring = true)).assertDoesNotExist()
+        compose.onNode(text("Data", substring = true)).assertShown()
+        compose.onNode(text("Subjective", substring = true)).assertDoesNotExist()
 
         slider.performSemanticsAction(SemanticsActions.SetProgress) { it(2f) }
         compose.runOnIdle { assertEquals("birp", shown) }
-        compose.onNode(hasText("Intervention", substring = true)).assertIsDisplayed()
+        compose.onNode(text("Intervention", substring = true)).assertShown()
 
         slider.performSemanticsAction(SemanticsActions.SetProgress) { it(3f) }
         compose.runOnIdle { assertEquals("narrative", shown) }
-        compose.onNode(hasText("Intervention", substring = true)).assertDoesNotExist()
-        compose.onNode(hasText("I will be fired", substring = true)).assertIsDisplayed()
+        compose.onNode(text("Intervention", substring = true)).assertDoesNotExist()
+        compose.onNode(text("I will be fired", substring = true)).assertShown()
     }
 
     @Test
     fun tappingAStopNameSelectsAndSettlesIt() {
         show()
-        compose.onNode(hasText("BIRP")).performClick()
+        compose.onNode(text("BIRP")).performClick()
         compose.runOnIdle {
             assertEquals("birp", shown)
             assertEquals(listOf("birp"), settled)
         }
-        compose.onNode(hasText("Response", substring = true)).assertIsDisplayed()
+        compose.onNode(text("Response", substring = true)).assertShown()
     }
 }
