@@ -117,6 +117,35 @@ class GestureMathTest {
         assertEquals(0.75f, GestureMath.frac(-0.25f), 1e-6f)
     }
 
+    // ---- pager pages ----
+
+    @Test
+    fun pagerPageIsGoneByHalfWay() {
+        assertEquals(1f, GestureMath.pagerPageAlpha(0f), 0f)
+        assertEquals(0.5f, GestureMath.pagerPageAlpha(0.25f), 1e-6f)
+        assertEquals(0.5f, GestureMath.pagerPageAlpha(-0.25f), 1e-6f)
+        assertEquals(0f, GestureMath.pagerPageAlpha(0.5f), 0f)
+        assertEquals(0f, GestureMath.pagerPageAlpha(-0.5f), 0f)
+    }
+
+    @Test
+    fun pagerLeavesNoGhostWhileSettling() {
+        // the last frames before the pager settles: the old page is almost a whole page away and still partly on screen (#72)
+        for (offset in listOf(0.9f, 0.99f, 1f, -0.99f, -1f, 1.5f)) assertEquals("alpha at $offset", 0f, GestureMath.pagerPageAlpha(offset), 0f)
+    }
+
+    @Test
+    fun pagerPagesNeverMix() {
+        // at every point of a turn, at most one of the two pages shows
+        var f = 0f
+        while (f <= 1f) {
+            val old = GestureMath.pagerPageAlpha(f)
+            val new = GestureMath.pagerPageAlpha(f - 1f)
+            assertTrue("both show at $f", old == 0f || new == 0f)
+            f += 0.01f
+        }
+    }
+
     // ---- reel look ----
 
     @Test
