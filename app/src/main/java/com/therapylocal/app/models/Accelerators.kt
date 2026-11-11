@@ -27,6 +27,8 @@ data class Accelerator(
     val models: Set<String>? = null,
     /** Why it cannot be used on this phone (a library or device feature missing), or null when it can. Must not throw, must be cheap. */
     val available: (Context) -> String? = { null },
+    /** Why it cannot serve this model on this phone (no model file built for the device, say), or null. Same rules as [available]. */
+    val availableFor: (Context, String) -> String? = { _, _ -> null },
     /** Whether LiteRT-LM can drive it; the backend itself comes from [LiteRtBindings]. */
     val litert: Boolean = false,
     /** The ONNX Runtime execution provider name sherpa-onnx is given for it, or null if ONNX models cannot use it. */
@@ -51,8 +53,9 @@ data class Accelerator(
 object Accelerators {
     val NPU = Accelerator(
         id = "NPU", priority = 100,
-        // LiteRT-LM reaches a Qualcomm NPU only through a dispatch library the app does not ship yet (see NpuRuntime).
-        available = { ctx -> if (NpuRuntime.available(ctx)) null else "dispatch library missing (${NpuRuntime.DISPATCH_LIB})" },
+        // The Qualcomm dispatch and QNN libraries ship in the APK; a model needs an NPU build validated for this SoC (see NpuRuntime, AD-09).
+        available = { ctx -> NpuRuntime.runtimeReason(ctx) },
+        availableFor = { ctx, model -> NpuRuntime.modelReason(ctx, model) },
         litert = true,
     )
     val GPU = Accelerator(id = "GPU", priority = 200, litert = true)
@@ -98,7 +101,7 @@ object Accelerators {
         if (!a.serves(model)) return "${a.id} is dedicated to ${a.models?.joinToString()}"
         if (!a.supports(runtime)) return "${a.id} has no ${runtime.name} binding"
         return try {
-            a.available(context)
+            a.available(context) ?: a.availableFor(context, model.substringBefore('+'))
         } catch (t: Throwable) {
             "availability check failed: ${t.javaClass.simpleName}: ${t.message}"
         }

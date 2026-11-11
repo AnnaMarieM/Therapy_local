@@ -82,6 +82,9 @@ class Embedder(
 ) : CueEmbedder {
     var backend: String = "none"
         private set
+    /** Why the backends tried before [backend] were skipped or failed (the ladder's reasons, "; "-joined); empty when the first candidate loaded. For the QA probe. */
+    var skipped: String = ""
+        private set
     /** The embedder's model id; the debug lab swaps it for `fake-embed` (LabWiring). */
     private val modelId = com.therapylocal.app.engine.LabWiring.model(EmbeddingConfig.MODEL_ID)
     val dim = EmbeddingConfig.DIM
@@ -187,6 +190,7 @@ class Embedder(
                     span.put("backend", backend)
                     span.put("audio_backend", loaded.engine.audioBackend ?: audioBackendName())
                     span.put("fallbacks_failed", loaded.skipped.size)
+                    skipped = loaded.skipped.joinToString("; ")
                     AppLog.i(TAG, "backend_selected", LogCtx.NONE, "engine" to "embeddinggemma", "load_id" to loaded.loadId, "backend" to backend, "audio_backend" to (loaded.engine.audioBackend ?: audioBackendName()), "model_file" to fileInfo?.first, "model_bytes" to fileInfo?.second, "skipped" to loaded.skipped.joinToString("; "))
                     AppLog.logMemory(context, TAG, "embed_ready", extra = arrayOf("backend" to backend, "host_pss_kb" to proxy.statusIfBound()?.pssKb))
                 }

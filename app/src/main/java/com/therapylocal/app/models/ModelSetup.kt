@@ -58,7 +58,11 @@ object ModelSetup {
      * not wait for it ([isReady] ignores it): an install from before it existed keeps processing its queue on the chunk path (docs/AD/AD-06.md,
      * `diarization_skipped reason=model_missing`) and gets the model in the background.
      */
-    fun essential(context: Context): List<ModelSpec> = listOf(ModelRegistry.EMBED, ModelRegistry.CANARY_1B_V2, gemma(context))
+    fun essential(context: Context): List<ModelSpec> {
+        val base = listOf(ModelRegistry.EMBED, ModelRegistry.CANARY_1B_V2, gemma(context))
+        // An optimised device (AD-09) also fetches the accelerator-specific builds of the models that have one for its SoC; any other device fetches nothing extra.
+        return base + ModelRegistry.backendSpecsFor(base.map { it.id }, NpuRuntime.deviceSoc())
+    }
 
     fun gemmaVariant(context: Context): GemmaVariant = ModelChoice.resolve(prefs(context).getString(ModelChoice.PREF, null))
 
