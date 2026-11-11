@@ -16,7 +16,13 @@ gradle_home="${GRADLE_USER_HOME_HOST:-$HOME/.gradle-therapy-builder}"
 mask=()
 [[ -f "$root/local.properties" ]] && mask=(-v "$(mktemp):/workspace/local.properties:ro")
 
-docker build -q -t "$image" "$root/docker" >/dev/null
+# Quiet when it works. On a failure print the whole build log, so the failing step's own output (apt, curl, sdkmanager) shows up in CI.
+build_log="$(mktemp)"
+if ! docker build --progress=plain -t "$image" "$root/docker" >"$build_log" 2>&1; then
+  cat "$build_log" >&2
+  exit 1
+fi
+rm -f "$build_log"
 mkdir -p "$gradle_home" "$root/dist"
 
 # KVM is not involved: aapt2 on arm64 runs under qemu-user, which is always software emulation. Say so in the log.
