@@ -5,6 +5,7 @@ import android.util.DisplayMetrics
 import androidx.test.platform.app.InstrumentationRegistry
 import com.therapylocal.app.ui.design.DisplayPin
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /** AD-05: whatever font size, bold text and display size the user chose, the app's resources see the pinned values. */
@@ -34,5 +35,24 @@ class DisplayPinTest {
         assertEquals(1f, ctx.resources.configuration.fontScale, 0f)
         assertEquals(DisplayMetrics.DENSITY_DEVICE_STABLE, ctx.resources.configuration.densityDpi)
         assertEquals(DisplayMetrics.DENSITY_DEVICE_STABLE / 160f, ctx.resources.displayMetrics.density, 0.01f)
+    }
+
+    @Test
+    fun theWrapOverridesOnlyThePinnedFields() {
+        val o = DisplayPin.overrides()
+        assertEquals(1f, o.fontScale, 0f)
+        assertEquals(0, o.fontWeightAdjustment)
+        assertEquals(DisplayMetrics.DENSITY_DEVICE_STABLE, o.densityDpi)
+        // #71: no language and no window size in the override, so a language switch handled in place reaches the resources.
+        assertTrue(o.locales.isEmpty)
+        assertEquals(Configuration.SCREEN_WIDTH_DP_UNDEFINED, o.screenWidthDp)
+    }
+
+    @Test
+    fun aWrappedContextSeesThePinnedMetricsAndTheSystemLanguage() {
+        val ctx = DisplayPin.wrap(context)
+        assertEquals(1f, ctx.resources.configuration.fontScale, 0f)
+        assertEquals(DisplayMetrics.DENSITY_DEVICE_STABLE, ctx.resources.configuration.densityDpi)
+        assertEquals(context.resources.configuration.locales, ctx.resources.configuration.locales)
     }
 }

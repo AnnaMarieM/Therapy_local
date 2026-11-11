@@ -40,6 +40,7 @@ class MemProbeActivity : Activity() {
         val maxOut = i.getIntExtra("maxout", 400)
         val lang = i.getStringExtra("lang") ?: "en"
         val force = i.getBooleanExtra("force", false)
+        val constrained = i.getBooleanExtra("constrained", false)
         val tag = i.getStringExtra("tag") ?: "${variant.key}_${order.joinToString("")}"
         val steps = JSONArray()
         val result = JSONObject().put("variant", variant.key).put("backend_order", order.joinToString(",")).put("ctx", ctx).put("steps", steps)
@@ -57,11 +58,20 @@ class MemProbeActivity : Activity() {
             // A probe measures what was asked for, even a backend the app has blocked on this phone (its outcome is still recorded).
             llm.load(order, respectBlocks = false)
             snap("loaded", JSONObject().put("load_ms", (System.nanoTime() - l0) / 1_000_000).put("backend", llm.backend))
+            if (constrained) {
+                // One call with constrained decoding (a JSON schema), like the pipeline's small-schema calls, to see that the NPU does it too.
+                val c0 = System.nanoTime()
+                val schema = """{"type":"object","properties":{"answer":{"type":"string"},"count":{"type":"integer"}},"required":["answer","count"]}"""
+                val reply = llm.ask("Answer in JSON only.", "How many days are in a week? Put a one-word answer in answer.", schema, 60, 0.1, 20)
+                snap("constrained", JSONObject().put("call_ms", (System.nanoTime() - c0) / 1_000_000).put("reply", reply.take(500)))
+            }
             repeat(calls) { n ->
                 val c0 = System.nanoTime()
                 val (system, user) = if (words > 0) realWindow(words, lang) else SYSTEM to USER
                 val reply = llm.ask(system, user, null, maxOut, 0.1, 20)
-                snap("call_${n + 1}", JSONObject().put("call_ms", (System.nanoTime() - c0) / 1_000_000).put("reply_chars", reply.length).put("reply_lines", reply.lines().count { it.trim().startsWith("{") }).put("window_words", words).put("reply", reply.take(3000)))
+                val speed = com.therapylocal.app.perf.PerfStats.live.value
+                snap("call_${n + 1}", JSONObject().put("call_ms", (System.nanoTime() - c0) / 1_000_000)
+                    .put("prefill_tok_s", speed?.prefillTokS).put("decode_tok_s", speed?.decodeTokS).put("prompt_tokens", speed?.promptTokens).put("reply_chars", reply.length).put("reply_lines", reply.lines().count { it.trim().startsWith("{") }).put("window_words", words).put("reply", reply.take(3000)))
             }
         } catch (t: Throwable) {
             Log.e(TAG, "probe failed", t)

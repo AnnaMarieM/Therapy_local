@@ -648,6 +648,8 @@ class EngineConnection(
                 "pss_kb" to rec?.pssKb, "rss_kb" to rec?.rssKb, "hang" to hang,
                 "host_importance" to rec?.importance, "client_importance" to importance,
                 "last_host_phase" to g.lastHostPhase, "last_host_op" to g.lastHostOp, "deaths" to inWindow,
+                // A quiet native crash (AD-04) leaves no tombstone: the host's last native warnings say why (an allocation, a rejected model).
+                "native_tail" to if (kind == ExitKind.BENIGN) null else NativeLogTail.of(g.pid),
                 *runCatching { sysMemory() }.getOrDefault(emptyList()).toTypedArray(),
             )
         }

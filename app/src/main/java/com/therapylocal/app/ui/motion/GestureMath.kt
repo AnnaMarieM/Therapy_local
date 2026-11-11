@@ -92,6 +92,13 @@ object GestureMath {
     fun approach(current: Float, target: Float, rate: Float, dtSeconds: Float): Float =
         target + (current - target) * exp(-rate * dtSeconds)
 
+    /**
+     * How much of a pager page shows at [offset] pages from where the pager is (0 settled on it, +-1 a whole page away, either side): it is
+     * gone by half-way and the page it gives way to only shows from half-way on, so two pages never mix and nothing of the old one is
+     * left on screen while the pager settles.
+     */
+    fun pagerPageAlpha(offset: Float): Float = (1f - 2f * abs(offset)).coerceIn(0f, 1f)
+
     /** Fractional part, always in 0..1 (also for negative positions during an overscroll). */
     fun frac(x: Float): Float = x - floor(x)
 

@@ -67,6 +67,16 @@
     <string name="setup_checking_files">Checking files…</string>
     <string name="setup_failed_generic">Setup could not finish</string>
     <string name="setup_waiting_network">Waiting for internet connection</string>
+    <string name="setup_mobile_title">Download over mobile data?</string>
+    <string name="setup_mobile_body">This phone is on mobile data or another metered connection. The app still needs to download %1$s, which may count against your data plan.</string>
+    <string name="setup_mobile_download_now">Download now</string>
+    <string name="setup_mobile_wait_wifi">Wait for Wi-Fi</string>
+    <string name="setup_mobile_not_now">Not now</string>
+    <string name="setup_waiting_wifi_line">Waiting for Wi-Fi · Use mobile data</string>
+    <string name="setup_waiting_wifi_title">Waiting for Wi-Fi</string>
+    <string name="setup_waiting_wifi_body">The download continues by itself on Wi-Fi.</string>
+    <string name="setup_use_mobile_data">Use mobile data</string>
+    <string name="setup_declined_body">Nothing is downloaded over mobile data until you say so.</string>
     <string name="setup_eta_less_than_minute">less than a minute</string>
     <string name="setup_eta_minutes">about %1$d min</string>
     <string name="setup_eta_hours">about %1$d h</string>
