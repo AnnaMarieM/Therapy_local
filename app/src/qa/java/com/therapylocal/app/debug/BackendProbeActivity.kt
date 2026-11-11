@@ -26,7 +26,7 @@ import kotlin.math.sin
  *   adb shell am start -n com.therapylocal.app.qa/com.therapylocal.app.debug.BackendProbeActivity \
  *     --es model embed|embed_audio|canary --es backend GPU|NPU|NNAPI|CPU [--ez force true] [--es tag t] [--ei calls 3] [--ez golden true] [--ei tokens 2048] [--ez reset true]
  *
- * `force` skips the free-memory gate and the guard's blocks (as MemProbeActivity does; the engine process may die, main must not). Without
+ * `force` skips the guard's blocks (as MemProbeActivity does; the engine process may die, main must not). Without
  * it the unforced ladder decides. The reference run is always forced onto the CPU. Embeddings: cosine to the CPU vector per fixed input
  * ([EmbedGolden]) and per-call milliseconds. Canary: a synthetic 8 s clip, the text length and whether the text equals the CPU's. With
  * `--ez golden true` (use it with backend CPU) the CPU vectors are also written in the format of assets/embed_golden.json, to be copied

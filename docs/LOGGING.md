@@ -64,11 +64,13 @@ Model and backend events (tag `Memory` for the LLM, `Embed` for the embedder, `A
 |---|---|
 | `memory_llm_load_request`, `embed_load_request` | model, file size, context, audio, order asked for, debug override, cooldown left |
 | `ladder_start` | `candidates`, `history` (every backend's state/strikes/proven before, e.g. `GPU=proven/0/proven_before`), full memory and thermal picture |
-| `backend_skipped` | `reason` (missing library, `not enough free memory (… MB free, … MB needed)`, the guard's block or demotion) |
+| `backend_skipped` | `reason` (missing library, the guard's block or demotion; never free memory, AD-08) |
 | `backend_skipped_blocked` | the record that blocked it: state, strikes, when, why |
 | `backend_attempting` | `note=attempting`, attempt n of m, record before, memory before |
 | `backend_phase` | `phase` (create, initialize, test), free memory. Written and **flushed to disk** before each native step, so after a native kill it is the last line. The step is also in the next start's `backend_died_while_loading` |
 | `backend_open_slow` | every 30 s while an attempt is still running: `elapsed_ms`, free memory (a hang looks different from a kill) |
+
+**Memory: what a model really costs.** `sys_avail_mb` on the phase lines is what the system reports free; it also moves with other apps and the cache, so it only shows a dip. The exact figure is logged by the engine process itself (`tag=Engine evt=host_mem`, in `engine-live.log` / `engine-batch.log`): `at` (`start`, `during` every 2 s, `end` of an `open`, `ask`, `transcribe` or `diarize` call), `op`, `model`, `backend_try`, `pss_mb`, `rss_mb`, `swap_pss_mb`, `gfx_mb` (graphics/GL buffers mapped into the process), `native_mb`, `java_mb` and `peak_pss_mb` (the highest PSS sampled since the process started). A model's cost is the rise of `pss_mb` and `gfx_mb` between `at=start` and `at=end` of its `open`. It has to be read inside the process: the main process gets a wrong figure for another process from `getProcessMemoryInfo`, and SELinux refuses `/proc/<pid>/smaps_rollup` (measured 2026-11-11: main logged 16 MB for a `:batch` process that `dumpsys meminfo` showed at 1.0 GB). GPU memory the driver keeps outside the process mappings is in none of these fields; it is the rest of the free-memory dip.
 | `backend_skipped_demoted` | the backend failed on real prompts earlier in this run |
 | `backend_proven` | `note="proven on this device"`, `first_time`, `open_ms`, record after, memory after |
 | `backend_failed` (error, with stack trace) | `open_ms`, `error`, `reason`, `cause_chain`, `is_oom`, `next`, record after (strikes, blocked?), memory after |
@@ -164,7 +166,7 @@ To join the host files to the right run, take `client_sid` from `host_start` and
 
 ### Debug override and force
 
-The developer screen can force a backend (`BackendPolicy.override`). With `BackendPolicy.force` also on, the engines skip the free-memory gate and the guard's blocks and demotions and try exactly that one accelerator (a missing runtime library still refuses it). The engine process then either survives or dies, and main goes on; this is how a host death on real hardware is provoked. `force` is for debug and QA only and no release path sets it. The QA probe sets it with an extra:
+The developer screen can force a backend (`BackendPolicy.override`). With `BackendPolicy.force` also on, the engines skip the guard's blocks and demotions and try exactly that one accelerator (a missing runtime library still refuses it). The engine process then either survives or dies, and main goes on; this is how a host death on real hardware is provoked. `force` is for debug and QA only and no release path sets it. The QA probe sets it with an extra:
 
 ```bash
 adb shell am start -n com.therapylocal.app.qa/com.therapylocal.app.debug.MemProbeActivity --es variant e4b --es backend GPU --ez force true --es tag e4b_gpu_forced
@@ -179,7 +181,7 @@ adb shell am start -n com.therapylocal.app.qa/com.therapylocal.app.debug.Backend
 adb shell cat /sdcard/Android/data/com.therapylocal.app.qa/files/out/backendprobe_emb_gpu.json
 ```
 
-`--es model embed|embed_audio|canary`, `--es backend GPU|NPU|NNAPI|CPU`, `--ei calls 3`. Without `force` the real ladder decides (gate, blocks); with it the gate and blocks are skipped. The file holds the backend used, `open_ms`, per-call milliseconds, a CPU reference run (always forced to the CPU), `cosine_vs_cpu` per fixed input (embeddings) or `text_equals_cpu` (Canary, an 8 s synthetic clip), and any error. `--es backend CPU --ez golden true` also writes the CPU vectors in the format of `assets/embed_golden.json`.
+`--es model embed|embed_audio|canary`, `--es backend GPU|NPU|NNAPI|CPU`, `--ei calls 3`. Without `force` the real ladder decides (blocks); with it the blocks are skipped. The file holds the backend used, `open_ms`, per-call milliseconds, a CPU reference run (always forced to the CPU), `cosine_vs_cpu` per fixed input (embeddings) or `text_equals_cpu` (Canary, an 8 s synthetic clip), and any error. `--es backend CPU --ez golden true` also writes the CPU vectors in the format of `assets/embed_golden.json`.
 
 *To revisit after the strike, deferral and fault-injection steps land:* `job_deferred` and `fault_plan_ignored` fields, the immediate strike line, and the debug fault points.
 

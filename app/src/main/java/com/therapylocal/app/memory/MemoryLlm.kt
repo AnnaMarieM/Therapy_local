@@ -157,16 +157,13 @@ class MemoryLlm(
     companion object {
         const val TAG = "Memory"
 
-        /** Why [name] is not tried now, or null. Accelerators that take the model's memory from the system (GPU, NPU) need it free. The check is system-wide, so main is right. */
+        /** Why [name] is not tried now, or null: only the accelerator's own availability (a missing runtime library). Free memory is never checked (AD-08). */
         internal fun memoryGate(context: Context, spec: ModelSpec, name: String): String? =
             com.therapylocal.app.engine.LabWiring.gate(realMemoryGate(context, spec, name))
 
         private fun realMemoryGate(context: Context, spec: ModelSpec, name: String): String? {
             Accelerators.unavailable(context, name, spec.id, ModelRuntime.LITERT)?.let { return it }
-            if (BackendPolicy.forcing()) { AppLog.w(TAG, "backend_memory_gate_forced", LogCtx.NONE, "backend_try" to name); return null }
-            if (Accelerators.get(name)?.takesSystemMemory != true) return null
-            AppLog.d(TAG, "backend_memory_gate", LogCtx.NONE, "backend_try" to name, "needed_mb" to (LlmMemory.gpuNeeds(spec.totalBytes) shr 20), "model_mb" to (spec.totalBytes shr 20))
-            return LlmMemory.gate(context, spec.totalBytes)
+            return null
         }
     }
 }
