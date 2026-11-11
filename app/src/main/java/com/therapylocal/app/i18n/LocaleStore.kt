@@ -6,6 +6,8 @@ import android.content.Context
 import android.content.res.Configuration
 import android.os.Build
 import android.os.LocaleList
+import androidx.activity.ComponentActivity
+import androidx.core.util.Consumer
 import java.util.Locale
 
 /**
@@ -43,20 +45,40 @@ object LocaleStore {
     /** Set when the language was switched, until the main screen has offered to read the sessions again in it. */
     private const val KEY_OFFER = "offer_reprocess"
 
-    /** True once after a language switch; the activity is recreated by it, so the answer outlives the screen that asked. */
+    /** True once after a language switch. Kept in the prefs: on Android 12 the switch recreates the activity, so the answer outlives the screen that asked. */
     fun takeReprocessOffer(ctx: Context): Boolean {
         val prefs = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
         return prefs.getBoolean(KEY_OFFER, false).also { if (it) prefs.edit().remove(KEY_OFFER).apply() }
     }
 
-    /** Switches the app to [tag] now: Android 13+ recreates the activity itself, Android 12 needs it done here. */
+    /**
+     * Switches the app to [tag] now. Android 13+ applies it to the running activity, which handles locale changes itself (#71: recreating
+     * it flashed the screen black); Android 12 recreates it here.
+     */
     fun choose(activity: Activity, tag: String) {
         if (Languages.byTag(tag) != null && !tag.equals(current(activity).tag, ignoreCase = true)) {
             activity.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putBoolean(KEY_OFFER, true).apply()
         }
         set(activity, tag)
-        if (Build.VERSION.SDK_INT < 33) activity.recreate()
+        if (Build.VERSION.SDK_INT < 33) activity.recreate() else Languages.byTag(tag)?.let { recreateIfNotApplied(activity, it.tag) }
     }
+
+    /**
+     * Android 13+: the switch arrives as a configuration change of the running activity. Should its resources still show another language
+     * then (a context somewhere kept the old one), recreate it as before #71: at worst the old flash, never a switch that changes nothing.
+     */
+    private fun recreateIfNotApplied(activity: Activity, tag: String) {
+        val owner = activity as? ComponentActivity ?: return
+        owner.addOnConfigurationChangedListener(object : Consumer<Configuration> {
+            override fun accept(value: Configuration) {
+                if (!value.shows(tag)) return // another change, not this switch
+                owner.removeOnConfigurationChangedListener(this)
+                if (!owner.resources.configuration.shows(tag)) owner.recreate()
+            }
+        })
+    }
+
+    private fun Configuration.shows(tag: String): Boolean = locales.get(0)?.language.equals(tag, ignoreCase = true)
 
     /** For Application, Activity and Service attachBaseContext. A no-op on Android 13+, where the system applies the locale. */
     fun wrap(base: Context): Context {

@@ -150,7 +150,8 @@ private fun Main(viewModel: MainViewModel, openSessionRequest: Int, onDeveloper:
         }
         Unit
     }
-    LaunchedEffect(Unit) { if (LocaleStore.takeReprocessOffer(ctx)) offerReprocess(false) }
+    // Keyed on the language: a switch no longer recreates the activity (#71), so this screen stays and asks again when it arrives.
+    LaunchedEffect(config.locales) { if (LocaleStore.takeReprocessOffer(ctx)) offerReprocess(false) }
 
     // The client's name travels between the reel and the top of their page while that page comes and goes. Only when both ends are known
     // and in sight (the page's title can be scrolled away); otherwise the page just shifts in like any other.
