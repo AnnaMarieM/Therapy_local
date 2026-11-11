@@ -12,13 +12,21 @@ object SummaryConfig {
     /** One section of the summary: [label] is the heading the model writes (and the parser looks for), [asks] what goes under it. */
     data class Section(val label: String, val asks: String)
 
-    /** Default clinical format: SOAP. Labels are model-facing and stay English in every prompt language. */
-    val SECTIONS = listOf(
-        Section("Subjective", "what the client reported: feelings, events, complaints, in their own terms"),
-        Section("Objective", "what was observed or stated as fact in the session: behaviour, affect, what the therapist did"),
-        Section("Assessment", "the main themes and how the client seems to be doing, only as far as the conversation itself supports"),
-        Section("Plan", "what was agreed or suggested for after the session, homework, the next topic"),
+    /** Every registered format by id. Only the FINAL call of the summary uses it; the chunk and group levels of the tree are format-independent. */
+    val FORMATS: Map<String, List<Section>> = mapOf(
+        "soap" to listOf(
+            Section("Subjective", "what the client reported: feelings, events, complaints, in their own terms"),
+            Section("Objective", "what was observed or stated as fact in the session: behaviour, affect, what the therapist did"),
+            Section("Assessment", "the main themes and how the client seems to be doing, only as far as the conversation itself supports"),
+            Section("Plan", "what was agreed or suggested for after the session, homework, the next topic"),
+        ),
     )
+
+    /** The format in use, a single id handled here only. It is part of [fingerprint], so changing it makes stored summaries stale and a rebuild writes the new one. */
+    const val FORMAT_ID = "soap"
+
+    /** Sections of the format in use. Labels are model-facing and stay English in every prompt language. */
+    val SECTIONS: List<Section> = FORMATS.getValue(FORMAT_ID)
 
     /** Length limit the prompt states for each section, in words. A section with nothing to say is written as "None." */
     const val MAX_WORDS_PER_SECTION = 70
@@ -37,16 +45,14 @@ object SummaryConfig {
     const val TOP_K = 20
 
     /**
-     * Long transcripts (see MapReduceSummary): the transcript is cut into windows of [WINDOW_TOKENS] (estimated tokens, overlapping by
-     * [WINDOW_OVERLAP_TOKENS]), each is condensed to notes, and the notes are merged until they fit [REDUCE_INPUT_TOKENS]. A transcript that
-     * fits one window is summarised in one call. Estimated at English word length: Czech needs about 1.5 times the tokens, which the context counting (PromptBudget) covers by loading a larger context. Our own choice until the benchmark is done.
+     * Long transcripts (see TreeSummary, AD-12): every call is budgeted against the context the app loads for its Gemma jobs, not a number of
+     * our own: [MemoryConfig.LLM_MAX_TOKENS] (the pool's base context). A chunk or a group of summaries fills one call with its prompt and its
+     * reply cap; a transcript that fits one call is one call. Tokens are counted with [com.therapylocal.app.facts.PromptBudget].
      */
-    const val WINDOW_TOKENS = 2000
-    const val WINDOW_OVERLAP_TOKENS = 100
-    const val REDUCE_INPUT_TOKENS = 2500
+    const val CONTEXT_TOKENS = MemoryConfig.LLM_MAX_TOKENS
 
-    /** Safety stop for the merge levels; each level cuts the notes by a large factor, so this is never reached in practice. */
-    const val MAX_REDUCE_LEVELS = 4
+    /** Safety stop for the tree: each level cuts the text by a large factor, so this is never reached in practice. */
+    const val MAX_LEVELS = 8
 
     /** A call that fails or gives no usable reply is tried this many times before the job fails. */
     const val ATTEMPTS = 2
@@ -73,6 +79,6 @@ object SummaryConfig {
 
     /** Everything above that reaches a prompt, as one string for the prompt version. */
     fun fingerprint(): String = listOf(
-        formatInstruction(), MAX_WORDS_PER_SECTION, MAX_SENTENCES_PER_SECTION, NOTES_MAX_WORDS, LABEL_THERAPIST, LABEL_PATIENT, LABEL_SPEAKER, PROMPT_VERSION,
+        FORMAT_ID, formatInstruction(), MAX_WORDS_PER_SECTION, MAX_SENTENCES_PER_SECTION, NOTES_MAX_WORDS, LABEL_THERAPIST, LABEL_PATIENT, LABEL_SPEAKER, PROMPT_VERSION,
     ).joinToString("|")
 }

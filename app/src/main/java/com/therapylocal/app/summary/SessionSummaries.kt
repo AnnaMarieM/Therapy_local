@@ -103,10 +103,10 @@ class SessionSummaries(private val repo: SummaryRepo, private val clock: () -> L
         val text = clean(out.text)
         if (text.length < SummaryConfig.MIN_REPLY_CHARS) throw JobFailure("LLM")
         repo.putSummary(SummaryRow(session, text, Provenance(inputs.transcriptHash, inputs.speakerMapVersion, prompts.version(), model), method.id, false, clock()))
-        return BuildResult(out.calls, text.length, inputs.speakerMapVersion)
+        return BuildResult(out.calls, text.length, inputs.speakerMapVersion, out.forcedSplits, out.levels)
     }
 
-    class BuildResult(val calls: Int, val chars: Int, val speakerMapVersion: Int)
+    class BuildResult(val calls: Int, val chars: Int, val speakerMapVersion: Int, val forcedSplits: Int = 0, val levels: Int = 0)
 
     /** Each call is tried [SummaryConfig.ATTEMPTS] times; a blank reply or a failure is a miss. Fatal ones pass straight through. */
     private fun retrying(ask: SummaryAsk) = SummaryAsk { system, user, maxOut ->

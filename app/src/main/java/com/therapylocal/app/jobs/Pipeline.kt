@@ -30,7 +30,7 @@ import com.therapylocal.app.facts.TranscriptWindows
 import com.therapylocal.app.facts.Verdict
 import com.therapylocal.app.log.AppLog
 import com.therapylocal.app.log.LogCtx
-import com.therapylocal.app.summary.MapReduceSummary
+import com.therapylocal.app.summary.TreeSummary
 import com.therapylocal.app.summary.SessionSummaries
 import com.therapylocal.app.summary.SummaryAsk
 import com.therapylocal.app.summary.SummaryMethod
@@ -58,7 +58,7 @@ class Pipeline(
     /** True when the diarization model is on the phone; without it TRANSCRIBE takes the chunk path, so an install from before the model existed keeps working. */
     diarizationReady: () -> Boolean = { true },
     /** How a transcript becomes a summary; replaceable while the long-transcript benchmark is open (docs/AD/AD-12.md). */
-    private val summaryMethod: SummaryMethod = MapReduceSummary(),
+    private val summaryMethod: SummaryMethod = TreeSummary(),
 ) {
     private val summaries = SessionSummaries(store)
 
@@ -131,7 +131,7 @@ class Pipeline(
         val r = summaries.build(job.sessionId, prompts, run.pool.llmModel(), summaryMethod, ask) { done, total -> run.progress(JobPhase.Reading, done, total) }
         AppLog.i(
             JobRunner.TAG, if (r == null) "summary_skipped" else "summary_done", LogCtx.NONE,
-            "calls" to r?.calls, "chars" to r?.chars, "speaker_map_version" to r?.speakerMapVersion,
+            "calls" to r?.calls, "levels" to r?.levels, "forced_splits" to r?.forcedSplits, "chars" to r?.chars, "speaker_map_version" to r?.speakerMapVersion,
             "model" to run.pool.llmModel(), "prompt_version" to prompts.version(), "method" to summaryMethod.id,
         )
     }
@@ -195,7 +195,7 @@ class Pipeline(
                         val text = "ě".repeat(TranscriptWindows.wordsFor(MemoryConfig.WINDOW_TOKENS) * WORD_CHARS)
                         need = maxOf(need, PromptBudget.required(extractSystem, Prompts.fill(extractTemplate, mapOf("TEXT" to text, "CLIENT" to "x".repeat(40))), MemoryConfig.EXTRACT_MAX_OUTPUT_TOKENS))
                     }
-                    JobGraph.SUMMARY -> need = maxOf(need, MapReduceSummary.requiredContext(SummaryPrompts.load(prompt, lang)))
+                    JobGraph.SUMMARY -> need = maxOf(need, TreeSummary.requiredContext())
                     JobGraph.COMMIT -> {
                         val known = "ě".repeat(MemoryConfig.NEIGHBOURS * REVIEW_FACT_CHARS)
                         val user = Prompts.fill(prompt(Prompts.named(Prompts.REVIEW_USER, lang)), mapOf("KNOWN" to known, "FACT" to "ě".repeat(REVIEW_FACT_CHARS)))

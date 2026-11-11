@@ -18,7 +18,7 @@ class SessionSummariesTest {
     private val repo = FakeSummaryRepo(shortSession()).also { it.addMap(MAP_S1_THERAPIST) }
     private val svc = SessionSummaries(repo, clock = { 1234L })
     private val prompts = testPrompts()
-    private val method = MapReduceSummary()
+    private val method = TreeSummary()
     private val v = prompts.version()
 
     private fun build(ask: SummaryAsk = RecordingAsk()) = svc.build("s", prompts, "gemma-test", method, ask)

@@ -30,7 +30,7 @@ class SummaryRepositoryTest {
         enqueue = { JobGraph.enqueueSummary(queue, it) },
     )
 
-    private fun make() = svc.build("s", prompts, "m", MapReduceSummary(), RecordingAsk())
+    private fun make() = svc.build("s", prompts, "m", TreeSummary(), RecordingAsk())
 
     @Test
     fun aClientWithoutATranscriptHasNoLastSummary() {
