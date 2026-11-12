@@ -6,7 +6,8 @@
 QA build only (com.therapylocal.app.qa, test data, vault password 12345678): the real app is refused. The vault is set up or unlocked through
 the API as needed; --reset first wipes the QA vault data (never the downloaded models) and sets it up again. Clients are created with their own
 speech language, the sittings are imported as audio in client and date order (the normal pipeline runs), then the script waits for the job queue
-and writes <out>/results.json (the DevResults document: segments with speaker ids and roles, speaker maps, facts, summaries), the export
+and writes <out>/thermal.csv (once-per-second temperatures of every sensor, qa/thermal-log.sh; --no-thermal turns it off) with
+<out>/thermal-summary.txt, then <out>/results.json (the DevResults document: segments with speaker ids and roles, speaker maps, facts, summaries), the export
 <out>/export.json (re-importable, see docs/QA_API.md), <out>/logcat.txt and <out>/logcat-key.txt (diarize_done, diarization_skipped, role guess
 and speaker map lines). The screen should be on: the client brings the app forward so the queue runner may start.
 """
@@ -15,6 +16,8 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 QA_API = HERE.parent.parent / "qa" / "qa-api.sh"
+THERMAL_LOG = HERE.parent.parent / "qa" / "thermal-log.sh"
+THERMAL_PY = HERE.parent.parent / "qa" / "thermal" / "thermal_log.py"
 KEY_LINES = re.compile(r"diarize_done|diarization_skipped|diarize_|speaker_map|role_guess|roles_|ROLES|asr_transcribe|job_failed|memory_lab_failed|engine_died", re.I)
 
 
@@ -36,6 +39,43 @@ class Api:
     def adb(self, *args):
         cmd = ["adb"] + (["-s", self.serial] if self.serial else []) + list(args)
         return subprocess.run(cmd, capture_output=True, text=True).stdout
+
+
+def start_thermal(serial, out):
+    """qa/thermal-log.sh in the background (sensors of the phone only, docs/QA_API.md). Never fails the run."""
+    try:
+        if not serial:
+            serial = next((l.split()[0] for l in subprocess.run(["adb", "devices"], capture_output=True, text=True).stdout.splitlines()[1:] if l.endswith("device")), None)
+        if not serial:
+            print("thermal log: no device serial, skipped")
+            return None
+        return subprocess.Popen([str(THERMAL_LOG), "-s", serial, "-o", str(out / "thermal.csv")], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
+    except Exception as e:
+        print(f"thermal log not started: {type(e).__name__}")
+        return None
+
+
+def stop_thermal(proc, out):
+    """Stop the collector (it flushes after every sample), then write and print <out>/thermal-summary.txt."""
+    if proc is None:
+        return
+    try:
+        proc.terminate()
+        try:
+            proc.wait(timeout=15)
+        except subprocess.TimeoutExpired:
+            proc.kill()
+        csv_path = out / "thermal.csv"
+        if csv_path.exists():
+            text = subprocess.run([sys.executable, str(THERMAL_PY), "summary", str(csv_path), "--out", str(out / "thermal-summary.txt")],
+                                  capture_output=True, text=True).stdout
+            hot = [l.strip() for l in text.splitlines() if "OVERALL SoC max" in l]
+            tail = text.split("time above", 1)[-1] if "time above" in text else ""
+            print("thermal: " + (hot[0] if hot else "no SoC readings") + ("\ntime above" + tail if tail else "") + f"(full: {out / 'thermal-summary.txt'})")
+        else:
+            print("thermal log: no samples were recorded")
+    except Exception as e:
+        print(f"thermal summary failed: {type(e).__name__}")
 
 
 def ensure_vault(api, reset):
@@ -62,6 +102,7 @@ def main():
     ap.add_argument("--audio", default=str(HERE / "audio"))
     ap.add_argument("--sessions", default=str(HERE / "sessions"))
     ap.add_argument("--timeout-min", type=int, default=240)
+    ap.add_argument("--no-thermal", action="store_true", help="do not record the once-per-second temperatures (<out>/thermal.csv, thermal-summary.txt)")
     ap.add_argument("--out", required=True)
     a = ap.parse_args()
     if not a.package.endswith(".qa"):
@@ -81,32 +122,36 @@ def main():
     st = api.call("status")[0]
     if not st["models"]["ready"]:
         sys.exit("the models are not on the phone yet (status.models); open the QA app once and let the download finish")
-    api.adb("logcat", "-c")
-    known = {c["id"]: c for c in json.loads((HERE / "clients.json").read_text(encoding="utf-8"))["clients"]}
-    need = sorted({d["client"] for d in docs})
-    wanted = {"clients": [{"id": c, "name": known.get(c, {}).get("name", c), "lang": next(d["lang"] for d in docs if d["client"] == c)} for c in need]}
-    with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False, encoding="utf-8") as f:
-        json.dump(wanted, f, ensure_ascii=False)
-    api.call("seed_clients", f.name)
-    t0 = time.time()
-    # client and date order, as the pipeline wants earlier sessions of a client first
-    for d in sorted(docs, key=lambda d: (d["client"], d["date"])):
-        r, _ = api.call("import_session", d["client"], Path(a.audio) / f"{d['id']}.wav", "--session", d["id"], "--date", d["date"], "--language", d["lang"])
-        print(f"imported {d['id']}" + (" (already there)" if r.get("already_imported") else ""), flush=True)
-    res, rc = api.call("wait", a.timeout_min * 60, check=False)
-    if rc == 4:
-        sys.exit("timeout waiting for the job queue (is the screen on? status shows the queue and models)")
-    if res.get("failed"):
-        print(f"warning: {res['failed']} job(s) failed; see logcat-key.txt")
-    print(f"pipeline done in {(time.time() - t0) / 60:.1f} min", flush=True)
-    (out / "results.json").write_text(json.dumps(api.call("results")[0], ensure_ascii=False), encoding="utf-8")
-    (out / "export.json").write_text(json.dumps(api.call("export")[0], ensure_ascii=False), encoding="utf-8")
-    log = api.adb("logcat", "-d", "-v", "threadtime")
-    (out / "logcat.txt").write_text(log, encoding="utf-8")
-    key = [l for l in log.splitlines() if KEY_LINES.search(l)]
-    (out / "logcat-key.txt").write_text("\n".join(key) + "\n", encoding="utf-8")
-    print(f"results: {out / 'results.json'}  key log lines: {len(key)}")
+    thermal = None if a.no_thermal else start_thermal(a.serial, out)
+    try:
+        api.adb("logcat", "-c")
+        known = {c["id"]: c for c in json.loads((HERE / "clients.json").read_text(encoding="utf-8"))["clients"]}
+        need = sorted({d["client"] for d in docs})
+        wanted = {"clients": [{"id": c, "name": known.get(c, {}).get("name", c), "lang": next(d["lang"] for d in docs if d["client"] == c)} for c in need]}
+        with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False, encoding="utf-8") as f:
+            json.dump(wanted, f, ensure_ascii=False)
+        api.call("seed_clients", f.name)
+        t0 = time.time()
+        # client and date order, as the pipeline wants earlier sessions of a client first
+        for d in sorted(docs, key=lambda d: (d["client"], d["date"])):
+            r, _ = api.call("import_session", d["client"], Path(a.audio) / f"{d['id']}.wav", "--session", d["id"], "--date", d["date"], "--language", d["lang"])
+            print(f"imported {d['id']}" + (" (already there)" if r.get("already_imported") else ""), flush=True)
+        res, rc = api.call("wait", a.timeout_min * 60, check=False)
+        if rc == 4:
+            sys.exit("timeout waiting for the job queue (is the screen on? status shows the queue and models)")
+        if res.get("failed"):
+            print(f"warning: {res['failed']} job(s) failed; see logcat-key.txt")
+        print(f"pipeline done in {(time.time() - t0) / 60:.1f} min", flush=True)
+        (out / "results.json").write_text(json.dumps(api.call("results")[0], ensure_ascii=False), encoding="utf-8")
+        (out / "export.json").write_text(json.dumps(api.call("export")[0], ensure_ascii=False), encoding="utf-8")
+        log = api.adb("logcat", "-d", "-v", "threadtime")
+        (out / "logcat.txt").write_text(log, encoding="utf-8")
+        key = [l for l in log.splitlines() if KEY_LINES.search(l)]
+        (out / "logcat-key.txt").write_text("\n".join(key) + "\n", encoding="utf-8")
+        print(f"results: {out / 'results.json'}  key log lines: {len(key)}")
 
+    finally:
+        stop_thermal(thermal, out)
 
 if __name__ == "__main__":
     main()
