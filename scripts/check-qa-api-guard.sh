@@ -28,7 +28,7 @@ ADB="$tmp/adb" qa/qa-api.sh -p com.therapylocal.app.qa --no-launch status >/dev/
 [[ -e "$tmp/adb-called" ]] || bad "wrapper did not accept com.therapylocal.app.qa"
 
 # 2. nothing outside the qa source sets knows the API
-pattern='qaapi|QaApi|QaSettings|QaSetting\b|QaGuard|QaAppBackend|get_settings|set_setting|set_summary_format|not_qa_build'
+pattern='qaapi|QaApi|QaThermal|thermal_sample|thermal_sensors_found|QaSettings|QaSetting\b|QaGuard|QaAppBackend|get_settings|set_setting|set_summary_format|not_qa_build'
 for d in app/src/*/; do
   case "$d" in app/src/qa/|app/src/testQa/) continue ;; esac
   if grep -rEn "$pattern" "$d" >/dev/null 2>&1; then bad "$d mentions the QA API: $(grep -rEln "$pattern" "$d" | head -3 | tr '\n' ' ')"; fi

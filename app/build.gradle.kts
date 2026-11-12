@@ -281,6 +281,7 @@ val verifyNoQaApiInRelease by tasks.registering {
         // "QaApi" and "qaapi" already match every class of the package (a dex class descriptor carries the package); the rest cover a class or command that
         // is ever moved out of it, and the command and error names (set_setting, get_settings, not_qa_build) that a stray copy would leave as strings.
         val markers = listOf("QaApi", "qaapi", "STANDARD_QA_PASSWORD", "QaSetting", "QaGuard", "QaAppBackend", "QaEngines", "QaQueueState",
+            "QaThermal", "thermal_sample", "thermal_sensors_found", "thermal_log",
             "get_settings", "set_setting", "set_summary_format", "not_qa_build", "forbidden_caller")
         fun scan(apk: File): List<String> {
             val hits = ArrayList<String>()
