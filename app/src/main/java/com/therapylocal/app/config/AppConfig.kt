@@ -222,4 +222,6 @@ data class EngineTuning(
     val idleMs: Long = 120_000, val liveShutdownMs: Long = 5_000, val statusTimeoutMs: Long = 1_000,
     /** A whole recording at once (an hour on the CPU is minutes); the watchdog also needs no CPU progress, and kills at 3 times this. */
     val diarizeTimeoutMs: Long = 600_000,
+    /** A call past this age (and every this long after) is logged as `engine_call_progress` with the host's CPU use, so a compile reads differently from a hang. */
+    val progressLogMs: Long = 30_000,
 )

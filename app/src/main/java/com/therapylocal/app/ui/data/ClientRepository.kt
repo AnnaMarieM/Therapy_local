@@ -18,7 +18,7 @@ import com.therapylocal.app.models.ModelSetup
 import com.therapylocal.app.ui.logic.DisambiguationTarget
 import com.therapylocal.app.ui.logic.SessionLogic
 import com.therapylocal.app.ui.models.FactItem
-import com.therapylocal.app.ui.models.FactOccurrence
+import com.therapylocal.app.ui.models.FactMention
 import com.therapylocal.app.ui.models.Patient
 import com.therapylocal.app.ui.models.SearchHit
 import com.therapylocal.app.ui.models.SpeakerRoles
@@ -118,12 +118,13 @@ class ClientRepository(context: Context, private val open: (Context) -> MindStor
         )
     }
 
-    /** Where the fact was said, first occurrence first: each with the transcript within [CONTEXT_SEGMENTS] segments of it. */
-    fun occurrences(factId: Long): List<FactOccurrence> = store.factOccurrences(factId).map { o ->
-        FactOccurrence(o.sessionId, date(o.startedAt), o.first, o.segIdx, store.segmentsAround(o.sessionId, o.segIdx, CONTEXT_SEGMENTS).map { it.toLine() })
+    /** Where the fact was said, first occurrence first (patient's mentions only, as the facts list). */
+    fun occurrences(factId: Long): List<FactMention> = store.factOccurrences(factId).map { o ->
+        FactMention(o.sessionId, date(o.startedAt), o.first, o.segIdx, o.segTo, o.startMs, o.endMs)
     }
 
-    fun transcript(session: String): List<TranscriptLine> = store.segments(session).map { it.toLine() }
+    /** The whole transcript of [session], each line with its role label (see [TranscriptLine.role]). */
+    fun transcript(session: String): List<TranscriptLine> = store.segments(session).let { rows -> rows.map(lineOf(session, rows)) }
 
     /** The current roles of [session], null until they were guessed (no map: a one-speaker or older session). */
     fun speakerRoles(session: String): SpeakerRoles? = store.currentSpeakerMap(session)?.let(SpeakerRoles::of)
@@ -177,12 +178,18 @@ class ClientRepository(context: Context, private val open: (Context) -> MindStor
     fun transcript(session: String, from: Int, to: Int): List<TranscriptLine> {
         // segmentsAround reads a centred range; it covers [from]..[to] (one more when the span is even), trimmed here.
         val r = (to - from + 1) / 2
-        return store.segmentsAround(session, from + r, r).filter { it.idx in from..to }.map { it.toLine() }
+        return store.segmentsAround(session, from + r, r).filter { it.idx in from..to }.map(lineOf(session, store.segments(session)))
+    }
+
+    /** Turns segments of [session] into lines labelled like [formattedTranscript]: the labels come from all of [all], so "Speaker 1" is the same everywhere. */
+    private fun lineOf(session: String, all: List<SegmentRow>): (SegmentRow) -> TranscriptLine {
+        val neutral = TranscriptFormat.neutralLabels(all)
+        val map = store.currentSpeakerMap(session)?.let { SpeakerMaps.decode(it.mapJson) }.orEmpty()
+        val label = TranscriptFormat.roleLabel(map, { if (it == Role.THERAPIST) appContext.getString(R.string.speaker_role_therapist) else appContext.getString(R.string.speaker_role_patient) }, neutral)
+        return { s -> TranscriptLine(s.idx, SessionLogic.formatMinSec(s.startMs / 1000), s.text, s.speaker?.let(label), s.startMs, s.endMs) }
     }
 
     private fun FactRow.toItem(dates: Map<String, String>) = FactItem(id, heading, content, dates[sessionId].orEmpty(), mentionCount, scope, category)
-
-    private fun SegmentRow.toLine() = TranscriptLine(idx, SessionLogic.formatMinSec(startMs / 1000), text)
 
     private fun snippet(text: String) = if (text.length <= SNIPPET_CHARS) text else text.take(SNIPPET_CHARS).substringBeforeLast(' ') + "…"
 

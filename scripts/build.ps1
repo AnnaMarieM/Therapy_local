@@ -5,7 +5,7 @@
 #   checks          lint, unit tests and verifyNoFaultsInRelease only
 # Output: dist\Therapy-main.apk, dist\Therapy-main-androidTest.apk, dist\Therapy-main.apk.sha256
 # Needs Docker Desktop (Linux containers). On Windows-on-Arm the x86_64 aapt2 runs under software emulation inside the container.
-param([ValidateSet('full', 'fast', 'checks')][string]$Mode = 'full')
+param([ValidateSet('full', 'fast', 'qa', 'checks')][string]$Mode = 'full')
 $ErrorActionPreference = 'Stop'
 
 $root = Split-Path -Parent $PSScriptRoot

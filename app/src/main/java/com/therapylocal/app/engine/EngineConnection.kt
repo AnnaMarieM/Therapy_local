@@ -82,6 +82,7 @@ class EngineConnection(
         var cpuStart: Long? = null
         var lastCpu: Long? = null
         var lastCpuChangeMs = startMs
+        var lastProgressLogMs = startMs
         @Volatile var killed = false
     }
 
@@ -867,6 +868,15 @@ class EngineConnection(
             val hard = elapsed > tuning.hardCapFactor * limit
             val silent = cpu != null && elapsed > limit && now - f.lastCpuChangeMs >= tuning.hangNoProgressMs
             val closeLike = f.closeLike
+            if (!closeLike && tuning.progressLogMs > 0 && elapsed >= tuning.progressLogMs && now - f.lastProgressLogMs >= tuning.progressLogMs && !f.killed) {
+                // A long open is either a compile (the host burns CPU: the NPU builds its model on the phone, minutes) or stuck (CPU still): say which.
+                f.lastProgressLogMs = now
+                ev(
+                    'i', EngineEvents.CALL_PROGRESS, "op" to f.opName, "req" to f.tag.requestId, "load_id" to f.tag.loadId, "elapsed_ms" to elapsed, "limit_ms" to limit,
+                    "cpu_ms_delta" to cpu?.let { it - (f.cpuStart ?: it) }, "cpu_idle_ms" to if (cpu != null) now - f.lastCpuChangeMs else null,
+                    "state" to if (cpu == null) "cpu_unknown" else if (now - f.lastCpuChangeMs < tuning.hangNoProgressMs) "busy" else "silent",
+                )
+            }
             if (if (closeLike) elapsed > limit else (silent || hard)) kill(f, limit, elapsed, (cpu ?: 0) - (f.cpuStart ?: cpu ?: 0), hard, closeLike)
         }
         lock.withLock { if (watchdog == null && flights.any { it.limitMs != null }) armWatchdogLocked() }

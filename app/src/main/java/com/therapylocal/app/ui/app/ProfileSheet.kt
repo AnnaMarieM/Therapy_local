@@ -6,6 +6,7 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -27,6 +28,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -62,6 +64,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -89,7 +92,9 @@ import com.therapylocal.app.ui.design.rememberHaptics
 import com.therapylocal.app.ui.logic.heroShrink
 import com.therapylocal.app.ui.logic.splitName
 import com.therapylocal.app.ui.models.FactItem
-import com.therapylocal.app.ui.models.FactOccurrence
+import com.therapylocal.app.ui.models.FactMention
+import com.therapylocal.app.ui.logic.FactJump
+import com.therapylocal.app.ui.logic.TargetState
 import com.therapylocal.app.ui.models.Patient
 import com.therapylocal.app.ui.models.SearchHit
 import com.therapylocal.app.ui.models.SessionItem
@@ -517,10 +522,9 @@ private fun SearchBox(s: SearchActions, requestMic: () -> Unit) {
 }
 
 @Composable
-private fun LayerFrame(sheet: SheetState, kicker: String, title: String, content: androidx.compose.foundation.lazy.LazyListScope.() -> Unit) {
+private fun LayerFrame(sheet: SheetState, kicker: String, title: String, list: LazyListState = rememberLazyListState(), content: androidx.compose.foundation.lazy.LazyListScope.() -> Unit) {
     val bar = rememberChoiceState()
     val haptics = rememberHaptics()
-    val list = rememberLazyListState()
     Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().axisDrag(sheetDrag(sheet, bar, onBack = { sheet.close() }))) {
         LazyColumn(Modifier.weight(1f), state = list, contentPadding = PaddingValues(start = 26.dp, end = 26.dp, top = 24.dp, bottom = hintsClearance())) {
             item {
@@ -535,20 +539,52 @@ private fun LayerFrame(sheet: SheetState, kicker: String, title: String, content
     }
 }
 
+/**
+ * A fact opens the transcript where it was said: the session's lines, scrolled to the fact's segment range ([FactJump]) and highlighted. The
+ * highlight stays until a line is tapped or the layer is closed. A fact that came up in other sessions lists them under its text; the first
+ * occurrence is open at first and a tap on another one moves the transcript there.
+ */
 @Composable
 private fun FactLayer(f: FactItem, repo: ClientRepository, sheet: SheetState) {
-    val occ by produceState<List<FactOccurrence>?>(null, f.id) { value = withContext(Dispatchers.IO) { runCatching { repo.occurrences(f.id) }.getOrDefault(emptyList()) } }
-    LayerFrame(sheet, stringResource(R.string.profile_section_know), f.heading) {
-        item { Text(f.content, style = Type.Body, color = Palette.Ink); Spacer(Modifier.height(10.dp)) }
-        val list = occ
-        if (list == null) item { Label(stringResource(R.string.profile_finding), Modifier.padding(vertical = 16.dp)) }
-        else if (list.isEmpty()) item { Label(stringResource(R.string.profile_no_passage), Modifier.padding(vertical = 16.dp)) }
-        else list.forEach { o ->
-            item { Section(stringResource(if (o.first) R.string.profile_occ_first else R.string.profile_occ_again, localDate(o.date))) }
-            items(o.lines, key = { "${o.sessionId}:${it.idx}" }) { l -> Line(l, l.idx == o.segIdx) }
+    val mentions by produceState<List<FactMention>?>(null, f.id) { value = withContext(Dispatchers.IO) { runCatching { repo.occurrences(f.id) }.getOrDefault(emptyList()) } }
+    var picked by remember(f.id) { mutableStateOf<FactMention?>(null) }
+    val current = picked ?: mentions?.let(FactJump::initial)
+    val lines by produceState<List<TranscriptLine>?>(null, current?.sessionId) {
+        value = null // not the previous session's lines while these load
+        value = current?.let { m -> withContext(Dispatchers.IO) { runCatching { repo.transcript(m.sessionId) }.getOrDefault(emptyList()) } }
+    }
+    val target = remember(current, lines) { current?.let { m -> lines?.let { FactJump.resolve(m, it) } } }
+    // Tapping a line puts the highlight away; picking another mention brings its own.
+    var dismissed by remember(current) { mutableStateOf(false) }
+    val list = rememberLazyListState()
+    LaunchedEffect(target) {
+        val at = target?.let { FactJump.listIndex(it, lines.orEmpty(), FACT_HEADER_ITEMS) }
+        list.scrollToItem(at ?: 0)
+    }
+    LayerFrame(sheet, stringResource(R.string.profile_section_know), f.heading, list) {
+        item {
+            Text(f.content, style = Type.Body, color = Palette.Ink)
+            val all = mentions.orEmpty()
+            if (all.size > 1) all.forEach { m ->
+                val label = stringResource(if (m.first) R.string.profile_occ_first else R.string.profile_occ_again, localDate(m.date))
+                Label(label, Modifier.fillMaxWidth().pressable({ picked = m }, depth = 0.015f).padding(top = 14.dp), color = if (m == current) Palette.Ink else Palette.InkSoft)
+            }
+            Spacer(Modifier.height(10.dp))
+            if (mentions != null && (current == null || target?.state == TargetState.Moved || target?.state == TargetState.Missing)) {
+                Label(stringResource(R.string.profile_no_passage), Modifier.padding(vertical = 8.dp))
+            }
+        }
+        val l = lines
+        when {
+            mentions == null || (current != null && l == null) -> item { Label(stringResource(R.string.profile_finding), Modifier.padding(vertical = 16.dp)) }
+            l == null || l.isEmpty() -> item { Text(stringResource(R.string.profile_transcript_empty), style = Type.BodySmall, color = Palette.InkSoft) }
+            else -> items(l, key = { it.idx }) { line -> Line(line, !dismissed && target?.highlights(line.idx) == true) { dismissed = true } }
         }
     }
 }
+
+/** Rows of the fact layer above its lines: the frame's title and the fact's text with its mentions. */
+private const val FACT_HEADER_ITEMS = 2
 
 @Composable
 private fun TranscriptLayer(t: Layer.Transcript, repo: ClientRepository, sheet: SheetState) {
@@ -568,12 +604,18 @@ private fun TranscriptLayer(t: Layer.Transcript, repo: ClientRepository, sheet: 
 }
 
 @Composable
-private fun Line(l: TranscriptLine, highlight: Boolean) {
+private fun Line(l: TranscriptLine, highlight: Boolean, onTap: (() -> Unit)? = null) {
     Row(
         Modifier.fillMaxWidth().padding(vertical = 2.dp).clip(androidx.compose.foundation.shape.RoundedCornerShape(10.dp))
-            .background(if (highlight) Palette.Tonal else androidx.compose.ui.graphics.Color.Transparent).padding(horizontal = 8.dp, vertical = 8.dp),
+            .background(if (highlight) Palette.Tonal else androidx.compose.ui.graphics.Color.Transparent)
+            .let { m -> if (onTap == null) m else m.clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = onTap) }
+            .semantics(mergeDescendants = true) { selected = highlight }
+            .padding(horizontal = 8.dp, vertical = 8.dp),
     ) {
         Label(l.time, Modifier.width(54.dp).padding(top = 3.dp), color = Palette.InkFaint)
-        Text(l.text, style = Type.BodySmall, color = if (highlight) Palette.Ink else Palette.InkSoft)
+        Column {
+            if (l.role != null) Label(l.role, Modifier.padding(bottom = 2.dp), color = Palette.InkFaint)
+            Text(l.text, style = Type.BodySmall, color = if (highlight) Palette.Ink else Palette.InkSoft)
+        }
     }
 }
