@@ -77,7 +77,7 @@ def main():
     out.mkdir(parents=True, exist_ok=True)
     ensure_vault(api, a.reset)
     if a.gemma:
-        api.call("set_gemma_variant", a.gemma)
+        api.call("set_setting", "gemma_variant", a.gemma)
     st = api.call("status")[0]
     if not st["models"]["ready"]:
         sys.exit("the models are not on the phone yet (status.models); open the QA app once and let the download finish")

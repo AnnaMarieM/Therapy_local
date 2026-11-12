@@ -14,7 +14,7 @@ The standard QA vault password is **`12345678`**. `setup` and `unlock` use it wh
 - **Result.** JSON: `{"api_version":1,"command":"status","ok":true,"data":{...}}`, or `{"ok":false,"error":{"code":"vault_locked","message":"..."}}`. The result is always written to `/sdcard/Android/data/com.therapylocal.app.qa/files/api/<command>.json` (atomic) and the call returns a Bundle with `ok`, `code`, `file`, `bytes` and, when under 100 kB, `json`. The script reads the file and prints it. Exit code: 0 ok, 1 API error, 2 usage, 3 transport, 4 timeout. Messages never contain clinical text; results do (it is test data) and live only in `files/api/`, which `reset` empties.
 - **Locked vault.** Only `status`, `setup` and `unlock` work. Everything else answers `vault_locked` (or `vault_not_set_up`). A QA vault whose password you do not know cannot be reset through the API; clear it as `AGENTS.md` says (`adb shell pm clear com.therapylocal.app.qa`, which also deletes the models).
 - **Real app.** The script refuses any package that does not end in `.qa`; the app refuses every command unless its application id ends in `.qa` and is not `com.therapylocal.app`. Nothing here touches `com.therapylocal.app`.
-- **Bring the app forward.** Starting the queue runner is a foreground-service start, which Android refuses for an app in the background. Commands that queue work (`import_*`, `wait`, `run_job`, `swap_roles`, `set_summary_format`) therefore first run `am start` on the QA `MainActivity` (turn off with `--no-launch`). The screen must be on.
+- **Bring the app forward.** Starting the queue runner is a foreground-service start, which Android refuses for an app in the background. Commands that queue work (`import_*`, `wait`, `run_job`, `swap_roles`, `set_setting`) therefore first run `am start` on the QA `MainActivity` (turn off with `--no-launch`). The screen must be on.
 - **After `unlock` / `setup` through the API the app's own screen stays on its password page** (the gate is UI state). The data side works; for UI screenshots unlock in the UI. There is no `screen` command: navigation is local Compose state with no seam to drive it; use `qa/qa-api.sh screenshot f.png` (host `screencap` of whatever is shown) and `qa/screenshots.sh`.
 - **Logs.** `adb logcat -s TL`, tag `QaApi`: command name, result code, counts, sizes, times and the backend, as `key=value`. Never arguments, results or text ([`LOGGING.md`](LOGGING.md)).
 
@@ -33,8 +33,9 @@ The standard QA vault password is **`12345678`**. `setup` and `unlock` use it wh
 | `results [--client c] [--session s] [-o file]` | The `DevResults` document: per session the transcript with `speaker` and `role` per segment, `speakerMap` (current) and `speakerMaps` (every version), `summary` (state, `stale`, `format`, text, sections); `facts` with `segIdx`/`segTo`, `startMs`/`endMs`, `speaker`, `role`; `answers` for optional `queries`. | `qa/qa-api.sh results -o out/results.json` |
 | `export [--client c] [--session s] [-o file]` | Clients and sessions in the import format, see below. | `qa/qa-api.sh export -o out/export.json` |
 | `swap_roles <session>` | "Is this incorrect?": therapist and patient trade places (new speaker-map version, summary stale and rebuilt, facts re-extracted). `bad_request` when there is nothing to swap. | `qa/qa-api.sh swap_roles petr-k_s01` |
-| `set_summary_format <id>` | The vault-wide summary format (`soap`, ...); each client's last summary is rebuilt. `unknown format` lists them. | `qa/qa-api.sh set_summary_format soap` |
-| `set_gemma_variant <e2b\|e4b>` | Which Gemma build the memory LLM uses; the app picks by RAM otherwise (E4B needs 11 GiB). The file must be in the models folder or it is downloaded. Survives `reset`. | `qa/qa-api.sh set_gemma_variant e4b` |
+| `get_settings` | Every app setting as JSON: `{"settings":[{"key","type","values" (enum, bool) or "min"/"max" (int, float),"default","value","description"}]}`. Works with a locked vault (settings are not clinical data). See [Settings](#settings). | `qa/qa-api.sh get_settings` |
+| `set_setting <key> <value>` | Sets one setting through the app's own setter and returns `setting`, `old`, `new`, `changed`. A value outside the allowed set or range is `bad_request` and the message lists what is allowed; nothing is coerced or clamped. Needs an unlocked vault. | `qa/qa-api.sh set_setting gemma_variant e4b` |
+| `set_summary_format <id>` | Alias of `set_setting summary_format <id>` (argument `format`); also returns `format`. | `qa/qa-api.sh set_summary_format soap` |
 | `reset` | Wipes the QA vault: keys, database, retained audio, results. **The downloaded models are not touched** (`models_kept`). The vault is then `not_set_up`: run `setup`. Needs an unlocked vault. | `qa/qa-api.sh reset && qa/qa-api.sh setup` |
 | `transcribe <audio> [--language xx] [--start s] [--dur s] [--backend b] [--force]` | Canary on one clip (at most the live-cue limit; use `--start`/`--dur`). Returns `text`, `audio_sec`, `load_ms`, `dur_ms`, `rtf`, `backend` (used), `backend_requested`, `model`. | `qa/qa-api.sh transcribe a.wav --language cs --backend gpu` |
 | `diarize <audio> [--speakers n] [--backend b] [--force]` | The diarizer on a whole recording (default 2 speakers, AD-07): `turns` (`start_ms`, `end_ms`, `speaker`), `speakers`, `load_ms`, `dur_ms`, `rtf`, `backend`, `model`. | `qa/qa-api.sh diarize petr-k_s01.wav` |
@@ -45,6 +46,27 @@ The standard QA vault password is **`12345678`**. `setup` and `unlock` use it wh
 | `screenshot <file.png>` | Host side: brings the app forward and takes `adb exec-out screencap -p`. Not an API command. | `qa/qa-api.sh screenshot out/home.png` |
 
 Error codes: `bad_request`, `unknown_command`, `forbidden_caller`, `not_qa_build`, `vault_locked`, `vault_not_set_up`, `vault_already_set_up`, `bad_password`, `not_found`, `bad_path`, `busy`, `failed`. Paths in arguments must be inside `/sdcard/Android/data/com.therapylocal.app.qa/files/` (relative paths are taken from there); anything else is `bad_path`.
+
+## Settings
+
+The settings are the keys of the app's `settings` preferences that a user can change. `get_settings` lists them with their allowed values (taken from the app's own enums and ranges, so the list follows the app) and the current value; `set_setting` validates against that and then calls the same setter the app does. Values are typed in the JSON (strings, booleans, numbers); on the command line and in `set_setting` pass them as text (`true`, `20`, `0.5`).
+
+| Key | Type | Values | Default | Applied through |
+|---|---|---|---|---|
+| `app_language` | enum | `en`, `cs` | `en` (the phone's language applies until one is chosen) | `LocaleManager` on Android 13+, the `app_language` pref before (as `LocaleStore` does; no activity needed) |
+| `default_language` | enum | `en`, `cs` | `en` | `SpeechLanguages.setDefault` |
+| `summary_format` | enum | the ids of `SummaryConfig.FORMATS` (`soap`, ...) | `soap` | `SessionSummaryRepository.changeFormat`: the last summary of each client is rebuilt |
+| `gemma_variant` | enum | `e2b`, `e4b` | `e2b` (no value stored) | `ModelSetup.selectGemma`; downloads the file if it is missing |
+| `backend_override` | enum | `auto`, `npu`, `gpu`, `nnapi`, `cpu` | `auto` | the `backend_override` pref and `BackendPolicy.override`. A running UI keeps showing the old chip until the app restarts, and the loaded engines are not reloaded (the model commands take `--backend` per call anyway) |
+| `keep_screen_awake` | bool | `true`, `false` | `true` | `DisplayConfig.setKeepScreenAwake` |
+| `live_cue_interval_ms` | int | 1000 to 10000 | 2000 | `saveLiveCueSettings`, then `Engines.onLiveCueSettingsChanged()` |
+| `live_cue_lookback_s` | int | 5 to `LiveCueConfig.MAX_LOOKBACK_S` (see `get_settings`) | 20 | same |
+| `live_cue_smoothing` | float | 0.05 to 1 | 0.5 | same |
+| `live_cue_score_floor` | float | 0 to 1 | 0 | same |
+
+Not listed on purpose: `offer_reprocess` and `knows_reel` (one-shot UI hints), `model_download_wifi_only` (the network choice of the download in flight, set by the download itself), and the guard's and perf counters in their own preference files.
+
+**`reset` and settings.** `reset` removes only `summary_format` (it belongs to the vault's summaries, so it is back to `soap`). Every other setting survives, `gemma_variant` included, so `run_device.py --reset --gemma e4b` can set it either side of the reset.
 
 ## Choosing the backend
 
@@ -76,4 +98,4 @@ The model commands build the same engine classes the pipeline does (`SpeechRecog
 
 ## Adding a command
 
-A feature a test run needs adds its command in the same change ([AD-16](AD/AD-16.md) point 7): a method on `QaBackend`, its entry in `QaApi.commands`, a JVM test, a row in the table above, and, if it takes arguments, a case in `qa/qa-api.sh`.
+A feature a test run needs adds its command in the same change ([AD-16](AD/AD-16.md) point 7): a method on `QaBackend`, its entry in `QaApi.commands`, a JVM test, a row in the table above, and, if it takes arguments, a case in `qa/qa-api.sh`. A new user-facing setting is one entry in `appSettings` (`qaapi/QaSettings.kt`), nothing else.
