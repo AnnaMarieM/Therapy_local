@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- QA build only. A terminal prompt ">" with a block cursor in terminal green, and an amber "QA" pill above. Mirrors docs/icon-qa.svg.
+     Everything sits inside the 66x66 adaptive-icon safe zone (centre of the 108 canvas). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:pathData="M43,26 H65 A9,9 0 0 1 65,44 H43 A9,9 0 0 1 43,26 Z"
+        android:fillColor="#FFC400" />
+    <path
+        android:pathData="M49,34.5 m-3.4,0 a3.4,4.5 0 1 1 6.8,0 a3.4,4.5 0 1 1 -6.8,0 M50.5,36.5 L53,40"
+        android:strokeColor="#0B0F0C"
+        android:strokeWidth="2.4"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <path
+        android:pathData="M55.5,40 L60,30 L64.5,40 M57.2,36.5 H62.8"
+        android:strokeColor="#0B0F0C"
+        android:strokeWidth="2.4"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <path
+        android:pathData="M37,56 L51,66 L37,76"
+        android:strokeColor="#39FF14"
+        android:strokeWidth="6"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <path
+        android:pathData="M59,56 H73 V78 H59 Z"
+        android:fillColor="#39FF14" />
+</vector>
