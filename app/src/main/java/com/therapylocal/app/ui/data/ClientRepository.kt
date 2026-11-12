@@ -8,7 +8,12 @@ import com.therapylocal.app.data.Role
 import com.therapylocal.app.data.SegmentRow
 import com.therapylocal.app.data.SpeakerMaps
 import com.therapylocal.app.data.TranscriptFormat
+import com.therapylocal.app.config.ProcessingLanguageSetting
+import com.therapylocal.app.facts.CategoryTaxonomy
 import com.therapylocal.app.log.AppLog
+import com.therapylocal.app.translate.Display
+import com.therapylocal.app.translate.DisplayLanguage
+import com.therapylocal.app.translate.Pivot
 import com.therapylocal.app.log.LogCtx
 import com.therapylocal.app.data.PendingAudio
 import com.therapylocal.app.jobs.Jobs
@@ -100,6 +105,7 @@ class ClientRepository(context: Context, private val open: (Context) -> MindStor
         val sessions = store.sessions(client)
         val dates = sessions.associate { it.id to date(it.startedAt) }
         val rows = store.facts(client)
+        val shown = display(rows)
         val items = sessions.map { s ->
             SessionItem(
                 id = s.id,
@@ -113,7 +119,7 @@ class ClientRepository(context: Context, private val open: (Context) -> MindStor
             lastSession = sessions.lastOrNull()?.let { dates.getValue(it.id) } ?: "-",
             sessionCount = sessions.size,
             sessions = items.asReversed(), // newest first, as the profile lists them
-            facts = rows.map { it.toItem(dates) },
+            facts = rows.map { it.toItem(dates, shown) },
             language = language,
         )
     }
@@ -160,17 +166,24 @@ class ClientRepository(context: Context, private val open: (Context) -> MindStor
      */
     fun search(client: String, vec: FloatArray?, text: String?): List<SearchHit> {
         val dates = store.sessions(client).associate { it.id to date(it.startedAt) }
+        // Windows made from the English transcript (docs/AD/AD-17.md) show the words as spoken, not the English they were cut from.
+        val fromEnglish = Pivot.translatesInput(ProcessingLanguageSetting.get(appContext), store.clientLanguage(client))
         val windows = vec?.let { store.nearestWindows(client, it, SEARCH_WINDOWS) }.orEmpty().map { (w, _) ->
-            SearchHit(w.sessionId, dates[w.sessionId].orEmpty(), title = null, snippet = snippet(w.text), segFrom = w.segFrom, segTo = w.segTo)
+            val spoken = if (fromEnglish) store.segments(w.sessionId).filter { it.idx in w.segFrom..w.segTo }.joinToString(" ") { it.text } else w.text
+            SearchHit(w.sessionId, dates[w.sessionId].orEmpty(), title = null, snippet = snippet(spoken), segFrom = w.segFrom, segTo = w.segTo)
         }
+        // The text is matched against the English and the translated heading and content; a hit shows the translated ones.
+        val all = if (text != null) store.facts(client) else emptyList()
+        val shown = display(all)
         val facts = if (text != null) {
             val q = text.trim().lowercase()
-            store.facts(client).filter { it.heading.lowercase().contains(q) || it.content.lowercase().contains(q) }.take(SEARCH_TEXT_FACTS)
+            all.filter { f -> listOf(f.heading, f.content, shown.text(f.heading), shown.text(f.content)).any { it.lowercase().contains(q) } }.take(SEARCH_TEXT_FACTS)
         } else {
             vec?.let { store.nearestFacts(client, it, SEARCH_FACTS).map { (f, _) -> f } }.orEmpty()
         }
+        val shownHits = if (text != null) shown else display(facts)
         return windows + facts.map { f ->
-            SearchHit(f.sessionId, dates[f.sessionId].orEmpty(), f.heading, f.content, f.segIdx - CONTEXT_SEGMENTS, f.segIdx + CONTEXT_SEGMENTS, f.segIdx)
+            SearchHit(f.sessionId, dates[f.sessionId].orEmpty(), shownHits.text(f.heading), shownHits.text(f.content), f.segIdx - CONTEXT_SEGMENTS, f.segIdx + CONTEXT_SEGMENTS, f.segIdx)
         }
     }
 
@@ -189,7 +202,16 @@ class ClientRepository(context: Context, private val open: (Context) -> MindStor
         return { s -> TranscriptLine(s.idx, SessionLogic.formatMinSec(s.startMs / 1000), s.text, s.speaker?.let(label), s.startMs, s.endMs) }
     }
 
-    private fun FactRow.toItem(dates: Map<String, String>) = FactItem(id, heading, content, dates[sessionId].orEmpty(), mentionCount, scope, category)
+    /**
+     * The language facts are shown in when it differs from the English they are stored in (docs/AD/AD-17.md), or null. A fact without a translation
+     * yet is shown in English, so a screen never waits for the LOCALIZE job.
+     */
+    private fun displayLanguage(): String? = DisplayLanguage.target(appContext)
+
+    private fun display(facts: List<FactRow>): Display = Display.of(displayLanguage(), facts.flatMap { listOf(it.heading, it.content) }, store::displayTranslations)
+
+    private fun FactRow.toItem(dates: Map<String, String>, shown: Display) =
+        FactItem(id, shown.text(heading), shown.text(content), dates[sessionId].orEmpty(), mentionCount, scope, displayLanguage()?.let { CategoryTaxonomy.display(category, it) } ?: category)
 
     private fun snippet(text: String) = if (text.length <= SNIPPET_CHARS) text else text.take(SNIPPET_CHARS).substringBeforeLast(' ') + "…"
 
