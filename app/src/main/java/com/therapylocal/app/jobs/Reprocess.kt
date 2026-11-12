@@ -11,6 +11,7 @@ import com.therapylocal.app.memory.MemoryFiles
 import com.therapylocal.app.memory.MemoryService
 import com.therapylocal.app.models.ModelSetup
 import com.therapylocal.app.perf.PerfStats
+import com.therapylocal.app.translate.DisplayLanguage
 import com.therapylocal.app.translate.Pivot
 import com.therapylocal.app.ui.logic.Progress
 
@@ -59,6 +60,24 @@ object Reprocess {
             }
         }
         return Plan(sessions, ms)
+    }
+
+    /**
+     * After an app language switch in the pivot mode (docs/AD/AD-17.md): queues LOCALIZE for every session that has facts or a summary, so what
+     * is shown follows the new language without extracting anything again, then starts the run. Nothing when the mode or the language needs no
+     * translation. Needs the vault unlocked; returns how many sessions were queued.
+     */
+    fun localizeAll(context: Context): Int {
+        if (DisplayLanguage.target(context) == null) return 0
+        val store = MindStore.get(context)
+        val queue = Jobs.queue(context)
+        var queued = 0
+        for (client in store.clients()) {
+            val withFacts = store.facts(client.id, includeTherapist = true).map { it.sessionId }.toSet()
+            for (s in store.sessions(client.id)) if (s.id in withFacts || store.summary(s.id) != null) { JobGraph.enqueueLocalize(queue, s.id); queued++ }
+        }
+        if (queued > 0) MemoryService.resumePending(context)
+        return queued
     }
 
     /** Queues the plan's sessions from the translate job on (their transcripts are stored; translate does nothing outside the pivot mode) and starts the run. */

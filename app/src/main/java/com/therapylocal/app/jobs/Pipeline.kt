@@ -36,10 +36,13 @@ import com.therapylocal.app.log.LogCtx
 import com.therapylocal.app.summary.TreeSummary
 import com.therapylocal.app.summary.SessionSummaries
 import com.therapylocal.app.summary.SummaryAsk
+import com.therapylocal.app.summary.SummarySections
 import com.therapylocal.app.summary.SummaryMethod
 import com.therapylocal.app.summary.SummaryPrompts
 import com.therapylocal.app.summary.SummaryRepo
 import com.therapylocal.app.translate.BatchTranslator
+import com.therapylocal.app.translate.Display
+import com.therapylocal.app.translate.LocalizePlan
 import com.therapylocal.app.translate.Pivot
 import com.therapylocal.app.translate.SegmentBatches
 import org.json.JSONArray
@@ -92,6 +95,7 @@ class Pipeline(
     val handlers: Map<String, JobHandler> = mapOf(
         JobGraph.TRANSCRIBE to JobHandler(::transcribe),
         JobGraph.TRANSLATE to JobHandler(::translate),
+        JobGraph.LOCALIZE to JobHandler(::localize),
         JobGraph.ROLES to JobHandler(::roles),
         JobGraph.WINDOW to JobHandler(::window),
         JobGraph.EXTRACT to JobHandler(::extract),
@@ -155,6 +159,46 @@ class Pipeline(
     }
 
     /**
+     * Translates what the screens show of [job]'s session into the app's language and caches it (docs/AD/AD-17.md): the heading and content of
+     * every fact and the summary text (section by section, the English labels stay as the parser and the screens rely on them). Texts that are
+     * already translated with this model and prompt are skipped. It is not in the critical chain: a failure here leaves facts and summary
+     * as they are, shown in English until a retry works. Does nothing outside the pivot mode or for an English app. Counts only in the log.
+     */
+    private fun localize(job: Job, run: JobContext) {
+        val sid = job.sessionId
+        val lang = appLanguage()
+        if (!Pivot.translatesOutput(processingMode(), lang)) return
+        val system = Prompts.fill(prompt(Prompts.LOCALIZE_SYSTEM), mapOf("LANGUAGE" to Pivot.languageName(lang)))
+        val model = run.pool.llmModel()
+        val version = Prompts.version(system)
+        val texts = ArrayList<String>()
+        for (f in store.facts(job.clientId, includeTherapist = true)) if (f.sessionId == sid) { texts += f.heading; texts += f.content }
+        store.summary(sid)?.let { row -> SummarySections.parse(row.text).forEach { texts += it.text } }
+        val wanted = texts.filter { it.isNotBlank() }.distinct()
+        val pending = wanted.filter { t -> store.displayTranslation(Display.sha(t), lang)?.let { it.model == model && it.promptVersion == version } != true }
+        val plan = LocalizePlan.of(pending)
+        var calls = 0
+        var failed = 0
+        var fallbacks = 0
+        if (!plan.isEmpty) {
+            val translator = BatchTranslator(
+                askText(run, system, MemoryConfig.LOCALIZE_TEMPERATURE, MemoryConfig.LOCALIZE_TOP_K, "localize_call_failed"),
+                MemoryConfig.LOCALIZE_BATCH_WORDS, MemoryConfig.LOCALIZE_OUTPUT_FACTOR, run::checkStop,
+            )
+            val r = translator.run(plan.items, progress = { done, total -> run.progress(JobPhase.Reading, done, total) })
+            val done = plan.assemble(r.translated)
+            done.forEach { (sha, text) -> store.putDisplayTranslation(sid, sha, lang, text, model, version) }
+            calls = r.calls; failed = r.failedCalls; fallbacks = pending.size - done.size
+        }
+        store.pruneDisplayTranslations(sid, lang, wanted.map(Display::sha).toSet())
+        AppLog.i(
+            JobRunner.TAG, "localize_done", LogCtx.NONE,
+            "texts" to wanted.size, "pending" to pending.size, "calls" to calls, "failed_calls" to failed, "localize_fallback" to fallbacks, "lang" to lang, "model" to model, "prompt_version" to version,
+        )
+        if (calls > 0 && failed == calls) throw JobFailure("LLM")
+    }
+
+    /**
      * An LLM call for the translation jobs: the reply text, or null when the call failed in a way another try may fix. What must stop the job
      * (engine ended or unavailable, Stop, a model switch) is thrown on, as the other handlers do.
      */
@@ -206,6 +250,7 @@ class Pipeline(
             "calls" to r?.calls, "levels" to r?.levels, "forced_splits" to r?.forcedSplits, "chars" to r?.chars, "speaker_map_version" to r?.speakerMapVersion,
             "model" to run.pool.llmModel(), "prompt_version" to prompts.version(), "format" to prompts.formatId, "method" to summaryMethod.id,
         )
+        if (r != null && Pivot.translatesOutput(processingMode(), appLanguage())) JobGraph.enqueueLocalize(queue, job.sessionId)
     }
 
     /** Cuts the transcript into embedded windows, then queues the rest of the session's graph. */
@@ -264,6 +309,10 @@ class Pipeline(
                         // One full batch of long words; the reply may be as long as the factor allows.
                         val text = "ě".repeat(MemoryConfig.TRANSLATE_BATCH_WORDS * WORD_CHARS)
                         need = maxOf(need, PromptBudget.required(prompt(Prompts.TRANSLATE_SYSTEM), text, PromptBudget.tokens(text) * MemoryConfig.TRANSLATE_OUTPUT_FACTOR))
+                    }
+                    JobGraph.LOCALIZE -> {
+                        val text = "e".repeat(MemoryConfig.LOCALIZE_BATCH_WORDS * WORD_CHARS)
+                        need = maxOf(need, PromptBudget.required(prompt(Prompts.LOCALIZE_SYSTEM), text, PromptBudget.tokens(text) * MemoryConfig.LOCALIZE_OUTPUT_FACTOR))
                     }
                     JobGraph.ROLES -> {
                         val text = "ě".repeat(TranscriptWindows.wordsFor(MemoryConfig.ROLES_INPUT_TOKENS) * WORD_CHARS)
@@ -402,6 +451,8 @@ class Pipeline(
         val sessions = store.sessions(job.clientId).map { it.id }
         val at = sessions.indexOf(sid)
         if (at >= 0) JobGraph.recommit(queue, job, sessions.drop(at + 1).filter(store::hasWindows))
+        // What is shown is translated at the end of the commit (a recommit too); not a dependency of anything.
+        if (Pivot.translatesOutput(processingMode(), appLanguage())) JobGraph.enqueueLocalize(queue, sid)
     }
 
     /** The LLM's duplicate verdict, cached per session under the prompt version, model, candidate and the known facts it was shown. */

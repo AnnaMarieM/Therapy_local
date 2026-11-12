@@ -618,6 +618,12 @@ class MindStore(context: Context, name: String, password: ByteArray) :
         )
     }
 
+    /** Deletes the display translations into [lang] stored for [session] other than those of [keep] (texts that were replaced since: old facts, an old summary). */
+    fun pruneDisplayTranslations(session: String, lang: String, keep: Set<String>) {
+        val stale = query("SELECT source_sha FROM display_translations WHERE session_id = ? AND lang = ?", session, lang) { it.getString(0) }.filter { it !in keep }
+        for (sha in stale) writableDatabase.delete("display_translations", "session_id = ? AND lang = ? AND source_sha = ?", arrayOf(session, lang, sha))
+    }
+
     /** The display translation of the text with hash [sourceSha] into [lang], from any session (a fact promoted to another session still finds it). */
     fun displayTranslation(sourceSha: String, lang: String): DisplayTranslation? =
         query("SELECT text, model, prompt_version FROM display_translations WHERE source_sha = ? AND lang = ? ORDER BY created_at DESC LIMIT 1", sourceSha, lang) {
