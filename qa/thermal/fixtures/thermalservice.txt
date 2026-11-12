@@ -1,0 +1,72 @@
+IsStatusOverride: false
+ThermalEventListeners:
+	callbacks: 4
+	killed: false
+	broadcasts count: -1
+ThermalStatusListeners:
+	callbacks: 7
+	killed: false
+	broadcasts count: -1
+Thermal Status: 0
+Cached temperatures:
+	Temperature{mValue=30.7, mType=2, mName=battery, mStatus=0}
+	Temperature{mValue=74.9, mType=0, mName=CPU0, mStatus=0}
+	Temperature{mValue=72.6, mType=0, mName=CPU1, mStatus=0}
+	Temperature{mValue=75.3, mType=0, mName=CPU2, mStatus=0}
+	Temperature{mValue=70.6, mType=0, mName=CPU3, mStatus=0}
+	Temperature{mValue=74.9, mType=0, mName=CPU4, mStatus=0}
+	Temperature{mValue=71.4, mType=0, mName=CPU5, mStatus=0}
+	Temperature{mValue=79.9, mType=0, mName=CPU6, mStatus=0}
+	Temperature{mValue=83.8, mType=0, mName=CPU7, mStatus=0}
+	Temperature{mValue=58.7, mType=1, mName=GPU0, mStatus=0}
+	Temperature{mValue=59.4, mType=1, mName=GPU1, mStatus=0}
+	Temperature{mValue=57.9, mType=1, mName=GPU2, mStatus=0}
+	Temperature{mValue=57.1, mType=1, mName=GPU3, mStatus=0}
+	Temperature{mValue=62.9, mType=1, mName=GPU4, mStatus=0}
+	Temperature{mValue=63.7, mType=1, mName=GPU5, mStatus=0}
+	Temperature{mValue=61.0, mType=1, mName=GPU6, mStatus=0}
+	Temperature{mValue=61.4, mType=1, mName=GPU7, mStatus=0}
+	Temperature{mValue=0.295, mType=7, mName=ibat, mStatus=0}
+	Temperature{mValue=56.0, mType=9, mName=nsp0, mStatus=0}
+	Temperature{mValue=55.6, mType=9, mName=nsp1, mStatus=0}
+	Temperature{mValue=55.2, mType=9, mName=nsp2, mStatus=0}
+	Temperature{mValue=59.4, mType=9, mName=nsp3, mStatus=0}
+	Temperature{mValue=57.5, mType=9, mName=nsp4, mStatus=0}
+	Temperature{mValue=56.3, mType=9, mName=nsp5, mStatus=0}
+	Temperature{mValue=57.1, mType=9, mName=nsp6, mStatus=0}
+	Temperature{mValue=37.754, mType=3, mName=skin, mStatus=0}
+	Temperature{mValue=90.0, mType=8, mName=socd, mStatus=3}
+	Temperature{mValue=4.108, mType=6, mName=vbat, mStatus=0}
+HAL Ready: true
+HAL connection:
+	ThermalHAL AIDL 3  connected: yes
+Current temperatures from HAL:
+	Temperature{mValue=42.4, mType=9, mName=nsp6, mStatus=0}
+	Temperature{mValue=42.8, mType=9, mName=nsp5, mStatus=0}
+	Temperature{mValue=42.0, mType=9, mName=nsp4, mStatus=0}
+	Temperature{mValue=42.8, mType=9, mName=nsp3, mStatus=0}
+	Temperature{mValue=42.4, mType=9, mName=nsp1, mStatus=0}
+	Temperature{mValue=42.8, mType=1, mName=GPU6, mStatus=0}
+	Temperature{mValue=42.8, mType=1, mName=GPU4, mStatus=0}
+	Temperature{mValue=42.8, mType=1, mName=GPU2, mStatus=0}
+	Temperature{mValue=94.0, mType=8, mName=socd, mStatus=3}
+	Temperature{mValue=43.2, mType=0, mName=CPU5, mStatus=0}
+	Temperature{mValue=44.4, mType=0, mName=CPU4, mStatus=0}
+	Temperature{mValue=42.4, mType=9, mName=nsp0, mStatus=0}
+	Temperature{mValue=40.6, mType=2, mName=battery, mStatus=0}
+	Temperature{mValue=42.8, mType=0, mName=CPU6, mStatus=0}
+	Temperature{mValue=42.8, mType=1, mName=GPU5, mStatus=0}
+	Temperature{mValue=-0.036, mType=7, mName=ibat, mStatus=0}
+	Temperature{mValue=44.4, mType=0, mName=CPU2, mStatus=0}
+	Temperature{mValue=42.8, mType=1, mName=GPU3, mStatus=0}
+	Temperature{mValue=3.413, mType=6, mName=vbat, mStatus=0}
+	Temperature{mValue=43.2, mType=0, mName=CPU1, mStatus=0}
+	Temperature{mValue=41.638, mType=3, mName=skin, mStatus=0}
+	Temperature{mValue=42.8, mType=1, mName=GPU0, mStatus=0}
+	Temperature{mValue=42.8, mType=1, mName=GPU1, mStatus=0}
+	Temperature{mValue=44.0, mType=0, mName=CPU0, mStatus=0}
+	Temperature{mValue=42.4, mType=9, mName=nsp2, mStatus=0}
+	Temperature{mValue=42.8, mType=0, mName=CPU7, mStatus=0}
+	Temperature{mValue=42.4, mType=1, mName=GPU7, mStatus=0}
+	Temperature{mValue=42.8, mType=0, mName=CPU3, mStatus=0}
+Current cooling devices from HAL:

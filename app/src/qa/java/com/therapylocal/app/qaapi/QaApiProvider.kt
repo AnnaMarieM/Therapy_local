@@ -18,7 +18,7 @@ import java.io.File
  * Only the command name, the result code and the size are logged, never the arguments or the result.
  */
 class QaApiProvider : ContentProvider() {
-    override fun onCreate(): Boolean = true
+    override fun onCreate(): Boolean { context?.let { QaThermalSampler.install(it) }; return true }
 
     override fun call(method: String, arg: String?, extras: Bundle?): Bundle {
         val ctx = context!!
