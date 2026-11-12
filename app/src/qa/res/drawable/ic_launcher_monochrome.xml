@@ -1,27 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- QA build only: themed (monochrome) layer. Same prompt and cursor; the QA pill is an outline so the letters stay readable in one colour. -->
+<!-- QA build only: themed (monochrome) layer. The real door in one colour, the ">_" prompt, and the QA pill as an outline so its letters read. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
     <path
-        android:pathData="M43,26.8 H65 A8.2,8.2 0 0 1 65,43.2 H43 A8.2,8.2 0 0 1 43,26.8 Z"
+        android:pathData="M37,78 V48 A17,17 0 0 1 71,48 V78 Z"
         android:strokeColor="#FFFFFF"
-        android:strokeWidth="1.6" />
-    <path
-        android:pathData="M49,34.5 m-3.4,0 a3.4,4.5 0 1 1 6.8,0 a3.4,4.5 0 1 1 -6.8,0 M50.5,36.5 L53,40 M55.5,40 L60,30 L64.5,40 M57.2,36.5 H62.8"
-        android:strokeColor="#FFFFFF"
-        android:strokeWidth="2.4"
-        android:strokeLineCap="round"
+        android:strokeWidth="3"
         android:strokeLineJoin="round" />
     <path
-        android:pathData="M37,56 L51,66 L37,76"
-        android:strokeColor="#FFFFFF"
-        android:strokeWidth="6"
-        android:strokeLineCap="round"
-        android:strokeLineJoin="round" />
-    <path
-        android:pathData="M59,56 H73 V78 H59 Z"
+        android:pathData="M62,60 m-3.6,0 a3.6,3.6 0 1 1 7.2,0 a3.6,3.6 0 1 1 -7.2,0"
         android:fillColor="#FFFFFF" />
+    <path
+        android:pathData="M41,55 L47,60.5 L41,66 M49.5,67.5 H55.5"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="2.2"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <path
+        android:pathData="M47,74 H61 A6,6 0 0 1 61,86 H47 A6,6 0 0 1 47,74 Z"
+        android:fillColor="#000000"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1.5" />
+    <path
+        android:pathData="M49.3,80 m-2.4,0 a2.4,3.2 0 1 1 4.8,0 a2.4,3.2 0 1 1 -4.8,0 M50.3,81.5 L52,83.7 M55.5,83.5 L59,76.5 L62.5,83.5 M56.8,81.2 H61.2"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1.8"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
 </vector>
