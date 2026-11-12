@@ -2,10 +2,11 @@ package com.therapylocal.app.ui.data
 
 import android.content.Context
 import com.therapylocal.app.config.SummaryConfig
+import com.therapylocal.app.config.ProcessingLanguageSetting
 import com.therapylocal.app.config.SummaryFormatSetting
 import com.therapylocal.app.data.JobStatus
 import com.therapylocal.app.data.MindStore
-import com.therapylocal.app.facts.PromptLanguage
+import com.therapylocal.app.translate.Pivot
 import com.therapylocal.app.i18n.LocaleStore
 import com.therapylocal.app.jobs.JobGraph
 import com.therapylocal.app.jobs.Jobs
@@ -97,7 +98,7 @@ class SessionSummaryRepository(
                 repo = store,
                 lastSession = { client -> store().sessions(client).lastOrNull { store().transcriptLengthMs(it.id) > 0 }?.id },
                 promptVersion = { session ->
-                    val language = PromptLanguage.choose(LocaleStore.current(app).tag, store().clientLanguage(store().clientOfSession(session)))
+                    val language = Pivot.promptLanguage(ProcessingLanguageSetting.get(app), LocaleStore.current(app).tag, store().clientLanguage(store().clientOfSession(session)))
                     SummaryPrompts.load({ MemoryFiles.prompt(app, it) }, language, SummaryFormatSetting.get(app)).version()
                 },
                 model = { ModelSetup.gemma(app).id },

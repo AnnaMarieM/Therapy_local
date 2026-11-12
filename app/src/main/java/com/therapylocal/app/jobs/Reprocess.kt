@@ -3,15 +3,16 @@ package com.therapylocal.app.jobs
 import android.content.Context
 import com.therapylocal.app.config.EmbeddingConfig
 import com.therapylocal.app.config.MemoryConfig
+import com.therapylocal.app.config.ProcessingLanguageSetting
 import com.therapylocal.app.data.MindStore
 import com.therapylocal.app.facts.ExtractionDialogue
-import com.therapylocal.app.facts.PromptLanguage
 import com.therapylocal.app.facts.Prompts
 import com.therapylocal.app.i18n.LocaleStore
 import com.therapylocal.app.memory.MemoryFiles
 import com.therapylocal.app.memory.MemoryService
 import com.therapylocal.app.models.ModelSetup
 import com.therapylocal.app.perf.PerfStats
+import com.therapylocal.app.translate.Pivot
 import com.therapylocal.app.ui.logic.Progress
 
 /**
@@ -34,11 +35,12 @@ object Reprocess {
         val queue = Jobs.queue(context)
         val busy = queue.openJobs().map { it.sessionId }.toSet()
         val app = LocaleStore.current(context).tag
+        val mode = ProcessingLanguageSetting.get(context)
         val model = ModelSetup.gemma(context).id
         val sessions = mutableListOf<String>()
         var ms = 0L
         for (client in store.clients()) {
-            val lang = PromptLanguage.choose(app, client.language)
+            val lang = Pivot.promptLanguage(mode, app, client.language)
             val version = Prompts.version(
                 MemoryFiles.prompt(context, Prompts.named(Prompts.EXTRACT_SYSTEM, lang)),
                 MemoryFiles.prompt(context, Prompts.named(Prompts.EXTRACT_USER, lang)),

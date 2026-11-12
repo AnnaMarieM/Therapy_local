@@ -15,7 +15,8 @@ import android.os.IBinder
 import android.os.PowerManager
 import com.therapylocal.app.data.MindStore
 import com.therapylocal.app.embed.Engines
-import com.therapylocal.app.facts.PromptLanguage
+import com.therapylocal.app.config.ProcessingLanguageSetting
+import com.therapylocal.app.translate.Pivot
 import com.therapylocal.app.i18n.LocaleStore
 import kotlinx.coroutines.runBlocking
 import com.therapylocal.app.data.DebugAudio
@@ -86,7 +87,7 @@ class MemoryService : Service() {
                 val pipeline = Pipeline(
                     MindStore.get(app), queue, { MemoryFiles.prompt(app, it) }, { PendingAudio.indices(app, it) }, { r, i -> PendingAudio.load(app, r, i) },
                     { rid, session -> PendingAudio.retain(app, rid, session); DebugAudio.export(app, session, rid) },
-                    promptLanguage = { clientLanguage -> PromptLanguage.choose(LocaleStore.current(app).tag, clientLanguage) },
+                    promptLanguage = { clientLanguage -> Pivot.promptLanguage(ProcessingLanguageSetting.get(app), LocaleStore.current(app).tag, clientLanguage) },
                     diarizationReady = { com.therapylocal.app.models.ModelRegistry.DIARIZATION.isReady(app) },
                     summaryFormat = { com.therapylocal.app.config.SummaryFormatSetting.get(app) },
                 )
