@@ -174,7 +174,7 @@ case "$cmd" in
     done
     call ask "{\"user\":\"$(jesc "$user")\"$extra$BACKEND_JSON}" ;;
   run_job)
-    [[ $# -ge 2 ]] || die "usage: run_job <transcribe|roles|window|summary> <session> [--backend b] [--force] [--timeout s]"
+    [[ $# -ge 2 ]] || die "usage: run_job <transcribe|translate|roles|window|summary|localize> <session> [--backend b] [--force] [--timeout s]"
     kind=$1; sess=$2; shift 2; BACKEND_JSON=""; total=600
     while [[ $# -gt 0 ]]; do
       backend_opt "$@"; n=$?

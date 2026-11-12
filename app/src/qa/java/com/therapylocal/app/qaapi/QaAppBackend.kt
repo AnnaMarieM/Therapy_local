@@ -2,6 +2,7 @@ package com.therapylocal.app.qaapi
 
 import android.content.Context
 import com.therapylocal.app.BuildConfig
+import com.therapylocal.app.config.ProcessingLanguageSetting
 import com.therapylocal.app.config.SummaryFormatSetting
 import com.therapylocal.app.data.MindStore
 import com.therapylocal.app.data.SegmentRow
@@ -139,7 +140,7 @@ class QaAppBackend(private val context: Context) : QaBackend {
         AppLog.i(TAG, "export", LogCtx.NONE, "clients" to clients.length(), "sessions" to sessions.length())
         // Re-importable with import_manifest: clients and sessions (segments, current speaker map). Not exported: audio, and the facts, summaries and
         // windows are derived (kept here for reading; an import queues the pipeline, which makes them again).
-        return JSONObject().put("format", "therapy-qa-manifest").put("format_version", 1).put("summary_format", SummaryFormatSetting.get(app)).put("clients", clients).put("sessions", sessions)
+        return JSONObject().put("format", "therapy-qa-manifest").put("format_version", 1).put("summary_format", SummaryFormatSetting.get(app)).put("processing_language", ProcessingLanguageSetting.get(app).key).put("clients", clients).put("sessions", sessions)
     }
 
     private fun requireIdle() {
@@ -243,8 +244,11 @@ class QaAppBackend(private val context: Context) : QaBackend {
             if ((client != null && s.getString("client") != client) || (session != null && sid != session)) continue
             val current = store.currentSpeakerMap(sid)?.let { SpeakerMaps.decode(it.mapJson) }.orEmpty()
             val segs = s.getJSONArray("segments")
+            // The English working text of each segment when the pipeline translated it (AD-17), so a pivot run can be compared with a native one.
+            val english = store.segmentTranslations(sid, "en")
             for (k in 0 until segs.length()) {
                 val g = segs.getJSONObject(k)
+                english[g.getInt("idx")]?.let { g.put("text_en", it.text) }
                 g.put("role", if (g.isNull("speaker")) JSONObject.NULL else current[g.getString("speaker")]?.json ?: JSONObject.NULL)
             }
             s.put("speakerMaps", JSONArray(store.speakerMaps(sid).map {
@@ -264,7 +268,7 @@ class QaAppBackend(private val context: Context) : QaBackend {
             if ((client == null || f.getString("client") == client) && (session == null || f.getString("session") == session)) facts.put(f)
         }
         AppLog.i(TAG, "results", LogCtx.NONE, "sessions" to sessions.length(), "facts" to facts.length())
-        return JSONObject().put("embedModel", doc.get("embedModel")).put("summary_format", format).put("sessions", sessions).put("facts", facts).put("answers", doc.getJSONArray("answers"))
+        return JSONObject().put("embedModel", doc.get("embedModel")).put("summary_format", format).put("processing_language", ProcessingLanguageSetting.get(app).key).put("sessions", sessions).put("facts", facts).put("answers", doc.getJSONArray("answers"))
     }
 
     override fun swapRoles(session: String): JSONObject {

@@ -41,7 +41,7 @@ The standard QA vault password is **`12345678`**. `setup` and `unlock` use it wh
 | `diarize <audio> [--speakers n] [--backend b] [--force]` | The diarizer on a whole recording (default 2 speakers, AD-07): `turns` (`start_ms`, `end_ms`, `speaker`), `speakers`, `load_ms`, `dur_ms`, `rtf`, `backend`, `model`. | `qa/qa-api.sh diarize petr-k_s01.wav` |
 | `embed <text> [--query] [--vectors] [--backend b] [--force]` | The text embedder (`raw embed '{"texts":[...]}'` for several): `dim`, `norm`, per-text `dur_ms`, `backend`, `model`; `--vectors` adds the vectors. | `qa/qa-api.sh embed "walks in the park" --query --backend npu` |
 | `ask <user text> [--system s] [--schema file.json] [--max-tokens n] [--backend b] [--force]` | One LLM call, a fresh conversation: `text`, `chars`, `load_ms`, `dur_ms`, `backend`, `model`. Also `temperature` and `top_k` via `raw`. | `qa/qa-api.sh ask "Say hi" --backend cpu` |
-| `run_job <transcribe\|roles\|window\|summary> <session> [--backend b] [--force] [--timeout s]` | Queues that pipeline job for the session and follows it until it settles (`window` queues the extract and commit jobs after it; `extract`/`commit` need a window and cannot be queued alone, follow them with `wait`). Returns `status`, `attempts`, `error_code`, `dur_ms`. | `qa/qa-api.sh run_job summary petr-k_s01 --backend gpu` |
+| `run_job <transcribe\|translate\|roles\|window\|summary\|localize> <session> [--backend b] [--force] [--timeout s]` | Queues that pipeline job for the session and follows it until it settles (`window` queues the extract and commit jobs after it; `extract`/`commit` need a window and cannot be queued alone, follow them with `wait`). Returns `status`, `attempts`, `error_code`, `dur_ms`. | `qa/qa-api.sh run_job summary petr-k_s01 --backend gpu` |
 | `raw <command> [json]` | Any command with a JSON argument. | `qa/qa-api.sh raw status` |
 | `screenshot <file.png>` | Host side: brings the app forward and takes `adb exec-out screencap -p`. Not an API command. | `qa/qa-api.sh screenshot out/home.png` |
 
@@ -53,8 +53,9 @@ The settings are the keys of the app's `settings` preferences that a user can ch
 
 | Key | Type | Values | Default | Applied through |
 |---|---|---|---|---|
-| `app_language` | enum | `en`, `cs` | `en` (the phone's language applies until one is chosen) | `LocaleManager` on Android 13+, the `app_language` pref before (as `LocaleStore` does; no activity needed) |
+| `app_language` | enum | `en`, `cs` | `en` (the phone's language applies until one is chosen) | `LocaleManager` on Android 13+, the `app_language` pref before (as `LocaleStore` does; no activity needed). With `processing_language` `english` it also queues `localize` for every session, so facts and summaries follow the new language |
 | `default_language` | enum | `en`, `cs` | `en` | `SpeechLanguages.setDefault` |
+| `processing_language` | enum | `english`, `native` | `english` | `ProcessingLanguageSetting.set` ([AD-17](AD/AD-17.md)). `english`: the transcript is translated to English first, every job reads English, facts and summaries are shown translated into the app language. `native`: the client's language is processed as spoken. Applies to sessions processed or reprocessed afterwards; changing it makes derived data stale, so Reprocess offers a rebuild |
 | `summary_format` | enum | the ids of `SummaryConfig.FORMATS` (`soap`, ...) | `soap` | `SessionSummaryRepository.changeFormat`: the last summary of each client is rebuilt |
 | `gemma_variant` | enum | `e2b`, `e4b` | `e2b` (no value stored) | `ModelSetup.selectGemma`; downloads the file if it is missing |
 | `backend_override` | enum | `auto`, `npu`, `gpu`, `nnapi`, `cpu` | `auto` | the `backend_override` pref and `BackendPolicy.override`. A running UI keeps showing the old chip until the app restarts, and the loaded engines are not reloaded (the model commands take `--backend` per call anyway) |
@@ -80,14 +81,16 @@ The model commands build the same engine classes the pipeline does (`SpeechRecog
 `export` writes `files/api/export.json`:
 
 ```
-{"format":"therapy-qa-manifest","format_version":1,"summary_format":"soap",
+{"format":"therapy-qa-manifest","format_version":1,"summary_format":"soap","processing_language":"english",
  "clients":[{"id","name","lang","first_name","last_name","created_at"}],
  "sessions":[{"client","session","started_at","speaker_map":{"S0":"therapist",...},
-              "segments":[{"idx","startMs","endMs","speaker","role","text"}],
+              "segments":[{"idx","startMs","endMs","speaker","role","text","text_en"}],
               "speaker_maps":[{"version","map","source","confidence","createdAt"}],
               "summary":{"state","stale","format","text","sections","generatedAt"},
               "facts":[{"heading","content","evidence","segIdx","segTo","startMs","endMs","speaker","role",...}]}]}
 ```
+
+`text_en` is the English working text of a segment when the `translate` job made one ([AD-17](AD/AD-17.md); absent in `native` mode and for English clients), and `processing_language` is the mode the export was taken in. `facts` hold the stored text, which is English in `english` mode; the screens show the translation. Import ignores both.
 
 `import_manifest` takes this file back: it creates the clients and each session from `segments` and the current `speaker_map`, then queues the pipeline from the window job on. **Not round-tripped:** audio (never exported; import audio again with `import_session`), the older speaker-map versions (only the current map is imported, as version 1 with source `import`), and facts, summaries and windows (derived: the pipeline makes them again, so they can differ from the export, which is the point of a regression run). Session ids and client ids are kept, so an import into a reset vault reproduces the same ids.
 

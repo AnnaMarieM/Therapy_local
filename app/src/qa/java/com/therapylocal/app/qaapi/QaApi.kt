@@ -289,6 +289,6 @@ class QaApi(private val backend: QaBackend, private val callerUid: () -> Int) {
     companion object {
         const val DEFAULT_WAIT_S = 20
         const val MAX_WAIT_S = 50
-        val JOB_KINDS = listOf("transcribe", "roles", "window", "summary")
+        val JOB_KINDS = listOf("transcribe", "translate", "roles", "window", "summary", "localize")
     }
 }
