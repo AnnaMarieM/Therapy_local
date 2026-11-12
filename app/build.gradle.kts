@@ -106,6 +106,8 @@ android {
             matchingFallbacks += listOf("feel", "release")
             buildConfigField("boolean", "BIOMETRIC", "false")
             buildConfigField("boolean", "SECURE_WINDOW", "false")
+            // A launcher label that differs from the real app. The QA launcher icon itself lives in src/qa/res (docs/icon-qa.svg).
+            resValue("string", "app_name", "$appName QA")
         }
     }
     compileOptions {

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- QA build only. The real icon (the arched door with the dot handle, same geometry) re-coloured as a terminal: green line on near-black,
+     an amber handle, a ">_" prompt inside the door and an amber "QA" pill on the sill. Mirrors docs/icon-qa.svg. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:pathData="M37,78 V48 A17,17 0 0 1 71,48 V78 Z"
+        android:fillColor="#0F2E17"
+        android:strokeColor="#39FF14"
+        android:strokeWidth="3"
+        android:strokeLineJoin="round" />
+    <path
+        android:pathData="M62,60 m-3.6,0 a3.6,3.6 0 1 1 7.2,0 a3.6,3.6 0 1 1 -7.2,0"
+        android:fillColor="#FFC400" />
+    <path
+        android:pathData="M41,55 L47,60.5 L41,66 M49.5,67.5 H55.5"
+        android:strokeColor="#39FF14"
+        android:strokeWidth="2.2"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <path
+        android:pathData="M47,74 H61 A6,6 0 0 1 61,86 H47 A6,6 0 0 1 47,74 Z"
+        android:fillColor="#FFC400"
+        android:strokeColor="#0B0F0C"
+        android:strokeWidth="1.5" />
+    <path
+        android:pathData="M49.3,80 m-2.4,0 a2.4,3.2 0 1 1 4.8,0 a2.4,3.2 0 1 1 -4.8,0 M50.3,81.5 L52,83.7 M55.5,83.5 L59,76.5 L62.5,83.5 M56.8,81.2 H61.2"
+        android:strokeColor="#0B0F0C"
+        android:strokeWidth="1.8"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+</vector>
