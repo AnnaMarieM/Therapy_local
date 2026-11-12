@@ -200,7 +200,7 @@ jobs:
           force-avd-creation: false
           disable-animations: true
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
-          script: SKIP_BUILD=1 OUT_DIR=out INSTR_ARGS="-e class com.therapylocal.app.screens.ScreenTourTest -e screens 1 -e numShards 3 -e shardIndex ${{ matrix.shard }}" qa/run-device-tests.sh; qa/pull-screens.sh out/screens
+          script: SKIP_BUILD=1 OUT_DIR=out INSTR_ARGS="-e class com.therapylocal.app.screens.ScreenTourTest -e screens 1 -e numShards 3 -e shardIndex ${{ matrix.shard }}" timeout 600 qa/run-device-tests.sh; qa/pull-screens.sh out/screens; adb logcat -d -s ScreenTour:I > out/screen-tour-logcat.txt
       - name: Job summary
         if: always()
         run: |
@@ -217,7 +217,9 @@ jobs:
         if: always()
         with:
           name: screens-${{ matrix.shard }}
-          path: out/screens
+          path: |
+            out/screens
+            out/screen-tour-logcat.txt
           retention-days: 7
           if-no-files-found: warn
 

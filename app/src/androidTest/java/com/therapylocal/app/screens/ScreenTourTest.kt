@@ -13,6 +13,10 @@ import org.junit.Assume.assumeTrue
 import org.junit.AssumptionViolatedException
 import org.junit.Before
 import org.junit.Rule
+import org.junit.rules.RuleChain
+import org.junit.rules.Timeout
+import java.util.concurrent.TimeUnit
+import android.util.Log
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
@@ -28,8 +32,11 @@ import java.io.File
  */
 @RunWith(Parameterized::class)
 class ScreenTourTest(private val screen: Screen, private val size: WindowSize) {
-    @get:Rule
     val compose = createComposeRule()
+
+    /** A screen that hangs fails after a minute and says so, instead of holding the whole run until the job times out. */
+    @get:Rule
+    val chain: RuleChain = RuleChain.outerRule(Timeout(60, TimeUnit.SECONDS)).around(compose)
 
     private val instrumentation = InstrumentationRegistry.getInstrumentation()
     private val context = instrumentation.targetContext
@@ -53,14 +60,17 @@ class ScreenTourTest(private val screen: Screen, private val size: WindowSize) {
 
     @Test
     fun screenshot() {
+        Log.i("ScreenTour", "start ${screen.id}@${size.key}")
         try {
             screen.show(Tour(compose, context, repo, size))
             save()
             note("ok", "")
+            Log.i("ScreenTour", "ok ${screen.id}@${size.key}")
         } catch (e: AssumptionViolatedException) {
             note("skip", e.message.orEmpty())
             throw e
         } catch (t: Throwable) {
+            Log.e("ScreenTour", "fail ${screen.id}@${size.key}", t)
             note("fail", (t.message ?: t.javaClass.simpleName).lineSequence().first())
             throw t
         }
