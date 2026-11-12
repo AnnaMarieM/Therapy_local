@@ -207,6 +207,8 @@ class ProfileUiTest {
     private fun openFact() {
         compose.onNode(hasText(HEADING) and hasClickAction()).performClick()
         compose.waitUntilAtLeastOneExists(hasText(CONTENT), TIMEOUT_MS)
+        // The transcript loads after the fact card: until its lines exist, the last scrolling list is not the transcript yet.
+        compose.waitUntilAtLeastOneExists(hasText("PATIENT", substring = true) or hasText("THERAPIST", substring = true), TIMEOUT_MS)
     }
 
     /** Scrolls the layer on top (the last scrolling list on screen) until [m] is built, then checks it is there. */
