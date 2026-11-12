@@ -19,7 +19,9 @@ import com.therapylocal.app.data.WindowRow
 import com.therapylocal.app.facts.Candidate
 import com.therapylocal.app.facts.CommitPlanner
 import com.therapylocal.app.facts.Fact
+import com.therapylocal.app.facts.ExtractionDialogue
 import com.therapylocal.app.facts.FactParser
+import com.therapylocal.app.facts.FactSpans
 import com.therapylocal.app.facts.FactSchemas
 import com.therapylocal.app.facts.Known
 import com.therapylocal.app.facts.Prompts
@@ -141,7 +143,9 @@ class Pipeline(
     /** Cuts the transcript into embedded windows, then queues the rest of the session's graph. */
     private fun window(job: Job, run: JobContext) {
         val words = TranscriptWindows.wordsFor(MemoryConfig.WINDOW_TOKENS)
-        val spans = TranscriptWindows.bySegments(store.segments(job.sessionId), words, TranscriptWindows.wordsFor(MemoryConfig.WINDOW_OVERLAP_TOKENS))
+        // The windows are the dialogue with the role labels of the map current now; its version goes into their provenance and the extraction key.
+        val map = store.currentSpeakerMap(job.sessionId)
+        val spans = ExtractionDialogue.windows(store.segments(job.sessionId), map?.mapJson, words, TranscriptWindows.wordsFor(MemoryConfig.WINDOW_OVERLAP_TOKENS))
         run.progress(JobPhase.Reading, 0, spans.size)
         val transcript = store.currentTranscript(job.sessionId) ?: throw JobFailure("NO_TRANSCRIPT", permanent = true)
         val rows = spans.mapIndexed { i, s ->
@@ -151,7 +155,7 @@ class Pipeline(
         }
         store.replaceWindows(
             job.sessionId, rows,
-            Provenance(transcript.sha256, store.currentSpeakerMap(job.sessionId)?.version ?: Provenance.NO_MAP, MemoryConfig.WINDOW_CUT_VERSION, rows.firstOrNull()?.embedModel ?: EmbeddingConfig.MODEL_ID),
+            Provenance(transcript.sha256, map?.version ?: Provenance.NO_MAP, MemoryConfig.WINDOW_CUT_VERSION, rows.firstOrNull()?.embedModel ?: EmbeddingConfig.MODEL_ID),
         )
         val sessions = store.sessions(job.clientId).map { it.id }
         val at = sessions.indexOf(job.sessionId)
@@ -219,18 +223,23 @@ class Pipeline(
         run.progress(JobPhase.Reading, idx, windows.size)
         val system = promptFor(Prompts.EXTRACT_SYSTEM, job)
         val template = promptFor(Prompts.EXTRACT_USER, job)
-        // Prompt version | model | window text: a window cut or transcribed differently is read again.
-        val key = "${Prompts.version(system, template)}|${run.pool.llmModel()}|${Prompts.hash(window.text)}"
+        // Prompt version | model | speaker-map version | window text: a window cut or transcribed differently, or labelled by another map, is read again.
+        val key = ExtractionDialogue.cacheKey(Prompts.version(system, template), run.pool.llmModel(), window.speakerMapVersion, window.text)
         if (store.extractCache(job.sessionId, idx)?.first == key) return
         val user = extractUser(job, template, window, windows.size)
         val segments = store.segments(job.sessionId).filter { it.idx in window.segFrom..window.segTo }
-        val facts = extractFacts(run.pool.llm(), system, user, window.text).map { f -> f.copy(segIdx = FactParser.segmentOf(f.evidence, segments) ?: window.segFrom) }
+        // A quote is grounded in the segment texts, never in the labels or times of the dialogue.
+        val facts = extractFacts(run.pool.llm(), system, user, ExtractionDialogue.groundingText(segments, window.segFrom, window.segTo)).map { f ->
+            val (from, to) = FactParser.segmentSpan(f.evidence, segments) ?: (window.segFrom to window.segFrom)
+            f.copy(segIdx = from, segEnd = to)
+        }
         store.putExtractCache(job.sessionId, idx, key, JSONArray(facts.map { it.toJson() }).toString())
     }
 
     /**
      * Up to three attempts: one JSON object per line is asked for twice, then a constrained schema as a last resort (constrained decoding
-     * costs about 4 s per conversation and loops on the GPU, so not first). Facts whose quote is not in the window are dropped.
+     * costs about 4 s per conversation and loops on the GPU, so not first). Facts whose quote is not in the window are dropped, and repeats
+     * are merged ([FactParser.dedupe]); several facts from one sentence are all kept.
      */
     private fun extractFacts(llm: Llm, system: String, user: String, window: String): List<Fact> {
         var answered = false
@@ -244,7 +253,7 @@ class Pipeline(
                 continue
             }
             answered = true
-            val grounded = FactParser.anyFacts(reply).filter { FactParser.evidenceHolds(it, window) }
+            val grounded = FactParser.dedupe(FactParser.anyFacts(reply).filter { FactParser.evidenceHolds(it, window) })
             if (grounded.isNotEmpty()) return grounded
         }
         // Replies without a usable fact are a real answer (nothing to note); no reply at all is a failure, retried by the queue.
@@ -272,7 +281,7 @@ class Pipeline(
         val version = "${Prompts.version(system, template)}|${run.pool.llmModel()}"
         val plan = CommitPlanner.plan(
             candidates,
-            earlier = { v -> store.nearestFacts(job.clientId, v, MemoryConfig.NEIGHBOURS, beforeSession = sid).map { (f, s) -> Known(f.id, f.heading, f.content) to s } },
+            earlier = { v -> store.nearestFacts(job.clientId, v, MemoryConfig.NEIGHBOURS, beforeSession = sid, includeTherapist = true).map { (f, s) -> Known(f.id, f.heading, f.content) to s } },
             review = { fact, known -> review(run, sid, system, template, version, fact, known) },
             minSimilarity = MemoryConfig.MIN_SIMILARITY,
             neighbours = MemoryConfig.NEIGHBOURS,
@@ -283,17 +292,20 @@ class Pipeline(
         )
         val lang = language(job)
         val transcriptSha = store.currentTranscript(sid)?.sha256.orEmpty()
-        val speakerMapVersion = store.currentSpeakerMap(sid)?.version ?: Provenance.NO_MAP
-        val activeFacts = store.factEmbeddings(job.clientId).filter { it.first.sessionId != sid && it.first.category.isNotBlank() }
+        // Every stored fact, the therapist's too: the category centroids and the duplicate check must not depend on who is shown.
+        val activeFacts = store.factEmbeddings(job.clientId, includeTherapist = true).filter { it.first.sessionId != sid && it.first.category.isNotBlank() }
         val activeCentroids = activeFacts.groupBy { it.first.category }
             .mapValues { (_, pairs) -> com.therapylocal.app.facts.CategoryClusterer.centroid(pairs.map { it.second }) }
             .filterValues { it != null }
             .mapValues { it.value!! }
 
+        val segments = store.segments(sid)
         store.replaceSessionFacts(
             sid,
             plan.facts.map { c ->
-                val (promptVersion, model) = keyOf.getValue(c).split('|')
+                val span = FactSpans.of(c.fact.segIdx, c.fact.segEnd, segments)
+                // The facts say which prompt, model and speaker map the extraction used (from its cache key), not what is current at commit.
+                val (promptVersion, model, mapVersion) = keyOf.getValue(c).split('|')
                 val resolvedCategory = com.therapylocal.app.facts.CategoryClusterer.assignCategory(
                     fact = c.fact,
                     factVec = c.vec,
@@ -302,12 +314,16 @@ class Pipeline(
                 )
                 NewFact(
                     job.clientId, sid, c.fact.heading, c.fact.content, c.fact.evidence,
-                    c.fact.segIdx, c.vec, Provenance(transcriptSha, speakerMapVersion, promptVersion, model),
+                    c.fact.segIdx, c.vec, Provenance(transcriptSha, mapVersion.toInt(), promptVersion, model),
                     scope = c.fact.scope,
                     category = resolvedCategory,
+                    segTo = span?.segTo ?: c.fact.segEnd, startMs = span?.startMs ?: 0, endMs = span?.endMs ?: 0, speaker = span?.speaker,
                 )
             },
-            plan.mentions.map { (factId, f) -> NewMention(factId, sid, f.evidence, f.segIdx) },
+            plan.mentions.map { (factId, f) ->
+                val span = FactSpans.of(f.segIdx, f.segEnd, segments)
+                NewMention(factId, sid, f.evidence, f.segIdx, span?.speaker, span?.segTo ?: f.segEnd, span?.startMs ?: 0, span?.endMs ?: 0)
+            },
         )
         AppLog.i(JobRunner.TAG, "commit_done", LogCtx.NONE, "candidates" to candidates.size, "facts" to plan.facts.size, "mentions" to plan.mentions.size)
         val sessions = store.sessions(job.clientId).map { it.id }

@@ -4,6 +4,7 @@ import android.content.Context
 import com.therapylocal.app.config.EmbeddingConfig
 import com.therapylocal.app.config.MemoryConfig
 import com.therapylocal.app.data.MindStore
+import com.therapylocal.app.facts.ExtractionDialogue
 import com.therapylocal.app.facts.PromptLanguage
 import com.therapylocal.app.facts.Prompts
 import com.therapylocal.app.i18n.LocaleStore
@@ -48,7 +49,7 @@ object Reprocess {
                 if (windows.isEmpty()) continue
                 store.refreshStale(s.id, "windows", MemoryConfig.WINDOW_CUT_VERSION, EmbeddingConfig.MODEL_ID)
                 store.refreshStale(s.id, "facts", version, model)
-                if (!store.hasStale(s.id) && windows.all { w -> store.extractCache(s.id, w.idx)?.first == "$version|$model|${Prompts.hash(w.text)}" }) continue
+                if (!store.hasStale(s.id) && windows.all { w -> store.extractCache(s.id, w.idx)?.first == ExtractionDialogue.cacheKey(version, model, w.speakerMapVersion, w.text) }) continue
                 sessions += s.id
                 ms += store.transcriptLengthMs(s.id)
             }
