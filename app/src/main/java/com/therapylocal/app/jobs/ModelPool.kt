@@ -154,6 +154,8 @@ class ModelPool(
         companion object {
             fun of(kind: String): Needs? = when (kind) {
                 JobGraph.TRANSCRIBE -> Needs(asr = true, diarize = true)
+                JobGraph.TRANSLATE -> Needs(llm = true)
+                JobGraph.LOCALIZE -> Needs(llm = true)
                 JobGraph.ROLES -> Needs(llm = true)
                 JobGraph.WINDOW -> Needs(embed = true)
                 JobGraph.EXTRACT -> Needs(llm = true)

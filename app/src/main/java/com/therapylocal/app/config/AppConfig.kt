@@ -140,6 +140,21 @@ object MemoryConfig {
     /** Changes with the meaning of the role prompt or its schema; logged with the model id next to the prompt's text hash. */
     const val ROLES_PROMPT_VERSION = 1
 
+    /**
+     * The TRANSLATE job (docs/AD/AD-17.md) sends consecutive segments in one call, about [TRANSLATE_BATCH_WORDS] words at a time, and allows a reply of
+     * [TRANSLATE_OUTPUT_FACTOR] times the request's estimated tokens. Translation should not wander: the sampler is as strict as for extraction.
+     */
+    const val TRANSLATE_BATCH_WORDS = 400
+    const val TRANSLATE_OUTPUT_FACTOR = 2
+    const val TRANSLATE_TEMPERATURE = 0.1
+    const val TRANSLATE_TOP_K = 20
+
+    /** The LOCALIZE job translates what is shown (English to the app language); Czech takes about 1.7 times the tokens of English, hence the larger factor. */
+    const val LOCALIZE_BATCH_WORDS = 300
+    const val LOCALIZE_OUTPUT_FACTOR = 3
+    const val LOCALIZE_TEMPERATURE = 0.1
+    const val LOCALIZE_TOP_K = 20
+
     /** Known facts shown to the duplicate review. */
     const val NEIGHBOURS = 10
 

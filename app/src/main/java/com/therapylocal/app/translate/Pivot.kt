@@ -31,6 +31,13 @@ object Pivot {
      */
     fun tag(mode: ProcessingLanguage, clientLanguage: String): String = if (translatesInput(mode, clientLanguage)) TAG_PIVOT else TAG_NATIVE
 
+    /** The English name of a language code, as the translation prompts say it ("Czech"); an unknown code is returned as it is. */
+    fun languageName(code: String): String = when (code.lowercase().substringBefore('-')) {
+        "cs" -> "Czech"
+        "en" -> "English"
+        else -> code
+    }
+
     /** [Prompts.version] over [texts] and the pivot [tag]. */
     fun version(tag: String, vararg texts: String): String = Prompts.version(*texts, tag)
 

@@ -90,6 +90,8 @@ class MemoryService : Service() {
                     promptLanguage = { clientLanguage -> Pivot.promptLanguage(ProcessingLanguageSetting.get(app), LocaleStore.current(app).tag, clientLanguage) },
                     diarizationReady = { com.therapylocal.app.models.ModelRegistry.DIARIZATION.isReady(app) },
                     summaryFormat = { com.therapylocal.app.config.SummaryFormatSetting.get(app) },
+                    processingMode = { ProcessingLanguageSetting.get(app) },
+                    appLanguage = { LocaleStore.current(app).tag },
                 )
                 PerfStats.init(app)
                 // The live-cue embedder (GPU, with its audio encoder) must not stay loaded beside the LLM and the speech model.

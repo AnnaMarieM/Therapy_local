@@ -4,6 +4,7 @@ import com.therapylocal.app.engine.EngineDied
 import com.therapylocal.app.engine.EngineUnavailable
 import com.therapylocal.app.audio.AudioChunk
 import com.therapylocal.app.config.EmbeddingConfig
+import com.therapylocal.app.config.ProcessingLanguage
 import com.therapylocal.app.config.MemoryConfig
 import com.therapylocal.app.config.SummaryConfig
 import com.therapylocal.app.data.ChunkRow
@@ -37,6 +38,9 @@ import com.therapylocal.app.summary.SessionSummaries
 import com.therapylocal.app.summary.SummaryAsk
 import com.therapylocal.app.summary.SummaryMethod
 import com.therapylocal.app.summary.SummaryPrompts
+import com.therapylocal.app.translate.BatchTranslator
+import com.therapylocal.app.translate.Pivot
+import com.therapylocal.app.translate.SegmentBatches
 import org.json.JSONArray
 import kotlin.math.sqrt
 
@@ -63,6 +67,10 @@ class Pipeline(
     private val summaryMethod: SummaryMethod = TreeSummary(),
     /** The id of the summary format the therapist chose (read when a summary job runs, so a change reaches jobs already queued). */
     private val summaryFormat: () -> String = { SummaryConfig.DEFAULT_FORMAT_ID },
+    /** The processing language (docs/AD/AD-17.md), read when a job runs. [ProcessingLanguage.Native] by default: the behaviour from before the pivot. */
+    private val processingMode: () -> ProcessingLanguage = { ProcessingLanguage.Native },
+    /** The language tag of the app, what LOCALIZE translates what is shown into (read when a job runs). */
+    private val appLanguage: () -> String = { Pivot.EN },
 ) {
     private val summaries = SessionSummaries(store)
 
@@ -71,8 +79,12 @@ class Pipeline(
 
     private fun promptFor(name: String, job: Job): String = prompt(Prompts.named(name, language(job)))
 
+    /** True when the transcript of [job]'s session is translated to English and every job after TRANSLATE reads that ([Pivot.translatesInput]). */
+    private fun translatesInput(job: Job): Boolean = Pivot.translatesInput(processingMode(), store.clientLanguage(job.clientId))
+
     val handlers: Map<String, JobHandler> = mapOf(
         JobGraph.TRANSCRIBE to JobHandler(::transcribe),
+        JobGraph.TRANSLATE to JobHandler(::translate),
         JobGraph.ROLES to JobHandler(::roles),
         JobGraph.WINDOW to JobHandler(::window),
         JobGraph.EXTRACT to JobHandler(::extract),
@@ -100,6 +112,53 @@ class Pipeline(
     private fun transcribe(job: Job, run: JobContext) {
         val rid = job.recordingId ?: throw JobFailure("NO_RECORDING", permanent = true)
         transcribeFlow.run(rid, job.sessionId, store.clientLanguage(job.clientId), run)
+    }
+
+    /**
+     * Puts the transcript into English, segment by segment ([BatchTranslator]), for every job after this one (docs/AD/AD-17.md). Does nothing in the
+     * native mode and for an English client. Translations are stored one by one under the model and prompt version, so a run again after a crash
+     * or a retry only does what is missing. A segment that could not be translated keeps its original text. Logs counts only, never the text.
+     */
+    private fun translate(job: Job, run: JobContext) {
+        val sid = job.sessionId
+        val source = store.clientLanguage(job.clientId)
+        if (!Pivot.translatesInput(processingMode(), source)) return
+        val system = Prompts.fill(prompt(Prompts.TRANSLATE_SYSTEM), mapOf("LANGUAGE" to Pivot.languageName(source)))
+        val model = run.pool.llmModel()
+        val version = Prompts.version(system)
+        val spoken = store.segments(sid).filter { it.text.isNotBlank() }
+        val have = store.segmentTranslations(sid, Pivot.EN)
+        val todo = spoken.filter { s -> have[s.idx]?.let { it.model == model && it.promptVersion == version } != true }
+        val translator = BatchTranslator(
+            askText(run, system, MemoryConfig.TRANSLATE_TEMPERATURE, MemoryConfig.TRANSLATE_TOP_K, "translate_call_failed"),
+            MemoryConfig.TRANSLATE_BATCH_WORDS, MemoryConfig.TRANSLATE_OUTPUT_FACTOR, run::checkStop,
+        )
+        val r = translator.run(
+            todo.map { SegmentBatches.Item(it.idx, it.text) },
+            onBatch = { got -> got.forEach { (idx, text) -> store.putSegmentTranslation(sid, idx, Pivot.EN, text, model, version) } },
+            progress = { done, total -> run.progress(JobPhase.Reading, done, total) },
+        )
+        AppLog.i(
+            JobRunner.TAG, "translate_done", LogCtx.NONE,
+            "segments" to spoken.size, "todo" to todo.size, "translated" to r.translated.size, "calls" to r.calls, "failed_calls" to r.failedCalls,
+            "translate_fallback" to r.fallbacks, "chars" to r.chars, "model" to model, "prompt_version" to version,
+        )
+        // Not one reply in the whole run: the model is not answering, which is a failure to retry, not a transcript to leave as it is.
+        if (r.calls > 0 && r.failedCalls == r.calls) throw JobFailure("LLM")
+    }
+
+    /**
+     * An LLM call for the translation jobs: the reply text, or null when the call failed in a way another try may fix. What must stop the job
+     * (engine ended or unavailable, Stop, a model switch) is thrown on, as the other handlers do.
+     */
+    private fun askText(run: JobContext, system: String, temperature: Double, topK: Int, failedEvent: String): (String, Int) -> String? = { user, maxOut ->
+        try {
+            run.pool.llm().ask(system, user, null, maxOut, temperature, topK)
+        } catch (t: Throwable) {
+            if (t is EngineDied || t is EngineUnavailable || t is JobStopped || t is ModelSwitched) throw t
+            AppLog.w(JobRunner.TAG, failedEvent, LogCtx.NONE, "type" to t.javaClass.simpleName, "frames" to com.therapylocal.app.models.BackendLadder.frames(t, 4))
+            null
+        }
     }
 
     /**
@@ -191,6 +250,11 @@ class Pipeline(
                         val windows = windowsOf.getOrPut(job.sessionId) { store.windows(job.sessionId) }
                         val window = windows.firstOrNull { it.idx == job.ref.toIntOrNull() } ?: continue
                         need = maxOf(need, PromptBudget.required(extractSystem, extractUser(job, extractTemplate, window, windows.size), MemoryConfig.EXTRACT_MAX_OUTPUT_TOKENS))
+                    }
+                    JobGraph.TRANSLATE -> {
+                        // One full batch of long words; the reply may be as long as the factor allows.
+                        val text = "ě".repeat(MemoryConfig.TRANSLATE_BATCH_WORDS * WORD_CHARS)
+                        need = maxOf(need, PromptBudget.required(prompt(Prompts.TRANSLATE_SYSTEM), text, PromptBudget.tokens(text) * MemoryConfig.TRANSLATE_OUTPUT_FACTOR))
                     }
                     JobGraph.ROLES -> {
                         val text = "ě".repeat(TranscriptWindows.wordsFor(MemoryConfig.ROLES_INPUT_TOKENS) * WORD_CHARS)

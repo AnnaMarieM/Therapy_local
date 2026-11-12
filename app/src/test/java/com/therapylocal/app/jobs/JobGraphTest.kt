@@ -22,6 +22,13 @@ class JobGraphTest {
         repo.sessions["a_3"] = "a" to 3L
     }
 
+    /** A transcript session queued with [JobGraph.enqueueTranscript], its translate job played as done: the graph tests below are about the window job and later. */
+    private fun transcript(session: String): Long {
+        val window = JobGraph.enqueueTranscript(q, session)
+        q.unfinished(JobGraph.TRANSLATE, session)?.let(q::complete)
+        return window
+    }
+
     private fun job(id: Long) = repo.jobs().first { it.id == id }
 
     /** Runs the queue like the runner does; [onRun] plays the handler (a window job expands the graph with [windows] windows). */
@@ -46,17 +53,18 @@ class JobGraphTest {
     fun aRecordingRunsTranscribeRolesWindowExtractsCommitThenCleanup() {
         JobGraph.enqueueRecording(q, "a_1", recording = 7)
         val ran = drain(windows = mapOf("a_1" to 2))
-        assertEquals(listOf("transcribe(a_1)", "roles(a_1)", "window(a_1)", "extract(a_1,1)", "extract(a_1,2)", "commit(a_1)", "cleanup(a_1)"), ran)
+        assertEquals(listOf("transcribe(a_1)", "translate(a_1)", "roles(a_1)", "window(a_1)", "extract(a_1,1)", "extract(a_1,2)", "commit(a_1)", "cleanup(a_1)"), ran)
         val all = repo.jobs()
         assertTrue(all.all { it.status == JobStatus.Done })
         // The audio's jobs carry the recording, so cleanup knows what to delete and startup knows the recording is queued.
-        assertEquals(setOf(JobGraph.TRANSCRIBE, JobGraph.ROLES, JobGraph.WINDOW, JobGraph.COMMIT, JobGraph.CLEANUP), all.filter { it.recordingId == 7L }.map { it.kind }.toSet())
+        assertEquals(setOf(JobGraph.TRANSCRIBE, JobGraph.TRANSLATE, JobGraph.ROLES, JobGraph.WINDOW, JobGraph.COMMIT, JobGraph.CLEANUP), all.filter { it.recordingId == 7L }.map { it.kind }.toSet())
     }
 
     @Test
     fun theCommitWaitsForEveryExtractAndCleanupForTheCommit() {
         val w = JobGraph.enqueueRecording(q, "a_1", 7)
         q.claimNext { true }!!.also { q.complete(it) } // transcribe
+        q.claimNext { true }!!.also { assertEquals(JobGraph.TRANSLATE, it.kind); q.complete(it) }
         q.claimNext { true }!!.also { assertEquals(JobGraph.ROLES, it.kind); q.complete(it) }
         val window = q.claimNext { true }!!
         assertEquals(w, window.id)
@@ -77,19 +85,19 @@ class JobGraphTest {
 
     @Test
     fun aTranscriptOnlySessionHasNoCleanup() {
-        JobGraph.enqueueTranscript(q, "a_1")
+        transcript("a_1")
         assertEquals(listOf("window(a_1)", "extract(a_1,1)", "commit(a_1)"), drain(windows = mapOf("a_1" to 1)))
     }
 
     @Test
     fun aCommitWaitsForTheUnfinishedCommitOfTheSessionBefore() {
-        JobGraph.enqueueTranscript(q, "a_1")
+        transcript("a_1")
         val w1 = q.claimNext { true }!!
         JobGraph.expand(q, w1, 1, null)
         q.complete(w1)
         val commit1 = q.unfinished(JobGraph.COMMIT, "a_1")!!
         // a_2 is windowed while a_1 has not committed yet.
-        JobGraph.enqueueTranscript(q, "a_2")
+        transcript("a_2")
         val w2 = q.claimNext { it == JobGraph.WINDOW }!!
         JobGraph.expand(q, w2, 1, previousSession = "a_1")
         q.complete(w2)
@@ -107,8 +115,8 @@ class JobGraphTest {
     @Test
     fun anOlderSessionCommitsFirstEvenWhenQueuedAfterTheNewerOne() {
         val order = listOf("a_1", "a_2")
-        JobGraph.enqueueTranscript(q, "a_2")
-        JobGraph.enqueueTranscript(q, "a_1")
+        transcript("a_2")
+        transcript("a_1")
         val ran = drain(
             windows = mapOf("a_1" to 1, "a_2" to 1),
             previous = { order.getOrNull(order.indexOf(it) - 1) },
@@ -124,12 +132,13 @@ class JobGraphTest {
         JobGraph.enqueueRecording(q, "a_1", 7)
         val t1 = q.claimNext { true }!!
         q.complete(t1)
+        q.complete(q.claimNext { true }!!) // translate
         q.complete(q.claimNext { true }!!) // roles
         val w1 = q.claimNext { true }!!
         JobGraph.expand(q, w1, 1, null)
         q.complete(w1)
         val pending1 = q.unfinished("a_1")
-        JobGraph.enqueueTranscript(q, "a_2")
+        transcript("a_2")
         val w2 = q.claimNext { it == JobGraph.WINDOW }!!
         JobGraph.expand(q, w2, 0, previousSession = "a_1")
         val commit2 = q.unfinished(JobGraph.COMMIT, "a_2")!!
@@ -139,13 +148,13 @@ class JobGraphTest {
 
     @Test
     fun aRunningCommitOfTheNextSessionGetsNoDependency() {
-        JobGraph.enqueueTranscript(q, "a_2")
+        transcript("a_2")
         val w2 = q.claimNext { true }!!
         JobGraph.expand(q, w2, 0, null)
         q.complete(w2)
         val c2 = q.claimNext { true }!!
         assertEquals(JobGraph.COMMIT, c2.kind)
-        JobGraph.enqueueTranscript(q, "a_1")
+        transcript("a_1")
         val w1 = q.claimNext { true }!!
         JobGraph.expand(q, w1, 0, null, nextSession = "a_2")
         assertEquals(listOf(w2.id), job(c2.id).dependsOn)
@@ -153,9 +162,9 @@ class JobGraphTest {
 
     @Test
     fun aDoneCommitOfTheSessionBeforeIsNoDependency() {
-        JobGraph.enqueueTranscript(q, "a_1")
+        transcript("a_1")
         drain(windows = mapOf("a_1" to 0))
-        JobGraph.enqueueTranscript(q, "a_2")
+        transcript("a_2")
         val w2 = q.claimNext { true }!!
         JobGraph.expand(q, w2, 0, previousSession = "a_1")
         assertEquals(listOf(w2.id), q.unfinished(JobGraph.COMMIT, "a_2")!!.dependsOn)
@@ -163,10 +172,10 @@ class JobGraphTest {
 
     @Test
     fun recommitQueuesTheLaterSessionsInOrderAfterTheRunningCommit() {
-        JobGraph.enqueueTranscript(q, "a_1")
+        transcript("a_1")
         drain(windows = mapOf("a_1" to 0))
-        JobGraph.enqueueTranscript(q, "a_2")
-        JobGraph.enqueueTranscript(q, "a_3")
+        transcript("a_2")
+        transcript("a_3")
         drain(windows = mapOf("a_2" to 0, "a_3" to 0))
         // a_1 is committed again (a retry): its later sessions follow it, one after the other.
         val again = q.enqueue(JobGraph.COMMIT, "a_1")
@@ -184,7 +193,7 @@ class JobGraphTest {
 
     @Test
     fun aLaterSessionCommittedFirstIsCommittedAgainAfterTheEarlierOne() {
-        JobGraph.enqueueTranscript(q, "a_2")
+        transcript("a_2")
         val w2 = q.claimNext { true }!!
         JobGraph.expand(q, w2, 0, null)
         q.complete(w2)
@@ -231,12 +240,37 @@ class JobGraphTest {
     }
 
     @Test
-    fun rolesRunsAfterTranscribeAndBeforeWindow() {
+    fun translateRunsAfterTranscribeAndRolesAfterTranslate() {
         JobGraph.enqueueRecording(q, "a_1", 7)
         val byKind = repo.jobs().associateBy { it.kind }
-        assertEquals(listOf(byKind.getValue(JobGraph.TRANSCRIBE).id), byKind.getValue(JobGraph.ROLES).dependsOn)
+        assertEquals(listOf(byKind.getValue(JobGraph.TRANSCRIBE).id), byKind.getValue(JobGraph.TRANSLATE).dependsOn)
+        assertEquals(listOf(byKind.getValue(JobGraph.TRANSLATE).id), byKind.getValue(JobGraph.ROLES).dependsOn)
         assertEquals(listOf(byKind.getValue(JobGraph.ROLES).id), byKind.getValue(JobGraph.WINDOW).dependsOn)
         assertEquals(7L, byKind.getValue(JobGraph.ROLES).recordingId)
+        assertEquals(7L, byKind.getValue(JobGraph.TRANSLATE).recordingId)
+    }
+
+    @Test
+    fun aTranscriptQueuesTranslateThenWindow() {
+        val window = JobGraph.enqueueTranscript(q, "a_1")
+        val translate = q.unfinished(JobGraph.TRANSLATE, "a_1")!!
+        assertEquals(listOf(translate.id), job(window).dependsOn)
+        assertEquals(listOf("translate(a_1)", "window(a_1)", "commit(a_1)"), drain())
+        // Queued again (a reprocess): one translate and one window, not doubled.
+        JobGraph.enqueueTranscript(q, "a_1")
+        JobGraph.enqueueTranscript(q, "a_1")
+        assertEquals(1, repo.jobs().count { it.kind == JobGraph.TRANSLATE && it.status == JobStatus.Pending })
+    }
+
+    @Test
+    fun localizeIsQueuedOnceAndNothingWaitsForIt() {
+        val first = JobGraph.enqueueLocalize(q, "a_1")
+        assertEquals(first, JobGraph.enqueueLocalize(q, "a_1"))
+        transcript("a_1")
+        val ran = drain(windows = mapOf("a_1" to 0))
+        assertTrue("localize(a_1)" in ran)
+        // A failed localize leaves the commit alone: the commit never depends on it.
+        assertTrue(repo.jobs().filter { it.kind == JobGraph.COMMIT }.none { first in it.dependsOn })
     }
 
     @Test
