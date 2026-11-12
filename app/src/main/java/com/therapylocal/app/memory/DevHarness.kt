@@ -68,7 +68,7 @@ object DevHarness {
     }
 
     /** Replays the WAV through the real chunker at 60x, saves the chunks like a recording would, and queues it from transcribe on. */
-    private fun seedAudio(context: Context, store: MindStore, queue: com.therapylocal.app.jobs.JobQueue, sid: String, wav: File) {
+    internal fun seedAudio(context: Context, store: MindStore, queue: com.therapylocal.app.jobs.JobQueue, sid: String, wav: File) {
         val rid = store.createRecording(sid, "canary", "")
         val rec = ChunkRecorder.recording(LogCtx(rid))
         rec.startFromPcm(TestAudio.load(wav), speed = 60f)

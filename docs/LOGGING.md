@@ -23,7 +23,7 @@ ts=2026-10-24T13:20:04.509 lvl=I tag=ASR sid=ab12cd rid=3 cid=3.2 evt=span_end s
 |---|---|
 | `ts`, `lvl` | time, level (D debug, I info, W warn, E error) |
 | `proc`, `pid` | the process that wrote the line: `main`, `live` or `batch`, and its Android pid. Every line has both |
-| `tag` | component: `App`, `Audio`, `ASR`, `Embed`, `DB`, `Search`, `Download`, `Models`, `Device`, `Engine` |
+| `tag` | component: `App`, `Audio`, `ASR`, `Embed`, `DB`, `Search`, `Download`, `Models`, `Device`, `Engine`, `Thermal` (QA build only) |
 | `sid` | session id, one per process. A host's `host_start` carries main's as `client_sid`, which joins the files |
 | `rid` | recording id (the SQLite row id) |
 | `cid` | chunk id, `<rid>.<chunk index>` |
@@ -56,6 +56,8 @@ Values with spaces or `=` are double-quoted.
 | `transcript_merge` | App | `removed_words` per chunk: how many words of each 5 s overlap were dropped when showing the whole recording |
 | `db_delete_recording`, `db_delete_all` | DB | rows removed and rows left |
 | `delete_verified`, `delete_all_verified` | App | counts read back after a delete: `remaining_recordings`, `remaining_chunks`, `audio_files_on_disk` (no audio is ever stored) |
+
+| `thermal_sample`, `thermal_sensors_found`, `thermal_summary` | Thermal | QA build only, debug level, once a second while a job runs ([Thermal log](QA_API.md#thermal-log)): battery temperature, level, voltage, current, `thermal_status`, `headroom_10s` and the SoC zones the app can read. Numbers and sensor names only |
 
 Voice and text queries have no recording id: they carry `cid=q<N>` (one counter per app session). A voice query is embedded as audio and is **never transcribed**, so its trace has an `embed modality=audio role=query` span and no `asr_transcribe`.
 

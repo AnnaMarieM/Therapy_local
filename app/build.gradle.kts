@@ -55,6 +55,12 @@ tasks.configureEach {
     if (name.endsWith("JniLibFolders") || name.startsWith("lint")) dependsOn(quietTasks)
 }
 
+val gitCommit: String = System.getenv("GIT_COMMIT")?.takeIf { it.isNotBlank() }?.take(40)
+    ?: runCatching {
+        ProcessBuilder("git", "rev-parse", "--short=12", "HEAD").directory(rootDir).redirectErrorStream(true).start()
+            .let { p -> p.inputStream.bufferedReader().readText().trim().also { p.waitFor() } }
+    }.getOrNull()?.takeIf { Regex("[0-9a-f]{7,40}").matches(it) } ?: "unknown"
+
 android {
     namespace = "com.therapylocal.app"
     compileSdk = 34
@@ -106,6 +112,9 @@ android {
             matchingFallbacks += listOf("feel", "release")
             buildConfigField("boolean", "BIOMETRIC", "false")
             buildConfigField("boolean", "SECURE_WINDOW", "false")
+            // The commit this APK was built from, for the control API's `status` (AD-16). GIT_COMMIT from the environment (scripts/build.sh passes it
+            // into the container, where there is no usable .git), else git, else "unknown". Only in qa: no other build type has the field.
+            buildConfigField("String", "GIT_COMMIT", "\"" + gitCommit + "\"")
             // A launcher label that differs from the real app. The QA launcher icon itself lives in src/qa/res (docs/icon-qa.svg).
             resValue("string", "app_name", "$appName QA")
         }
@@ -252,5 +261,57 @@ val verifyNoFaultsInRelease by tasks.registering {
         }
         if (hits.isNotEmpty()) throw GradleException("Fault lab code found in a non-debug APK:\n  " + hits.joinToString("\n  "))
         println("verifyNoFaultsInRelease: ${apks.joinToString { it.name }} are clean")
+    }
+}
+
+// The qa unit tests (src/testQa) cover the QA control API; src/test already runs under testDebugUnitTest, so it is not run a second time here.
+tasks.matching { it.name == "testQaUnitTest" }.configureEach { (this as Test).filter.includeTestsMatching("com.therapylocal.app.qaapi.*") }
+
+// AD-16: the QA control API (src/qa, package com.therapylocal.app.qaapi) must be in the qa APK and in no other. Scans the dex files and the binary
+// manifest of the release, feel and debug APKs for its marker strings (the check fails on any hit), and requires them in the qa APK, which proves the
+// scan can see them. Runs in the `build` job beside verifyNoFaultsInRelease (same assemble tasks, so the critical path does not grow).
+// `-PqaApiScanApks=a.apk,b.apk` scans those files as the non-qa set instead (to prove the check bites: scan the qa APK and it must fail).
+val verifyNoQaApiInRelease by tasks.registering {
+    group = "verification"
+    description = "Fails if the release, feel or debug APK contains the QA control API (classes, provider, strings), or if the qa APK lacks it."
+    val override = providers.gradleProperty("qaApiScanApks")
+    if (!override.isPresent) dependsOn("assembleRelease", "assembleFeel", "assembleDebug", "assembleQa")
+    val outDir = layout.buildDirectory.dir("outputs/apk")
+    doLast {
+        // "QaApi" and "qaapi" already match every class of the package (a dex class descriptor carries the package); the rest cover a class or command that
+        // is ever moved out of it, and the command and error names (set_setting, get_settings, not_qa_build) that a stray copy would leave as strings.
+        val markers = listOf("QaApi", "qaapi", "STANDARD_QA_PASSWORD", "QaSetting", "QaGuard", "QaAppBackend", "QaEngines", "QaQueueState",
+            "QaThermal", "thermal_sample", "thermal_sensors_found", "thermal_log",
+            "get_settings", "set_setting", "set_summary_format", "not_qa_build", "forbidden_caller")
+        fun scan(apk: File): List<String> {
+            val hits = ArrayList<String>()
+            ZipFile(apk).use { zip ->
+                val parts = zip.entries().toList().filter { Regex("classes\\d*\\.dex").matches(it.name) || it.name == "AndroidManifest.xml" }
+                check(parts.any { it.name.endsWith(".dex") }) { "${apk.name}: no dex file" }
+                for (e in parts) {
+                    val bytes = zip.getInputStream(e).readBytes()
+                    for (m in markers) for (needle in listOf(m.toByteArray(Charsets.US_ASCII), m.toByteArray(Charsets.UTF_16LE))) {
+                        outer@ for (i in 0..bytes.size - needle.size) {
+                            if (bytes[i] != needle[0]) continue
+                            for (j in 1 until needle.size) if (bytes[i + j] != needle[j]) continue@outer
+                            hits += "${apk.name}!${e.name}: $m"
+                            break
+                        }
+                    }
+                }
+            }
+            return hits
+        }
+        fun apksOf(bt: String) = outDir.get().dir(bt).asFile.walkTopDown().filter { it.extension == "apk" }.toList()
+        val others: List<File> = if (override.isPresent) override.get().split(',').map { File(it) } else listOf("release", "feel", "debug").flatMap { apksOf(it) }
+        check(others.isNotEmpty()) { "verifyNoQaApiInRelease: no APK found" }
+        val hits = others.flatMap { scan(it) }
+        if (hits.isNotEmpty()) throw GradleException("QA control API found in a non-qa APK:\n  " + hits.joinToString("\n  "))
+        if (!override.isPresent) {
+            val qa = apksOf("qa")
+            check(qa.isNotEmpty()) { "verifyNoQaApiInRelease: no qa APK" }
+            check(qa.all { scan(it).isNotEmpty() }) { "verifyNoQaApiInRelease: the qa APK does not contain the control API (is the scan still valid?)" }
+        }
+        println("verifyNoQaApiInRelease: ${others.joinToString { it.name }} are clean")
     }
 }

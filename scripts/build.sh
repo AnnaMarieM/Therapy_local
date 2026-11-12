@@ -33,6 +33,7 @@ docker run --rm \
   --user "$(id -u):$(id -g)" \
   -e HOME=/tmp/home -e GRADLE_USER_HOME=/gradle-home -e ANDROID_USER_HOME=/tmp/home/.android \
   -e SOURCE_DATE_EPOCH="$(git -C "$root" log -1 --format=%ct)" \
+  -e GIT_COMMIT="$(git -C "$root" rev-parse --short=12 HEAD 2>/dev/null || echo unknown)" \
   -v "$root":/workspace \
   -v "$gradle_home":/gradle-home \
   "${mask[@]}" \

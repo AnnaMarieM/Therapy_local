@@ -9,5 +9,7 @@
         <activity android:name=".debug.ProofLabActivity" android:exported="true" android:permission="android.permission.DUMP" />
         <!-- QA build only: loads the embedder or Canary on one chosen backend and compares it with the CPU, see BackendProbeActivity. -->
         <activity android:name=".debug.BackendProbeActivity" android:exported="true" android:permission="android.permission.DUMP" />
+        <!-- QA build only (AD-16): the control API for adb, see QaApiProvider and docs/QA_API.md. DUMP is held by the shell, not by apps; the provider also checks the caller's uid. -->
+        <provider android:name=".qaapi.QaApiProvider" android:authorities="${applicationId}.qaapi" android:exported="true" android:permission="android.permission.DUMP" />
     </application>
 </manifest>
