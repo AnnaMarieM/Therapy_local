@@ -30,7 +30,8 @@ class QaApiTest {
         override fun waitIdle(timeoutMs: Long) = JSONObject().put("timeout_ms", timeoutMs).also { calls += "wait" }
         override fun results(client: String?, session: String?, queries: JSONArray?) = JSONObject().put("client", client ?: JSONObject.NULL).also { calls += "results" }
         override fun swapRoles(session: String) = JSONObject().put("session", session).also { calls += "swap" }
-        val settingList = QaSettingsTest.fakeSettings()
+        val settingChanges = ArrayList<String>()
+        val settingList = QaSettingsTest.fakeSettings().map { s -> QaSetting(s.key, s.type, s.default, s.description, s.values, s.min, s.max, s.read) { v -> settingChanges += s.key; s.apply(v) } }
         override fun settings() = settingList
         override fun importTranscript(client: String, session: String, startedAt: Long?, language: String?, segments: List<QaSegment>, speakerMap: JSONObject?, process: Boolean) =
             JSONObject().put("session", session).put("segments", segments.size).put("map", speakerMap != null).put("process", process).also { calls += "transcript:$client" }
@@ -72,14 +73,43 @@ class QaApiTest {
     }
 
     @Test fun refusesEveryCommandOnANonQaApplicationId() {
-        for (id in listOf("com.therapylocal.app", "com.therapylocal.app.debug", "com.example.qa.x")) {
-            val f = fake(id = id)
+        // The key set is the real command map, so a future command is covered without touching this test. The arguments are valid-looking and malformed on purpose:
+        // the refusal comes before the argument is even parsed.
+        val ids = listOf("com.therapylocal.app", "com.therapylocal.app.debug", "com.therapylocal.app.feel", "com.example.qa.x", "com.example.other", "qa", "", "com.therapylocal.app.qa.evil",
+            "com.therapylocal.app.Qa", "com.therapylocal.app.qa ", "x" + java.util.UUID.randomUUID().toString().replace("-", ""))
+        for (id in ids) for (state in VaultState.values()) {
+            val f = fake(state, id)
             val a = api(f)
-            for (c in a.commandNames) assertEquals("$id $c", "not_qa_build", code(a.call(c, "{}")))
-            assertTrue(f.calls.isEmpty())
+            assertTrue(a.commandNames.size >= 20)
+            for (c in a.commandNames + "no_such_command") for (arg in listOf("", "{}", "not json", """{"setting":"mode","value":"b","format":"dap","password":"x","session":"s"}"""))
+                assertEquals("$id $state $c", "not_qa_build", code(a.call(c, arg)))
+            assertEquals("the backend must never be called for '$id'", emptyList<String>(), f.calls)
+            assertEquals(emptyList<String>(), f.settingChanges)
         }
+    }
+
+    @Test fun refusesEveryCommandFromANonShellCaller() {
+        for (id in listOf("com.therapylocal.app.qa", "com.therapylocal.app", "com.therapylocal.app.debug")) for (uid in listOf(0, 1, 1000, 1999, 2001, 10123, 99999, -1)) {
+            val f = fake(id = id)
+            val a = api(f, uid)
+            for (c in a.commandNames + "no_such_command") for (arg in listOf("", "{}", "not json"))
+                assertEquals("$id uid $uid $c", "forbidden_caller", code(a.call(c, arg)))
+            assertEquals(emptyList<String>(), f.calls)
+            assertEquals(emptyList<String>(), f.settingChanges)
+        }
+    }
+
+    @Test fun theQaIdIsAcceptedAndOnlyThatShape() {
         assertTrue(QaGuard.isQaApplicationId("com.therapylocal.app.qa"))
-        assertFalse(QaGuard.isQaApplicationId("com.therapylocal.app"))
+        assertTrue(QaGuard.isQaApplicationId("com.therapylocal.app.x.qa"))
+        for (id in listOf("com.therapylocal.app", "com.therapylocal.app.debug", "com.therapylocal.app.feel", "com.therapylocal.app.qa.x", "qa", "", "app.QA")) assertFalse(id, QaGuard.isQaApplicationId(id))
+        for (uid in listOf(0, 1000, 1999, 2001, 10000, -1)) assertFalse(QaGuard.callerAllowed(uid))
+    }
+
+    @Test fun everyCommandIsKnownAndHasAGuardedPathOnTheQaBuild() {
+        // Pins the command list, so adding one is a visible change here and the two tests above pick it up with it.
+        assertEquals(setOf("status", "setup", "unlock", "seed_clients", "import_clients", "import_session", "import_manifest", "export", "transcribe", "diarize", "embed", "ask",
+            "run_job", "wait", "results", "swap_roles", "get_settings", "set_setting", "set_summary_format", "reset"), api(fake()).commandNames)
     }
 
     @Test fun lockedVaultAllowsOnlyStatusSetupUnlock() {

@@ -33,13 +33,17 @@ class QaAppBackend(private val context: Context) : QaBackend {
     override val applicationId: String = BuildConfig.APPLICATION_ID
     override val filesRoot: File get() = app.getExternalFilesDir(null)!!
 
-    override fun vaultState(): VaultState = when {
+    /** Belt and braces behind the dispatcher's own refusal: no backend method runs, and no setting or data changes, on an id that is not the QA build's. */
+    private fun requireQa() { if (!QaGuard.isQaApplicationId(applicationId)) throw QaException(QaCode.NOT_QA_BUILD, "this is not the QA build") }
+
+    override fun vaultState(): VaultState = requireQa().let { when {
         !Vault.isSetUp(app) -> VaultState.NOT_SET_UP
         Vault.isUnlocked -> VaultState.UNLOCKED
         else -> VaultState.LOCKED
-    }
+    } }
 
     override fun status(): JSONObject {
+        requireQa()
         val state = vaultState()
         val progress = ModelSetup.progress.value
         val models = JSONArray(ModelSetup.required(app).map { JSONObject().put("id", it.id).put("ready", it.isReady(app)).put("missing_bytes", it.missingBytes(app)) })
@@ -51,11 +55,12 @@ class QaAppBackend(private val context: Context) : QaBackend {
             .put("jobs", if (state == VaultState.UNLOCKED) { Jobs.queue(app); QaQueueState.toJson(Jobs.snapshot.value) } else JSONObject.NULL)
     }
 
-    override fun setup(password: String) = Vault.create(app, password.toCharArray())
+    override fun setup(password: String) { requireQa(); Vault.create(app, password.toCharArray()) }
 
-    override fun unlock(password: String): Boolean = Vault.unlock(app, password.toCharArray())
+    override fun unlock(password: String): Boolean { requireQa(); return Vault.unlock(app, password.toCharArray()) }
 
     override fun seedClients(clients: List<QaClient>): JSONObject {
+        requireQa()
         val store = MindStore.get(app)
         val created = JSONArray()
         val existing = JSONArray()
@@ -67,6 +72,7 @@ class QaAppBackend(private val context: Context) : QaBackend {
     }
 
     override fun importSession(client: String, file: File, session: String?, date: String?, language: String?): JSONObject {
+        requireQa()
         val store = MindStore.get(app)
         val row = clientRow(store, client)
         language?.let { store.setClientLanguage(row.id, it) }
@@ -87,6 +93,7 @@ class QaAppBackend(private val context: Context) : QaBackend {
     }
 
     override fun importTranscript(client: String, session: String, startedAt: Long?, language: String?, segments: List<QaSegment>, speakerMap: JSONObject?, process: Boolean): JSONObject {
+        requireQa()
         val store = MindStore.get(app)
         val row = clientRow(store, client)
         language?.let { store.setClientLanguage(row.id, it) }
@@ -108,6 +115,7 @@ class QaAppBackend(private val context: Context) : QaBackend {
         ?: throw QaException(QaCode.NOT_FOUND, "no such client (seed_clients first)")
 
     override fun exportData(client: String?, session: String?): JSONObject {
+        requireQa()
         val store = MindStore.get(app)
         val r = results(client, session, null)
         val factsBySession = HashMap<String, JSONArray>()
@@ -140,6 +148,7 @@ class QaAppBackend(private val context: Context) : QaBackend {
     }
 
     override fun engineCall(op: String, args: JSONObject, file: File?, choice: BackendChoice): JSONObject {
+        requireQa()
         requireIdle()
         val e = QaEngines(app)
         return try {
@@ -163,6 +172,7 @@ class QaAppBackend(private val context: Context) : QaBackend {
     private val jobStart = HashMap<Long, Long>()
 
     override fun runJob(kind: String, session: String, jobId: Long?, choice: BackendChoice, timeoutMs: Long): JSONObject {
+        requireQa()
         val store = MindStore.get(app)
         if (!store.sessionExists(session)) throw QaException(QaCode.NOT_FOUND, "no such session")
         val queue = Jobs.queue(app)
@@ -190,6 +200,7 @@ class QaAppBackend(private val context: Context) : QaBackend {
     private fun startRunner(): Boolean = try { MemoryService.resumePending(app); true } catch (_: Exception) { false }
 
     override fun waitIdle(timeoutMs: Long): JSONObject {
+        requireQa()
         Jobs.queue(app)
         val t0 = System.currentTimeMillis()
         var idleSince = -1L
@@ -219,6 +230,7 @@ class QaAppBackend(private val context: Context) : QaBackend {
     }
 
     override fun results(client: String?, session: String?, queries: JSONArray?): JSONObject {
+        requireQa()
         val store = MindStore.get(app)
         val doc = DevResults.build(app, queries)
         val summaries = SessionSummaryRepository.create(app)
@@ -256,6 +268,7 @@ class QaAppBackend(private val context: Context) : QaBackend {
     }
 
     override fun swapRoles(session: String): JSONObject {
+        requireQa()
         val store = MindStore.get(app)
         if (!store.sessionExists(session)) throw QaException(QaCode.NOT_FOUND, "no such session")
         // The same two calls as MainViewModel.swapRoles: the swap, then the summary is flagged stale and rebuilt.
@@ -266,9 +279,10 @@ class QaAppBackend(private val context: Context) : QaBackend {
         return JSONObject().put("session", session).put("version", m?.version ?: JSONObject.NULL).put("map", runCatching { JSONObject(m?.mapJson ?: "{}") }.getOrDefault(JSONObject()))
     }
 
-    override fun settings(): List<QaSetting> = appSettings(app)
+    override fun settings(): List<QaSetting> { requireQa(); return appSettings(app) }
 
     override fun reset(): JSONObject {
+        requireQa()
         // Belt and braces next to the dispatcher's check: a data-deleting command never runs on an id that does not end in .qa.
         check(QaGuard.isQaApplicationId(applicationId)) { "not the QA build" }
         Vault.erase(app) // keys, database, retained audio, dev in/out; the models (external files/models) are not touched

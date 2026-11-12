@@ -116,6 +116,14 @@ jobs:
           fetch-depth: 0
       - run: scripts/check-ad-immutable.sh "${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}" "${{ github.sha }}"
 
+  # The QA control API exists only in the QA build (AD-16): the wrapper refuses non-.qa packages, no other source set mentions it. The APK check is verifyNoQaApiInRelease.
+  qa-api-guard:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - run: scripts/check-qa-api-guard.sh
+
   # End-to-end tests on an emulator. Required: a failing instrumented test fails the PR.
   # The existing tests plus the CORE tier of the engine stress lab (catalogue section 5). FULL-only, LMK and SLOW tests run in the lanes below
   # and in stress-nightly.yml. Every lane leaves an artifact (logs, logcat, exit records, per-test JSON) and a job summary, also when it failed.

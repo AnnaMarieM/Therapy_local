@@ -87,6 +87,8 @@ object QaSettings {
 
 /** The app's settings, built from the app's own constants, ranges and setters so the list cannot drift from it. */
 fun appSettings(app: Context): List<QaSetting> {
+    // Belt and braces: the setters below change real prefs, the model choice, the locale; never build them outside the QA build.
+    if (!QaGuard.isQaApplicationId(app.packageName)) throw QaException(QaCode.NOT_QA_BUILD, "this is not the QA build")
     val prefs = { app.getSharedPreferences("settings", Context.MODE_PRIVATE) }
     fun cues() = prefs().liveCueSettings()
     fun saveCues(s: LiveCueSettings) { prefs().saveLiveCueSettings(s); Engines.onLiveCueSettingsChanged() }

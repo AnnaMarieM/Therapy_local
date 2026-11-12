@@ -268,17 +268,20 @@ val verifyNoFaultsInRelease by tasks.registering {
 tasks.matching { it.name == "testQaUnitTest" }.configureEach { (this as Test).filter.includeTestsMatching("com.therapylocal.app.qaapi.*") }
 
 // AD-16: the QA control API (src/qa, package com.therapylocal.app.qaapi) must be in the qa APK and in no other. Scans the dex files and the binary
-// manifest of the release and feel APKs for its marker strings (the check fails on any hit), and requires them in the qa APK, which proves the
+// manifest of the release, feel and debug APKs for its marker strings (the check fails on any hit), and requires them in the qa APK, which proves the
 // scan can see them. Runs in the `build` job beside verifyNoFaultsInRelease (same assemble tasks, so the critical path does not grow).
 // `-PqaApiScanApks=a.apk,b.apk` scans those files as the non-qa set instead (to prove the check bites: scan the qa APK and it must fail).
 val verifyNoQaApiInRelease by tasks.registering {
     group = "verification"
-    description = "Fails if the release or feel APK contains the QA control API (classes, provider, strings), or if the qa APK lacks it."
+    description = "Fails if the release, feel or debug APK contains the QA control API (classes, provider, strings), or if the qa APK lacks it."
     val override = providers.gradleProperty("qaApiScanApks")
-    if (!override.isPresent) dependsOn("assembleRelease", "assembleFeel", "assembleQa")
+    if (!override.isPresent) dependsOn("assembleRelease", "assembleFeel", "assembleDebug", "assembleQa")
     val outDir = layout.buildDirectory.dir("outputs/apk")
     doLast {
-        val markers = listOf("QaApi", "qaapi", "STANDARD_QA_PASSWORD")
+        // "QaApi" and "qaapi" already match every class of the package (a dex class descriptor carries the package); the rest cover a class or command that
+        // is ever moved out of it, and the command and error names (set_setting, get_settings, not_qa_build) that a stray copy would leave as strings.
+        val markers = listOf("QaApi", "qaapi", "STANDARD_QA_PASSWORD", "QaSetting", "QaGuard", "QaAppBackend", "QaEngines", "QaQueueState",
+            "get_settings", "set_setting", "set_summary_format", "not_qa_build", "forbidden_caller")
         fun scan(apk: File): List<String> {
             val hits = ArrayList<String>()
             ZipFile(apk).use { zip ->
@@ -299,7 +302,7 @@ val verifyNoQaApiInRelease by tasks.registering {
             return hits
         }
         fun apksOf(bt: String) = outDir.get().dir(bt).asFile.walkTopDown().filter { it.extension == "apk" }.toList()
-        val others: List<File> = if (override.isPresent) override.get().split(',').map { File(it) } else listOf("release", "feel").flatMap { apksOf(it) }
+        val others: List<File> = if (override.isPresent) override.get().split(',').map { File(it) } else listOf("release", "feel", "debug").flatMap { apksOf(it) }
         check(others.isNotEmpty()) { "verifyNoQaApiInRelease: no APK found" }
         val hits = others.flatMap { scan(it) }
         if (hits.isNotEmpty()) throw GradleException("QA control API found in a non-qa APK:\n  " + hits.joinToString("\n  "))
