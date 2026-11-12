@@ -38,6 +38,7 @@ import com.therapylocal.app.summary.SessionSummaries
 import com.therapylocal.app.summary.SummaryAsk
 import com.therapylocal.app.summary.SummaryMethod
 import com.therapylocal.app.summary.SummaryPrompts
+import com.therapylocal.app.summary.SummaryRepo
 import com.therapylocal.app.translate.BatchTranslator
 import com.therapylocal.app.translate.Pivot
 import com.therapylocal.app.translate.SegmentBatches
@@ -81,6 +82,12 @@ class Pipeline(
 
     /** True when the transcript of [job]'s session is translated to English and every job after TRANSLATE reads that ([Pivot.translatesInput]). */
     private fun translatesInput(job: Job): Boolean = Pivot.translatesInput(processingMode(), store.clientLanguage(job.clientId))
+
+    /** What the jobs after TRANSLATE read: the English transcript in pivot mode (same indices, times and speakers as the original), else the transcript as spoken. */
+    private fun segs(job: Job): List<SegmentRow> = if (translatesInput(job)) store.workingSegments(job.sessionId, Pivot.EN) else store.segments(job.sessionId)
+
+    /** The pivot tag of the job's client: part of every prompt version and of the window cut version, so a mode switch makes derived data stale. */
+    private fun tag(job: Job): String = Pivot.tag(processingMode(), store.clientLanguage(job.clientId))
 
     val handlers: Map<String, JobHandler> = mapOf(
         JobGraph.TRANSCRIBE to JobHandler(::transcribe),
@@ -169,7 +176,7 @@ class Pipeline(
     private fun roles(job: Job, run: JobContext) {
         val sid = job.sessionId
         val system = promptFor(Prompts.ROLES_SYSTEM, job)
-        val d = RoleStep.decide(store.segments(sid), store.currentSpeakerMap(sid) != null) { input ->
+        val d = RoleStep.decide(segs(job), store.currentSpeakerMap(sid) != null) { input ->
             run.checkStop()
             run.pool.llm().ask(system, input, RoleGuess.SCHEMA, MemoryConfig.ROLES_MAX_OUTPUT_TOKENS, MemoryConfig.ROLES_TEMPERATURE, MemoryConfig.ROLES_TOP_K)
         } ?: return
@@ -186,12 +193,14 @@ class Pipeline(
      * hash, speaker-map version, prompt version and model. Logs counts only, never the transcript or the summary.
      */
     private fun summary(job: Job, run: JobContext) {
-        val prompts = SummaryPrompts.load(prompt, language(job), summaryFormat())
+        val prompts = SummaryPrompts.load(prompt, language(job), summaryFormat(), tag(job))
         val ask = SummaryAsk { system, user, maxOut ->
             run.checkStop()
             run.pool.llm().ask(system, user, null, maxOut, SummaryConfig.TEMPERATURE, SummaryConfig.TOP_K)
         }
-        val r = summaries.build(job.sessionId, prompts, run.pool.llmModel(), summaryMethod, ask) { done, total -> run.progress(JobPhase.Reading, done, total) }
+        // The summary reads the English transcript in pivot mode; its hash and speaker-map version are still those of the transcript as spoken.
+        val source = if (translatesInput(job)) SessionSummaries(object : SummaryRepo by store { override fun segments(session: String) = store.workingSegments(session, Pivot.EN) }) else summaries
+        val r = source.build(job.sessionId, prompts, run.pool.llmModel(), summaryMethod, ask) { done, total -> run.progress(JobPhase.Reading, done, total) }
         AppLog.i(
             JobRunner.TAG, if (r == null) "summary_skipped" else "summary_done", LogCtx.NONE,
             "calls" to r?.calls, "levels" to r?.levels, "forced_splits" to r?.forcedSplits, "chars" to r?.chars, "speaker_map_version" to r?.speakerMapVersion,
@@ -204,7 +213,7 @@ class Pipeline(
         val words = TranscriptWindows.wordsFor(MemoryConfig.WINDOW_TOKENS)
         // The windows are the dialogue with the role labels of the map current now; its version goes into their provenance and the extraction key.
         val map = store.currentSpeakerMap(job.sessionId)
-        val spans = ExtractionDialogue.windows(store.segments(job.sessionId), map?.mapJson, words, TranscriptWindows.wordsFor(MemoryConfig.WINDOW_OVERLAP_TOKENS))
+        val spans = ExtractionDialogue.windows(segs(job), map?.mapJson, words, TranscriptWindows.wordsFor(MemoryConfig.WINDOW_OVERLAP_TOKENS))
         run.progress(JobPhase.Reading, 0, spans.size)
         val transcript = store.currentTranscript(job.sessionId) ?: throw JobFailure("NO_TRANSCRIPT", permanent = true)
         val rows = spans.mapIndexed { i, s ->
@@ -214,7 +223,7 @@ class Pipeline(
         }
         store.replaceWindows(
             job.sessionId, rows,
-            Provenance(transcript.sha256, map?.version ?: Provenance.NO_MAP, MemoryConfig.WINDOW_CUT_VERSION, rows.firstOrNull()?.embedModel ?: EmbeddingConfig.MODEL_ID),
+            Provenance(transcript.sha256, map?.version ?: Provenance.NO_MAP, Pivot.windowCutVersion(tag(job)), rows.firstOrNull()?.embedModel ?: EmbeddingConfig.MODEL_ID),
         )
         val sessions = store.sessions(job.clientId).map { it.id }
         val at = sessions.indexOf(job.sessionId)
@@ -288,10 +297,10 @@ class Pipeline(
         val system = promptFor(Prompts.EXTRACT_SYSTEM, job)
         val template = promptFor(Prompts.EXTRACT_USER, job)
         // Prompt version | model | speaker-map version | window text: a window cut or transcribed differently, or labelled by another map, is read again.
-        val key = ExtractionDialogue.cacheKey(Prompts.version(system, template), run.pool.llmModel(), window.speakerMapVersion, window.text)
+        val key = ExtractionDialogue.cacheKey(Pivot.version(tag(job), system, template), run.pool.llmModel(), window.speakerMapVersion, window.text)
         if (store.extractCache(job.sessionId, idx)?.first == key) return
         val user = extractUser(job, template, window, windows.size)
-        val segments = store.segments(job.sessionId).filter { it.idx in window.segFrom..window.segTo }
+        val segments = segs(job).filter { it.idx in window.segFrom..window.segTo }
         // A quote is grounded in the segment texts, never in the labels or times of the dialogue.
         val facts = extractFacts(run.pool.llm(), system, user, ExtractionDialogue.groundingText(segments, window.segFrom, window.segTo)).map { f ->
             val (from, to) = FactParser.segmentSpan(f.evidence, segments) ?: (window.segFrom to window.segFrom)
@@ -342,7 +351,7 @@ class Pipeline(
         }
         val system = promptFor(Prompts.REVIEW_SYSTEM, job)
         val template = promptFor(Prompts.REVIEW_USER, job)
-        val version = "${Prompts.version(system, template)}|${run.pool.llmModel()}"
+        val version = "${Pivot.version(tag(job), system, template)}|${run.pool.llmModel()}"
         val plan = CommitPlanner.plan(
             candidates,
             earlier = { v -> store.nearestFacts(job.clientId, v, MemoryConfig.NEIGHBOURS, beforeSession = sid, includeTherapist = true).map { (f, s) -> Known(f.id, f.heading, f.content) to s } },
@@ -363,7 +372,7 @@ class Pipeline(
             .filterValues { it != null }
             .mapValues { it.value!! }
 
-        val segments = store.segments(sid)
+        val segments = segs(job)
         store.replaceSessionFacts(
             sid,
             plan.facts.map { c ->

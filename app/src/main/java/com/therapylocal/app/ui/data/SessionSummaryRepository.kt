@@ -98,8 +98,10 @@ class SessionSummaryRepository(
                 repo = store,
                 lastSession = { client -> store().sessions(client).lastOrNull { store().transcriptLengthMs(it.id) > 0 }?.id },
                 promptVersion = { session ->
-                    val language = Pivot.promptLanguage(ProcessingLanguageSetting.get(app), LocaleStore.current(app).tag, store().clientLanguage(store().clientOfSession(session)))
-                    SummaryPrompts.load({ MemoryFiles.prompt(app, it) }, language, SummaryFormatSetting.get(app)).version()
+                    val mode = ProcessingLanguageSetting.get(app)
+                    val client = store().clientLanguage(store().clientOfSession(session))
+                    val language = Pivot.promptLanguage(mode, LocaleStore.current(app).tag, client)
+                    SummaryPrompts.load({ MemoryFiles.prompt(app, it) }, language, SummaryFormatSetting.get(app), Pivot.tag(mode, client)).version()
                 },
                 model = { ModelSetup.gemma(app).id },
                 // A failed job is not "generating": the state falls back to none or stale and regenerate replaces it.

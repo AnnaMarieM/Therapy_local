@@ -2,11 +2,10 @@ package com.therapylocal.app.jobs
 
 import android.content.Context
 import com.therapylocal.app.config.EmbeddingConfig
-import com.therapylocal.app.config.MemoryConfig
+import com.therapylocal.app.facts.Prompts
 import com.therapylocal.app.config.ProcessingLanguageSetting
 import com.therapylocal.app.data.MindStore
 import com.therapylocal.app.facts.ExtractionDialogue
-import com.therapylocal.app.facts.Prompts
 import com.therapylocal.app.i18n.LocaleStore
 import com.therapylocal.app.memory.MemoryFiles
 import com.therapylocal.app.memory.MemoryService
@@ -41,7 +40,10 @@ object Reprocess {
         var ms = 0L
         for (client in store.clients()) {
             val lang = Pivot.promptLanguage(mode, app, client.language)
-            val version = Prompts.version(
+            // The pivot tag is part of the versions (as in Pipeline), so a switch of the processing language offers a reprocess.
+            val tag = Pivot.tag(mode, client.language)
+            val version = Pivot.version(
+                tag,
                 MemoryFiles.prompt(context, Prompts.named(Prompts.EXTRACT_SYSTEM, lang)),
                 MemoryFiles.prompt(context, Prompts.named(Prompts.EXTRACT_USER, lang)),
             )
@@ -49,7 +51,7 @@ object Reprocess {
                 if (s.id in busy) continue
                 val windows = store.windows(s.id)
                 if (windows.isEmpty()) continue
-                store.refreshStale(s.id, "windows", MemoryConfig.WINDOW_CUT_VERSION, EmbeddingConfig.MODEL_ID)
+                store.refreshStale(s.id, "windows", Pivot.windowCutVersion(tag), EmbeddingConfig.MODEL_ID)
                 store.refreshStale(s.id, "facts", version, model)
                 if (!store.hasStale(s.id) && windows.all { w -> store.extractCache(s.id, w.idx)?.first == ExtractionDialogue.cacheKey(version, model, w.speakerMapVersion, w.text) }) continue
                 sessions += s.id
@@ -59,7 +61,7 @@ object Reprocess {
         return Plan(sessions, ms)
     }
 
-    /** Queues the plan's sessions from the window job on (their transcripts are stored) and starts the run. */
+    /** Queues the plan's sessions from the translate job on (their transcripts are stored; translate does nothing outside the pivot mode) and starts the run. */
     fun start(context: Context, plan: Plan) {
         val queue = Jobs.queue(context)
         plan.sessions.forEach { JobGraph.enqueueTranscript(queue, it) }
