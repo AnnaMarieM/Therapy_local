@@ -45,7 +45,7 @@ Matching is lexical (token overlap with the planted sentence), so it needs no mo
 sittings/scripts/*.txt   the sittings (dialogue, voices, effects, planted facts as [[f1|Heading|spoken sentence]]); committed
 sittings/build.py        scripts -> sessions/<id>.json + clients.json (committed, deterministic)
 sittings/render.py       Edge TTS per turn -> 16 kHz mono PCM16, seeded gaps, overlap, gain, reverb, noise -> audio/<id>.wav + <id>.truth.json (turn timings, expected roles)
-sittings/run_device.py   push to the QA build, start the harness, wait for out/DONE, pull results.json and the key logcat lines
+sittings/run_device.py   drives the QA build through its control API (qa/qa-api.sh, docs/QA_API.md): seed clients, import the audio, wait, pull results.json, export.json and the key logcat lines
 sittings/report.py       results.json + truth -> report.md / report.json
 sittings/test_report.py  the report against an oracle results.json (no device)
 ```
@@ -59,8 +59,8 @@ e2e/.venv/bin/python e2e/sittings/render.py           # all sittings; --only pet
 python3 e2e/sittings/test_report.py                   # report code check, no device
 
 # QA build installed, vault unlocked (password 12345678), screen on. Never the real app: the runner refuses anything but com.therapylocal.app.qa.
-e2e/.venv/bin/python e2e/sittings/run_device.py --out e2e/sittings/results/run1          # --only ids, --no-reset
+e2e/.venv/bin/python e2e/sittings/run_device.py --out e2e/sittings/results/run1          # --only ids, --reset (wipes the QA vault, keeps the models)
 python3 e2e/sittings/report.py --results e2e/sittings/results/run1/results.json --title "PR 1 run"
 ```
 
-The app creates a client with one speech language, so `run_device.py` runs the Czech and the English sittings as two jobs and merges them. Sittings: `petr-k_s01..03` (Czech 1:1, patient first and talking most, Czech with English words), `eva-s_s01..03` (rapid one-word answers with back-channels and interruptions, quiet and far with reverb and noise, one voice dictating a note, a known limitation of AD-07: the diarizer is always asked for exactly two speakers, so an invented second speaker is expected there; every other sitting expects exactly two), `david-m_s01..02` (English 1:1, one 20+ minute follow-up), `tom-b_s01` (English, two similar male voices). `petr-k`, `eva-s` and `david-m` have several sittings, so repeats and mentions across sessions show in the per-client section. `results.json` needs the PR 1 `DevResults` (segment speakers, `speakerMap`); from an older build the report still works and says the speaker parts are empty.
+Every client has its own speech language (`seed_clients`, `import_session --language`), so all sittings run in one pass. Sittings: `petr-k_s01..03` (Czech 1:1, patient first and talking most, Czech with English words), `eva-s_s01..03` (rapid one-word answers with back-channels and interruptions, quiet and far with reverb and noise, one voice dictating a note, a known limitation of AD-07: the diarizer is always asked for exactly two speakers, so an invented second speaker is expected there; every other sitting expects exactly two), `david-m_s01..02` (English 1:1, one 20+ minute follow-up), `tom-b_s01` (English, two similar male voices). `petr-k`, `eva-s` and `david-m` have several sittings, so repeats and mentions across sessions show in the per-client section. `results.json` needs the PR 1 `DevResults` (segment speakers, `speakerMap`); from an older build the report still works and says the speaker parts are empty.

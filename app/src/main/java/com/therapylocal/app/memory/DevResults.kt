@@ -29,8 +29,13 @@ object DevResults {
     }
 
     fun write(context: Context, out: File) {
-        val store = MindStore.get(context)
         val job = File(MemoryFiles.devRoot(context), "job.json").takeIf { it.exists() }?.let { JSONObject(it.readText()) } ?: JSONObject()
+        out.resolve("results.json").writeText(build(context, job.optJSONArray("queries")).toString())
+    }
+
+    /** The results document as JSON: what [write] puts in results.json. [queries] is the job's "queries" (null: none are answered). Also used by the QA control API (AD-16). */
+    fun build(context: Context, queries: JSONArray?): JSONObject {
+        val store = MindStore.get(context)
         val sessions = JSONArray()
         for (client in store.clients()) for (s in store.sessions(client.id)) {
             val segments = store.segments(s.id)
@@ -56,7 +61,6 @@ object DevResults {
             )
         }
         val answers = JSONArray()
-        val queries = job.optJSONArray("queries")
         if (queries != null && queries.length() > 0) {
             val embedder = Engines.embedder(context)
             runBlocking { embedder.load() }
@@ -73,8 +77,6 @@ object DevResults {
                 answers.put(JSONObject().put("client", client).put("q", q.getString("q")).put("windows", JSONArray(ws)).put("facts", JSONArray(fs)))
             }
         }
-        out.resolve("results.json").writeText(
-            JSONObject().put("embedModel", EmbeddingConfig.MODEL_ID).put("sessions", sessions).put("facts", facts).put("answers", answers).toString(),
-        )
+        return JSONObject().put("embedModel", EmbeddingConfig.MODEL_ID).put("sessions", sessions).put("facts", facts).put("answers", answers)
     }
 }

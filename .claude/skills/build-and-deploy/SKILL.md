@@ -73,6 +73,8 @@ There are two things we care about. Everything else is a convenience build betwe
 
 Use QA for anything driven by adb: screenshots (`qa/screenshots.sh`), UI automation, tablet/size checks, demos with fake clients. Treat it as insecure by design and never put real client data in it.
 
+Drive the QA build from scripts with its control API instead of UI taps: `qa/qa-api.sh <command>` (status, unlock, seed and import clients and sessions, wait, results, export, run the models on a chosen backend, reset). See [`docs/QA_API.md`](../../../docs/QA_API.md) and [AD-16](../../../docs/AD/AD-16.md).
+
 Use the customer build for anything that must behave as it will for a therapist: fingerprint unlock, `FLAG_SECURE`, lock/erase behaviour, final performance checks. Security behaviour (see `docs/SECURITY.md`) is only verified on this one, never on QA. Never "fix" a QA-only limitation by loosening `BIOMETRIC`/`SECURE_WINDOW` on `release`; the flags are set per build type in `app/build.gradle.kts`.
 
 ### The in-between builds

@@ -41,7 +41,8 @@ class SpeakerDiarizer(
 ) : Diarizer {
     private val spec = ModelRegistry.DIARIZATION
     private var handle: Int? = null
-    private var backend: String = "none"
+    var backend: String = "none"
+        private set
     private val lock = Mutex()
 
     /** False once the host ended under the handle: [com.therapylocal.app.jobs.ModelPool] then closes this and loads another. */
