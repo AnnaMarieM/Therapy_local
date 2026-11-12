@@ -297,11 +297,12 @@ jobs:
           [[ -f scripts/publish-pr-screenshots.sh ]] || { git fetch -q --depth=1 origin "$HEAD_SHA" && git checkout -q "$HEAD_SHA" -- scripts/publish-pr-screenshots.sh scripts/pr-screenshots-comment.py; }
           mkdir merged
           shopt -s nullglob
-          for d in shards/screens-*; do
+          # each artifact holds screens/ (the images, manifest.tsv, results.tsv) and screen-tour-logcat.txt
+          for d in shards/screens-*/screens; do
             cp -r "$d"/. merged/
           done
           # every shard wrote its own results.tsv and the same manifest.tsv: merge the results (the cp above kept only the last)
-          cat shards/screens-*/results.tsv > merged/results.tsv 2>/dev/null || : > merged/results.tsv
+          cat shards/screens-*/screens/results.tsv > merged/results.tsv 2>/dev/null || : > merged/results.tsv
           [[ -f merged/manifest.tsv ]] || { echo "No screenshots were made (see the screenshot jobs)." | tee -a "$GITHUB_STEP_SUMMARY"; exit 1; }
           SRC="$PWD/merged" scripts/publish-pr-screenshots.sh | tee -a "$GITHUB_STEP_SUMMARY"
 
