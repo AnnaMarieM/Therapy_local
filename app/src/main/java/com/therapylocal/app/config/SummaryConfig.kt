@@ -12,27 +12,72 @@ object SummaryConfig {
     /** One section of the summary: [label] is the heading the model writes (and the parser looks for), [asks] what goes under it. */
     data class Section(val label: String, val asks: String)
 
-    /** Every registered format by id. Only the FINAL call of the summary uses it; the chunk and group levels of the tree are format-independent. */
-    val FORMATS: Map<String, List<Section>> = mapOf(
-        "soap" to listOf(
-            Section("Subjective", "what the client reported: feelings, events, complaints, in their own terms"),
-            Section("Objective", "what was observed or stated as fact in the session: behaviour, affect, what the therapist did"),
-            Section("Assessment", "the main themes and how the client seems to be doing, only as far as the conversation itself supports"),
-            Section("Plan", "what was agreed or suggested for after the session, homework, the next topic"),
+    /**
+     * One summary format. [sections] are the headings the model writes and the parser looks for; empty for a plain narrative, whose [freeform]
+     * text is what the prompt shows instead. [systemPrompt] is the prompt file of the FINAL call (its Czech twin is in the cs/ folder);
+     * [maxWords] and [maxSentences] are the limits that prompt states for each section.
+     */
+    data class Format(
+        val id: String,
+        val sections: List<Section>,
+        val systemPrompt: String,
+        val maxWords: Int = 70,
+        val maxSentences: Int = 4,
+        val freeform: String? = null,
+    ) {
+        /** The format as the prompt shows it: one "Label: what goes here" line per section, or the free-form description. */
+        fun instruction(): String = freeform ?: sections.joinToString("\n") { "${it.label}: <${it.asks}>" }
+    }
+
+    /**
+     * Every registered format by id; the order is the order of the stops of the setting. Only the FINAL call of the summary uses the format
+     * (its prompt file and its limits); the chunk and group levels of the tree are format-independent. The display names and the examples
+     * shown in Settings are string resources named `summary_format_<id>` and `summary_example_<id>`.
+     */
+    val FORMATS: Map<String, Format> = listOf(
+        Format(
+            "soap",
+            listOf(
+                Section("Subjective", "what the client reported: feelings, events, complaints, in their own terms"),
+                Section("Objective", "what was observed or stated as fact in the session: behaviour, affect, what the therapist did"),
+                Section("Assessment", "the main themes and how the client seems to be doing, only as far as the conversation itself supports"),
+                Section("Plan", "what was agreed or suggested for after the session, homework, the next topic"),
+            ),
+            PROMPT_FINAL_SYSTEM,
         ),
-    )
+        Format(
+            "dap",
+            listOf(
+                Section("Data", "what the client reported and what was observed or done in the session: feelings, events, behaviour, what the therapist did"),
+                Section("Assessment", "the main themes and how the client seems to be doing, only as far as the conversation itself supports"),
+                Section("Plan", "what was agreed or suggested for after the session, homework, the next topic"),
+            ),
+            "summary.dap.system.txt", maxWords = 90,
+        ),
+        Format(
+            "birp",
+            listOf(
+                Section("Behavior", "what the client reported and how the client presented: feelings, events, complaints, behaviour, affect"),
+                Section("Intervention", "what the therapist did: techniques, exercises, questions, in the order they happened"),
+                Section("Response", "how the client reacted to the interventions, as far as the conversation shows it"),
+                Section("Plan", "what was agreed or suggested for after the session, homework, the next topic"),
+            ),
+            "summary.birp.system.txt",
+        ),
+        Format(
+            "narrative", emptyList(), "summary.narrative.system.txt", maxWords = 200, maxSentences = 10,
+            freeform = "one continuous note in short paragraphs with no headings: first what the client reported, then what was done in the session and how the client responded, last what was agreed for after it",
+        ),
+    ).associateBy { it.id }
 
-    /** The format in use, a single id handled here only. It is part of [fingerprint], so changing it makes stored summaries stale and a rebuild writes the new one. */
-    const val FORMAT_ID = "soap"
+    /** The format used until the therapist chooses another. */
+    const val DEFAULT_FORMAT_ID = "soap"
 
-    /** Sections of the format in use. Labels are model-facing and stay English in every prompt language. */
-    val SECTIONS: List<Section> = FORMATS.getValue(FORMAT_ID)
+    /** The format of [id]; the default for null or an id that is not registered (a setting from a later version). */
+    fun format(id: String?): Format = FORMATS[id] ?: FORMATS.getValue(DEFAULT_FORMAT_ID)
 
-    /** Length limit the prompt states for each section, in words. A section with nothing to say is written as "None." */
-    const val MAX_WORDS_PER_SECTION = 70
-
-    /** Short paragraphs: at most this many sentences per section (stated in the prompt). */
-    const val MAX_SENTENCES_PER_SECTION = 4
+    /** Headings of every format, for splitting a stored summary of any of them. */
+    val ALL_LABELS: List<String> = FORMATS.values.flatMap { f -> f.sections.map { it.label } }.distinct()
 
     /** Reply cap of the final summary, sized for the sections above with room for a Czech reply (about 2 tokens a word). */
     const val FINAL_MAX_OUTPUT_TOKENS = 700
@@ -74,11 +119,9 @@ object SummaryConfig {
     const val PROMPT_NOTES_SYSTEM = "summary.notes.system.txt"
     const val PROMPT_NOTES_USER = "summary.notes.user.txt"
 
-    /** The format as the prompt shows it: one "Label: what goes here" line per section. */
-    fun formatInstruction(): String = SECTIONS.joinToString("\n") { "${it.label}: <${it.asks}>" }
-
-    /** Everything above that reaches a prompt, as one string for the prompt version. */
-    fun fingerprint(): String = listOf(
-        FORMAT_ID, formatInstruction(), MAX_WORDS_PER_SECTION, MAX_SENTENCES_PER_SECTION, NOTES_MAX_WORDS, LABEL_THERAPIST, LABEL_PATIENT, LABEL_SPEAKER, PROMPT_VERSION,
-    ).joinToString("|")
+    /** Everything above that reaches a prompt, for the format [formatId], as one string for the prompt version: the format id leads it. */
+    fun fingerprint(formatId: String = DEFAULT_FORMAT_ID): String {
+        val f = format(formatId)
+        return listOf(f.id, f.instruction(), f.maxWords, f.maxSentences, NOTES_MAX_WORDS, LABEL_THERAPIST, LABEL_PATIENT, LABEL_SPEAKER, PROMPT_VERSION).joinToString("|")
+    }
 }

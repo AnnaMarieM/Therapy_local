@@ -119,6 +119,9 @@ Yes, on any Android tablet that meets the requirements above.
 **Can I change the language?**
 Yes, in **Settings**. Each client can also have their own session language, under **Speaks** (*Mluví*) on the client's page.
 
+**Can I change how the session summary is laid out?**
+Yes, in **Settings › Summary format** (*Formát shrnutí*). Slide to SOAP, DAP, BIRP or a plain narrative note; an example of each is shown under the slider. The choice applies to the whole app, and the summary of each client's last session is written again in the new format.
+
 **Android says "App not installed".**
 Check that there is enough free space. If you installed Mnemothera from somewhere other than the page above, that copy cannot be updated with this file.
 
