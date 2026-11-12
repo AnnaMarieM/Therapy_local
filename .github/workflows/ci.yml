@@ -195,6 +195,125 @@ jobs:
           retention-days: 7
           if-no-files-found: warn
 
+  # ---- PR screenshots (AD-15) -------------------------------------------------------------------------------------------------------------
+  # Screenshots of every screen at every window size of AdaptiveLayoutTest, on pull requests only. Beside the emulator lanes (after `apk`, nothing
+  # waits for it, so the critical path is unchanged) and never a required check: both jobs are continue-on-error, and say what went wrong in their
+  # job summary. The sizes are drawn on one emulator (the window override AdaptiveLayoutTest uses), split over 3 shards to keep it short.
+  # The screen list is app/src/androidTest/.../screens/ScreenList.kt: a new screen is added there. To remove the feature: delete these two jobs,
+  # screens/, scripts/*pr-screenshots*, pr-screenshots-cleanup.yml.
+  screenshots:
+    needs: apk
+    if: github.event_name == 'pull_request'
+    continue-on-error: true
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: app-debug
+          path: dist
+      # The same AVD as the pixel_6 android-test lanes: restored from the cache they save
+      - uses: ./.github/actions/avd
+        with:
+          profile: pixel_6
+          key: avd-34-google_apis-pixel_6-default
+      - name: Screenshot tour
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          target: google_apis
+          profile: pixel_6
+          force-avd-creation: false
+          disable-animations: true
+          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          script: SKIP_BUILD=1 OUT_DIR=out INSTR_ARGS="-e class com.therapylocal.app.screens.ScreenTourTest -e screens 1 -e numShards 3 -e shardIndex ${{ matrix.shard }}" timeout 600 qa/run-device-tests.sh; qa/pull-screens.sh out/screens; adb logcat -d -s ScreenTour:I > out/screen-tour-logcat.txt
+      - name: Job summary
+        if: always()
+        run: |
+          {
+            echo "### Screenshot tour, shard ${{ matrix.shard }} of 3"
+            if [[ -f out/screens/results.tsv ]]; then
+              echo "$(grep -c $'\tok\t' out/screens/results.tsv || true) captured, $(grep -c $'\tfail\t' out/screens/results.tsv || true) failed"
+              grep $'\tfail\t' out/screens/results.tsv | sed 's/^/- /' || true
+            else
+              echo "The tour did not run (no results.tsv)."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: screens-${{ matrix.shard }}
+          path: |
+            out/screens
+            out/screen-tour-logcat.txt
+          retention-days: 7
+          if-no-files-found: warn
+
+  # Pushes the images to the pr-screenshots branch and posts/updates the sticky comment. The only job in this file that may write: it runs only for
+  # a pull request from this repository (a fork's or Dependabot's token is read-only: it is skipped with a note). It checks out the base branch's
+  # scripts, not the pull request's, so a pull request cannot change what runs with the write token.
+  screenshots-publish:
+    needs: [changes, screenshots]
+    if: always() && github.event_name == 'pull_request' && needs.changes.outputs.code == 'true'
+    continue-on-error: true
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      pull-requests: write
+    concurrency:
+      group: pr-screenshots-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    steps:
+      - name: Can this run write?
+        id: can
+        env:
+          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+          ACTOR: ${{ github.actor }}
+        run: |
+          if [[ "$HEAD_REPO" != "${{ github.repository }}" || "$ACTOR" == "dependabot[bot]" ]]; then
+            echo "Screenshots are not published for pull requests from forks or Dependabot: their token is read-only (AD-15)." | tee -a "$GITHUB_STEP_SUMMARY"
+            echo "write=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "write=true" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/checkout@v4
+        if: steps.can.outputs.write == 'true'
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+      - uses: actions/download-artifact@v4
+        if: steps.can.outputs.write == 'true'
+        with:
+          pattern: screens-*
+          path: shards
+      - name: Publish
+        if: steps.can.outputs.write == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          # The base branch has no scripts yet in the pull request that adds them: use the ones of the head then (same repo, so this is the author's own code).
+          # (the checkout above holds only the base commit: fetch the head's first.)
+          [[ -f scripts/publish-pr-screenshots.sh ]] || { git fetch -q --depth=1 origin "$HEAD_SHA" && git checkout -q "$HEAD_SHA" -- scripts/publish-pr-screenshots.sh scripts/pr-screenshots-comment.py; }
+          mkdir merged
+          shopt -s nullglob
+          # each artifact holds screens/ (the images, manifest.tsv, results.tsv) and screen-tour-logcat.txt
+          for d in shards/screens-*/screens; do
+            cp -r "$d"/. merged/
+          done
+          # every shard wrote its own results.tsv and the same manifest.tsv: merge the results (the cp above kept only the last)
+          cat shards/screens-*/screens/results.tsv > merged/results.tsv 2>/dev/null || : > merged/results.tsv
+          [[ -f merged/manifest.tsv ]] || { echo "No screenshots were made (see the screenshot jobs)." | tee -a "$GITHUB_STEP_SUMMARY"; exit 1; }
+          SRC="$PWD/merged" scripts/publish-pr-screenshots.sh | tee -a "$GITHUB_STEP_SUMMARY"
+
   # The FULL tier of the engine stress lab on three shards (catalogue section 5): a memory-poor phone (2 GB), real separate processes.
   # CORE tests carry both tiers and ran above, so the shards skip them.
   stress:
