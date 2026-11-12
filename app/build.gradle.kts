@@ -115,6 +115,8 @@ android {
             // The commit this APK was built from, for the control API's `status` (AD-16). GIT_COMMIT from the environment (scripts/build.sh passes it
             // into the container, where there is no usable .git), else git, else "unknown". Only in qa: no other build type has the field.
             buildConfigField("String", "GIT_COMMIT", "\"" + gitCommit + "\"")
+            // A launcher label that differs from the real app. The QA launcher icon itself lives in src/qa/res (docs/icon-qa.svg).
+            resValue("string", "app_name", "$appName QA")
         }
     }
     compileOptions {
