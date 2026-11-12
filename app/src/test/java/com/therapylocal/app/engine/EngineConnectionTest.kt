@@ -598,6 +598,25 @@ class EngineConnectionTest {
         assertEquals(true, r.log.all(EngineEvents.CALL_TIMEOUT).single().f["hard_cap"])
     }
 
+    @Test fun aLongCallLogsItsProgressSoACompileReadsDifferentlyFromAHang() {
+        val tuning = fast.copy(openTimeoutMs = 100_000, progressLogMs = 1000, hangNoProgressMs = 400)
+        val r = Rig(tuning = tuning, autoAdvance = false)
+        r.binding.script = { p, op -> if (op is EngineOp.Open) r.binding.block(p) else null }
+        val f = async { r.open() }
+        r.binding.inCall.await(10, TimeUnit.SECONDS)
+        var cpu = 0L
+        while (r.time.now < 2_500) { cpu += 5; r.cpu = cpu; r.time.advance(50); Thread.yield() } // a compile: the host burns CPU
+        val busy = r.log.all(EngineEvents.CALL_PROGRESS)
+        assertEquals(2, busy.size) // once per progressLogMs, not on every tick
+        assertTrue(busy.all { it.f["state"] == "busy" && it.f["op"] == "open" && it.f["limit_ms"] == 100_000L })
+        assertTrue("cpu is reported", (busy.last().f["cpu_ms_delta"] as Long) > 0)
+        while (r.time.now < 4_500) { r.time.advance(50); Thread.yield() } // then it goes quiet: a hang
+        assertEquals("silent", r.log.all(EngineEvents.CALL_PROGRESS).last().f["state"])
+        assertTrue("no kill before the limit", r.binding.killed.isEmpty())
+        r.time.advance(200_000)
+        f.failure()
+    }
+
     @Test fun theAskLimitScalesWithMaxOutputTokensAndTheObservedDecodeSpeed() {
         val r = Rig(tuning = fast, autoAdvance = false)
         r.decodeTps = 10.0

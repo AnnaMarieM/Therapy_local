@@ -69,6 +69,30 @@ jobs:
             dist/Therapy-main.apk.sha256
           retention-days: 14
 
+  # The QA APK (com.therapylocal.app.qa, test data, QA API; AD-16), built in parallel with `apk`. Same script, same container, same aapt2 override.
+  apk-qa:
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache/restore@v4
+        with:
+          path: ~/.gradle-therapy-builder
+          key: gradle-${{ hashFiles('**/*.gradle.kts', 'gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: gradle-
+      - uses: ./.github/actions/builder-image
+      - name: Build the QA APK
+        run: scripts/build.sh qa
+      - uses: actions/upload-artifact@v4
+        with:
+          name: app-qa
+          path: |
+            dist/Therapy-main-qa.apk
+            dist/Therapy-main-qa.apk.sha256
+          retention-days: 14
+
   # Lint, JVM unit tests and verifyNoFaultsInRelease (release, feel and qa carry no fault code) in the pinned container. The other half of
   # what `scripts/build.sh full` does; the APKs come from `apk`, in parallel.
   build:
@@ -345,12 +369,12 @@ jobs:
           mkdir -p lanes
           python3 qa/stress-summary.py --matrix lanes >> "$GITHUB_STEP_SUMMARY"
 
-  # Rolling "main" prerelease: only Therapy-main.apk, replaced on every push to main. Reuses the APK built above and
+  # Rolling "main" prerelease: Therapy-main.apk and Therapy-main-qa.apk (each with its .sha256), replaced on every push to main. Reuses the APK built above and
   # waits for unit and emulator tests, which run in parallel with each other. (GitHub itself adds the "Source code"
   # zip/tar.gz to every release; a workflow cannot remove them.)
   release-main:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: [apk, build, android-test, stress, ad-immutable]
+    needs: [apk, apk-qa, build, android-test, stress, ad-immutable]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -362,6 +386,9 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: app-debug
+      - uses: actions/download-artifact@v4
+        with:
+          name: app-qa
       - name: Replace the "main" release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -369,10 +396,17 @@ jobs:
         run: |
           # Check the APK arrived intact; the hash file itself is not published
           sha256sum -c Therapy-main.apk.sha256
+          sha256sum -c Therapy-main-qa.apk.sha256
           # Drop the previous release, its assets and its tag so only the newest build is kept
           gh release delete main --cleanup-tag --yes || true
-          gh release create main Therapy-main.apk \
+          notes="Build of main at commit ${GITHUB_SHA} (${GITHUB_SHA::7}).
+
+          - Therapy-main.apk: debug build. Installs as com.therapylocal.app, the real app's package.
+          - Therapy-main-qa.apk: QA build, the test-data build. Installs as com.therapylocal.app.qa next to the real app, with the QA control API.
+
+          Each APK has a .sha256 file."
+          gh release create main Therapy-main.apk Therapy-main.apk.sha256 Therapy-main-qa.apk Therapy-main-qa.apk.sha256 \
             --target "$GITHUB_SHA" \
             --prerelease \
             --title "Latest main build" \
-            --notes "Latest build of main (${GITHUB_SHA::7}). Download Therapy-main.apk on your phone and open it to install."
+            --notes "$notes"

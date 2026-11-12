@@ -1,0 +1,33 @@
+name: PR hygiene
+
+# No AI attribution in any pull request (AGENTS.md): checks the PR title, the PR description and every commit message of the PR.
+# Cheap (seconds) and runs beside every other job, so it never lengthens the critical path (AD-13). It re-runs when the title or body is edited.
+on:
+  pull_request:
+    types: [opened, edited, reopened, synchronize]
+
+concurrency:
+  group: pr-hygiene-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  pr-hygiene:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Self-test of the check
+        run: scripts/test-check-pr-hygiene.sh
+      - name: No AI attribution in the PR text or commits
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: scripts/check-pr-hygiene.sh "origin/$BASE_REF" "$HEAD_SHA"

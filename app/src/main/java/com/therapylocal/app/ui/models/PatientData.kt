@@ -21,16 +21,21 @@ data class SessionItem(
     val duration: String
 )
 
-/** One transcript segment; [time] is its offset into the session ("mm:ss"). */
-data class TranscriptLine(val idx: Int, val time: String, val text: String)
+/**
+ * One transcript segment; [time] is its offset into the session ("mm:ss"), [role] who said it as the transcript view labels it (the role
+ * of the session's current speaker map, "Speaker 1" for anyone without one; null when the recording was not diarized).
+ */
+data class TranscriptLine(val idx: Int, val time: String, val text: String, val role: String? = null, val startMs: Long = 0, val endMs: Long = 0)
 
-/** Where a fact was said: the segments around it, with [segIdx] the one holding the evidence. */
-data class FactOccurrence(
+/** Where a fact was said: segments [segFrom]..[segTo] of [sessionId], at [startMs]..[endMs] (AD-14); [first] is the fact's own first occurrence. */
+data class FactMention(
     val sessionId: String,
     val date: String,
     val first: Boolean,
-    val segIdx: Int,
-    val lines: List<TranscriptLine>
+    val segFrom: Int,
+    val segTo: Int = segFrom,
+    val startMs: Long = 0,
+    val endMs: Long = 0,
 )
 
 /**
