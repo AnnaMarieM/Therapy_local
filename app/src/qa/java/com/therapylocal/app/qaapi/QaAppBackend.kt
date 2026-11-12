@@ -2,7 +2,6 @@ package com.therapylocal.app.qaapi
 
 import android.content.Context
 import com.therapylocal.app.BuildConfig
-import com.therapylocal.app.config.SummaryConfig
 import com.therapylocal.app.config.SummaryFormatSetting
 import com.therapylocal.app.data.MindStore
 import com.therapylocal.app.data.SegmentRow
@@ -267,26 +266,13 @@ class QaAppBackend(private val context: Context) : QaBackend {
         return JSONObject().put("session", session).put("version", m?.version ?: JSONObject.NULL).put("map", runCatching { JSONObject(m?.mapJson ?: "{}") }.getOrDefault(JSONObject()))
     }
 
-    override fun setSummaryFormat(id: String): JSONObject {
-        if (id !in SummaryConfig.FORMATS) throw QaException(QaCode.BAD_REQUEST, "unknown format; known: ${SummaryConfig.FORMATS.keys.joinToString(",")}")
-        val changed = SessionSummaryRepository.create(app).changeFormat(id)
-        AppLog.i(TAG, "set_summary_format", LogCtx.NONE, "format" to id, "changed" to changed)
-        return JSONObject().put("format", id).put("changed", changed)
-    }
-
-    override fun setGemmaVariant(key: String): JSONObject {
-        val variant = com.therapylocal.app.models.GemmaVariant.entries.firstOrNull { it.key == key }
-            ?: throw QaException(QaCode.BAD_REQUEST, "unknown variant; known: ${com.therapylocal.app.models.GemmaVariant.entries.joinToString(",") { it.key }}")
-        val before = ModelSetup.gemmaVariant(app)
-        ModelSetup.selectGemma(app, variant)
-        AppLog.i(TAG, "set_gemma_variant", LogCtx.NONE, "variant" to variant.key, "changed" to (before != variant))
-        return JSONObject().put("variant", variant.key).put("changed", before != variant).put("ready", ModelSetup.isReady(app))
-    }
+    override fun settings(): List<QaSetting> = appSettings(app)
 
     override fun reset(): JSONObject {
         // Belt and braces next to the dispatcher's check: a data-deleting command never runs on an id that does not end in .qa.
         check(QaGuard.isQaApplicationId(applicationId)) { "not the QA build" }
         Vault.erase(app) // keys, database, retained audio, dev in/out; the models (external files/models) are not touched
+        // The only setting reset touches: the summary format belongs to the vault's summaries. gemma_variant, backend_override, languages, display and cue settings survive.
         app.getSharedPreferences("settings", Context.MODE_PRIVATE).edit().remove(SummaryFormatSetting.PREF).apply()
         File(filesRoot, "api").listFiles { f -> f.extension == "json" }?.forEach { it.delete() } // earlier results hold test transcripts
         AppLog.i(TAG, "reset", LogCtx.NONE, "models_ready" to ModelSetup.isReady(app))

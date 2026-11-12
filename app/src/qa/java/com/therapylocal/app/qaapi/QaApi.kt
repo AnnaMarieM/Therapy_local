@@ -43,9 +43,8 @@ interface QaBackend {
     fun waitIdle(timeoutMs: Long): JSONObject
     fun results(client: String?, session: String?, queries: JSONArray?): JSONObject
     fun swapRoles(session: String): JSONObject
-    fun setSummaryFormat(id: String): JSONObject
-    /** Which Gemma build the memory LLM uses (`e2b` or `e4b`); the app otherwise picks it by RAM. */
-    fun setGemmaVariant(key: String): JSONObject
+    /** Every app setting with its allowed values and current value ([QaSettings]); each setting's setter is the app's own. */
+    fun settings(): List<QaSetting>
     /** A session from a ready transcript instead of audio (the export's own format): its segments, optionally the speaker map, optionally queued from the window job on. */
     fun importTranscript(client: String, session: String, startedAt: Long?, language: String?, segments: List<QaSegment>, speakerMap: JSONObject?, process: Boolean): JSONObject
     /** The clients and sessions in the format [QaApi]'s import takes back (see docs/QA_API.md "Export and import"). */
@@ -128,8 +127,10 @@ class QaApi(private val backend: QaBackend, private val callerUid: () -> Int) {
         "wait" to Command(true, ::wait),
         "results" to Command(true, ::results),
         "swap_roles" to Command(true) { backend.swapRoles(QaArgs.string(it, "session")) },
-        "set_summary_format" to Command(true) { backend.setSummaryFormat(QaArgs.string(it, "format")) },
-        "set_gemma_variant" to Command(true) { backend.setGemmaVariant(QaArgs.string(it, "variant")) },
+        "get_settings" to Command(false) { QaSettings.get(backend.settings()) }, // settings are not clinical data: works with a locked vault
+        "set_setting" to Command(true, ::setSetting),
+        // alias of set_setting summary_format
+        "set_summary_format" to Command(true) { QaSettings.set(backend.settings(), "summary_format", QaArgs.string(it, "format")).also { r -> r.put("format", r.get("new")) } },
         "reset" to Command(true) { backend.reset() },
     )
 
@@ -177,6 +178,11 @@ class QaApi(private val backend: QaBackend, private val callerUid: () -> Int) {
         }
         if (!backend.unlock(password(a))) throw QaException(QaCode.BAD_PASSWORD, "wrong password")
         return JSONObject().put("unlocked", true).put("already", false)
+    }
+
+    private fun setSetting(a: JSONObject): JSONObject {
+        val value = if (a.has("value") && !a.isNull("value")) a.get("value").toString() else throw QaException(QaCode.BAD_REQUEST, "missing argument: value")
+        return QaSettings.set(backend.settings(), QaArgs.string(a, "setting"), value)
     }
 
     private fun seedClients(a: JSONObject): JSONObject {

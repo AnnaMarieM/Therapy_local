@@ -30,8 +30,8 @@ class QaApiTest {
         override fun waitIdle(timeoutMs: Long) = JSONObject().put("timeout_ms", timeoutMs).also { calls += "wait" }
         override fun results(client: String?, session: String?, queries: JSONArray?) = JSONObject().put("client", client ?: JSONObject.NULL).also { calls += "results" }
         override fun swapRoles(session: String) = JSONObject().put("session", session).also { calls += "swap" }
-        override fun setSummaryFormat(id: String) = JSONObject().put("format", id).also { calls += "format" }
-        override fun setGemmaVariant(key: String) = JSONObject().put("variant", key).also { calls += "gemma" }
+        val settingList = QaSettingsTest.fakeSettings()
+        override fun settings() = settingList
         override fun importTranscript(client: String, session: String, startedAt: Long?, language: String?, segments: List<QaSegment>, speakerMap: JSONObject?, process: Boolean) =
             JSONObject().put("session", session).put("segments", segments.size).put("map", speakerMap != null).put("process", process).also { calls += "transcript:$client" }
         override fun exportData(client: String?, session: String?) = JSONObject().put("format", "x").also { calls += "export" }
@@ -85,7 +85,7 @@ class QaApiTest {
     @Test fun lockedVaultAllowsOnlyStatusSetupUnlock() {
         val locked = fake(VaultState.LOCKED)
         val a = api(locked)
-        for (c in a.commandNames - setOf("status", "setup", "unlock")) assertEquals(c, "vault_locked", code(a.call(c, "{}")))
+        for (c in a.commandNames - setOf("status", "setup", "unlock", "get_settings")) assertEquals(c, "vault_locked", code(a.call(c, "{}")))
         assertTrue(a.call("status", "").getBoolean("ok"))
         assertTrue(locked.calls == listOf("status"))
         val fresh = api(fake(VaultState.NOT_SET_UP))
@@ -211,6 +211,31 @@ class QaApiTest {
         val a = api(fake())
         assertTrue(a.call("run_job", """{"kind":"window","session":"s","timeout_s":5}""").getBoolean("ok"))
         assertEquals("bad_request", code(a.call("run_job", """{"kind":"extract","session":"s"}""")))
+    }
+
+    @Test fun settingsAreReadableLockedAndSettableUnlocked() {
+        val locked = api(fake(VaultState.LOCKED))
+        val list = locked.call("get_settings", "").getJSONObject("data").getJSONArray("settings")
+        assertEquals(QaSettingsTest.fakeSettings().size, list.length())
+        assertEquals("vault_locked", code(locked.call("set_setting", """{"setting":"mode","value":"b"}""")))
+        val a = api(fake())
+        val r = a.call("set_setting", """{"setting":"mode","value":"b"}""").getJSONObject("data")
+        assertEquals("a", r.getString("old")); assertEquals("b", r.getString("new"))
+        assertEquals("bad_request", code(a.call("set_setting", """{"setting":"mode"}""")))
+        assertEquals("bad_request", code(a.call("set_setting", """{"setting":"mode","value":"zz"}""")))
+        assertEquals("bad_request", code(a.call("set_setting", """{"setting":"nope","value":"1"}""")))
+        assertEquals("bad_request", code(a.call("set_setting", """{"value":"1"}""")))
+        // a number or a boolean in the JSON is accepted as such
+        assertEquals(7L, a.call("set_setting", """{"setting":"count","value":7}""").getJSONObject("data").getLong("new"))
+        assertTrue(a.call("set_setting", """{"setting":"flag","value":false}""").getJSONObject("data").getBoolean("old"))
+    }
+
+    @Test fun setSummaryFormatIsAnAliasOfSetSetting() {
+        val a = api(fake())
+        val r = a.call("set_summary_format", """{"format":"dap"}""").getJSONObject("data")
+        assertEquals("dap", r.getString("format")); assertEquals("soap", r.getString("old"))
+        assertEquals("bad_request", code(a.call("set_summary_format", """{"format":"zz"}""")))
+        assertEquals("bad_request", code(a.call("set_summary_format", "{}")))
     }
 
     @Test fun everyNewCommandIsGatedByTheLockedVault() {
