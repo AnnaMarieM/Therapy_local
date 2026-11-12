@@ -269,7 +269,8 @@ jobs:
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
           # The base branch has no scripts yet in the pull request that adds them: use the ones of the head then (same repo, so this is the author's own code).
-          [[ -f scripts/publish-pr-screenshots.sh ]] || git checkout -q "$HEAD_SHA" -- scripts/publish-pr-screenshots.sh scripts/pr-screenshots-comment.py
+          # (the checkout above holds only the base commit: fetch the head's first.)
+          [[ -f scripts/publish-pr-screenshots.sh ]] || { git fetch -q --depth=1 origin "$HEAD_SHA" && git checkout -q "$HEAD_SHA" -- scripts/publish-pr-screenshots.sh scripts/pr-screenshots-comment.py; }
           mkdir merged
           shopt -s nullglob
           for d in shards/screens-*; do
