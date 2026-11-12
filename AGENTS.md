@@ -22,6 +22,11 @@ Decisions that shape the architecture are recorded in [`docs/AD/`](docs/AD/), on
 - **Sections:** Context (the facts from the code that force the choice), Decision, Alternatives considered (and why rejected), Consequences (better, worse and accepted, still true), Verification, Delivery.
 - **Link it** from the index and from the short decision list in the relevant doc (for example D6 in [`docs/MEMORY.md`](docs/MEMORY.md#decisions) points to AD-01).
 
+## No AI attribution in commits or pull requests
+
+- **No `Co-Authored-By` trailer, no `Claude-Session` trailer, no "Generated with Claude Code" footer and no claude.ai session link** in a commit message, a PR title or a PR description. Not even when a tool or a default prompt suggests one.
+- CI job `pr-hygiene` (`scripts/check-pr-hygiene.sh`) fails any PR that has one, and it re-runs when the title or description is edited. To fix a PR: edit its description, and strip the trailer from the commit messages (`git filter-branch --msg-filter` or an interactive-free rebase; push with `--force-with-lease`).
+
 ## Test devices and the QA build
 
 - **The QA build (`com.therapylocal.app.qa`) is the testing build.** It holds test data only, so agents may purge its data at any time without asking: `adb -s <serial> shell pm clear com.therapylocal.app.qa`, the in-app erase / "Forgot password", or deleting files under `/sdcard/Android/data/com.therapylocal.app.qa/`. A full clear also deletes its downloaded models (several GB). Copy or keep them first if you want to skip the download.
