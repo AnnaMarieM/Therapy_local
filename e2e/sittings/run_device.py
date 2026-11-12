@@ -58,6 +58,7 @@ def main():
     ap.add_argument("--package", default="com.therapylocal.app.qa")
     ap.add_argument("--only", help="comma separated sitting ids; default all")
     ap.add_argument("--reset", action="store_true", help="wipe the QA vault data first (models are kept)")
+    ap.add_argument("--gemma", choices=["e2b", "e4b"], help="memory LLM build (default: the app picks by RAM)")
     ap.add_argument("--audio", default=str(HERE / "audio"))
     ap.add_argument("--sessions", default=str(HERE / "sessions"))
     ap.add_argument("--timeout-min", type=int, default=240)
@@ -75,6 +76,8 @@ def main():
     out = Path(a.out)
     out.mkdir(parents=True, exist_ok=True)
     ensure_vault(api, a.reset)
+    if a.gemma:
+        api.call("set_gemma_variant", a.gemma)
     st = api.call("status")[0]
     if not st["models"]["ready"]:
         sys.exit("the models are not on the phone yet (status.models); open the QA app once and let the download finish")

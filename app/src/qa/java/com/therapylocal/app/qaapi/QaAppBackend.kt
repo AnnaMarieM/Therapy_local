@@ -274,6 +274,15 @@ class QaAppBackend(private val context: Context) : QaBackend {
         return JSONObject().put("format", id).put("changed", changed)
     }
 
+    override fun setGemmaVariant(key: String): JSONObject {
+        val variant = com.therapylocal.app.models.GemmaVariant.entries.firstOrNull { it.key == key }
+            ?: throw QaException(QaCode.BAD_REQUEST, "unknown variant; known: ${com.therapylocal.app.models.GemmaVariant.entries.joinToString(",") { it.key }}")
+        val before = ModelSetup.gemmaVariant(app)
+        ModelSetup.selectGemma(app, variant)
+        AppLog.i(TAG, "set_gemma_variant", LogCtx.NONE, "variant" to variant.key, "changed" to (before != variant))
+        return JSONObject().put("variant", variant.key).put("changed", before != variant).put("ready", ModelSetup.isReady(app))
+    }
+
     override fun reset(): JSONObject {
         // Belt and braces next to the dispatcher's check: a data-deleting command never runs on an id that does not end in .qa.
         check(QaGuard.isQaApplicationId(applicationId)) { "not the QA build" }

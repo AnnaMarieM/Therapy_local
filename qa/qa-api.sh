@@ -20,7 +20,7 @@ while [[ $# -gt 0 ]]; do
     *) break ;;
   esac
 done
-[[ $# -ge 1 ]] || die "no command; try: status setup unlock seed_clients import_session wait results swap_roles set_summary_format reset screenshot raw"
+[[ $# -ge 1 ]] || die "no command; try: status setup unlock seed_clients import_session wait results swap_roles set_summary_format set_gemma_variant reset screenshot raw"
 [[ -n "$ADB" ]] || die "adb not found"
 case "$PKG" in
   com.therapylocal.app.qa) ;;
@@ -190,6 +190,7 @@ case "$cmd" in
       if (( SECONDS >= end )); then printf '%s\n' "$res"; echo "qa-api: job not settled after ${total}s" >&2; exit 4; fi
     done ;;
   swap_roles) [[ $# -ge 1 ]] || die "usage: swap_roles <session>"; launch; call swap_roles "{\"session\":\"$(jesc "$1")\"}" ;;
+  set_gemma_variant) [[ $# -ge 1 ]] || die "usage: set_gemma_variant <e2b|e4b>"; call set_gemma_variant "{\"variant\":\"$(jesc "$1")\"}" ;;
   set_summary_format) [[ $# -ge 1 ]] || die "usage: set_summary_format <format id>"; launch; call set_summary_format "{\"format\":\"$(jesc "$1")\"}" ;;
   reset) call reset ;;
   raw) [[ $# -ge 1 ]] || die "usage: raw <command> [json]"; call "$1" "${2:-\{\}}" ;;

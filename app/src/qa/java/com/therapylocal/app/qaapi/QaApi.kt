@@ -44,6 +44,8 @@ interface QaBackend {
     fun results(client: String?, session: String?, queries: JSONArray?): JSONObject
     fun swapRoles(session: String): JSONObject
     fun setSummaryFormat(id: String): JSONObject
+    /** Which Gemma build the memory LLM uses (`e2b` or `e4b`); the app otherwise picks it by RAM. */
+    fun setGemmaVariant(key: String): JSONObject
     /** A session from a ready transcript instead of audio (the export's own format): its segments, optionally the speaker map, optionally queued from the window job on. */
     fun importTranscript(client: String, session: String, startedAt: Long?, language: String?, segments: List<QaSegment>, speakerMap: JSONObject?, process: Boolean): JSONObject
     /** The clients and sessions in the format [QaApi]'s import takes back (see docs/QA_API.md "Export and import"). */
@@ -127,6 +129,7 @@ class QaApi(private val backend: QaBackend, private val callerUid: () -> Int) {
         "results" to Command(true, ::results),
         "swap_roles" to Command(true) { backend.swapRoles(QaArgs.string(it, "session")) },
         "set_summary_format" to Command(true) { backend.setSummaryFormat(QaArgs.string(it, "format")) },
+        "set_gemma_variant" to Command(true) { backend.setGemmaVariant(QaArgs.string(it, "variant")) },
         "reset" to Command(true) { backend.reset() },
     )
 

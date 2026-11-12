@@ -31,6 +31,7 @@ class QaApiTest {
         override fun results(client: String?, session: String?, queries: JSONArray?) = JSONObject().put("client", client ?: JSONObject.NULL).also { calls += "results" }
         override fun swapRoles(session: String) = JSONObject().put("session", session).also { calls += "swap" }
         override fun setSummaryFormat(id: String) = JSONObject().put("format", id).also { calls += "format" }
+        override fun setGemmaVariant(key: String) = JSONObject().put("variant", key).also { calls += "gemma" }
         override fun importTranscript(client: String, session: String, startedAt: Long?, language: String?, segments: List<QaSegment>, speakerMap: JSONObject?, process: Boolean) =
             JSONObject().put("session", session).put("segments", segments.size).put("map", speakerMap != null).put("process", process).also { calls += "transcript:$client" }
         override fun exportData(client: String?, session: String?) = JSONObject().put("format", "x").also { calls += "export" }
