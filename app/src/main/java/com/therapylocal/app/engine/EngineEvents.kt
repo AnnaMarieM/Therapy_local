@@ -13,6 +13,7 @@ object EngineEvents {
     const val CALL = "engine_call"
     const val CALL_FAILED = "engine_call_failed"
     const val CALL_TIMEOUT = "engine_call_timeout"
+    const val CALL_PROGRESS = "engine_call_progress"
     const val RETRY = "engine_retry"
 
     // main: deaths
@@ -45,7 +46,7 @@ object EngineEvents {
 
     val ALL: List<String> = listOf(
         BIND, CONNECTED, BIND_TIMEOUT, STALE_CALLBACK, UNBOUND,
-        CALL, CALL_FAILED, CALL_TIMEOUT, RETRY,
+        CALL, CALL_FAILED, CALL_TIMEOUT, CALL_PROGRESS, RETRY,
         DIED, KILL, EXIT, EXIT_REASON_PENDING,
         RESTART, CIRCUIT_OPEN, UNAVAILABLE,
         IDLE_STOP, LIVE_SHUTDOWN_REQUESTED, LIVE_SHUTDOWN_DONE, ROLE_VIOLATION, FAULT_PLAN_IGNORED,
