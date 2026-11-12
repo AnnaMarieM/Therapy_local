@@ -6,7 +6,9 @@ import java.security.MessageDigest
 
 /**
  * One thing the client said, as extracted from a transcript window: a short [heading], a few plain sentences of [content], and [evidence],
- * a verbatim quote from the transcript, so a therapist can always check it. [segIdx] is the transcript segment of the quote, 0 if unknown.
+ * a verbatim quote from the transcript, so a therapist can always check it. [segIdx] is the transcript segment the quote starts in (0 if
+ * unknown) and [segEnd] the one it ends in (the same for a quote inside one segment). One sentence can give several facts, each with its own
+ * [evidence]; the span, the milliseconds and the speaker are derived from the quote at commit ([FactSpans]).
  */
 data class Fact(
     val heading: String,
@@ -15,12 +17,14 @@ data class Fact(
     val segIdx: Int = 0,
     val scope: String = SCOPE_PROFILE,
     val category: String = "",
+    val segEnd: Int = segIdx,
 ) {
     fun toJson(): JSONObject = JSONObject()
         .put("heading", heading)
         .put("content", content)
         .put("evidence", evidence)
         .put("seg", segIdx)
+        .put("segEnd", segEnd)
         .put("scope", scope)
         .put("category", category)
 
@@ -33,8 +37,9 @@ data class Fact(
             o.optString("content"),
             o.optString("evidence"),
             o.optInt("seg", 0),
-            o.optString("scope", SCOPE_PROFILE).ifBlank { SCOPE_PROFILE },
-            o.optString("category", "").trim(),
+            scope = o.optString("scope", SCOPE_PROFILE).ifBlank { SCOPE_PROFILE },
+            category = o.optString("category", "").trim(),
+            segEnd = o.optInt("segEnd", o.optInt("seg", 0)),
         )
     }
 }
@@ -149,10 +154,11 @@ object FactParser {
     fun evidenceHolds(f: Fact, source: String): Boolean = f.evidence.isNotBlank() && norm(source).contains(norm(f.evidence))
 
     /**
-     * The segment the quote is in, with the same normalisation as [evidenceHolds]; a quote that runs over a segment boundary belongs to the
-     * segment of its first word. Null if the quote is in none of [segments].
+     * The segments the quote runs over, first to last, with the same normalisation as [evidenceHolds]: a quote inside one segment gives that
+     * segment twice, one that crosses a boundary gives the segment of its first word and the one of its last. Null if the quote is in none of
+     * [segments].
      */
-    fun segmentOf(evidence: String, segments: List<SegmentRow>): Int? {
+    fun segmentSpan(evidence: String, segments: List<SegmentRow>): Pair<Int, Int>? {
         val quote = norm(evidence)
         if (quote.isEmpty()) return null
         val joined = StringBuilder()
@@ -164,8 +170,40 @@ object FactParser {
         }
         val at = joined.indexOf(quote)
         if (at < 0) return null
-        return segments[ends.indexOfFirst { at < it }].idx
+        val first = ends.indexOfFirst { at < it }
+        val last = ends.indexOfFirst { at + quote.length - 1 < it }.let { if (it < first) first else it }
+        return segments[first].idx to segments[last].idx
     }
+
+    /** The segment the quote starts in; a quote that runs over a segment boundary belongs to the segment of its first word. */
+    fun segmentOf(evidence: String, segments: List<SegmentRow>): Int? = segmentSpan(evidence, segments)?.first
+
+    private fun tokens(s: String): Set<String> = Regex("[\\p{L}\\p{N}]+").findAll(s.lowercase()).map { it.value }.toSet()
+
+    /**
+     * Drops repeats from one extraction, first one wins. Two facts are the same when their content is the same after dropping case and
+     * punctuation, or when they rest on the same quote and their content shares at least [SAME_CONTENT] of its words (the model saying one
+     * fact twice, or overlapping windows). Facts that share a quote or a sentence but say different things are all kept: one sentence can
+     * hold several facts.
+     */
+    fun dedupe(facts: List<Fact>): List<Fact> {
+        val kept = ArrayList<Fact>()
+        for (f in facts) {
+            val c = tokens(f.content)
+            val same = kept.any { k ->
+                val kc = tokens(k.content)
+                kc == c || (norm(k.evidence) == norm(f.evidence) && jaccard(kc, c) >= SAME_CONTENT)
+            }
+            if (!same) kept += f
+        }
+        return kept
+    }
+
+    private fun jaccard(a: Set<String>, b: Set<String>): Double =
+        if (a.isEmpty() && b.isEmpty()) 1.0 else a.intersect(b).size.toDouble() / a.union(b).size
+
+    /** Share of words two contents on one quote must have in common to count as one fact. */
+    const val SAME_CONTENT = 0.85
 
     /**
      * The duplicate verdict of one review reply against [known] facts listed as K1..Kn, or null if the reply is unreadable. A duplicate

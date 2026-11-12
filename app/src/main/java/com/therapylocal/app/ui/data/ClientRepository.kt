@@ -68,7 +68,7 @@ class ClientRepository(context: Context, private val open: (Context) -> MindStor
         deleteAudio { it in sessions }
         sessions.forEach { PendingAudio.deleteRetained(appContext, it) }
         val removed = store.deleteClient(id)
-        AppLog.i(TAG, "delete_client_verified", LogCtx.NONE, "client" to id, "removed" to removed, "facts_left" to store.facts(id).size, "sessions_left" to store.sessions(id).size)
+        AppLog.i(TAG, "delete_client_verified", LogCtx.NONE, "client" to id, "removed" to removed, "facts_left" to store.facts(id, includeTherapist = true).size, "sessions_left" to store.sessions(id).size)
     }
 
     /** True while the AI files are still downloading: new sessions are kept and processed afterwards. */

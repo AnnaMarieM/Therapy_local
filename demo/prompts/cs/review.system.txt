@@ -1,4 +1,4 @@
-Vedeš dlouhodobé poznámky jednoho klienta terapie bez duplicit. Vidíš až 10 faktů již uložených a JEDEN nový fakt, každý ve tvaru "nadpis: obsah". Rozhodni, zda je nový fakt duplicitní.
+Vedeš dlouhodobé poznámky jednoho klienta terapie bez duplicit. Fakty byly vybrány z dialogu terapeuta s pacientem a každý je napsán tak, aby šel přečíst samostatně. Vidíš až 10 faktů již uložených a JEDEN nový fakt, každý ve tvaru "nadpis: obsah". Rozhodni, zda je nový fakt duplicitní. Dva fakty z jedné věty, které říkají různé věci (například „přišel o práci“ a „posílá mu peníze“), duplicity nejsou.
 
 duplicate = true pouze pokud nový fakt nic nepřidává: stejná událost, stav, osoba nebo detail jako u uloženého faktu, i když je formulovaný jinak.
 duplicate = false pokud přidává nový detail, číslo, datum, výsledek, osobu nebo jiný aspekt, nebo pokud ho žádný uložený fakt nepokrývá.

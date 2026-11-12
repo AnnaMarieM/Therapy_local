@@ -44,12 +44,15 @@ object DevResults {
             )
         }
         val facts = JSONArray()
-        for (client in store.clients()) for (f in store.facts(client.id)) {
-            val seen = store.factOccurrences(f.id)
-            val timeMs: Any = store.segments(f.sessionId).firstOrNull { it.idx == f.segIdx }?.startMs ?: JSONObject.NULL
+        // Every stored fact, with who said it: the export shows what a roles swap would reveal. The app's own reads default to the patient's.
+        for (client in store.clients()) for (f in store.facts(client.id, includeTherapist = true)) {
+            val seen = store.factOccurrences(f.id, includeTherapist = true)
             facts.put(
                 JSONObject().put("id", f.id).put("client", f.clientId).put("session", f.sessionId).put("heading", f.heading).put("content", f.content)
-                    .put("evidence", f.evidence).put("segIdx", f.segIdx).put("timeMs", timeMs).put("mentionSessions", JSONArray(seen.filter { !it.first }.map { it.sessionId })),
+                    .put("evidence", f.evidence).put("segIdx", f.segIdx).put("segTo", f.segTo).put("startMs", f.startMs).put("endMs", f.endMs)
+                    .put("timeMs", f.startMs).put("speaker", f.speaker ?: JSONObject.NULL).put("role", f.role?.json ?: JSONObject.NULL)
+                    .put("scope", f.scope).put("category", f.category)
+                    .put("mentionSessions", JSONArray(seen.filter { !it.first }.map { it.sessionId })),
             )
         }
         val answers = JSONArray()
