@@ -49,6 +49,14 @@ Whisper runs on the CPU, Gemma on the GPU unless the user says otherwise (`--bac
 - Which model ran a stage: the `*_done` log line (`translate_done` records the model).
 - Screenshots need the screen: use the real UI path only when the user asks for pictures; not part of headless work.
 
+## Caching and resuming
+Slow stages (Whisper per turn about 27 min, E4B facts about 15 min on the Poco) are cached so later tests reuse them. Design, layout and limits: `research/asr-llm-combo/final-workflow/cache/README.md`.
+- Snapshot: add `--cache-dir research/asr-llm-combo/final-workflow/cache` (one recording, e.g. `--recordings tomas-b`; optional `--run-id`, `--note "locked, charging"`, `--models-manifest f.json`). After each stage (`transcribe translate roles window summary`) it writes `<platform>/<run-id>/<recording>/after-<stage>/` with export, results, settings, stage log, UTC time and META. Existing snapshots are never overwritten.
+- Resume: `--resume-from <stage> --from-cache <.../after-<stage>>` imports the cached segments and speaker map (`import_manifest`, `process:false`) and runs only the later jobs with `run_job`. Same `--pipeline` as the cache. Use a new `--run-id` when caching the resumed run.
+- Supported: after-transcribe (runs translate onward). Not supported, and the script says so before touching the phone: after diarize (turns are not exported), and after translate, roles, window for a non-English client (`import_manifest` drops `text_en`; fix is proposed in the README, not built).
+- Do not write into a cache directory a watcher is filling; read only.
+- Host tests: `python3 -m unittest qa/test_stage_cache.py`.
+
 ## Gotchas
 - `wait` can report `models_not_ready` or `runner_not_running` instead of progress; the second means the allowlist step is missing or the service was killed.
 - After a reboot Android may need the user's PIN once before app data is readable (standard file-based encryption). Not tested here; if `status` then fails with a transport error, ask the user for that one unlock.
