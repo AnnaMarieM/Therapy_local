@@ -62,11 +62,17 @@ class QaEngines(private val app: Context) {
 
     private fun ms(t0: Long) = (System.nanoTime() - t0) / 1_000_000
 
-    fun transcribe(file: File, language: String, startS: Double, durS: Double?, choice: BackendChoice): JSONObject {
+    fun transcribe(
+        file: File, language: String, startS: Double, durS: Double?, choice: BackendChoice,
+        /** "canary" (default) or "whisper" (Whisper large-v3 q8_0 through whisper.cpp, CPU only, AD-22). */
+        engine: String = "canary", translate: Boolean = false, beam: Int = 5,
+    ): JSONObject {
         val clip = pcm(file, startS, durS)
         if (clip.size > LiveCueConfig.MAX_LOOKBACK_SAMPLES) throw QaException(QaCode.BAD_REQUEST, "clip too long: at most ${LiveCueConfig.MAX_LOOKBACK_SAMPLES / Pcm.SAMPLE_RATE} s per call (use start_s and dur_s)")
         return choice.applied {
-            val asr = SpeechRecogniser(app, SpeechLanguage.of(language), provider = if (choice.auto) "cpu" else choice.backend)
+            val whisper = engine == "whisper"
+            val spec = if (whisper) ModelRegistry.WHISPER_LARGE_V3_Q8 else ModelRegistry.CANARY_1B_V2
+            val asr = SpeechRecogniser(app, SpeechLanguage.of(language), provider = if (choice.auto) "cpu" else choice.backend, modelSpec = spec, translate = translate, beam = if (whisper) beam else 0)
             try {
                 val t0 = System.nanoTime()
                 runBlocking { asr.load() }
@@ -74,7 +80,8 @@ class QaEngines(private val app: Context) {
                 val r = runBlocking { asr.transcribe(clip, LogCtx.NONE) }
                 done("transcribe", asr.backend, clip.size, r.wallMs)
                 JSONObject().put("text", r.text).put("audio_sec", r.audioSec).put("load_ms", loadMs).put("dur_ms", r.wallMs)
-                    .put("rtf", rtf(r.wallMs, r.audioSec)).put("backend", asr.backend).put("backend_requested", choice.backend).put("model", ModelRegistry.CANARY_1B_V2.id)
+                    .put("rtf", rtf(r.wallMs, r.audioSec)).put("backend", asr.backend).put("backend_requested", choice.backend).put("model", spec.id)
+                    .put("task", if (!whisper) JSONObject.NULL else if (translate) "translate" else "transcribe")
             } finally { runCatching { asr.close() } }
         }
     }
@@ -120,21 +127,32 @@ class QaEngines(private val app: Context) {
         } finally { runCatching { e.close() } }
     }
 
-    fun ask(system: String, user: String, schema: String?, maxTokens: Int, temperature: Double, topK: Int, choice: BackendChoice): JSONObject = choice.applied {
+    fun ask(
+        system: String, user: String, schema: String?, maxTokens: Int, temperature: Double, topK: Int, choice: BackendChoice,
+        audio: File? = null, startS: Double = 0.0, durS: Double? = null,
+    ): JSONObject = onWorkerThread { choice.applied {
         val spec = LabWiring.spec(ModelSetup.gemma(app))
-        val llm = MemoryLlm(app, MemoryConfig.LLM_MAX_TOKENS, spec)
+        val clip = audio?.let { pcm(it, startS, durS) }
+        if (clip != null && clip.size > MAX_LISTEN_SAMPLES) throw QaException(QaCode.BAD_REQUEST, "clip too long: Gemma hears at most 30 s per call (use start_s and dur_s)")
+        val llm = MemoryLlm(app, MemoryConfig.LLM_MAX_TOKENS, spec, withAudio = clip != null)
         try {
             val t0 = System.nanoTime()
             llm.load(respectBlocks = !choice.force)
             val loadMs = ms(t0)
             val c0 = System.nanoTime()
-            val text = llm.ask(system, user, schema, maxTokens, temperature, topK)
+            val text = if (clip != null) llm.listen(system, user, clip, maxTokens, temperature, topK) else llm.ask(system, user, schema, maxTokens, temperature, topK)
             val dur = ms(c0)
-            done("ask", llm.backend, 0, dur)
+            done(if (clip != null) "listen" else "ask", llm.backend, clip?.size ?: 0, dur)
             JSONObject().put("text", text).put("chars", text.length).put("load_ms", loadMs).put("dur_ms", dur).put("backend", llm.backend)
                 .put("backend_requested", choice.backend).put("model", spec.id)
+                .also { o -> if (clip != null) { val sec = Pcm.seconds(clip); o.put("audio_sec", sec).put("rtf", rtf(dur, sec)) } }
         } finally { runCatching { llm.close() } }
-    }
+    } }
+
+    /** The engine proxy refuses a call on a binder thread (the QA API is called on one), so the model call runs on a worker and the binder thread waits for it. */
+    private fun <T> onWorkerThread(block: () -> T): T = runBlocking { kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) { block() } }
+
+    private companion object { const val MAX_LISTEN_SAMPLES = 30 * Pcm.SAMPLE_RATE }
 
     private fun rtf(wallMs: Long, audioSec: Double) = if (audioSec > 0) wallMs / 1000.0 / audioSec else JSONObject.NULL
 

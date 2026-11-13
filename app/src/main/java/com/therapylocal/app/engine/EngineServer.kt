@@ -13,6 +13,8 @@ import com.therapylocal.app.engine.runner.EmbedEngine
 import com.therapylocal.app.engine.runner.EmbedRunner
 import com.therapylocal.app.engine.runner.LlmRunner
 import com.therapylocal.app.engine.runner.Runner
+import com.therapylocal.app.engine.runner.WhisperRunner
+import com.therapylocal.app.models.ModelRegistry
 import com.therapylocal.app.engine.runner.callFields
 import com.therapylocal.app.log.AppLog
 import com.therapylocal.app.log.LogCtx
@@ -115,7 +117,9 @@ class EngineServer(private val context: Context, private val role: EngineRole, p
             val (runner, opened) = Faults.runner(op, role, sink) ?: when (op.kind) {
                 EngineKind.LLM -> LlmRunner(context).let { it to it.open(op, sink) }
                 EngineKind.EMBED -> EmbedRunner(context, role, op.textOnly).let { it to it.open(op, sink) }
-                EngineKind.ASR -> CanaryRunner(context).let { it to it.open(op, sink) }
+                EngineKind.ASR ->
+                    if (op.model == ModelRegistry.WHISPER_LARGE_V3_Q8.id) WhisperRunner(context).let { it to it.open(op, sink) }
+                    else CanaryRunner(context).let { it to it.open(op, sink) }
                 EngineKind.DIARIZE -> DiarizeRunner(context).let { it to it.open(op, sink) }
             }
             val handle = nextHandle.getAndIncrement()

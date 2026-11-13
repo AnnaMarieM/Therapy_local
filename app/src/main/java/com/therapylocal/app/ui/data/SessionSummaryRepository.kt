@@ -2,10 +2,13 @@ package com.therapylocal.app.ui.data
 
 import android.content.Context
 import com.therapylocal.app.config.SummaryConfig
+import com.therapylocal.app.config.ProcessingLanguageSetting
 import com.therapylocal.app.config.SummaryFormatSetting
 import com.therapylocal.app.data.JobStatus
 import com.therapylocal.app.data.MindStore
-import com.therapylocal.app.facts.PromptLanguage
+import com.therapylocal.app.translate.Display
+import com.therapylocal.app.translate.DisplayLanguage
+import com.therapylocal.app.translate.Pivot
 import com.therapylocal.app.i18n.LocaleStore
 import com.therapylocal.app.jobs.JobGraph
 import com.therapylocal.app.jobs.Jobs
@@ -40,13 +43,28 @@ class SessionSummaryRepository(
     /** The id of the summary format in use, and storing a new one (the vault-wide setting). */
     private val format: () -> String = { SummaryConfig.DEFAULT_FORMAT_ID },
     private val saveFormat: (String) -> Unit = {},
+    /** The display translations of [texts] into the language the summary is shown in (docs/AD/AD-17.md); nothing found shows the English text as stored. */
+    private val display: (texts: List<String>) -> Display = { Display.NONE },
 ) {
     private fun summaries() = SessionSummaries(repo())
 
     /** The summary of the client's latest session with a transcript; null when the client has none. */
     fun lastSessionSummary(client: String): SessionSummary? = lastSession(client)?.let(::summary)
 
-    fun summary(session: String): SessionSummary = summaries().view(session, promptVersion(session), model(), generating(session))
+    fun summary(session: String): SessionSummary = shown(summaries().view(session, promptVersion(session), model(), generating(session)))
+
+    /**
+     * The summary as it is shown: in the pivot mode it is stored in English and each section body is replaced by its translation when the LOCALIZE job
+     * has made one. The English labels stay (the parser and the screens rely on them), and [SessionSummary.text] is put together from the shown sections.
+     */
+    private fun shown(s: SessionSummary): SessionSummary {
+        if (s.text == null) return s
+        val shown = display(s.sections.map { it.text })
+        if (shown.isEmpty) return s
+        val sections = s.sections.map { it.copy(text = shown.text(it.text)) }
+        val text = sections.joinToString("\n") { if (it.label.isEmpty()) it.text else "${it.label}: ${it.text}" }
+        return s.copy(text = text, sections = sections)
+    }
 
     /** Makes the summary again from the current transcript, roles and prompts, replacing the old one when done. A no-op while one is being made. */
     fun regenerate(session: String) {
@@ -97,8 +115,10 @@ class SessionSummaryRepository(
                 repo = store,
                 lastSession = { client -> store().sessions(client).lastOrNull { store().transcriptLengthMs(it.id) > 0 }?.id },
                 promptVersion = { session ->
-                    val language = PromptLanguage.choose(LocaleStore.current(app).tag, store().clientLanguage(store().clientOfSession(session)))
-                    SummaryPrompts.load({ MemoryFiles.prompt(app, it) }, language, SummaryFormatSetting.get(app)).version()
+                    val mode = ProcessingLanguageSetting.get(app)
+                    val client = store().clientLanguage(store().clientOfSession(session))
+                    val language = Pivot.promptLanguage(mode, LocaleStore.current(app).tag, client)
+                    SummaryPrompts.load({ MemoryFiles.prompt(app, it) }, language, SummaryFormatSetting.get(app), Pivot.tag(mode, client)).version()
                 },
                 model = { ModelSetup.gemma(app).id },
                 // A failed job is not "generating": the state falls back to none or stale and regenerate replaces it.
@@ -112,6 +132,7 @@ class SessionSummaryRepository(
                 clients = { store().clients().map { it.id } },
                 format = { SummaryFormatSetting.get(app) },
                 saveFormat = { SummaryFormatSetting.set(app, it) },
+                display = { texts -> Display.of(DisplayLanguage.target(app), texts, store()::displayTranslations) },
             )
         }
     }

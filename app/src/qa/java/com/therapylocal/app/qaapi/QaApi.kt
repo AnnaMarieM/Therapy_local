@@ -267,7 +267,9 @@ class QaApi(private val backend: QaBackend, private val callerUid: () -> Int) {
 
     private fun ask(a: JSONObject): JSONObject {
         QaArgs.string(a, "user")
-        return backend.engineCall("ask", a, null, BackendChoice.parse(a))
+        // With `file` (and start_s, dur_s) Gemma hears that clip of audio together with the text (Fast workflow, AD-22).
+        val file = if (a.has("file")) audio(a) else null
+        return backend.engineCall("ask", a, file, BackendChoice.parse(a))
     }
 
     private fun runJob(a: JSONObject): JSONObject {
@@ -289,6 +291,6 @@ class QaApi(private val backend: QaBackend, private val callerUid: () -> Int) {
     companion object {
         const val DEFAULT_WAIT_S = 20
         const val MAX_WAIT_S = 50
-        val JOB_KINDS = listOf("transcribe", "roles", "window", "summary")
+        val JOB_KINDS = listOf("transcribe", "translate", "roles", "window", "summary", "localize")
     }
 }

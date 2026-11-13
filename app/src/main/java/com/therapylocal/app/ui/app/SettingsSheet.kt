@@ -344,6 +344,9 @@ private fun TechnicalSettingsSheet(
             item { Group(stringResource(R.string.settings_group_reprocess)) }
             item { Row2(stringResource(R.string.settings_reprocess_title), stringResource(R.string.settings_reprocess_body), stringResource(R.string.settings_reprocess_action), onReprocess) }
 
+            // A plain functional control (AD-22). Its design, wording and place in onboarding belong to the UX owner.
+            item { Group(stringResource(R.string.settings_group_workflow)) }
+            item { WorkflowChoice() }
             item { Group(stringResource(R.string.settings_group_memory_model)) }
             item { ModelChoice(notice) }
             item { Group(stringResource(R.string.settings_group_hardware)) }
@@ -494,6 +497,36 @@ private fun DefaultLanguage() {
     val ctx = LocalContext.current
     var language by remember { mutableStateOf(SpeechLanguages.default(ctx)) }
     LanguagePicker(language, { SpeechLanguages.setDefault(ctx, it); language = it })
+}
+
+/** Fast, Quality or the Canary control (docs/AD/AD-22.md). Applies to sessions processed afterwards; the models it needs are fetched if missing. */
+@Composable
+private fun WorkflowChoice() {
+    val ctx = LocalContext.current
+    var selected by remember { mutableStateOf(com.therapylocal.app.config.WorkflowSetting.get(ctx)) }
+    Column(Modifier.padding(vertical = 10.dp)) {
+        Text(stringResource(R.string.settings_workflow_intro), style = Type.BodySmall, color = Palette.InkSoft)
+        com.therapylocal.app.config.Workflow.entries.forEach { w ->
+            val (title, body) = when (w) {
+                com.therapylocal.app.config.Workflow.Fast -> R.string.settings_workflow_fast to R.string.settings_workflow_fast_body
+                com.therapylocal.app.config.Workflow.Quality -> R.string.settings_workflow_quality to R.string.settings_workflow_quality_body
+                com.therapylocal.app.config.Workflow.Canary -> R.string.settings_workflow_canary to R.string.settings_workflow_canary_body
+            }
+            Row(
+                Modifier.fillMaxWidth().pressable({
+                    if (w != selected) { com.therapylocal.app.config.WorkflowSetting.set(ctx, w); selected = w; ModelSetup.retry(ctx) }
+                }, label = stringResource(title), depth = 0.015f).padding(vertical = 14.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Box(Modifier.width(22.dp)) { if (w == selected) Label("●", color = Palette.Ink) else Label("○", color = Palette.InkFaint) }
+                Column(Modifier.weight(1f)) {
+                    Text(stringResource(title), style = Type.Body, color = Palette.Ink)
+                    Text(stringResource(body), style = Type.BodySmall, color = Palette.InkSoft)
+                }
+            }
+        }
+    }
+    Hairline()
 }
 
 @Composable

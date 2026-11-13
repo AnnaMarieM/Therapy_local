@@ -21,6 +21,17 @@ class SummaryMethodTest {
     private fun ctxFor(words: Int): Int = PromptBudget.required("FINAL-SYSTEM\nformat", "FINAL-USER " + "abcd ".repeat(words), SummaryConfig.FINAL_MAX_OUTPUT_TOKENS)
 
     @Test
+    fun thePivotTagIsPartOfTheSummaryVersion() {
+        val read = { name: String -> "$name|{{FORMAT}}|{{MAX_WORDS}}|{{MAX_SENTENCES}}|{{NOTES_WORDS}}|{{TEXT}}" }
+        val plain = SummaryPrompts.load(read, "en").version()
+        val pivot = SummaryPrompts.load(read, "en", pivotTag = "pivot-en").version()
+        val native = SummaryPrompts.load(read, "en", pivotTag = "native").version()
+        org.junit.Assert.assertNotEquals(plain, pivot)
+        org.junit.Assert.assertNotEquals(pivot, native)
+        org.junit.Assert.assertEquals(pivot, SummaryPrompts.load(read, "en", pivotTag = "pivot-en").version())
+    }
+
+    @Test
     fun aTranscriptWithNoWordsHasNoSummary() {
         assertNull(TreeSummary().summarize(emptyList(), testPrompts(), RecordingAsk()))
         assertNull(TreeSummary().summarize(listOf(SegmentRow(1, 0, 1, "   ", "S0")), testPrompts(), RecordingAsk()))

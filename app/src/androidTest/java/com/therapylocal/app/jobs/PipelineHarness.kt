@@ -122,7 +122,7 @@ class PipelineHarness(private val context: Context, val name: String, private va
 
         /** Every table of the database. */
         val TABLES = listOf(
-            "clients", "sessions", "recordings", "chunks", "segments", "windows", "facts", "mentions", "extract_cache", "review_cache", "jobs", "job_deps", "session_summaries",
+            "clients", "sessions", "recordings", "chunks", "segments", "windows", "facts", "mentions", "extract_cache", "review_cache", "jobs", "job_deps", "session_summaries", "segment_translations", "display_translations",
         )
     }
 }

@@ -5,6 +5,9 @@ import com.therapylocal.app.asr.Diarizer
 import com.therapylocal.app.asr.SpeakerDiarizer
 import com.therapylocal.app.asr.SpeechRecogniser
 import com.therapylocal.app.config.EmbeddingConfig
+import com.therapylocal.app.config.Workflow
+import com.therapylocal.app.config.WorkflowSetting
+import com.therapylocal.app.models.ModelRegistry
 import com.therapylocal.app.config.MemoryConfig
 import com.therapylocal.app.embed.Embedder
 import com.therapylocal.app.engine.LabWiring
@@ -20,13 +23,15 @@ import kotlinx.coroutines.runBlocking
 object DeviceModels {
     /** [contextNeeded]: the context the open work needs, counted from its prompts before the LLM is loaded (see [com.therapylocal.app.jobs.Pipeline.requiredContext]). */
     fun pool(context: Context, contextNeeded: () -> Int = { MemoryConfig.LLM_MAX_TOKENS }): ModelPool = ModelPool(
-        loadLlm = { ctx -> MemoryLlm(context, ctx, LabWiring.spec(ModelSetup.gemma(context))).apply { load() } },
+        // Fast: the engine is loaded with its audio encoder (CPU) and serves every stage, so Gemma is loaded once per session (AD-22).
+        loadLlm = { ctx -> MemoryLlm(context, ctx, LabWiring.spec(ModelSetup.gemma(context)), withAudio = WorkflowSetting.get(context) == Workflow.Fast).apply { load() } },
         loadEmbed = { embed(context) },
         loadAsr = { language -> asr(context, language) },
         llmModel = { LabWiring.spec(ModelSetup.gemma(context)).id },
         contextNeeded = contextNeeded,
         baseContext = MemoryConfig.LLM_MAX_TOKENS,
         loadDiarizer = { diarizer(context) },
+        listening = { WorkflowSetting.get(context) == Workflow.Fast },
     )
 
     /** Speaker diarization (docs/AD/AD-06.md), loaded in the `:batch` host. */
@@ -43,7 +48,11 @@ object DeviceModels {
 
     /** Canary, the only speech recogniser (docs/AD/AD-02.md), for the client's [language]. */
     private fun asr(context: Context, language: String): Asr {
-        val engineImpl = SpeechRecogniser(context, SpeechLanguage.of(language))
+        // Quality: Whisper large-v3 writes English from the audio of a client who speaks another language (the translate task), and transcribes English as it is.
+        val quality = WorkflowSetting.get(context) == Workflow.Quality
+        val engineImpl = if (quality) {
+            SpeechRecogniser(context, SpeechLanguage.of(language), modelSpec = ModelRegistry.WHISPER_LARGE_V3_Q8, translate = !language.equals("en", true), beam = WorkflowSetting.beam(context))
+        } else SpeechRecogniser(context, SpeechLanguage.of(language))
         try {
             runBlocking { engineImpl.load() }
         } catch (t: Throwable) {

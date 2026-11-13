@@ -7,6 +7,8 @@ import android.os.LocaleList
 import com.therapylocal.app.config.BackendPolicy
 import com.therapylocal.app.config.DisplayConfig
 import com.therapylocal.app.config.LiveCueSettings
+import com.therapylocal.app.config.ProcessingLanguage
+import com.therapylocal.app.config.ProcessingLanguageSetting
 import com.therapylocal.app.config.SummaryConfig
 import com.therapylocal.app.config.SummaryFormatSetting
 import com.therapylocal.app.config.liveCueSettings
@@ -14,6 +16,7 @@ import com.therapylocal.app.config.saveLiveCueSettings
 import com.therapylocal.app.embed.Engines
 import com.therapylocal.app.i18n.Languages
 import com.therapylocal.app.i18n.LocaleStore
+import com.therapylocal.app.jobs.Reprocess
 import com.therapylocal.app.models.Accelerators
 import com.therapylocal.app.models.GemmaVariant
 import com.therapylocal.app.models.ModelSetup
@@ -101,13 +104,24 @@ fun appSettings(app: Context): List<QaSetting> {
                 val tag = v as String
                 if (Build.VERSION.SDK_INT >= 33) app.getSystemService(LocaleManager::class.java).applicationLocales = LocaleList.forLanguageTags(tag)
                 else prefs().edit().putString("app_language", tag).apply()
+                // As the language picker does in the processing language "english" (AD-17): what is shown follows the new language, nothing is extracted again.
+                runCatching { Reprocess.localizeAll(app) }
             }),
+        QaSetting("processing_language", QaSettingType.ENUM, ProcessingLanguage.DEFAULT.key, "Language the pipeline works in (AD-17): english translates the transcript to English first and shows facts and summaries translated; native processes the client's own language as spoken. Takes effect for sessions processed or reprocessed afterwards.",
+            values = ProcessingLanguage.entries.map { it.key }, read = { ProcessingLanguageSetting.stored(app).key },
+            apply = { v -> ProcessingLanguageSetting.set(app, ProcessingLanguage.of(v as String)) }),
         QaSetting("default_language", QaSettingType.ENUM, SpeechLanguage.English.code, "Spoken language preselected for new clients.",
             values = SpeechLanguage.entries.map { it.code }, read = { SpeechLanguages.default(app).code },
             apply = { SpeechLanguages.setDefault(app, SpeechLanguage.of(it as String)) }),
         QaSetting("summary_format", QaSettingType.ENUM, SummaryConfig.DEFAULT_FORMAT_ID, "Vault-wide summary format; each client's last summary is rebuilt.",
             values = SummaryConfig.FORMATS.keys.toList(), read = { SummaryFormatSetting.get(app) },
             apply = { SessionSummaryRepository.create(app).changeFormat(it as String) }),
+        QaSetting("workflow", QaSettingType.ENUM, com.therapylocal.app.config.Workflow.DEFAULT.key, "How a recording becomes facts (AD-22): fast (Gemma E2B hears the turns), quality (Whisper large-v3 writes English, Gemma E4B reads it; no transcript in the language spoken) or canary (the control: Canary then translation). fast and quality fix the Gemma build and work in English whatever processing_language says. Applies to sessions processed afterwards.",
+            values = com.therapylocal.app.config.Workflow.entries.map { it.key }, read = { com.therapylocal.app.config.WorkflowSetting.get(app).key },
+            apply = { v -> com.therapylocal.app.config.WorkflowSetting.set(app, com.therapylocal.app.config.Workflow.of(v as String)); ModelSetup.retry(app) }),
+        QaSetting("whisper_beam", QaSettingType.INT, com.therapylocal.app.config.WorkflowSetting.DEFAULT_BEAM.toLong(), "Whisper beam size for the quality workflow (1 is greedy).",
+            min = 1.0, max = 8.0, read = { com.therapylocal.app.config.WorkflowSetting.beam(app).toLong() },
+            apply = { v -> com.therapylocal.app.config.WorkflowSetting.setBeam(app, (v as Long).toInt()) }),
         QaSetting("gemma_variant", QaSettingType.ENUM, GemmaVariant.E2B.key, "Gemma build of the memory LLM (the file is downloaded if missing). E4B needs about 11 GiB of RAM.",
             values = GemmaVariant.entries.map { it.key }, read = { ModelSetup.gemmaVariant(app).key },
             apply = { v -> ModelSetup.selectGemma(app, GemmaVariant.entries.first { it.key == v }) }),

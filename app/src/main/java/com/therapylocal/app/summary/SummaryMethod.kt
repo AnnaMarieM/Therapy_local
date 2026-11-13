@@ -12,13 +12,17 @@ fun interface SummaryAsk {
 }
 
 /** The four prompt texts of a summary, with their placeholders already filled except {{TEXT}}, {{PART}} and {{PARTS}}. */
-class SummaryPrompts(val finalSystem: String, val finalUser: String, val notesSystem: String, val notesUser: String, val formatId: String = SummaryConfig.DEFAULT_FORMAT_ID) {
-    /** Changes whenever a prompt text, the format or a limit changes ([SummaryConfig.fingerprint], which leads with the format id); stored with every summary. */
-    fun version(): String = Prompts.version(finalSystem, finalUser, notesSystem, notesUser, SummaryConfig.fingerprint(formatId))
+class SummaryPrompts(val finalSystem: String, val finalUser: String, val notesSystem: String, val notesUser: String, val formatId: String = SummaryConfig.DEFAULT_FORMAT_ID, val pivotTag: String = "") {
+    /**
+     * Changes whenever a prompt text, the format or a limit changes ([SummaryConfig.fingerprint], which leads with the format id); stored with every summary.
+     * [pivotTag] (AD-17) is part of it when given, so a switch of the processing language marks the summary stale.
+     */
+    fun version(): String = if (pivotTag.isEmpty()) Prompts.version(finalSystem, finalUser, notesSystem, notesUser, SummaryConfig.fingerprint(formatId))
+    else Prompts.version(finalSystem, finalUser, notesSystem, notesUser, SummaryConfig.fingerprint(formatId), pivotTag)
 
     companion object {
         /** Reads the four files with [prompt] (the final system prompt is the one of the format [formatId]) and fills the format and limits into the system prompts. */
-        fun load(prompt: (String) -> String, language: String, formatId: String = SummaryConfig.DEFAULT_FORMAT_ID): SummaryPrompts {
+        fun load(prompt: (String) -> String, language: String, formatId: String = SummaryConfig.DEFAULT_FORMAT_ID, pivotTag: String = ""): SummaryPrompts {
             fun named(n: String) = prompt(Prompts.named(n, language))
             val format = SummaryConfig.format(formatId)
             val vars = mapOf(
@@ -30,7 +34,7 @@ class SummaryPrompts(val finalSystem: String, val finalUser: String, val notesSy
             return SummaryPrompts(
                 Prompts.fill(named(format.systemPrompt), vars), named(SummaryConfig.PROMPT_FINAL_USER),
                 Prompts.fill(named(SummaryConfig.PROMPT_NOTES_SYSTEM), vars), named(SummaryConfig.PROMPT_NOTES_USER),
-                format.id,
+                format.id, pivotTag,
             )
         }
     }
