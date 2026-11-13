@@ -152,7 +152,7 @@ object ModelRegistry {
     fun speechFor(workflow: com.therapylocal.app.config.Workflow): List<ModelSpec> = when (workflow) {
         com.therapylocal.app.config.Workflow.Canary -> listOf(CANARY_1B_V2)
         com.therapylocal.app.config.Workflow.Fast -> emptyList()
-        com.therapylocal.app.config.Workflow.Quality -> listOf(WHISPER_LARGE_V3_Q8)
+        com.therapylocal.app.config.Workflow.Quality, com.therapylocal.app.config.Workflow.QualityCs -> listOf(WHISPER_LARGE_V3_Q8)
     }
 
     val ALL = listOf(GEMMA_E2B, GEMMA_E4B, EMBED, CANARY_1B_V2, DIARIZATION, WHISPER_LARGE_V3_Q8)

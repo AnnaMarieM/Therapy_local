@@ -510,6 +510,7 @@ private fun WorkflowChoice() {
             val (title, body) = when (w) {
                 com.therapylocal.app.config.Workflow.Fast -> R.string.settings_workflow_fast to R.string.settings_workflow_fast_body
                 com.therapylocal.app.config.Workflow.Quality -> R.string.settings_workflow_quality to R.string.settings_workflow_quality_body
+                com.therapylocal.app.config.Workflow.QualityCs -> R.string.settings_workflow_quality_cs to R.string.settings_workflow_quality_cs_body
                 com.therapylocal.app.config.Workflow.Canary -> R.string.settings_workflow_canary to R.string.settings_workflow_canary_body
             }
             Row(

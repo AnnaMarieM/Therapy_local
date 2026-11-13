@@ -67,6 +67,8 @@
     <string name="settings_workflow_fast">Fast</string>
     <string name="settings_workflow_fast_body">One model listens to each turn and reads the English. Keeps a transcript in the language spoken.</string>
     <string name="settings_workflow_quality">Quality</string>
+    <string name="settings_workflow_quality_cs">Quality, Czech kept</string>
+    <string name="settings_workflow_quality_cs_body">Whisper writes the transcript in the language spoken, the larger model translates it to English and reads that.</string>
     <string name="settings_workflow_quality_body">Whisper writes English from the audio and the larger model reads it. There is no transcript in the language spoken.</string>
     <string name="settings_workflow_canary">Standard (Canary)</string>
     <string name="settings_workflow_canary_body">The speech recogniser from before the two workflows, then translation to English.</string>

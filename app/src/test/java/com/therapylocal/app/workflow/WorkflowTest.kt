@@ -18,7 +18,7 @@ class WorkflowTest {
         assertEquals(Workflow.Canary, Workflow.DEFAULT)
         assertEquals(Workflow.Canary, Workflow.of(null))
         assertEquals(Workflow.Canary, Workflow.of("turbo"))
-        assertEquals(listOf("canary", "fast", "quality"), Workflow.entries.map { it.key })
+        assertEquals(listOf("canary", "fast", "quality", "quality-cs"), Workflow.entries.map { it.key })
         Workflow.entries.forEach { assertEquals(it, Workflow.of(it.key)) }
     }
 
@@ -45,6 +45,15 @@ class WorkflowTest {
         assertTrue(Workflow.Quality.keepsSourceTranscript("EN"))
         assertTrue(Workflow.Fast.keepsSourceTranscript("cs"))
         assertTrue(Workflow.Canary.keepsSourceTranscript("cs"))
+    }
+
+    @Test
+    fun qualityCsKeepsTheSpokenTranscriptUsesWhisperAndE4b() {
+        assertEquals(Workflow.QualityCs, Workflow.of("quality-cs"))
+        assertEquals(GemmaVariant.E4B, Workflow.QualityCs.gemma)
+        assertTrue(Workflow.QualityCs.forcesEnglish)
+        assertTrue(Workflow.QualityCs.keepsSourceTranscript("cs"))
+        assertEquals(listOf("whisper-large-v3-q8_0"), ModelRegistry.speechFor(Workflow.QualityCs).map { it.id })
     }
 
     @Test

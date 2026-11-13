@@ -127,7 +127,7 @@ class Pipeline(
             when (workflow()) {
                 Workflow.Fast -> TurnMode.Listen
                 Workflow.Quality -> TurnMode.EnglishOnly
-                Workflow.Canary -> TurnMode.Spoken
+                Workflow.Canary, Workflow.QualityCs -> TurnMode.Spoken
             }
         },
         workflow = { workflow().key },

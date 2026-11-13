@@ -10,6 +10,8 @@ import com.therapylocal.app.models.GemmaVariant
  *   and everything after read the English and are done by E2B too. No speech recogniser is loaded.
  * - [Quality]: Whisper large-v3 (q8_0, whisper.cpp, CPU) writes English text from each turn (the Whisper translate task); roles, facts and the rest
  *   are done by Gemma 4 E4B. **There is no transcript in the language spoken** for a client who does not speak English.
+ * - [QualityCs]: Whisper large-v3 (q8_0, CPU) transcribes each turn in the language spoken (the Whisper transcribe task, no translation); Gemma 4 E4B
+ *   translates that text to English in the TRANSLATE job (AD-17); roles, facts and the rest are as in [Quality]. The transcript in the language spoken is kept.
  * - [Canary]: Canary 1B v2 transcribes each turn and Gemma translates the text (AD-17). The behaviour from before the two workflows, kept as the
  *   control the others are compared with and as the default until a person has chosen.
  *
@@ -19,6 +21,7 @@ enum class Workflow(val key: String, val gemma: GemmaVariant?) {
     Canary("canary", null),
     Fast("fast", GemmaVariant.E2B),
     Quality("quality", GemmaVariant.E4B),
+    QualityCs("quality-cs", GemmaVariant.E4B),
     ;
 
     /** True when the Gemma build is fixed by the workflow and the Gemma setting does not apply. */

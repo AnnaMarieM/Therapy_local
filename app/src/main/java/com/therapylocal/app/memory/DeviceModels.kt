@@ -49,9 +49,10 @@ object DeviceModels {
     /** Canary, the only speech recogniser (docs/AD/AD-02.md), for the client's [language]. */
     private fun asr(context: Context, language: String): Asr {
         // Quality: Whisper large-v3 writes English from the audio of a client who speaks another language (the translate task), and transcribes English as it is.
-        val quality = WorkflowSetting.get(context) == Workflow.Quality
-        val engineImpl = if (quality) {
-            SpeechRecogniser(context, SpeechLanguage.of(language), modelSpec = ModelRegistry.WHISPER_LARGE_V3_Q8, translate = !language.equals("en", true), beam = WorkflowSetting.beam(context))
+        // QualityCs: the same Whisper, transcribe task (no translate); Gemma translates the text in the TRANSLATE job.
+        val workflow = WorkflowSetting.get(context)
+        val engineImpl = if (workflow == Workflow.Quality || workflow == Workflow.QualityCs) {
+            SpeechRecogniser(context, SpeechLanguage.of(language), modelSpec = ModelRegistry.WHISPER_LARGE_V3_Q8, translate = workflow == Workflow.Quality && !language.equals("en", true), beam = WorkflowSetting.beam(context))
         } else SpeechRecogniser(context, SpeechLanguage.of(language))
         try {
             runBlocking { engineImpl.load() }

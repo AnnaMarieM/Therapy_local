@@ -68,6 +68,8 @@
     <string name="settings_workflow_fast">Rychlý</string>
     <string name="settings_workflow_fast_body">Jeden model poslouchá každou repliku a čte anglický text. Přepis v řeči sezení zůstává.</string>
     <string name="settings_workflow_quality">Kvalitní</string>
+    <string name="settings_workflow_quality_cs">Kvalitní, český přepis</string>
+    <string name="settings_workflow_quality_cs_body">Whisper píše přepis v řeči sezení, větší model ho přeloží do angličtiny a čte ho.</string>
     <string name="settings_workflow_quality_body">Whisper píše anglický text přímo ze zvuku a větší model ho čte. Přepis v řeči sezení neexistuje.</string>
     <string name="settings_workflow_canary">Standardní (Canary)</string>
     <string name="settings_workflow_canary_body">Rozpoznávač řeči z doby před oběma postupy, pak překlad do angličtiny.</string>
