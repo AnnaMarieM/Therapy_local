@@ -1,6 +1,7 @@
 package com.therapylocal.app.engine.runner
 
 import android.content.Context
+import android.os.Process
 import android.os.SystemClock
 import com.therapylocal.app.asr.Pcm
 import com.therapylocal.app.engine.CallTag
@@ -53,7 +54,7 @@ internal class WhisperRunner(private val context: Context) : AsrEngine {
         try {
             notePhase(phases, op.tag, TAG, op.guardModel, op.backend, "test")
             AppLog.span(TAG, "asr_selftest", LogCtx.NONE, "engine" to ENGINE, "backend_try" to op.backend, *f) { span ->
-                val out = WhisperLib.nativeRun(h, FloatArray(Pcm.SAMPLE_RATE), op.language ?: "en", false, 1, THREADS, null)
+                val out = atNormalPriority { WhisperLib.nativeRun(h, FloatArray(Pcm.SAMPLE_RATE), op.language ?: "en", false, 1, THREADS, null) }
                 checkNotNull(out) { "whisper self-test failed" }
                 span.put("chars", out.length)
                 span.put("system_info", WhisperLib.nativeSystemInfo().trim())
@@ -68,6 +69,21 @@ internal class WhisperRunner(private val context: Context) : AsrEngine {
         return EngineReply.Opened(0, op.backend, 0, null)
     }
 
+    /**
+     * The host puts its binder threads at background priority (docs/AD/AD-01.md finding 18), and the threads whisper.cpp starts inherit it: they
+     * then ran on the small cores, about 8 times slower than the benchmark (a 15 s turn took 97 s on the Snapdragon 8 Elite, measured 2026-11-13).
+     * The call runs at normal priority and puts the old one back. The main process stays responsive: the call is in `:batch`.
+     */
+    private inline fun <T> atNormalPriority(block: () -> T): T {
+        val old = Process.getThreadPriority(Process.myTid())
+        runCatching { Process.setThreadPriority(Process.THREAD_PRIORITY_DEFAULT) }
+        try {
+            return block()
+        } finally {
+            runCatching { Process.setThreadPriority(old) }
+        }
+    }
+
     override fun transcribe(op: EngineOp.Transcribe): EngineReply.Text {
         check(handle != 0L) { "Whisper not loaded" }
         val audioSec = Pcm.seconds(op.pcm)
@@ -77,7 +93,7 @@ internal class WhisperRunner(private val context: Context) : AsrEngine {
             TAG, "asr_transcribe", LogCtx.NONE, "engine" to ENGINE, "model" to model, "backend" to backend, "audio_sec" to "%.2f".format(audioSec),
             "task" to if (op.translate) "translate" else "transcribe", "beam" to op.beam, *callFields(op.tag),
         ) { span ->
-            val out = checkNotNull(WhisperLib.nativeRun(handle, samples, op.language ?: "", op.translate, op.beam.coerceAtLeast(1), THREADS, null)) { "whisper run failed" }.trim()
+            val out = checkNotNull(atNormalPriority { WhisperLib.nativeRun(handle, samples, op.language ?: "", op.translate, op.beam.coerceAtLeast(1), THREADS, null) }) { "whisper run failed" }.trim()
             val wall = SystemClock.elapsedRealtime() - start
             val t = WhisperLib.nativeTimings(handle)
             span.put("chars", out.length)
