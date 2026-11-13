@@ -1,0 +1,16 @@
+# 82ee33f9 subagent agent-a7b0803c74c8d6055 - device test of the "English pivot" build on a Pixel 8 (QA build), long run
+Source: /home/martin/.claude/projects/-home-martin-projects-Therapy-local/82ee33f9-13b4-4236-988f-6090542871ad/subagents/agent-a7b0803c74c8d6055.jsonl (158 lines, mtime 01:24)
+Time range: 2026-11-12 23:55:48 to 2026-11-13 00:24:16. Filtered view: 16 lines kept of 72.
+
+- [DECISION] Task (23:55:48): device test of PR #103 (branch feature/english-pivot, head 00e0cfe) on a real Pixel 8; Canary transcribes in client language; TRANSLATE job then English; LOCALIZE job; setting `processing_language` (english | native). Use `qa/qa-api.sh`, docs/AD/AD-17.md, docs/QA_API.md.
+- [MEASURED] QA API status (23:57:26): `{"command":"status","ok":true,"data":{"build":{"application_id":"com.therapylocal.app.qa","version":"0.1.0","commit":"c934eac1f11a","build_type":"qa"},"vault":{"state":"unlocked"},"models":{"ready":false,...`.
+- [MEASURED] Audio files staged (23:58:17, `ls -l` on host): `daniel-r_s01.wav` 17,805,356 bytes; `hannah-w_s01.wav` 18,197,206 bytes (wav at 16 kHz mono PCM16 via `qa/to-wav.sh`).
+- [MEASURED] import_session (23:58:42): `{"command":"import_session","ok":false,"error":{"code":"not_found","message":"no such file on the phone: jana-n_s01.wav"}}`.
+- [CLAIMED] Agent (23:58:49): CI `app-qa` APK installed via `adb install -r`; sha256 `53d8b9c3...0d0f8b9` matches artifact .sha256; status reports commit `c934eac1f11a`, which is not in the local repo (CI ran on the PR, so probably ok).
+- [DECISION] Coordinator message (00:00:11): model copy done, all 5 files' sha256 match, `status` shows models ready true (canary-1b-v2 and diarizer). "Go ahead with run A, backgrounded (`--no-launch` throughout)". Fix the jana-n import failure (check whether HOST path passed and the push step ran). Set up recurring ETA loop writing a status line every 600 s. Restore globally changed `stay_on_while_plugged_in` to 0 (default).
+- [MEASURED] status at 00:00:23: `"models":{"ready":true,"setup_state":"checking",...`.
+- [DECISION] Coordinator (00:23:04): owner wants real progress from detailed debug logs, not queue counts (queue said "done 0, running transcribe" for 20+ minutes). Read-only. Count `span_end span=asr_transcribe` since job start vs turn count from diarization.
+- [MEASURED] Files on phone (00:23:08): `/sdcard/Android/data/com.therapylocal.app.qa/files: api logs models out`; logs: `backend.log engine-batch.log tl.log`. Log line format: `ts=2026-10-24T13:20:04.509 lvl=I tag=ASR sid=ab12cd rid=3 cid=3.2 evt=span_end`. [L118]
+- [MEASURED] ETA/progress line (00:24:09): `01:21 | run A | total 16 done 0 pending 15 failed 0 running transcribe | ETA run done unknown | ETA report ~+20min after run B 01:23 | run A | job 1 transcribe: session 1/4 (jana) diar done 608s, turns 88/96, asr audio 295s of 385s file, rtf 1.80; ETA session ...` (progress line at the phone clock; the "01:21/01:23" are timestamps in the agent's loop). Note: the "rtf 1.80" value is an agent-logged line.
+- [CLAIMED] Agent (00:24:16): ETA loop now runs `progress.py` that reads the app's own log files; prints counts and timings only; LLM calls-per-job figure to come.
+- [QUESTION] Results of run A (ASR/score) are not in this filtered view.

@@ -42,7 +42,7 @@ research/asr-llm-combo/
 └── sources/                       background: training-data sources, papers
 ```
 
-Logbook (chronological, decisions and results): `log/2026-11-13-asr-llm-combo.md`. Code: `e2e/combo/` (`asr.py`, `llm.py`, `report.py`, `errors.py`, `facts.py`, `archive.py`).
+Logbook (chronological, what was tried and how it went, dead ends): `log/2026-11-13-asr-llm-combo.md`. Condensed notes from the day's agent transcripts (tagged MEASURED / CLAIMED / DECISION / BUG, sampled, check against source): `log/transcript-notes/`. Findings and corrections: `final-workflow/FINDINGS-2026-11-13.md`. Code: `e2e/combo/` (`asr.py`, `llm.py`, `report.py`, `errors.py`, `facts.py`, `archive.py`).
 
 ## Adding results
 
