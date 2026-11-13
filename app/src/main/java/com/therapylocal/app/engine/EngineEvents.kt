@@ -40,6 +40,7 @@ object EngineEvents {
     // host
     const val HOST_START = "host_start"
     const val HOST_OPEN = "host_open"
+    const val HOST_PRIORITY = "host_priority"
     const val BACKEND_PHASE = "backend_phase"
     const val HOST_CLIENT_DIED = "host_client_died"
     const val HOST_EXIT = "host_exit"
@@ -51,6 +52,6 @@ object EngineEvents {
         RESTART, CIRCUIT_OPEN, UNAVAILABLE,
         IDLE_STOP, LIVE_SHUTDOWN_REQUESTED, LIVE_SHUTDOWN_DONE, ROLE_VIOLATION, FAULT_PLAN_IGNORED,
         JOB_DEFERRED,
-        HOST_START, HOST_OPEN, BACKEND_PHASE, HOST_CLIENT_DIED, HOST_EXIT,
+        HOST_START, HOST_OPEN, HOST_PRIORITY, BACKEND_PHASE, HOST_CLIENT_DIED, HOST_EXIT,
     )
 }

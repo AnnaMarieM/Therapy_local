@@ -24,15 +24,22 @@ import java.util.concurrent.atomic.AtomicInteger
  * [EngineReply] out, the native work done by the runners. It never touches `Backends.guard`, `PerfStats`, preferences or the vault: that
  * bookkeeping belongs to the main process, which hears of each native step through the [PhaseSink].
  *
- * [lowerPriority] (finding 18): a host process puts the calling binder thread at background priority before `Open`, so the native pools
- * created there (LiteRT, XNNPACK, ORT) inherit it. In-process it would lower a main-process thread for good, so [LocalEngineHost] passes false.
+ * [lowerPriority] (finding 18, AD-18): a host process sets the calling binder thread's priority before `Open`, so the native pools created
+ * there (LiteRT, XNNPACK, ORT) inherit it. The policy is [EnginePriority.of]. `:live` runs beside the recorder and the UI, which must stay smooth,
+ * so its embedder work runs at background priority (nice 10). `:batch` only runs when no recording is active and the user waits for the
+ * results, so it runs at default priority (nice 0), set explicitly so a reused binder thread that was lowered earlier is raised again
+ * (at background it ran 3.5-3.7x slower than real time on a Pixel 8). In-process it would change a main-process thread for good, so
+ * [LocalEngineHost] passes false.
  */
 class EngineServer(private val context: Context, private val role: EngineRole, private val lowerPriority: Boolean = false) {
     private val handles = ConcurrentHashMap<Int, Runner>()
     private val nextHandle = AtomicInteger(1)
 
     fun handle(op: EngineOp, phases: PhaseSink = PhaseSink { _, _, _, _ -> }): EngineReply {
-        if (lowerPriority && lowersPriority(op)) Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND)
+        if (lowerPriority) EnginePriority.of(role, op)?.let { nice ->
+            Process.setThreadPriority(nice)
+            if (op is EngineOp.Open) AppLog.i(TAG, EngineEvents.HOST_PRIORITY, LogCtx.NONE, "role" to role.proc, "op" to op.tag.op, "nice" to nice, *callFields(op.tag))
+        }
         // Fault hooks (S11): no-ops in release, feel and qa. The model and backend of the handle let a rule name them.
         val r = handleOf(op)?.let { handles[it] }
         val model = (op as? EngineOp.Open)?.model ?: r?.model
@@ -87,13 +94,6 @@ class EngineServer(private val context: Context, private val role: EngineRole, p
             }
             is EngineOp.ArmFaults -> Faults.arm(op)
         }
-    }
-
-    /** Every op in a batch host, and the ops that load or run the embedder in a live host (the rest there are cheap). */
-    private fun lowersPriority(op: EngineOp) = when (role) {
-        EngineRole.BATCH -> true
-        EngineRole.LIVE -> op is EngineOp.Open || op is EngineOp.EmbedText || op is EngineOp.EmbedAudio
-        EngineRole.LOCAL -> false
     }
 
     private fun open(op: EngineOp.Open, phases: PhaseSink): EngineReply {
