@@ -1,44 +1,42 @@
 #!/usr/bin/env python3
-"""One LLM cell: (ASR transcripts of one engine | the script as read) x model x lane -> extracted facts for all four recordings.
+"""One LLM cell: (ASR transcripts of one variant | the script as read) x model x lane -> extracted facts for all four recordings.
 
   llm.py --asr-dir asr/ --engine canary-1b-v2 --model gemma4-e4b --lane 1 [--tag x --opts '{"part_words":300}'] --out out     (--engine script = oracle, perfect ASR)
+Pipeline per recording, like the app: (translate = pivot, optional) -> roles (the app's roles prompt decides who is the therapist) -> extraction with
+Therapist:/Patient: lines, in parts. llama.cpp server, Q4_K_M, temperature 0.3 with seed = lane, so the lanes differ only by sampling.
+There is no diarizer in CI: speaker turns of an ASR transcript come from an ORACLE alignment of its words to the script (common.oracle_turns), i.e. perfect
+diarization; what is tested is the text, the roles step and the extraction. Transcripts that are in another language than the script (Whisper translate) have no
+alignment and run without roles ("Speaker 1").
+
 opts (all optional): part_words (450)  temperature (0.3)  max_tokens (2000)  ctx (8192)
+  roles       "llm" (default) | "none" = every line "Speaker 1" (how round 1 ran)
   prompt_dir  folder with extract.system.txt / extract.user.txt, or {"cs": dir, "en": dir}; default demo/prompts (cs/ for Czech)
-  pivot       true = Czech transcripts are first translated to English by the same model (AD-17), then the English prompts run
-Same extraction prompts as the app (demo/prompts, cs/ for Czech clients), llama.cpp server, Q4_K_M, temperature 0.3 with seed = lane,
-so the lanes differ only by sampling and show how flaky a combo is. Roles are not known here, so turns are "Speaker 1:" lines.
+  pivot       true = Czech turns are first translated to English by the same model (AD-17), then the English prompts run
 """
-import argparse, json, re, sys, time, urllib.request
+import argparse, json, re, sys, time, urllib.request, zlib
 from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "bench"))
 sys.path.insert(0, str(Path(__file__).parent))
 import bench  # noqa: E402
-from common import CLIENTS, script, norm_words  # noqa: E402
+from common import CLIENTS, script, norm_words, oracle_turns  # noqa: E402
 
 PROMPTS = ROOT / "demo" / "prompts"
 PART_WORDS = 450
+LABEL = {"therapist": "Therapist", "client": "Patient", None: "Speaker 1"}
 
 
-def lines_for(engine, client, asr_dir, lane):
+def turns_for(engine, client, asr_dir, lane, roles):
+    """[(who, text)] with who in therapist | client | None (unknown)."""
     if engine == "script":
-        return [t["text"] for t in script(client)["turns"]]
+        return [(t["who"], t["text"]) for t in script(client)["turns"]]
     f = Path(asr_dir) / f"{engine}__{client}__lane{lane}.json"
-    if not f.exists():  # ASR is deterministic: any lane's transcript is the same
+    if not f.exists():  # ASR is (nearly) deterministic: any lane's transcript will do
         f = next(Path(asr_dir).glob(f"{engine}__{client}__lane*.json"))
-    return [s["text"] for s in json.loads(f.read_text(encoding="utf-8"))["segments"] if s["text"]]
-
-
-def parts(lines, part_words=PART_WORDS):
-    out, cur, n = [], [], 0
-    for i, l in enumerate(lines):
-        cur.append(f"[00:{i // 60:02d}:{i % 60:02d}]\nSpeaker 1: {l}")
-        n += len(l.split())
-        if n >= part_words:
-            out.append("\n".join(cur)); cur, n = [], 0
-    if cur:
-        out.append("\n".join(cur))
-    return out
+    segs = [s["text"] for s in json.loads(f.read_text(encoding="utf-8"))["segments"] if s["text"]]
+    if roles != "none" and not engine.endswith("-translate"):
+        return oracle_turns(client, " ".join(segs))
+    return [(None, s) for s in segs]
 
 
 def chat(system, user, seed, temperature=0.3, max_tokens=2000):
@@ -49,20 +47,55 @@ def chat(system, user, seed, temperature=0.3, max_tokens=2000):
         return json.loads(r.read())["choices"][0]["message"]["content"] or ""
 
 
-def translate_lines(lines, seed, o):
-    """AD-17 pivot: Czech lines -> English lines, 12 lines per call, numbered so the count can be checked."""
+def translate_turns(turns, seed, o):
+    """AD-17 pivot: Czech turn texts -> English, 12 per call, numbered so the count can be checked."""
     sysp = ("You translate a Czech therapy-session transcript into English. Translate every numbered line faithfully, keep names, numbers and meaning, "
             "do not summarise or add anything. Output the same numbered lines, nothing else.")
     out = []
-    for i in range(0, len(lines), 12):
-        chunk = lines[i:i + 12]
-        raw = chat(sysp, "\n".join(f"{j + 1}. {l}" for j, l in enumerate(chunk)), seed, 0.0, o.get("max_tokens", 2000))
+    for i in range(0, len(turns), 12):
+        chunk = turns[i:i + 12]
+        raw = chat(sysp, "\n".join(f"{j + 1}. {t}" for j, (_, t) in enumerate(chunk)), seed, 0.0, o.get("max_tokens", 2000))
         got = {}
         for l in raw.splitlines():
             m = re.match(r"\s*(\d+)[.)]\s*(.*)", l)
             if m:
                 got[int(m.group(1))] = m.group(2).strip()
-        out += [got.get(j + 1, chunk[j]) for j in range(len(chunk))]
+        out += [(w, got.get(j + 1, t)) for j, (w, t) in enumerate(chunk)]
+    return out
+
+
+def assign_roles(turns, client, lang, seed, o):
+    """The app's roles step: speaker ids S0/S1 (by oracle diarization), the model says which is the therapist. Returns (labelled turns, info)."""
+    flip = zlib.crc32(client.encode()) % 2  # which of S0/S1 is the therapist in this recording
+    sid = {"therapist": f"S{flip}", "client": f"S{1 - flip}"}
+    if any(w is None for w, _ in turns):
+        return [(None, t) for _, t in turns], {"roles": "skipped"}
+    head = "\n".join(f"[00:{i // 60:02d}:{i % 60:02d}]\n{sid[w]}: {t}" for i, (w, t) in enumerate(turns[:30]))
+    d = PROMPTS / ("cs" if lang == "cs" else "")
+    raw = chat((d / "roles.system.txt").read_text(encoding="utf-8"), head, seed, 0.0, 400)
+    m = re.search(r"\{.*\}", raw, re.S)
+    guess = None
+    try:
+        guess = json.loads(m.group(0)).get("therapist") if m else None
+    except Exception:
+        pass
+    ok = guess == sid["therapist"]
+    if guess not in ("S0", "S1"):
+        return [(None, t) for _, t in turns], {"roles": "unparsed", "raw": raw[:200]}
+    swap = {"therapist": "therapist", "client": "client"} if ok else {"therapist": "client", "client": "therapist"}  # a wrong guess swaps the labels, as in the app
+    return [(swap[w], t) for w, t in turns], {"roles": "right" if ok else "WRONG", "raw": raw[:200]}
+
+
+def parts(turns, part_words=PART_WORDS):
+    out, cur, n = [], [], 0
+    for i, (who, l) in enumerate(turns):
+        cur.append(f"[00:{i // 60:02d}:{i % 60:02d}]\n{LABEL[who]}: {l}")
+        n += len(l.split())
+        if n >= part_words:
+            out.append("\n".join(cur))
+            cur, n = [], 0
+    if cur:
+        out.append("\n".join(cur))
     return out
 
 
@@ -102,12 +135,14 @@ def main():
     srv = bench.Server(bindir, gguf, 4, o.get("ctx", 8192))
     srv.wait_ready()
     res = {"engine": a.engine, "model": label, "base_model": a.model, "opts": o, "lane": a.lane, "clients": {}}
+    roles = o.get("roles", "llm")
     try:
         for c in CLIENTS:
             sc = script(c)
-            if a.engine.endswith("-translate") and sc["lang"] != "cs":
+            translated = a.engine.endswith("-translate")
+            if translated and sc["lang"] != "cs":
                 continue  # translating English to English is just transcribing
-            pivot = (o.get("pivot") and sc["lang"] == "cs") or a.engine.endswith("-translate")  # translated text gets the English prompts
+            pivot = (o.get("pivot") and sc["lang"] == "cs") or translated  # translated text gets the English prompts
             lang = "en" if pivot else sc["lang"]
             d = o.get("prompt_dir") or (PROMPTS / ("cs" if lang == "cs" else ""))
             if isinstance(d, dict):
@@ -115,20 +150,23 @@ def main():
             d = Path(d) if Path(d).is_absolute() else ROOT / d
             sysp, usrp = (d / "extract.system.txt").read_text(encoding="utf-8"), (d / "extract.user.txt").read_text(encoding="utf-8")
             facts, t0 = [], time.time()
-            lines = lines_for(a.engine, c, a.asr_dir, a.lane)
-            if o.get("pivot") and sc["lang"] == "cs" and not a.engine.endswith("-translate"):
-                lines = translate_lines(lines, a.lane, o)
-            ps = parts(lines, o.get("part_words", PART_WORDS))
+            turns = turns_for(a.engine, c, a.asr_dir, a.lane, roles)
+            if o.get("pivot") and sc["lang"] == "cs" and not translated:
+                turns = translate_turns(turns, a.lane, o)
+            info = {"roles": "none"}
+            if roles != "none":
+                turns, info = assign_roles(turns, c, lang, a.lane, o)
+            ps = parts(turns, o.get("part_words", PART_WORDS))
             for i, p in enumerate(ps, 1):
                 user = usrp.replace("{{CLIENT}}", c.split("-")[0].capitalize()).replace("{{DATE}}", sc["date"]).replace("{{PART}}", str(i)).replace("{{PARTS}}", str(len(ps))).replace("{{TEXT}}", p)
                 raw = chat(sysp, user, a.lane, o.get("temperature", 0.3), o.get("max_tokens", 2000))
                 body = " ".join(norm_words(p))
                 for f in parse(raw):
                     f["part"] = i
-                    f["quote_found"] = " ".join(norm_words(f.get("evidence", ""))) in body and bool(norm_words(f.get("evidence", "")))
+                    f["quote_found"] = bool(norm_words(f.get("evidence", ""))) and " ".join(norm_words(f.get("evidence", ""))) in body
                     facts.append(f)
-            res["clients"][c] = {"lang": sc["lang"], "seconds": round(time.time() - t0, 1), "facts": facts, "lines": lines}
-            print(a.engine, label, c, "lane", a.lane, len(facts), "facts", flush=True)
+            res["clients"][c] = {"lang": sc["lang"], "seconds": round(time.time() - t0, 1), "facts": facts, "turns": [{"who": w, "text": t} for w, t in turns], "roles": info}
+            print(a.engine, label, c, "lane", a.lane, len(facts), "facts, roles:", info["roles"], flush=True)
     finally:
         srv.proc.terminate()
     (out / f"{a.engine}__{label}__lane{a.lane}.json").write_text(json.dumps(res, ensure_ascii=False, indent=1), encoding="utf-8")
