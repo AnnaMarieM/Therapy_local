@@ -21,3 +21,4 @@ Each record is immutable once merged (see [`AGENTS.md`](../../AGENTS.md); CI job
 | [AD-15](AD-15.md) | Every pull request shows screenshots of all screens at every layout size (one file per screenshot, step-by-step walkthrough), built by CI from the QA build with fake data and posted as one sticky PR comment | 2026-11-12 00:34 CET | Martin Hajný (@hajnina) | Accepted |
 | [AD-16](AD-16.md) | The QA build has a control API for adb (exported provider, shell user only, no network); no other build has it | 2026-11-12 01:34 CET | Martin Hajný (@hajnina) | Accepted |
 | [AD-17](AD-17.md) | All processing runs in English; the transcript is translated in, and only what the screens show is translated out | — | — | Proposed (draft, PR not to be merged) |
+| [AD-18](AD-18.md) | Canary stays the only speech recogniser, chosen for its Czech word error rate; Whisper is not added back | 2026-11-13 02:45 CET | Martin Hajný (@hajnina) | Accepted; confirms AD-02 with measurements |
