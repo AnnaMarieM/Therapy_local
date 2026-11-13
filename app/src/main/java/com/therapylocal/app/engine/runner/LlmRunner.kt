@@ -4,6 +4,7 @@ import android.content.Context
 import com.google.ai.edge.litertlm.ActivationDataType
 import com.google.ai.edge.litertlm.Backend
 import com.google.ai.edge.litertlm.BenchmarkInfo
+import com.google.ai.edge.litertlm.Content
 import com.google.ai.edge.litertlm.ConversationConfig
 import com.google.ai.edge.litertlm.Contents
 import com.google.ai.edge.litertlm.Engine
@@ -12,6 +13,7 @@ import com.google.ai.edge.litertlm.ExperimentalApi
 import com.google.ai.edge.litertlm.ExperimentalFlags
 import com.google.ai.edge.litertlm.ResponseFormat
 import com.google.ai.edge.litertlm.SamplerConfig
+import com.therapylocal.app.asr.Pcm
 import com.therapylocal.app.engine.CallTag
 import com.therapylocal.app.engine.EngineKind
 import com.therapylocal.app.engine.EngineOp
@@ -48,7 +50,7 @@ internal class LlmRunner(private val context: Context) : AskEngine {
         val file = if (name == "NPU") npuFile(spec.id) else ModelRegistry.fileFor(context, spec, name)
         val f = callFields(op.tag)
         val be: Backend = LiteRtBindings.backend(context, name)
-        val config = EngineConfig(modelPath = file.path, backend = be, audioBackend = null, visionBackend = null, maxNumTokens = op.maxTokens, cacheDir = context.cacheDir.path,
+        val config = EngineConfig(modelPath = file.path, backend = be, audioBackend = if (op.textOnly) null else Backend.CPU(), visionBackend = null, maxNumTokens = op.maxTokens, cacheDir = context.cacheDir.path,
             // AD-19: the GPU's default precision gives wrong output for Gemma E2B on some chips (fails the second proof); null keeps the default.
             activationDataType = if (GpuPrecision.float32(spec.id, name)) ActivationDataType.FLOAT32 else null)
         notePhase(phases, op.tag, TAG, op.guardModel, name, "create")
@@ -136,7 +138,11 @@ internal class LlmRunner(private val context: Context) : AskEngine {
                 maxOutputToken = op.maxOutputTokens,
             )
             e.createConversation(cfg).use { c ->
-                val msg = if (op.schema != null) c.sendMessage(op.user, responseFormat = ResponseFormat.json(op.schema)) else c.sendMessage(op.user)
+                val msg = when {
+                    op.pcm != null -> c.sendMessage(Contents.of(Content.AudioBytes(Pcm.toWav(op.pcm)), Content.Text(op.user)))
+                    op.schema != null -> c.sendMessage(op.user, responseFormat = ResponseFormat.json(op.schema))
+                    else -> c.sendMessage(op.user)
+                }
                 val b: BenchmarkInfo = c.getBenchmarkInfo()
                 val wall = (System.nanoTime() - t0) / 1_000_000
                 // Numbers only, never text.
