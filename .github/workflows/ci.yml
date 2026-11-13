@@ -93,6 +93,52 @@ jobs:
             dist/Therapy-main-qa.apk.sha256
           retention-days: 14
 
+  # Every pull request publishes its own QA APK as the prerelease `pr-<number>` (Therapy-pr<number>-qa.apk and its .sha256), replaced on every push
+  # and deleted when the pull request closes (pr-apk-cleanup.yml). Only the QA build: it installs as com.therapylocal.app.qa beside the real app, so
+  # a pull request's schema change (AD-11 wipes the database) can never reach a real vault. Published as soon as the APK is built, without
+  # waiting for the tests; the pull request's checks say whether they passed. Not for forks: their token cannot write releases.
+  release-pr:
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+    needs: apk-qa
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      pull-requests: read
+    concurrency:
+      group: release-pr-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: app-qa
+      - name: Replace the pull request's release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          sha256sum -c Therapy-main-qa.apk.sha256
+          # A run that ends after the pull request closed must not bring its release back (the cleanup has already run)
+          state="$(gh pr view "$PR" --json state -q .state)"
+          if [[ "$state" != OPEN ]]; then echo "#$PR is $state: nothing published"; exit 0; fi
+          apk="Therapy-pr${PR}-qa.apk"
+          mv Therapy-main-qa.apk "$apk"
+          sha256sum "$apk" > "$apk.sha256"
+          gh release delete "pr-$PR" --cleanup-tag --yes 2>/dev/null || true
+          notes="QA build of pull request #${PR} at commit ${HEAD_SHA::7} (built from it merged into main, as CI tests it).
+
+          - ${apk}: installs as com.therapylocal.app.qa next to the real app, with test data and the QA control API. Install with adb install -r.
+
+          Replaced on every push to the pull request and deleted when it closes. Check the pull request's CI before trusting it."
+          gh release create "pr-$PR" "$apk" "$apk.sha256" \
+            --target "$HEAD_SHA" \
+            --prerelease \
+            --title "PR #${PR}: ${TITLE}" \
+            --notes "$notes"
+
   # Lint, JVM unit tests and verifyNoFaultsInRelease (release, feel and qa carry no fault code) in the pinned container. The other half of
   # what `scripts/build.sh full` does; the APKs come from `apk`, in parallel.
   build:

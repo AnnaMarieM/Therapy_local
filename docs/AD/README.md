@@ -22,3 +22,4 @@ Each record is immutable once merged (see [`AGENTS.md`](../../AGENTS.md); CI job
 | [AD-16](AD-16.md) | The QA build has a control API for adb (exported provider, shell user only, no network); no other build has it | 2026-11-12 01:34 CET | Martin Hajný (@hajnina) | Accepted |
 | [AD-17](AD-17.md) | All processing runs in English; the transcript is translated in, and only what the screens show is translated out | — | — | Proposed (draft, PR not to be merged) |
 | [AD-18](AD-18.md) | Canary stays the only speech recogniser, chosen for its Czech word error rate; Whisper is not added back | 2026-11-13 02:45 CET | Martin Hajný (@hajnina) | Accepted; confirms AD-02 with measurements |
+| [AD-19](AD-19.md) | Gemma E2B runs on the GPU with FLOAT32 activations on every device; E4B is not covered | 2026-11-13 04:14 CET | Martin Hajný (@hajnina) | Accepted |
