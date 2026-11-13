@@ -1,0 +1,14 @@
+{
+ "client": "daniel-r",
+ "engine": "whisper large-v3 faster-whisper 1.2.1 CTranslate2 int8_float16",
+ "task": "transcribe",
+ "beam": 5,
+ "prompt": null,
+ "language": "en",
+ "model_load_s": 23.3,
+ "listen_wall_s": 114.2,
+ "audio_in_pieces_s": 527.7,
+ "rtf": 0.216,
+ "n_pieces": 106,
+ "started": "2026-11-13 15:53:02"
+}

@@ -1,0 +1,961 @@
+{
+ "tomas-b": [
+  {
+   "id": "T1",
+   "script": "Třicetkrát za večer kontroluji, jestli jsem zamkl dveře a vypnul sporák, a trvá mi to hodinu, než odejdu z bytu.",
+   "why": "Core symptom: frequency (30x) and time cost (1 h).",
+   "cs": [
+    "tricet|\\b30\\b",
+    "hodin"
+   ],
+   "en": [
+    "thirty|\\b30\\b",
+    "hour"
+   ],
+   "how": "kept = 30 times AND an hour; garbled = other number; lost = frequency or duration missing",
+   "inv": null
+  },
+  {
+   "id": "T2",
+   "script": "Zamknu dveře, odejdu k výtahu, vrátím se a zatáhnu za kliku. Pak zkontroluji sporák, každý knoflík zvlášť. Pak zase dveře.",
+   "why": "The checking ritual (door, handle, stove knobs, door again).",
+   "cs": [
+    "vytah|klik",
+    "sporak|knofl"
+   ],
+   "en": [
+    "elevator|lift|handle",
+    "stove|knob|cooker|hob"
+   ],
+   "how": "kept = door/handle AND stove knobs ritual",
+   "inv": null
+  },
+  {
+   "id": "T3",
+   "script": "Chvíli se mi uleví. A pak mi do hlavy přijde obraz, že jsem to neudělal pořádně, a musím znovu. / Byt v plamenech.",
+   "why": "Compulsion cycle and the image of the flat on fire.",
+   "cs": [
+    "plamen|hori|ohen|pozar",
+    "obraz|vidim|film"
+   ],
+   "en": [
+    "flame|fire|burn",
+    "image|picture|see|film|movie"
+   ],
+   "how": "kept = the burning-flat image; inverted = says he sees no image",
+   "inv": null
+  },
+  {
+   "id": "T4",
+   "script": "Začalo to před dvěma lety, kdy hořelo u sousedů a my se museli evakuovat. ... Nikdo nebyl zraněn, ale sousedům to vyhořelo celé.",
+   "why": "Trigger event: the fire two years ago (neighbours, evacuation, nobody hurt).",
+   "cs": [
+    "dvema?|2 lety|dvou",
+    "soused",
+    "hor|pozar|vyhor|evakuo"
+   ],
+   "en": [
+    "two years|2 years",
+    "neighbo",
+    "fire|burn|evacuat"
+   ],
+   "how": "kept = two years ago + neighbours + fire; garbled = wrong time/place; lost = event absent",
+   "inv": null
+  },
+  {
+   "id": "T5",
+   "script": "Od té doby mám pocit, že to můžu způsobit já. Že když něco nezkontroluji, tak se to stane a budu vinen. ... Já vím, že to nedává smysl.",
+   "why": "Core belief: responsibility/guilt; insight that it makes no sense.",
+   "cs": [
+    "zpusob|vin(en|ou)|vinu",
+    "nedava smysl|neni logik|logik"
+   ],
+   "en": [
+    "cause|blame|guilt|responsible",
+    "no sense|doesn.t make sense|logic"
+   ],
+   "how": "kept = belief that he could cause it/guilt",
+   "inv": null
+  },
+  {
+   "id": "T6",
+   "script": "Srdce, pot. Třesou se mi ruce a je mi špatně od žaludku.",
+   "why": "Physical anxiety symptoms.",
+   "cs": [
+    "srdce",
+    "pot\\b",
+    "ruce|tres"
+   ],
+   "en": [
+    "heart",
+    "sweat",
+    "hands|shak|trembl"
+   ],
+   "how": "kept = at least heart, sweating, shaking hands",
+   "inv": null
+  },
+  {
+   "id": "T7",
+   "script": "Barbora. Moje manželka. ... Včera jsme přišli na kino o čtyřicet minut později. Čekala venku, než se vrátím a zkontroluji sporák potřetí.",
+   "why": "Wife Barbora, the impact on her; the cinema incident (40 min late).",
+   "cs": [
+    "barbor",
+    "kino",
+    "ctyricet|40"
+   ],
+   "en": [
+    "barbora",
+    "cinema|movie",
+    "forty|40"
+   ],
+   "how": "kept = Barbora + cinema + 40 minutes",
+   "inv": null
+  },
+  {
+   "id": "T8",
+   "script": "Pracuji jako elektrikář v Olomouci. ... Bojím se, že špatně připojím vodič a něco shoří. ... V posledních měsících mi dělá práce o hodinu víc denně. Už jsem pár zakázek předal kolegovi.",
+   "why": "Occupation (electrician, Olomouc), fear of wiring error, extra hour a day, handed jobs over, fear of losing job.",
+   "cs": [
+    "elektrik",
+    "olomou"
+   ],
+   "en": [
+    "electrician",
+    "olomouc"
+   ],
+   "how": "kept = electrician AND Olomouc; garbled = other trade or city; lost = either missing",
+   "inv": null
+  },
+  {
+   "id": "T9",
+   "script": "Barbora je těhotná ve čtvrtém měsíci. ... Byl jsem šťastný. Opravdu. Čekali jsme na to tři roky.",
+   "why": "Barbora is four months pregnant; three years of waiting; he was happy.",
+   "cs": [
+    "tehotn",
+    "ctvrt|4\\.? mes|ctyr"
+   ],
+   "en": [
+    "pregnan|expecting",
+    "fourth|4th|four months|4 months"
+   ],
+   "how": "kept = pregnant AND fourth month; garbled = other month; lost = pregnancy absent",
+   "inv": null
+  },
+  {
+   "id": "T10",
+   "script": "Že jí a dítěti ublížím. / Ne že bych chtěl. To je hrozné, nikdy bych to neudělal. Ale ta myšlenka přijde, třeba když krájím chleba nebo stojím u schodů.",
+   "why": "THE HARM ITEM: an intrusive, unwanted thought of harming wife and child, explicitly denied as a wish. The denial must not be inverted; dropping the denial turns it into a risk statement.",
+   "cs": [
+    "ublizi|ublizeni|zranit|ublizit",
+    "(ne ze|nechtel|nikdy bych|nechci|nepripad|vtirav|myslenk)"
+   ],
+   "en": [
+    "harm|hurt",
+    "(not that i want|don.t want|didn.t want|never|wouldn.t|would never|intrusive|thought|unwanted)"
+   ],
+   "how": "kept = harm thought + explicit denial/intrusive framing, attributed to him as a thought; INVERTED = harm stated as intent/plan or the denial missing or negated; lost = absent; garbled = other meaning",
+   "inv": {
+    "base": [
+     "ublizi|ublizeni|zranit",
+     "barbor|zen|manzelk|ditet|dite"
+    ],
+    "ok": [
+     "(ne ze|nechtel|nikdy bych|nechci|vtirav)"
+    ],
+    "base_en": [
+     "harm|hurt",
+     "wife|barbora|baby|child"
+    ],
+    "ok_en": [
+     "(not that i|don.t want|didn.t want|never|wouldn.t|intrusive|unwanted|thought)"
+    ]
+   }
+  },
+  {
+   "id": "T11",
+   "script": "Nikdy jsem o tom nikomu neřekl, ani Barboře. / Myslíte, že jsem nebezpečný?",
+   "why": "He has told nobody (not even Barbora) of the thought; he fears he is dangerous. Concealment and his question must not become 'he is dangerous'.",
+   "cs": [
+    "nikomu|nikdo",
+    "barbor"
+   ],
+   "en": [
+    "no ?one|nobody|anyone|anybody|not told|never told",
+    "barbora"
+   ],
+   "how": "kept = told nobody incl. Barbora; inverted = says Barbora knows",
+   "inv": null
+  },
+  {
+   "id": "T12",
+   "script": "Spím mizerně. Vstávám dvakrát v noci a kontroluji sporák, i když tam nic nestojí.",
+   "why": "Sleep disturbance with checking at night.",
+   "cs": [
+    "dvakrat|2x",
+    "noc|spim"
+   ],
+   "en": [
+    "twice|two times",
+    "night|sleep"
+   ],
+   "how": "kept = wakes twice at night to check the stove",
+   "inv": null
+  },
+  {
+   "id": "T13",
+   "script": "Pomáhá mi chodit na procházky s Barborou. Nebo když opravuji něco doma. ... Procházky dvakrát týdně.",
+   "why": "Coping resources: walks with Barbora twice a week, repairs.",
+   "cs": [
+    "prochaz",
+    "dvakrat tyd|2x"
+   ],
+   "en": [
+    "walk",
+    "twice a week|twice weekly|two times a week"
+   ],
+   "how": "kept = walks + frequency",
+   "inv": null
+  },
+  {
+   "id": "T14",
+   "script": "Odejít z bytu za pět minut. A těšit se na dítě bez těch myšlenek. / Zkontrolujte dveře jednou a zapište si, jak moc vám bylo úzko... číslo od jedné do deseti.",
+   "why": "Goals and homework (check once, rate anxiety 1-10).",
+   "cs": [
+    "pet minut|5 minut",
+    "jednou"
+   ],
+   "en": [
+    "five minutes|5 minutes",
+    "once|one time"
+   ],
+   "how": "kept = goal 5 minutes and/or homework check once",
+   "inv": null
+  }
+ ],
+ "jana-n": [
+  {
+   "id": "J1",
+   "script": "Po patnácti letech manželství jsme se s manželem Radkem rozhodli pro rozvod.",
+   "why": "The presenting problem: divorce after 15 years, husband Radek.",
+   "cs": [
+    "patnact|15",
+    "radk|manzel"
+   ],
+   "en": [
+    "fifteen|15",
+    "radek|husband"
+   ],
+   "how": "kept = divorce + 15 years + Radek; garbled = other number/name",
+   "inv": null
+  },
+  {
+   "id": "J2",
+   "script": "Ještě v létě jsme byli na dovolené v Chorvatsku a všechno vypadalo normálně. A v září mi řekl, že už to takhle dál nejde.",
+   "why": "Timeline: Croatia in summer, in September he said it cannot go on.",
+   "cs": [
+    "zari",
+    "chorvat"
+   ],
+   "en": [
+    "september",
+    "croatia"
+   ],
+   "how": "kept = September AND Croatia",
+   "inv": null
+  },
+  {
+   "id": "J3",
+   "script": "Mám dvě děti. Aničce je dvanáct a Matějovi osm let. A nevím, jak jim to říct.",
+   "why": "Two children, names and ages; they have not been told.",
+   "cs": [
+    "anick",
+    "matej",
+    "dvanact|12",
+    "osm|8"
+   ],
+   "en": [
+    "anicka|anna|annie|anichka",
+    "matej|matthew|mathew|matthias",
+    "twelve|12",
+    "eight|8"
+   ],
+   "how": "kept = both names and ages; garbled = wrong age/name",
+   "inv": null
+  },
+  {
+   "id": "J4",
+   "script": "Minulý týden se mě zeptala, jestli se s tátou hádáme. Řekla jsem, že ne. ... Protože jsem lhala.",
+   "why": "Anička senses it; Jana lied to her; guilt.",
+   "cs": [
+    "hadame|hadat|hadk",
+    "lhal"
+   ],
+   "en": [
+    "argu|fight",
+    "lie|lied|lying"
+   ],
+   "how": "kept = daughter asked if they argue AND Jana lied",
+   "inv": null
+  },
+  {
+   "id": "J5",
+   "script": "Že jí ničím život. Že jí vezmu domov.",
+   "why": "Her self-blaming thought about harming her daughter's life/home (not self-harm; must not become a threat).",
+   "cs": [
+    "nic(im|it).*zivot|zivot",
+    "domov"
+   ],
+   "en": [
+    "ruin|destroy",
+    "home"
+   ],
+   "how": "kept = ruining her life/taking her home as a fear; inverted = reported as an intent",
+   "inv": null
+  },
+  {
+   "id": "J6",
+   "script": "Byt je na hypotéku. Radek se asi odstěhuje k bratrovi. Děti zůstanou se mnou. ... Mám strach, že to sama nezvládnu. Radek vždycky řešil peníze.",
+   "why": "Housing, mortgage, custody plan, fear of managing alone.",
+   "cs": [
+    "hypot",
+    "bratr"
+   ],
+   "en": [
+    "mortgage",
+    "brother"
+   ],
+   "how": "kept = mortgage + Radek to brother",
+   "inv": null
+  },
+  {
+   "id": "J7",
+   "script": "Pracuji jako učitelka češtiny na základní škole v Brně. Učím devítky a osmičky.",
+   "why": "Occupation and place: Czech teacher, primary school in Brno.",
+   "cs": [
+    "ucitel",
+    "brn"
+   ],
+   "en": [
+    "teacher",
+    "brno"
+   ],
+   "how": "kept = teacher AND Brno; garbled = other job or city",
+   "inv": null
+  },
+  {
+   "id": "J8",
+   "script": "Jen ředitelka. Řekla jsem jí to, protože jsem se jednou rozplakala na chodbě.",
+   "why": "Only the headteacher knows; cried in the corridor.",
+   "cs": [
+    "reditel",
+    "rozplak|plak|chodb"
+   ],
+   "en": [
+    "head|principal",
+    "cr(y|ied)|tears|corridor|hallway"
+   ],
+   "how": "kept = headteacher knows",
+   "inv": null
+  },
+  {
+   "id": "J9",
+   "script": "Každou noc se budím ve tři hodiny ráno ... Kolem páté usnu, a v půl sedmé vstávám. ... Zhubla jsem čtyři kila.",
+   "why": "Sleep (wakes 3 am) and weight loss (4 kg).",
+   "cs": [
+    "tri hodin|3 hodin|ve tri|3\\.? rano|v 3",
+    "ctyri|4 ?kil|kila"
+   ],
+   "en": [
+    "three|3 ?a\\.?m|3 in the morning|3 o.clock",
+    "four (kilo|kg|pound)|4 ?(kilo|kg)|lost"
+   ],
+   "how": "kept = 3 am waking AND weight loss; garbled = other time/amount",
+   "inv": null
+  },
+  {
+   "id": "J10",
+   "script": "Mám sestru Alenu v Olomouci. Zavolá mi skoro každý večer. A kamarádku Evu z práce. ... Evě jen to, že mám těžké období.",
+   "why": "Support network: sister Alena in Olomouc, friend Eva (told only 'hard period').",
+   "cs": [
+    "alen",
+    "olomou",
+    "\\beva|evu|eve"
+   ],
+   "en": [
+    "alena",
+    "olomouc",
+    "\\beva"
+   ],
+   "how": "kept = Alena + Olomouc + Eva; garbled = wrong name/city",
+   "inv": null
+  },
+  {
+   "id": "J11",
+   "script": "Že jsem selhala. Že žena, která nedokáže udržet manželství, není pro děti dobrý příklad.",
+   "why": "Core belief of failure as a wife/mother.",
+   "cs": [
+    "selhal|neuspel",
+    "priklad|manzelstvi"
+   ],
+   "en": [
+    "fail",
+    "example|role model|marriage"
+   ],
+   "how": "kept = failed / not a good example",
+   "inv": null
+  },
+  {
+   "id": "J12",
+   "script": "Asi od mojí mámy. ... Pak řekla, že doufá, že jsem to dobře zvážila. Už se od té doby moc neozvala.",
+   "why": "Mother: origin of the belief; cool reaction; little contact since.",
+   "cs": [
+    "mam|matk|matc",
+    "zvazil|neozval"
+   ],
+   "en": [
+    "mother|mum|mom",
+    "consider|thought it through|hasn.t (been in touch|called)|not (been )?in touch"
+   ],
+   "how": "kept = mother + reaction",
+   "inv": null
+  },
+  {
+   "id": "J13",
+   "script": "Doktorka mi nabídla prášky, ale nechci. ... Bojím se, že bych se nemohla včas vzbudit pro děti. A nechci být závislá.",
+   "why": "Declines medication (fear of not waking for kids, dependence). The refusal must not be inverted.",
+   "cs": [
+    "prasky|medikac|leky",
+    "nechci|odmitl|nechce|nebrat"
+   ],
+   "en": [
+    "pill|medication|tablet",
+    "(doesn.t want|don.t want|does not want|didn.t want|declin|refus|no|not want|won.t|afraid|fear)"
+   ],
+   "how": "kept = offered pills AND declined; INVERTED = says she takes/wants pills",
+   "inv": {
+    "base": [
+     "prasky|medikac|leky"
+    ],
+    "ok": [
+     "nechci|odmitl|nechce|nebrat|boji"
+    ],
+    "base_en": [
+     "pill|medication|tablet"
+    ],
+    "ok_en": [
+     "(doesn.t want|don.t want|does not want|declin|refus|not want|won.t|afraid|fear|worr|reluctan|against)"
+    ]
+   }
+  },
+  {
+   "id": "J14",
+   "script": "Pláču. Omlouvám se. ... Děkuji. Ještě nikomu jsem to takhle neřekla.",
+   "why": "She cries; first time she says it to anyone like this.",
+   "cs": [
+    "plac",
+    "nikomu"
+   ],
+   "en": [
+    "cry|crying|tears",
+    "no ?one|nobody|anyone|never (told|said)"
+   ],
+   "how": "kept = cries + first time",
+   "inv": null
+  },
+  {
+   "id": "J15",
+   "script": "Že zpanikařím a rozpláču se. ... Nebo by mohly vidět, že smutek je dovolený. ... Mohla bych [napsat, co mě budí].",
+   "why": "Fear of crying in front of children; reframe; homework: a paper by the bed.",
+   "cs": [
+    "zpanik|rozplac|plakat",
+    "papir|napsat|zapsat"
+   ],
+   "en": [
+    "panic|cry",
+    "paper|write|note"
+   ],
+   "how": "kept = fear of crying before the children and/or the paper homework",
+   "inv": null
+  }
+ ],
+ "daniel-r": [
+  {
+   "id": "D1",
+   "script": "I work as a project manager at a logistics company, and I've been completely burned out since October. ... We lost a big client ... I ended up doing three people's jobs.",
+   "why": "Occupation and the work trigger.",
+   "cs": [
+    "project manager",
+    "logistic",
+    "october"
+   ],
+   "en": [
+    "project manager",
+    "logistic",
+    "october"
+   ],
+   "how": "kept = project manager + logistics + October; garbled = other job/month",
+   "inv": null
+  },
+  {
+   "id": "D2",
+   "script": "I'm at my desk by seven and I'm still answering messages at ten at night.",
+   "why": "Working hours.",
+   "cs": [
+    "seven|\\b7\\b",
+    "ten|\\b10\\b"
+   ],
+   "en": [
+    "seven|\\b7\\b",
+    "ten|\\b10\\b"
+   ],
+   "how": "kept = 7 am to 10 pm",
+   "inv": null
+  },
+  {
+   "id": "D3",
+   "script": "Most nights I sleep about four hours. I wake up at three in the morning and can't fall back asleep.",
+   "why": "Sleep pattern (4 h, wakes at 3).",
+   "cs": [
+    "four|\\b4\\b",
+    "three|\\b3\\b"
+   ],
+   "en": [
+    "four|\\b4\\b",
+    "three|\\b3\\b"
+   ],
+   "how": "kept = about four hours AND waking at three",
+   "inv": null
+  },
+  {
+   "id": "D4",
+   "script": "My father. He was diagnosed with Parkinson's disease in the autumn. ... He's seventy-three.",
+   "why": "Father: Parkinson's, aged seventy-three (known ASR trap: 'seventy three' heard as 'having a dream').",
+   "cs": [
+    "parkinson",
+    "seventy.?three|\\b73\\b"
+   ],
+   "en": [
+    "parkinson",
+    "seventy.?three|\\b73\\b"
+   ],
+   "how": "kept = Parkinson's AND 73; garbled = other age/disease",
+   "inv": null
+  },
+  {
+   "id": "D5",
+   "script": "I'm the one who drives him to the hospital in Leeds. The neurology appointments are every few weeks, and it's an hour each way.",
+   "why": "Caregiving burden; place Leeds.",
+   "cs": [
+    "leeds",
+    "neurolog|hospital"
+   ],
+   "en": [
+    "leeds",
+    "neurolog|hospital"
+   ],
+   "how": "kept = Leeds + hospital/neurology; garbled = other city",
+   "inv": null
+  },
+  {
+   "id": "D6",
+   "script": "My younger sister Hannah lives in Toronto, so all the care for our father falls on me.",
+   "why": "Sister Hannah in Toronto; sole carer.",
+   "cs": [
+    "hannah",
+    "toronto"
+   ],
+   "en": [
+    "hannah",
+    "toronto"
+   ],
+   "how": "kept = Hannah + Toronto; garbled = other name/city",
+   "inv": null
+  },
+  {
+   "id": "D7",
+   "script": "I feel it's selfish to be tired when he's the one who's ill. So I don't say anything to anyone.",
+   "why": "Guilt and silence.",
+   "cs": [
+    "selfish|guilt",
+    "anyone|no ?one|nobody|don.t say"
+   ],
+   "en": [
+    "selfish|guilt",
+    "anyone|no ?one|nobody|don.t say"
+   ],
+   "how": "kept = guilt about being tired + tells nobody",
+   "inv": null
+  },
+  {
+   "id": "D8",
+   "script": "Some days I sit in the car park at the hospital for ten minutes before I go in, because I can't face it.",
+   "why": "Avoidance behaviour at the hospital.",
+   "cs": [
+    "car park|parking",
+    "ten|\\b10\\b"
+   ],
+   "en": [
+    "car park|parking",
+    "ten|\\b10\\b"
+   ],
+   "how": "kept = car park, ten minutes",
+   "inv": null
+  },
+  {
+   "id": "D9",
+   "script": "My girlfriend booked it, to be honest. Claire. She said she was done watching me disappear.",
+   "why": "Girlfriend Claire booked the session; wording of concern.",
+   "cs": [
+    "claire",
+    "book"
+   ],
+   "en": [
+    "claire",
+    "book"
+   ],
+   "how": "kept = Claire booked it; garbled = other name",
+   "inv": null
+  },
+  {
+   "id": "D10",
+   "script": "I ran. Ten kilometres every Saturday morning. I'd done it for six years. ... I stopped about two months ago.",
+   "why": "Loss of running (10 km, six years, stopped two months ago).",
+   "cs": [
+    "ten kilomet|10 ?k|10 ?km",
+    "six years|6 years",
+    "two months|2 months"
+   ],
+   "en": [
+    "ten kilomet|10 ?k|10 ?km",
+    "six years|6 years",
+    "two months|2 months"
+   ],
+   "how": "kept = running + the numbers",
+   "inv": null
+  },
+  {
+   "id": "D11",
+   "script": "Peterson. ... I answer it. Every time. ... There's a restructuring in the spring and I'm afraid they'll let me go. ... I have a mortgage.",
+   "why": "Boss Peterson, answers every email, fear of dismissal at the spring restructuring, mortgage.",
+   "cs": [
+    "peterson",
+    "restructur",
+    "mortgage"
+   ],
+   "en": [
+    "peterson",
+    "restructur",
+    "mortgage"
+   ],
+   "how": "kept = Peterson + restructuring + mortgage",
+   "inv": null
+  },
+  {
+   "id": "D12",
+   "script": "My heart was going and my hands were shaking. I thought for a second it was a heart attack ... Once on the train to Manchester. ... I haven't told anyone about it, not even Claire.",
+   "why": "Panic episodes, concealed from everyone including Claire.",
+   "cs": [
+    "heart attack",
+    "manchester|train",
+    "claire|anyone|no ?one"
+   ],
+   "en": [
+    "heart attack",
+    "manchester|train",
+    "claire|anyone|no ?one"
+   ],
+   "how": "kept = panic/heart-attack fear + undisclosed; inverted = says Claire knows",
+   "inv": null
+  },
+  {
+   "id": "D13",
+   "script": "I'm on about six cups a day. And I've started having wine in the evenings to switch my head off. Two glasses, sometimes three.",
+   "why": "Substance use: coffee 6 cups, wine 2-3 glasses.",
+   "cs": [
+    "six|\\b6\\b",
+    "wine",
+    "two glasses|three"
+   ],
+   "en": [
+    "six|\\b6\\b",
+    "wine",
+    "two glasses|three"
+   ],
+   "how": "kept = coffee amount AND wine amount; garbled = other numbers",
+   "inv": null
+  },
+  {
+   "id": "D14",
+   "script": "My grandfather worked in the mines in Yorkshire. He never complained ... I keep thinking he would think I was weak for being here.",
+   "why": "Family pattern of stoicism; fear of being seen as weak.",
+   "cs": [
+    "grandfather",
+    "mine",
+    "weak"
+   ],
+   "en": [
+    "grandfather",
+    "mine",
+    "weak"
+   ],
+   "how": "kept = grandfather miner + weakness",
+   "inv": null
+  },
+  {
+   "id": "D15",
+   "script": "A fixed time in the evening when you switch off your phone ... Half past nine, perhaps. I could make it a thing with Claire. Tea on the sofa.",
+   "why": "Homework: phone off at 9.30 pm, tea with Claire, sleep note.",
+   "cs": [
+    "half past nine|9[.:]30|nine thirty",
+    "phone|switch"
+   ],
+   "en": [
+    "half past nine|9[.:]30|nine thirty",
+    "phone|switch"
+   ],
+   "how": "kept = 9.30 + phone off",
+   "inv": null
+  }
+ ],
+ "hannah-w": [
+  {
+   "id": "H1",
+   "script": "I was made deputy head at my school. I've taught Year 4 for eleven years and I loved it.",
+   "why": "Trigger: promotion in September; eleven years as Year 4 teacher.",
+   "cs": [
+    "deputy",
+    "year 4|year four",
+    "eleven|\\b11\\b"
+   ],
+   "en": [
+    "deputy",
+    "year 4|year four",
+    "eleven|\\b11\\b"
+   ],
+   "how": "kept = deputy head + Year 4 + eleven years",
+   "inv": null
+  },
+  {
+   "id": "H2",
+   "script": "I keep thinking they picked the wrong person, and that sooner or later someone will notice I have no idea what I'm doing.",
+   "why": "Impostor belief.",
+   "cs": [
+    "wrong person|no idea|fraud|out of my depth"
+   ],
+   "en": [
+    "wrong person|no idea|fraud|out of my depth"
+   ],
+   "how": "kept = the belief",
+   "inv": null
+  },
+  {
+   "id": "H3",
+   "script": "Mostly Sunday evenings. My chest goes tight and I start rehearsing Monday's staff meeting in my head.",
+   "why": "Sunday-evening anxiety, rehearsal.",
+   "cs": [
+    "sunday",
+    "chest",
+    "rehears"
+   ],
+   "en": [
+    "sunday",
+    "chest",
+    "rehears"
+   ],
+   "how": "kept = Sunday + chest tightness + rehearsing",
+   "inv": null
+  },
+  {
+   "id": "H4",
+   "script": "Last week I rewrote the same email to the governors four times. ... Mr Hargreaves, the chair of governors.",
+   "why": "Compulsive rewriting; Mr Hargreaves.",
+   "cs": [
+    "four times|4 times",
+    "hargreaves",
+    "governor"
+   ],
+   "en": [
+    "four times|4 times",
+    "hargreaves",
+    "governor"
+   ],
+   "how": "kept = four times + Hargreaves; garbled = other name/number",
+   "inv": null
+  },
+  {
+   "id": "H5",
+   "script": "Most days I feel like a child wearing her mother's coat. ... She was a headteacher for twenty years. ... they've named a library after her.",
+   "why": "Mother as headteacher, comparison.",
+   "cs": [
+    "mother|mum",
+    "head ?teacher",
+    "twenty|\\b20\\b"
+   ],
+   "en": [
+    "mother|mum",
+    "head ?teacher",
+    "twenty|\\b20\\b"
+   ],
+   "how": "kept = mother headteacher + twenty years",
+   "inv": null
+  },
+  {
+   "id": "H6",
+   "script": "She says I've always worried too much and I should stop being silly. ... So I don't tell her how bad it is.",
+   "why": "Mother's minimising response; Hannah conceals.",
+   "cs": [
+    "silly|worr",
+    "don.t tell|doesn.t know|not tell"
+   ],
+   "en": [
+    "silly|worr",
+    "don.t tell|doesn.t know|not tell"
+   ],
+   "how": "kept = mother says stop being silly + she hides it",
+   "inv": null
+  },
+  {
+   "id": "H7",
+   "script": "I'm awake at four every morning. ... Timetable changes, the Ofsted prep, a parent complaint, a child I'm worried about.",
+   "why": "Early waking at 4 am and rumination content.",
+   "cs": [
+    "four|\\b4\\b",
+    "ofsted",
+    "awake|wake"
+   ],
+   "en": [
+    "four|\\b4\\b",
+    "ofsted",
+    "awake|wake"
+   ],
+   "how": "kept = 4 am + Ofsted; garbled = other time",
+   "inv": null
+  },
+  {
+   "id": "H8",
+   "script": "Five or six. [cups of coffee] ... My heart goes fast. My hands are a bit shaky. Last Thursday I had to leave a meeting to splash my face with water.",
+   "why": "Caffeine and somatic anxiety; meeting incident.",
+   "cs": [
+    "five or six|5 or 6|five|six",
+    "heart",
+    "thursday|splash"
+   ],
+   "en": [
+    "five or six|5 or 6|five|six",
+    "heart",
+    "thursday|splash"
+   ],
+   "how": "kept = coffee amount + heart + incident",
+   "inv": null
+  },
+  {
+   "id": "H9",
+   "script": "My partner Ben knows a bit. He says I should just enjoy it. ... He's an engineer. ... Not even Ben knows about the four a.m.",
+   "why": "Partner Ben, partial disclosure; does not know about 4 a.m.",
+   "cs": [
+    "\\bben\\b",
+    "engineer",
+    "four|4"
+   ],
+   "en": [
+    "\\bben\\b",
+    "engineer",
+    "four|4"
+   ],
+   "how": "kept = Ben (+ engineer or 4 a.m. undisclosed); inverted = says Ben knows everything",
+   "inv": null
+  },
+  {
+   "id": "H10",
+   "script": "Now I'm their line manager and it's awkward. ... I miss my class too. ... Now my days are spreadsheets.",
+   "why": "Loss of colleagues and class.",
+   "cs": [
+    "line manager|manager",
+    "miss"
+   ],
+   "en": [
+    "line manager|manager",
+    "miss"
+   ],
+   "how": "kept = line manager + misses",
+   "inv": null
+  },
+  {
+   "id": "H11",
+   "script": "I said yes in the room because I couldn't say no to her. The head. Then I went home and cried. ... Would you want to go back? I don't know.",
+   "why": "Ambivalence about the promotion; cried.",
+   "cs": [
+    "couldn.t say no|say no",
+    "cried|cry"
+   ],
+   "en": [
+    "couldn.t say no|say no",
+    "cried|cry"
+   ],
+   "how": "kept = could not say no + cried",
+   "inv": null
+  },
+  {
+   "id": "H12",
+   "script": "The summer holidays. We went walking in the Lakes ... ten days. ... I couldn't eat on the Sunday.",
+   "why": "Relief on holiday (Lakes, ten days) and anxiety returning before term.",
+   "cs": [
+    "lakes",
+    "ten days|10 days"
+   ],
+   "en": [
+    "lakes",
+    "ten days|10 days"
+   ],
+   "how": "kept = Lakes + ten days",
+   "inv": null
+  },
+  {
+   "id": "H13",
+   "script": "I started writing down what went well each evening. ... It helped for about two weeks and then I stopped, because I felt silly. ... As if I were bragging.",
+   "why": "Coping attempt: evening notebook, stopped after two weeks.",
+   "cs": [
+    "two weeks|2 weeks",
+    "notebook|writ",
+    "silly|brag"
+   ],
+   "en": [
+    "two weeks|2 weeks",
+    "notebook|writ",
+    "silly|brag"
+   ],
+   "how": "kept = notebook + two weeks",
+   "inv": null
+  },
+  {
+   "id": "H14",
+   "script": "I'd like to do the job without feeling like a fraud. ... Walking into a meeting and not rehearsing it first. Sending an email once.",
+   "why": "Therapy goals.",
+   "cs": [
+    "fraud",
+    "rehears|once"
+   ],
+   "en": [
+    "fraud",
+    "rehears|once"
+   ],
+   "how": "kept = fraud goal + a concrete goal",
+   "inv": null
+  },
+  {
+   "id": "H15",
+   "script": "Yes, over breakfast. [telling Ben on Saturday] ... I'll put it by the kettle ... I nearly cancelled this morning.",
+   "why": "Plan: tell Ben on Saturday over breakfast; notebook by the kettle.",
+   "cs": [
+    "saturday|breakfast",
+    "\\bben\\b|kettle"
+   ],
+   "en": [
+    "saturday|breakfast",
+    "\\bben\\b|kettle"
+   ],
+   "how": "kept = tell Ben Saturday breakfast and/or notebook by the kettle",
+   "inv": null
+  }
+ ]
+}
