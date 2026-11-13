@@ -1,0 +1,10 @@
+--- a/ggml/src/ggml-opencl/ggml-opencl.cpp
++++ b/ggml/src/ggml-opencl/ggml-opencl.cpp
+@@ -17579,6 +17579,7 @@
+ }
+ 
+ static ggml_backend_buffer_type_t ggml_backend_opencl_device_get_buffer_type(ggml_backend_dev_t dev) {
++    ggml_cl_init(dev); // PATCH: make sure backend_ctx exists before the buffer type is queried
+     auto * dev_ctx = static_cast<ggml_backend_opencl_device_context *>(dev->context);
+ 
+     dev_ctx->buffer_type = ggml_backend_buffer_type{

@@ -1,0 +1,48 @@
+whisper_init_from_file_with_params_no_state: loading model from 'ggml-large-v3-turbo-q5_0.bin'
+whisper_init_with_params_no_state: use gpu    = 1
+whisper_init_with_params_no_state: flash attn = 1
+whisper_init_with_params_no_state: gpu_device = 0
+whisper_init_with_params_no_state: dtw        = 0
+ggml_opencl: selected platform: 'QUALCOMM Snapdragon(TM)'
+
+ggml_opencl: device: 'QUALCOMM Adreno(TM) (OpenCL 2.0 Adreno(TM) 650)'
+ggml_opencl: default device: 'QUALCOMM Adreno(TM) (OpenCL 2.0 Adreno(TM) 650)'
+whisper_init_with_params_no_state: devices    = 2
+whisper_init_with_params_no_state: backends   = 2
+whisper_model_load: loading model
+whisper_model_load: n_vocab       = 51866
+whisper_model_load: n_audio_ctx   = 1500
+whisper_model_load: n_audio_state = 1280
+whisper_model_load: n_audio_head  = 20
+whisper_model_load: n_audio_layer = 32
+whisper_model_load: n_text_ctx    = 448
+whisper_model_load: n_text_state  = 1280
+whisper_model_load: n_text_head   = 20
+whisper_model_load: n_text_layer  = 4
+whisper_model_load: n_mels        = 128
+whisper_model_load: ftype         = 8
+whisper_model_load: qntvr         = 2
+whisper_model_load: type          = 5 (large v3)
+whisper_model_load: adding 1609 extra tokens
+whisper_model_load: n_langs       = 100
+ggml_opencl: kernel cache enabled at '/data/local/tmp/llama.cpp/cl-cache'
+ggml_opencl: loading OpenCL kernels......................................................................................................................................................ggml_opencl: kernel compile error (err=-11):
+
+BC-src-code:39:9: error: implicit declaration of function 'dot_acc_sat_4x8packed_ss_int' is invalid in C99 [-Werror,-Wimplicit-function-declaration]
+    r = dot_acc_sat_4x8packed_ss_int(qw.s0, a.x, r);
+        ^
+BC-src-code:46:16: warning: unknown attribute 'qcom_wave_pair_mode' ignored [-Wattributes]
+__attribute__((qcom_wave_pair_mode(1)))
+               ^
+2 diagnostic(s) generated.
+
+Real time (s): 12.947559
+User time (s): 9.869952
+System time (s): 1.209499
+Max RSS (KiB): 499640
+Major faults: 2
+Minor faults: 521542
+File system inputs: 28904
+File system outputs: 8992
+Voluntary context switches: 249
+Involuntary context switches: 765

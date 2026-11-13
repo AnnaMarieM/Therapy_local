@@ -1,0 +1,568 @@
+{
+ "engine": "turbo-slow5",
+ "base": "whisper-large-v3-turbo",
+ "opts": {
+  "ffmpeg_filter": "atempo=0.5"
+ },
+ "client": "jana-n",
+ "lang": "cs",
+ "lane": 2,
+ "audio_s": 769.0,
+ "seconds": 126.6,
+ "rtf": 0.165,
+ "wer": 0.2397,
+ "cer": 0.128,
+ "segments": [
+  {
+   "start": 0.43,
+   "end": 4.67,
+   "text": "Dobrý den, paní neváklá Petra."
+  },
+  {
+   "start": 5.81,
+   "end": 9.57,
+   "text": "S čím byste dnes chtěla začít?"
+  },
+  {
+   "start": 11.27,
+   "end": 13.69,
+   "text": "Dobrý den, já ani nevím."
+  },
+  {
+   "start": 14.15,
+   "end": 16.99,
+   "text": "Mám pocit, že mi někdo vytáhl"
+  },
+  {
+   "start": 16.99,
+   "end": 20.31,
+   "text": "koverec pod nohou."
+  },
+  {
+   "start": 20.31,
+   "end": 21.91,
+   "text": "Co se stalo?"
+  },
+  {
+   "start": 23.43,
+   "end": 26.31,
+   "text": "Po patnáctilotejch manželství"
+  },
+  {
+   "start": 26.31,
+   "end": 36.93,
+   "text": "jsme se s mančelem Radkem rozhodli pro rozvod a já to pořád nemohu pochopit."
+  },
+  {
+   "start": 38.03,
+   "end": 39.43,
+   "text": "Řekněte mi víc."
+  },
+  {
+   "start": 40.57,
+   "end": 47.93,
+   "text": "Ještě vládě znebrně dovolené v Chorvatsku a všechno vypadalo normálně"
+  },
+  {
+   "start": 47.93,
+   "end": 53.17,
+   "text": "a v září mi řekl, že už to takhle dál nejde."
+  },
+  {
+   "start": 55.36,
+   "end": 56.82,
+   "text": "A jak jste to přijal?"
+  },
+  {
+   "start": 56.82,
+   "end": 67.24,
+   "text": "Sieděl jsem v kuchni a nemohla jsem nic říct. Pak jsem šla uklidět nádobí, jako by se nic nedělo."
+  },
+  {
+   "start": 68.28,
+   "end": 70.8,
+   "text": "A co se dalo u mě třeba?"
+  },
+  {
+   "start": 73.42,
+   "end": 82.82,
+   "text": "Prázdno a pak zlost, pak zase prázdnost. Třidáste několikrát denně."
+  },
+  {
+   "start": 84.14,
+   "end": 86.64,
+   "text": "Vysvětlil vám radek proč."
+  },
+  {
+   "start": 86.82,
+   "end": 100.82,
+   "text": "Říká, že jsme se zdárili, že žijeme vedle sebe. Já si toho nevšimla, nebo jsem si všimnout nechtěla?"
+  },
+  {
+   "start": 100.82,
+   "end": 105.55,
+   "text": "Co se o tom myslíte teď?"
+  },
+  {
+   "start": 105.55,
+   "end": 120.05,
+   "text": "Že jsem to měla vidět, že jsem slepá. Pořád se v hlavě vracím a hledám, kde jsem udělala chybu."
+  },
+  {
+   "start": 120.05,
+   "end": 122.05,
+   "text": "A máš vlastní?"
+  },
+  {
+   "start": 122.05,
+   "end": 132.05,
+   "text": "Ne. Jednou si myslím, že jsem byla moc unavená a nezajímalá jsem se o něj."
+  },
+  {
+   "start": 132.05,
+   "end": 137.05,
+   "text": "Jen když jsem se starala mohla."
+  },
+  {
+   "start": 137.05,
+   "end": 144.64,
+   "text": "Vypadá to, že se v tom hodině trápíte."
+  },
+  {
+   "start": 144.64,
+   "end": 149.64,
+   "text": "Ano, hlavně kvůli dětem."
+  },
+  {
+   "start": 149.64,
+   "end": 151.64,
+   "text": "Vy jdeme o nich."
+  },
+  {
+   "start": 151.64,
+   "end": 162.63,
+   "text": "Mám dvě děti, Aničce dvanáct a Matějovi osom let a nevím jak jim to říct."
+  },
+  {
+   "start": 162.63,
+   "end": 164.63,
+   "text": "Ještě jim to neřekl?"
+  },
+  {
+   "start": 164.63,
+   "end": 177.97,
+   "text": "Ne, Radek chce abychom to řekli společně, ale pořád to odkládám. Anička už něco tuší."
+  },
+  {
+   "start": 177.97,
+   "end": 179.97,
+   "text": "Co on to říkal?"
+  },
+  {
+   "start": 179.97,
+   "end": 190.41,
+   "text": "Minulý týden jsem je zeptala, jestli se s tátou hádáme. Řekla jsem, že ne."
+  },
+  {
+   "start": 190.41,
+   "end": 194.41,
+   "text": "Či přítila jsem se hrozně."
+  },
+  {
+   "start": 194.41,
+   "end": 213.64,
+   "text": "Že jsem mu lhala a ona to poznala. Viděla jsem jí to na očích."
+  },
+  {
+   "start": 213.64,
+   "end": 216.64,
+   "text": "Co se mi omlílo hlavou?"
+  },
+  {
+   "start": 216.64,
+   "end": 221.64,
+   "text": "Že ji ničím život, že ji vezmu doma."
+  },
+  {
+   "start": 221.64,
+   "end": 227.63,
+   "text": "Jak by se vám darilo říct jí pravdu?"
+  },
+  {
+   "start": 229.25,
+   "end": 235.57,
+   "text": "Nejraději bych to měla za sebou, ale bojím se jejich slz."
+  },
+  {
+   "start": 236.03,
+   "end": 241.01,
+   "text": "A Matě je ještě malý, ten moc nic nechápe."
+  },
+  {
+   "start": 241.97,
+   "end": 244.03,
+   "text": "Co byste mu chtela předat?"
+  },
+  {
+   "start": 245.39,
+   "end": 250.77,
+   "text": "Že ho máme oba rádi a že se to nezmění."
+  },
+  {
+   "start": 250.77,
+   "end": 261.63,
+   "text": "Jenže já vím, nevím jestli je to pravda, když sama nevím jak to bude vypadat."
+  },
+  {
+   "start": 263.21,
+   "end": 265.31,
+   "text": "Jak to bude vypadat s bydlením?"
+  },
+  {
+   "start": 266.67,
+   "end": 278.68,
+   "text": "Byty na hypotéku, Radexa se odstěvuje k bratrově, alespoň díži zůstanou se mnou."
+  },
+  {
+   "start": 279.78,
+   "end": 281.46,
+   "text": "Jak se vám z toho dělala?"
+  },
+  {
+   "start": 281.46,
+   "end": 285.76,
+   "text": "Mám strach, že to sama nezvládnu."
+  },
+  {
+   "start": 286.56,
+   "end": 289.08,
+   "text": "Radek by dětka řešil peně."
+  },
+  {
+   "start": 290.84,
+   "end": 292.98,
+   "text": "Co dát ve všichni dnech?"
+  },
+  {
+   "start": 294.16,
+   "end": 300.22,
+   "text": "Pracuji jako učitelka češtiny na základní škole v Brně."
+  },
+  {
+   "start": 300.58,
+   "end": 303.64,
+   "text": "Učím devítky a osmy."
+  },
+  {
+   "start": 306.0,
+   "end": 308.32,
+   "text": "Jak se vám teď učí?"
+  },
+  {
+   "start": 311.02,
+   "end": 314.5,
+   "text": "Do třiny chodím s kralíkem v krku."
+  },
+  {
+   "start": 314.5,
+   "end": 320.86,
+   "text": "Mám pocit, že všichni vidí, že se mi rozpadá život."
+  },
+  {
+   "start": 325.22,
+   "end": 329.44,
+   "text": "Vidí o tom někdo ve školu?"
+  },
+  {
+   "start": 330.4,
+   "end": 341.22,
+   "text": "Jen ředitelka. Řekla jsem jí to, protože jsem se jednou rozplakala na chodbě. Byla hodno."
+  },
+  {
+   "start": 342.8,
+   "end": 343.9,
+   "text": "Co vám pomohlo?"
+  },
+  {
+   "start": 343.9,
+   "end": 360.29,
+   "text": "Že mě nechala odejít dřív, dala mi hodinu volné, jenže pak jsem seděla doma, bylo to horší."
+  },
+  {
+   "start": 364.67,
+   "end": 371.35,
+   "text": "Protože jsem byla sama za hlavou, v práci jsem měla aspoň co dělat."
+  },
+  {
+   "start": 374.27,
+   "end": 375.81,
+   "text": "Jak spíte?"
+  },
+  {
+   "start": 375.81,
+   "end": 385.81,
+   "text": "Špatně. Každého noci budím ve tři hodiny ráno a přemýšlím, co bude dál."
+  },
+  {
+   "start": 388.04,
+   "end": 391.22,
+   "text": "Co se říkáte, když se probudíte?"
+  },
+  {
+   "start": 393.43,
+   "end": 399.63,
+   "text": "Že nemám hypotéku, nemám manžela, nemám nic."
+  },
+  {
+   "start": 399.63,
+   "end": 406.87,
+   "text": "Pak spočítám peníze, pak si představím, jak to řeknu děta."
+  },
+  {
+   "start": 408.8,
+   "end": 410.82,
+   "text": "Zčí se to dokola."
+  },
+  {
+   "start": 411.62,
+   "end": 412.26,
+   "text": "A pak?"
+  },
+  {
+   "start": 414.71,
+   "end": 420.05,
+   "text": "Kolem páté usnu a v půl sedmé vstávám."
+  },
+  {
+   "start": 420.71,
+   "end": 424.03,
+   "text": "Jsem unamená už ráno."
+  },
+  {
+   "start": 425.55,
+   "end": 427.75,
+   "text": "Jíte? Hýbete se?"
+  },
+  {
+   "start": 427.75,
+   "end": 437.75,
+   "text": "Jím málo, zubla jsem čtyřikla. Kamarádka mi říká, že prám hroda."
+  },
+  {
+   "start": 441.22,
+   "end": 444.98,
+   "text": "Máte kolem sebe někoho, s kým můžete mluvit?"
+  },
+  {
+   "start": 445.9,
+   "end": 457.98,
+   "text": "Mám sestru Alenu v Olmouci. Zavolá mi skoro každý večer a kamarádku Evu z práce."
+  },
+  {
+   "start": 457.98,
+   "end": 459.8,
+   "text": "Co jim říkáte?"
+  },
+  {
+   "start": 460.5,
+   "end": 472.56,
+   "text": "Ale co skoro všechno, evi jen to, že mám těžké období, nechce, aby se mi něco myslela."
+  },
+  {
+   "start": 473.56,
+   "end": 475.86,
+   "text": "Co se obhává, co si myslí?"
+  },
+  {
+   "start": 477.72,
+   "end": 487.82,
+   "text": "Že jsem se lhala, že žena, která nedokážu udřet manželství, není pro děti dobrý příklad."
+  },
+  {
+   "start": 487.82,
+   "end": 496.98,
+   "text": "To je těžká myslenka. Odkud se bere?"
+  },
+  {
+   "start": 498.3,
+   "end": 510.14,
+   "text": "Asi od mojí mámy. Ta vždycky říkala, že manželství se drží a děto jak..."
+  },
+  {
+   "start": 510.14,
+   "end": 514.08,
+   "text": "Co řekla, když jsi jí to oznámila?"
+  },
+  {
+   "start": 514.08,
+   "end": 516.08,
+   "text": "Mlčila."
+  },
+  {
+   "start": 518.08,
+   "end": 524.08,
+   "text": "Pak řekla, že doufá, že jsem to dobře zvážela."
+  },
+  {
+   "start": 525.08,
+   "end": 528.08,
+   "text": "Už se od té dvě moc neozvala."
+  },
+  {
+   "start": 531.77,
+   "end": 532.77,
+   "text": "Jak mám to?"
+  },
+  {
+   "start": 533.77,
+   "end": 534.77,
+   "text": "Smutno."
+  },
+  {
+   "start": 537.76,
+   "end": 540.76,
+   "text": "Potřebovala bych, aby mě objala."
+  },
+  {
+   "start": 543.29,
+   "end": 544.29,
+   "text": "Co byste jítla nic?"
+  },
+  {
+   "start": 544.29,
+   "end": 553.29,
+   "text": "Že to bolí, že nechci být sama, jenže u nás se to nedělá."
+  },
+  {
+   "start": 553.29,
+   "end": 559.66,
+   "text": "Co se dělá, když to říkáte na hlas?"
+  },
+  {
+   "start": 559.66,
+   "end": 572.16,
+   "text": "Pláš."
+  },
+  {
+   "start": 572.16,
+   "end": 577.71,
+   "text": "Vezměte se čas."
+  },
+  {
+   "start": 577.71,
+   "end": 582.71,
+   "text": "Děkuji, ještě jsem nikomu tohle neřekla."
+  },
+  {
+   "start": 582.71,
+   "end": 593.84,
+   "text": "Co máme dělat, že jste to tady řekla?"
+  },
+  {
+   "start": 593.84,
+   "end": 612.19,
+   "text": "Je zvláštní sedět tady a říkat to všechno na hlas, ale trochu to pomoci."
+  },
+  {
+   "start": 612.19,
+   "end": 615.19,
+   "text": "Co by on ti mohlo pomoci nejvíc?"
+  },
+  {
+   "start": 615.19,
+   "end": 622.86,
+   "text": "A vy je dek říct děte."
+  },
+  {
+   "start": 622.86,
+   "end": 627.41,
+   "text": "Mělá to prostě."
+  },
+  {
+   "start": 627.41,
+   "end": 634.59,
+   "text": "S... spánek. Zkoušila jste něco?"
+  },
+  {
+   "start": 634.59,
+   "end": 646.36,
+   "text": "To je všechno. Doktorka mi nepídla prášky, ale..."
+  },
+  {
+   "start": 646.36,
+   "end": 660.95,
+   "text": "Dajím si, že bych se nemohla včas vzbudit pro děti a nechci být závislá."
+  },
+  {
+   "start": 662.15,
+   "end": 675.43,
+   "text": "To zkusíte tohle moc něco malého, třeba sedla postele a nechat papíra napsat, co vás vzbudí?"
+  },
+  {
+   "start": 677.03,
+   "end": 682.03,
+   "text": "Mohla bych, alespoň to dostanu z hlavy."
+  },
+  {
+   "start": 682.03,
+   "end": 689.72,
+   "text": "Čeho se nejbíc bojíte?"
+  },
+  {
+   "start": 691.72,
+   "end": 699.72,
+   "text": "Že s panikařím rozpláču se, že nezvládnu zůstat klidná."
+  },
+  {
+   "start": 701.72,
+   "end": 703.72,
+   "text": "Tak kdo mi to nebadilo?"
+  },
+  {
+   "start": 704.72,
+   "end": 712.72,
+   "text": "Že bych polkala před dětmi, vždyť to by pro ně bylo děsivé."
+  },
+  {
+   "start": 712.72,
+   "end": 724.4,
+   "text": "Nebo by mohli vidět, že jsme také dovolení."
+  },
+  {
+   "start": 724.56,
+   "end": 740.34,
+   "text": "Možná by jí to pomoží."
+  },
+  {
+   "start": 740.34,
+   "end": 744.34,
+   "text": "Se příště podívat, jak to připravit."
+  },
+  {
+   "start": 746.83,
+   "end": 748.75,
+   "text": "Co dnesete z dneška?"
+  },
+  {
+   "start": 751.18,
+   "end": 756.86,
+   "text": "Že nejsem sama a že to nemusím zvládnout hned."
+  },
+  {
+   "start": 757.86,
+   "end": 758.86,
+   "text": "Přesně tak."
+  },
+  {
+   "start": 758.86,
+   "end": 762.84,
+   "text": "Pro dnešek ten skončí."
+  },
+  {
+   "start": 763.98,
+   "end": 768.24,
+   "text": "Děkuji, uvidíme se příští týden."
+  }
+ ],
+ "round": "r3a"
+}
