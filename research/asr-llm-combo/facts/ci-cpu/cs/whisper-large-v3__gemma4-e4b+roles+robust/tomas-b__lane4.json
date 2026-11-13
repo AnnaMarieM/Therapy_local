@@ -1,0 +1,436 @@
+{
+ "round": "r2b",
+ "engine": "whisper-large-v3",
+ "model": "gemma4-e4b+roles+robust",
+ "base_model": "gemma4-e4b",
+ "opts": {
+  "prompt_dir": {
+   "cs": "e2e/combo/prompts/robust/cs",
+   "en": "e2e/combo/prompts/robust"
+  }
+ },
+ "lane": 4,
+ "client": "tomas-b",
+ "lang": "cs",
+ "seconds": 776.5,
+ "facts": [
+  {
+   "heading": "Nervózní na první schůzce",
+   "content": "Tomas se cítí nervózní při první schůzce.",
+   "evidence": "Dobrý den, docela jsem nervózní, jestli mám odbít upřímně.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Manželka vyžádala pomoc",
+   "content": "Manželka Tomasa vyžádala pomoc, protože vztah už takhle nejde.",
+   "evidence": "Manželka. Říká, že už to takhle nejde.",
+   "scope": "session",
+   "category": "Rodina a vztahy",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Kontroluje dveře a sporák",
+   "content": "Tomas kontroluje dveře a sporák až 30krát před odchodem z bytu.",
+   "evidence": "30x zečer kontroluji, jestli sem zamknu dveře a vypnu sporák.",
+   "scope": "session",
+   "category": "Osobní témata a sebepojetí",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Kontrola trvá hodinu",
+   "content": "Tomas potřebuje hodinu, než odejde z bytu kvůli kontrolám.",
+   "evidence": "Trvá mi to hodinu, než odejdu z bytu.",
+   "scope": "session",
+   "category": "Osobní témata a sebepojetí",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Kontrola zahrnuje zatáhnutí zakliku",
+   "content": "Tomas kontroluje dveře, jde k výtahu, vrátí se a zatáhne zakliku.",
+   "evidence": "Zamknu dveře, nadejdu k výtahu, vrátím se a zatáhnu zakliku.",
+   "scope": "session",
+   "category": "Osobní témata a sebepojetí",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Kontroluje sporák každý týden",
+   "content": "Tomas kontroluje sporák každý týden.",
+   "evidence": "Pak kontroluji sporách, každý knov týždlař.",
+   "scope": "session",
+   "category": "Osobní témata a sebepojetí",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Obavy z neudání kontroly",
+   "content": "Tomas se obává, že pokud něco neudělá, přijde mu obraz, že to neudělal pořádně.",
+   "evidence": "Pak se mi do hlavy přijde obraz, že jsem to neudala pořádně a musím vzniknout.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Obraz ohrožení v plamenech",
+   "content": "Tomas vidí v hlavě obraz, že je v plamenech.",
+   "evidence": "Být v plamenách. Vidím to jasně jako film.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Paranoické obrazy každý den",
+   "content": "Obrazy ohrožení se objevují u Tomasa každý den.",
+   "evidence": "Každý den.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Nejhorší obrazy večer a ráno",
+   "content": "Obrazy jsou nejhorší večer, když odcházejí ven nebo spí, a i ráno.",
+   "evidence": "Večer je to nejhorší, když jdeme ven nebo spát. A ráno taky.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Začátek obav před dvěma lety",
+   "content": "Tomas začal mít tyto obavy před dvěma lety.",
+   "evidence": "Začalo to před dvěma lety,",
+   "scope": "profile",
+   "category": "Historie a události",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Tragická událost u souseda",
+   "content": "Obavy začaly po požáru u souseda, kdy se museli evakuovat.",
+   "evidence": "kdy hořelo u sousedu a my se museli evakuovat.",
+   "scope": "profile",
+   "category": "Historie a události",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Požár nastal v noci",
+   "content": "Požár nastal v noci a na chodbě byl kouř.",
+   "evidence": "Bylo to v noci. Potom byl u mě avar, na chodbě byl kůř.",
+   "scope": "profile",
+   "category": "Historie a události",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Pocit zodpovědnosti za požár",
+   "content": "Tomas má pocit, že on může způsobit požár, pokud něco nezkontrolová.",
+   "evidence": "V té době mám pocit, že to můžu způsobit já.",
+   "scope": "profile",
+   "category": "Nálada a emoce",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Úzkost při zdržení se kontrolou",
+   "content": "Pokud zkusí kontrolu nechat, roste mu úzkost, až má pocit, že se zblázní.",
+   "evidence": "Zkusím to nechat. Pak mi roste úzkost, až mám pocit, že se zblázním.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Fyzické projevy úzkosti",
+   "content": "Úzkost se projevuje u Tomasa bolestí srdce a špatným žaludkem.",
+   "evidence": "Srdce po přesuzené ruce a mě špatnil žaludku.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Manželka Barbara si uvědomuje stav",
+   "content": "Manželka Barbara vidí, že úzkost Tomasa je více než jen zvyk.",
+   "evidence": "Na začátku to brala jako zvyk, teď už vidí, že je to víc.",
+   "scope": "session",
+   "category": "Rodina a vztahy",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Zpoždění na kino kvůli kontrolám",
+   "content": "Tomas a Barbara se včera dostali na kino o 40 minut později.",
+   "evidence": "Včera jsme přišli na kino o 40 minut později.",
+   "scope": "session",
+   "category": "Rodina a vztahy",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Manželka čekala na něj venku",
+   "content": "Manželka čekala venku, dokud se Tomas nevrátil a dokončil kontrolu sporáku.",
+   "evidence": "Čekala venku, než se vrátím a zkončil je sporák po třetí.",
+   "scope": "session",
+   "category": "Rodina a vztahy",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas cítil se jako dítě",
+   "content": "Tomas pocítil se jako dítě, které nezvládne vyjít z domu.",
+   "evidence": "Cítil jsem se jako dítě, který nezvládne vyjít z domu.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Pracuje jako elektrikář",
+   "content": "Tomas pracuje jako elektrikář v Malomolce.",
+   "evidence": "Pracuji jako elektrikář v Malomolce.",
+   "scope": "profile",
+   "category": "Práce a kariéra",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Obává se způsobit nehodu",
+   "content": "Tomas se bojí, že kvůli své hlavě způsobí chybu, jako vpadnutí do vody či něco zkoří.",
+   "evidence": "Bojím se, že kvůli své hlavě jednou nám chybu, že vpadním při plém vodě či něco zkoří.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Kontroluje zakázky opakovaně",
+   "content": "Tomas se vrací na kontrolu zakázek i druhý den jen se podívat.",
+   "evidence": "Jen když se tam vrátím druhý den, jen se podívat.",
+   "scope": "session",
+   "category": "Osobní témata a sebepojetí",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Šéf považuje ho za pečlivého",
+   "content": "Šéf Tomasa říká, že je nejpečlivější ve firmě.",
+   "evidence": "Žef mi říká, že jsem nejpečtojší ve firmě,",
+   "scope": "session",
+   "category": "Práce a kariéra",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Práce se zmenšuje v posledních měsících",
+   "content": "Tomasova práce se v posledních měsících zmenšila o hodinový zdaně.",
+   "evidence": "V posledních měsících smydla práce o hodinový zdaně.",
+   "scope": "session",
+   "category": "Práce a kariéra",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas se bojí ztráty práce",
+   "content": "Tomas se bojí, že přijde o práci, a to hlavně teď.",
+   "evidence": "Mám strach, že přijdu o práce. Hlavně teď.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Probora je těhotná ve čtvrtém měsíci",
+   "content": "Probora je těhotná ve čtvrtém měsíci.",
+   "evidence": "Probora těhotná ve čtvrtém měsíci.",
+   "scope": "session",
+   "category": "Rodina a vztahy",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Čekali na dítě tři roky",
+   "content": "Tomas a Probora čekali na dítě tři roky.",
+   "evidence": "Čekali jsme na to tři roky, a potom přišla další myšlenka.",
+   "scope": "profile",
+   "category": "Rodina a vztahy",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Přijímá myšlenky o ublížení",
+   "content": "Tomas má myšlenky, že jí a dítě ublíží.",
+   "evidence": "Že jí a dítě tě ublíží.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Myšlenky o ublížení při práci",
+   "content": "Myšlenka o ublížení přijde, když Tomas krájí chleba na dostajímu schodu.",
+   "evidence": "Ale ta myšlenka přijde, když krájím chleba na dostajímu schodu",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Myšlenky o ublížení ho těší",
+   "content": "Tomas si myslí, že myšlenka o ublížení je nejhorší, když je nikomu neřekl.",
+   "evidence": "Ano. Je to nejhorší, když jsem to nikomu neřekl.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas se ptá, zda je nebezpečný",
+   "content": "Tomas se ptá terapeuta, zda je nebezpečný.",
+   "evidence": "Myslíš, že jsem nebezpečný?",
+   "scope": "session",
+   "category": "Osobní témata a sebepojetí",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas se snaží věřit v pomoc",
+   "content": "Tomas uvádí, že by mu pomohlo, ale chce čas, aby tomu věřil.",
+   "evidence": "To by pomalu. Přesto chce čas, až tomu věřím.",
+   "scope": "session",
+   "category": "Zdroje a zvládání",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Odejde z místnosti při myšlenkách",
+   "content": "Když se myšlenka objeví, Tomas odejde z místnosti.",
+   "evidence": "Odejdu z místnosti.",
+   "scope": "session",
+   "category": "Zdroje a zvládání",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Kontrola pomáhá uklidnit myšlenky",
+   "content": "Tomas se vrátí a zkontroluje něco, aby myšlenka přestala, a kontrola mu pomáhá uklidnit.",
+   "evidence": "Nebo se vrátím a zkontroluji něco, aby to přestalo.",
+   "scope": "session",
+   "category": "Zdroje a zvládání",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Spí mezerně a kontroluje v noci",
+   "content": "Tomas spí mezerně a vstává noce dvakrát, aby zkontroloval, i když tam nic nestojí.",
+   "evidence": "Spím mezerně. Vstávám noce dvakrát a kontrola je sporád, i když tam nic nestojí.",
+   "scope": "session",
+   "category": "Zdraví, tělo a spánek",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Procházky s Barborou ho zaměstnávají",
+   "content": "Procházky s Barborou ho zaměstnávají, když je něco doma.",
+   "evidence": "Pomáháme na procházky s Barborou, když je právě něco doma.",
+   "scope": "session",
+   "category": "Zdroje a zvládání",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Procházky dvakrát týdně",
+   "content": "Tomas a Barbora chodí na procházky dvakrát týdně.",
+   "evidence": "Procházky dvakrát. Týdně.",
+   "scope": "session",
+   "category": "Zdroje a zvládání",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Cíl: odjetí ve dřudzu",
+   "content": "Tomas si přeje, aby mohl odjetí ve dřudzu za pět minut.",
+   "evidence": "Odejít ve dřudzu za pět minut.",
+   "scope": "session",
+   "category": "Osobní témata a sebepojetí",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Cíl: těšit se na dítě bez myšlenek",
+   "content": "Tomas si přeje, aby se mohl těšit na dítě bez těch myšlenek.",
+   "evidence": "A těšit se na dítě bez těch myšlenek.",
+   "scope": "session",
+   "category": "Osobní témata a sebepojetí",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Zkusil terapii s vystavováním",
+   "content": "Tomas zkusil terapii, kdy se člověk postupně vystavuje tomu, čemu se bojí.",
+   "evidence": "Zdošel jsem u terapii, kdy se člověk postupně vystavuje tomu, čemu se bojí.",
+   "scope": "session",
+   "category": "Zdroje a zvládání",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas se bojí být donutěn",
+   "content": "Tomas se obává, že by ho někdo donutil nechat otevřené dveře odejít.",
+   "evidence": "Myslel jsem, že mě někdo donutí nechat otevřené dveře odejít.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Chce říct Proborě, že ji miluje",
+   "content": "Tomas chce Proborě říct, že ji miluje.",
+   "evidence": "Že jí milu.",
+   "scope": "session",
+   "category": "Rodina a vztahy",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Bojí se, že Probora nechtěla by s ním",
+   "content": "Tomas se bojí, že Probora by se s ním nechtěla být.",
+   "evidence": "Zatím se bojím, že by se mnou nechtěla být.",
+   "scope": "session",
+   "category": "Rodina a vztahy",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Zkontroluje dveře jednou",
+   "content": "Tomas se zavazuje zkontrolovat dveře jen jednou při odchodu z bytu.",
+   "evidence": "Jednou. Zkusím to.",
+   "scope": "session",
+   "category": "Zdroje a zvládání",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Zápisuje čísla od jedna do deseti",
+   "content": "Tomas se zavazuje zapisovat čísla od jedné do deseti.",
+   "evidence": "A zapíšu číslo od jedna do deseti.",
+   "scope": "session",
+   "category": "Zdroje a zvládání",
+   "part": 3,
+   "quote_found": true
+  }
+ ],
+ "roles": {
+  "roles": "right",
+  "raw": "```json\n{\n  \"therapist\": \"S1\",\n  \"patient\": \"S0\",\n  \"confidence\": 0.95,\n  \"evidence\": [\n    \"Dobrý den, pane Bárto, pojďte dál.\",\n    \"Co vás sem přivádí?\",\n    \"Řekněte mi o tom víc.\"\n  ]\n}\n```"
+ }
+}

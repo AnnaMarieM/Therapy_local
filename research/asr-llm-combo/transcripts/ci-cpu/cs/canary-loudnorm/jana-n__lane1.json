@@ -1,0 +1,128 @@
+{
+ "engine": "canary-loudnorm",
+ "base": "canary-1b-v2",
+ "opts": {
+  "ffmpeg_filter": "highpass=f=80,loudnorm=I=-18"
+ },
+ "client": "jana-n",
+ "lang": "cs",
+ "lane": 1,
+ "audio_s": 384.5,
+ "seconds": 178.1,
+ "rtf": 0.463,
+ "wer": 0.1605,
+ "cer": 0.0819,
+ "segments": [
+  {
+   "start": 0.0,
+   "end": 18.8,
+   "text": "Jury, paní Lapatera, s čím byste dnes chtěla začít? Jury, já ani nevím. Mám pocit, že mi někdo vytáhl koberec pod nohou. Co se stalo? Po 15 letech manželství jsme se s manželem Radkem rozhodli pro rozvod a já to pořád nemohu pochopit."
+  },
+  {
+   "start": 18.8,
+   "end": 34.0,
+   "text": "Řekněte mi víc. Ještě v létě jsme byli na dovolené v Chorvatsku a všechno vypadalo normálně. V září mi řekl, že už to takhle dál nejde. Jak jste to přijal? Jel jsem v kuchyni a nemohla jsem nic říct. Pak jsem šla uklidit nádobí, jako by se nic nedělo."
+  },
+  {
+   "start": 34.0,
+   "end": 53.8,
+   "text": "A co bylo u něčeho vás? Prázdno, pak zlost, pak zase prázdno. Střídali jste několikrát denně. Besvětloval vám Renek, proč? Říká, že jsme se vzdálili, že žijeme vedle sebe. Já si toho nevšimla, nebo jsem si všimla nechtěla. Co si o tom myslíte teď?"
+  },
+  {
+   "start": 53.8,
+   "end": 69.3,
+   "text": "Že jsem to měla vidět, že jsem slepá. Pořád se v hlavě vracím a hledám, kde jsem dělala chybu. A našla stejný? Ne. Jednou si myslím, že jsem byla moc unavená a nezajímala jsem se o něj. Jindy zase, že jsem se starala moc."
+  },
+  {
+   "start": 69.3,
+   "end": 87.4,
+   "text": "Vypadá to, že se v tom hodně trápíte. Ano, hlavně kvůli dětem. Vyjde mi o nich. Mám dvě děti, Aníčce je 12 a Matěvi 8 let a nevím, jak jim to říct. Ještě jste jim to neřekl? Ne, Radek chce, abychom to řekli společně, ale pořád to odkládáme."
+  },
+  {
+   "start": 87.4,
+   "end": 107.0,
+   "text": "Anička už něco tuší. Co on to říkal? Minulý týden jsem je zeptala, jestli se s tou hádanou. Řekla jsem, že ne. Cítila jsem se hrozně. Proč? Hrozně. Protože jsem lhala a ona to poznala. Viděla jsem jí to na očích."
+  },
+  {
+   "start": 107.0,
+   "end": 126.8,
+   "text": "To se vám manilo hlavou. Že ji ničím život, že ji vezmu domů. Jak by se vám dařilo říct si pravdu? Nejraději bych to měla za sebou, ale bojím se jich slz. A Matěj ještě malý, ten moc nic nechápe. Co byste mu chtěla předat? Že ho máme oba rádi, že se to nezmění. Jenže já vím."
+  },
+  {
+   "start": 126.8,
+   "end": 145.3,
+   "text": "Nevím, jestli je to pravda, když sama nevím, jak to bude vypadat. Jak to bude vypadat, dle níma? Byty na hypotéku. Radek se asi odstěhuje k bratrově, alespoň zatím. Děti zůstanou se mnou. Jak se vám to dělalo? Mám strach, že to sama nezvládnu. Radek by vždycky řešil peníze."
+  },
+  {
+   "start": 145.3,
+   "end": 160.7,
+   "text": "Co děláte ve všech dnech? Pracuji jako učitelka češtiny na základní škole v Brně. Učím devítky a osmičky. Jak se vám teď učí? Do třetí chodím s krlíkem v krku. Mám pocit, že všichni vidí, že se mi rozpadá život."
+  },
+  {
+   "start": 160.7,
+   "end": 179.8,
+   "text": "Ví o tom někdo ve škole? Jen ředitelka. Řekla jsem jí to, protože jsem se jednou rozplakala na chodbě. Byla hodná. Co vám pomohlo? Že mě nechala odejít dřív, dala mi hodinu volné. Jenže pak jsem seděla doma a bylo toho horší."
+  },
+  {
+   "start": 179.8,
+   "end": 196.6,
+   "text": "Horší. Proč? Protože jsem byla sama za hlavou. V práci jsem měla aspoň co dělat. Jak spíte? Špatně. Každou noc se budím ve 3 hodiny ráno a přemýšlím, co bude dál. Co říkáte, když se probudíte?"
+  },
+  {
+   "start": 196.6,
+   "end": 212.6,
+   "text": "že nemám hypotéku, nemám manžela, nemám nic. Tak spočítám peníze, tak si představím, jak to řeknu dětem. Točí se to dokola. Opak. Kolem páté usnu a v půl sedmé vstávám. Jsem unavená už ráno."
+  },
+  {
+   "start": 212.6,
+   "end": 230.6,
+   "text": "Jde? Hýbete se? Jí málo. Zubla jsem čtyřekila. Kamarádka mi říká, že vpram hrozně. Máte kolem sebe někoho, s kým můžete mluvit? Mám sestru Alanu v Olomouci. Zavoláme skoro každý večer. A kamarádku je ru z práce. Co jim říkáte?"
+  },
+  {
+   "start": 230.6,
+   "end": 247.8,
+   "text": "Ale je skoro všechno. Vím to, že mám těžké období. Nechci, aby se mi něco myslela. Co jsem bála, že si myslím? Že jsem se lhala. Že žena, která nedokáže udržet manželství, není pro děti dobrý příklad. To je těžká myšlenka."
+  },
+  {
+   "start": 247.8,
+   "end": 265.1,
+   "text": "Odkud se bere? Asi od mojí mámy. Ta vždycky říkala, že manželství se drží, ať je to, jak chce. Co říkala, když jsi jí to oznámila? Mlčela. Pak řekla, že doufá, že jsem to dobře zvážela. Už se od té doby moc neozvala."
+  },
+  {
+   "start": 265.1,
+   "end": 283.8,
+   "text": "Jak mám to? Smutno. Potřebovala bych, aby mě objela. Co byste jich řekla? Že to bolí, že nechci být sama, jenže u nás se to nedělá. Co se dělá, když to říkáte nahlas? Pláču, omlouvám se."
+  },
+  {
+   "start": 283.8,
+   "end": 299.4,
+   "text": "Není za co. Vezměte si čas. Děkuji. Ještě jsem nikomu tohle neřekla. Co s vámi děláte? Že jste to tady řekla."
+  },
+  {
+   "start": 299.4,
+   "end": 314.7,
+   "text": "Je zvláštní sedět tady a říkat to všechno nahlas, ale trochu to pomáhá. Co by vám teď mohlo pomoct nejvíc? Spat a vědět, jak to říct dítem. Tak na to postupně."
+  },
+  {
+   "start": 314.7,
+   "end": 331.0,
+   "text": "Co? Spánek. Zkoušela jste něco? Hedvábní klíče, to je všechno. Doktorka mi nabídla prášky, ale nechci. Proč nechcete? Bojím se, že bych se nemohla včas vzbudit pro děti a nechci být závislá."
+  },
+  {
+   "start": 331.0,
+   "end": 350.6,
+   "text": "To je rozumné. Zkusíte to vlastně něco malého třeba se dle postele nechat do papíru a napřát, co vás bude? Mohla bych. Aspoň to dostanu z hlavy. A v létě. Čího se nejvíc bojíte? Že s panikařím rozpláču. Že nezvládnu zůstat klidná."
+  },
+  {
+   "start": 350.6,
+   "end": 369.2,
+   "text": "Tak kdyby to nevadilo. Že bych plakala před dětmi? Vždyť to by pro ně bylo děsivé. Nebo by mohly vidět, že smutek je dovolený. To mně nenapadlo. Ani špecifické. Možná by jí to pomohlo."
+  },
+  {
+   "start": 369.2,
+   "end": 384.53,
+   "text": "Můžeme se příště podívat, jak to připravit. Co dnes a co dneska? Že nejsem sama a že to nemusím zvládnout hned. Přesně tak. Pro dnešek to je skončeno. Děkuji. Uvidíme se příští týden."
+  }
+ ],
+ "round": "r2a"
+}

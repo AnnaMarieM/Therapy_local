@@ -1,0 +1,388 @@
+{
+ "round": "r2b",
+ "engine": "whisper-large-v3",
+ "model": "gemma4-e2b+roles+pivot",
+ "base_model": "gemma4-e2b",
+ "opts": {
+  "pivot": true
+ },
+ "lane": 2,
+ "client": "jana-n",
+ "lang": "cs",
+ "seconds": 364.5,
+ "facts": [
+  {
+   "heading": "Divorce from husband",
+   "content": "Jana and Radek decided on a divorce after fifteen years of marriage. Jana cannot understand the decision.",
+   "evidence": "my husband Radek and I decided on a divorce, and I still can't understand it.",
+   "scope": "history & life events",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Husband announced separation",
+   "content": "Radek told Jana in September that the marriage could not continue.",
+   "evidence": "in September he told me that it couldn't go on like this anymore.",
+   "scope": "history & life events",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Emotional experience during divorce",
+   "content": "Jana experienced emptiness and sadness several times a day.",
+   "evidence": "Emptiness, then sadness, then emptiness again. It happens several times a day.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Husband's explanation for drift",
+   "content": "Radek stated they have drifted apart and live next to each other.",
+   "evidence": "He says we have drifted apart, that we live next to each other.",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana's self-doubt about marriage",
+   "content": "Jana thinks she should have noticed the issues or been blind.",
+   "evidence": "That I should have seen it, that I am blind.",
+   "scope": "session",
+   "category": "Self-concept & Identity",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Reasons for current distress",
+   "content": "Jana is mainly troubled because of the children.",
+   "evidence": "Yes, mainly because of the children.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Children's ages",
+   "content": "Jana has two children, Anička who is 12 and Matěj who is 8.",
+   "evidence": "I have two children, Anička is 12 and Matěj is 8.",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Anička's behavior regarding lying",
+   "content": "Last week Anička asked Jana if she argued with Dad, and Jana told her no.",
+   "evidence": "Last week she asked me if I argue with Dad. I told her no.",
+   "scope": "session",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Anička's reaction to truth",
+   "content": "Anička felt terrible when she found out Jana lied.",
+   "evidence": "She felt terrible.",
+   "scope": "session",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana's thoughts about children",
+   "content": "Jana is afraid she will destroy Anička's life and take her home.",
+   "evidence": "That I will destroy her life. That I will take her home.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana's fear of children's tears",
+   "content": "Jana is afraid of the children's tears.",
+   "evidence": "I am afraid of their tears.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Matěj's understanding level",
+   "content": "Matěj is still little and does not understand much.",
+   "evidence": "Matěj is still little, he doesn't understand much.",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Plan for telling children",
+   "content": "Radek wants them to tell the children together or postpone the discussion.",
+   "evidence": "Radek wants us to tell them together, or we postpone it.",
+   "scope": "session",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Living situation details",
+   "content": "The house is on a mortgage and Radek is likely moving to his sister's place.",
+   "evidence": "The house is on a mortgage, Radek is probably moving to his sister's place, at least for now.",
+   "scope": "profile",
+   "category": "Work & Career",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Financial responsibility concern",
+   "content": "Jana is afraid she cannot manage the situation alone.",
+   "evidence": "I am afraid I won't manage it alone.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Radek's financial role",
+   "content": "Radek is the one who would always deal with the money.",
+   "evidence": "Radek would always deal with the money.",
+   "scope": "profile",
+   "category": "Work & Career",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Works as Czech teacher",
+   "content": "Jana works as a Czech teacher at a primary school in Brno. She teaches ninth and eighth graders.",
+   "evidence": "I work as a Czech teacher at a primary school in Brno. I teach ninth and eighth graders.",
+   "scope": "profile",
+   "category": "Work & Career",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Feels life falling apart",
+   "content": "Jana feels like everyone sees that her life is falling apart.",
+   "evidence": "I feel like everyone sees that my life is falling apart.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Told principal about distress",
+   "content": "Jana told the principal about her situation because she cried in the hallway.",
+   "evidence": "I told her because I once cried on the hallway. She was kind.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Principal did not let her leave",
+   "content": "The principal did not let Jana leave earlier, which helped her.",
+   "evidence": "That she didn't let me leave earlier.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Worse when alone at home",
+   "content": "Jana felt worse when she was alone at home compared to at work.",
+   "evidence": "But then I sat at home and it was worse.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Wakes up at three AM",
+   "content": "Jana wakes up at three in the morning and thinks about what is next.",
+   "evidence": "Every night I wake up at three in the morning and think about what's next.",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Wakes up late in the morning",
+   "content": "Jana falls asleep around five and wakes up at half past seven, making her tired in the morning.",
+   "evidence": "I fall asleep around five and wake up at half past seven. I am tired already in the morning.",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Eats little and body image",
+   "content": "Jana eats little and has whitened four thighs. A friend told her she looks terrible.",
+   "evidence": "I eat little. I have whitened four thighs. My friend tells me that I look terrible.",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Sister calls almost every evening",
+   "content": "Jana's sister Alana calls her almost every evening.",
+   "evidence": "I have my sister Alana in Olomouc. She calls me almost every evening.",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tells friend about difficulty",
+   "content": "Jana tells her friend Eva from work that she is going through a difficult time.",
+   "evidence": "Only to Eva that I am going through a difficult time.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Friend thinks she is lying",
+   "content": "Eva thinks Jana is lying and that a woman who cannot maintain a marriage is not a good example for children.",
+   "evidence": "That I am lying. That a woman who cannot maintain a marriage is not a good example for children.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Mother's belief about marriage",
+   "content": "Jana's mother always said that marriage holds together and children do as they please.",
+   "evidence": "She always said that marriage holds together and children do as they please.",
+   "scope": "profile",
+   "category": "History & Life Events",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Mother's reaction to disclosure",
+   "content": "Jana's mother was silent and later said she hopes Jana thought it through well.",
+   "evidence": "She was silent. Then she said she hopes I thought it through well.",
+   "scope": "session",
+   "category": "Family & Relationships",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Wants mother to apologize",
+   "content": "Jana would like her mother to apologize to her.",
+   "evidence": "I would like her to apologize to me.",
+   "scope": "session",
+   "category": "Family & Relationships",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Desires to express hurt feelings",
+   "content": "Jana wants to tell her mother that it hurts and she does not want to be alone.",
+   "evidence": "That it hurts, that I don't want to be alone, but that it doesn't happen in our case.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Crying when speaking feelings",
+   "content": "When Jana says the feelings out loud, she is crying and apologizes.",
+   "evidence": "I'm crying and I'm sorry.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Finds speaking out loud helpful",
+   "content": "Jana finds it strange to say these things out loud but it helps a little.",
+   "evidence": "It's strange to sit here and say all that out loud, but it helps a little.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Wants to sleep and learn skills",
+   "content": "Jana wants to sleep and learn how to tell the children.",
+   "evidence": "To sleep and know how to tell the children.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Reported physical symptom",
+   "content": "Jana reported having a headache. She does not want to take pills.",
+   "evidence": "A headache and that's all. The doctor didn't give me pills, but I don't want them.",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Fear of inability to wake",
+   "content": "Jana is afraid she will not be able to wake up in time for the children.",
+   "evidence": "I'm afraid I won't be able to wake up in time for the children",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Fear of dependency",
+   "content": "Jana does not want to drink dependency.",
+   "evidence": "and I don't want to drink dependency.",
+   "scope": "session",
+   "category": "Addictions & Habits",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Wants to write down thoughts",
+   "content": "Jana stated she could write down what wakes her up.",
+   "evidence": "I could, but at least I'll get it off my chest.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Fear of crying in front of children",
+   "content": "Jana is afraid she will cry in front of the children.",
+   "evidence": "That I would cry in front of children? It would be scary for them.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Belief about Anička's sensitivity",
+   "content": "Jana suggested that Anička might benefit from this approach.",
+   "evidence": "Anička is sensitive, maybe that would help her.",
+   "scope": "session",
+   "category": "Family & Relationships",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Desired test for today",
+   "content": "Jana stated her test for today was to feel not alone.",
+   "evidence": "That I am not alone and that I don't have to handle it right away.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 3,
+   "quote_found": true
+  }
+ ],
+ "roles": {
+  "roles": "right",
+  "raw": "```json\n{\"therapist\": \"S1\", \"patient\": \"S0\", \"confidence\": 0.95, \"evidence\": [\"Good day, I don't even know. I have a feeling someone pulled a rug out from under me.\", \"After fifteen years of marriage,"
+ }
+}

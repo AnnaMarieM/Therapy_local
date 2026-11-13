@@ -1,0 +1,362 @@
+{
+ "round": "r1",
+ "engine": "whisper-large-v3-translate",
+ "model": "gemma4-e4b",
+ "lane": 4,
+ "client": "tomas-b",
+ "lang": "cs",
+ "seconds": 443.5,
+ "facts": [
+  {
+   "heading": "Wife says relationship ending",
+   "content": "Tomas's wife says the relationship is not going to work anymore.",
+   "evidence": "My wife says it's not going to work anymore.",
+   "scope": "session",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Compulsive checking behavior",
+   "content": "Tomas checks if he has locked the door and turned on the switch 30 times a day.",
+   "evidence": "30 times a day I check if I've locked the door and turned on the switch.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Time spent leaving house",
+   "content": "It takes Tomas an hour before he leaves the house.",
+   "evidence": "It takes me an hour before I leave the house.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "House fire imagery",
+   "content": "Tomas sees a picture of a house in flames clearly as a movie.",
+   "evidence": "A house in flames. I see it clearly as a movie.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Checking happens daily",
+   "content": "The compulsive checking happens every day.",
+   "evidence": "Every day.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Worsening in evenings and mornings",
+   "content": "The checking is worst in the evening when going out or to sleep, and in the morning too.",
+   "evidence": "In the evening it's the worst when we go out or to sleep.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Onset of symptoms two years ago",
+   "content": "The checking behavior started two years ago.",
+   "evidence": "It started two years ago, when the neighbor was burning and we had to evacuate.",
+   "scope": "profile",
+   "category": "History & Life Events",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Evacuation due to neighbor's fire",
+   "content": "Tomas and his family evacuated because a neighbor was burning.",
+   "evidence": "when the neighbor was burning and we had to evacuate.",
+   "scope": "profile",
+   "category": "History & Life Events",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Experience during evacuation",
+   "content": "During the evacuation, Tomas got a fever and saw smoke on the floor.",
+   "evidence": "Then I got a fever, there was smoke on the floor and I was screaming.",
+   "scope": "profile",
+   "category": "Health, Body & Sleep",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Evacuation attire",
+   "content": "Tomas and his family left in pyjamas during the evacuation.",
+   "evidence": "We just took off in pyjamas.",
+   "scope": "profile",
+   "category": "History & Life Events",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Feeling of finality after fire",
+   "content": "Tomas felt that the event was over.",
+   "evidence": "That it's over.",
+   "scope": "profile",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Neighbor burned property",
+   "content": "The neighbor burned down their property.",
+   "evidence": "the neighbour burned it all.",
+   "scope": "profile",
+   "category": "History & Life Events",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Feeling of control since fire",
+   "content": "Since the fire, Tomas has felt he can do something.",
+   "evidence": "Since then I have a feeling that I can do it.",
+   "scope": "profile",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Belief about needing control",
+   "content": "Tomas believes that if he doesn't control something, it will happen and he will be free.",
+   "evidence": "if I don't control something, it will happen and I will be free.",
+   "scope": "profile",
+   "category": "Self-concept & Identity",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Difficulty stopping compulsions",
+   "content": "When Tomas tries to stop the compulsions, the tightness grows and he feels like he is going crazy.",
+   "evidence": "Then the tightness grows and I feel like I'm going crazy.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Preference for compulsions",
+   "content": "Tomas admits he would rather perform the compulsions.",
+   "evidence": "I'd rather do it.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Physical symptoms during compulsions",
+   "content": "Tomas experiences heart issues and a bad stomach after crossing his hands.",
+   "evidence": "Heart, after the hand is crossed, I have a bad stomach.",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Wife knows about compulsions",
+   "content": "Barbara, Tomas's wife, knows about the compulsions.",
+   "evidence": "Barbara. My wife.",
+   "scope": "session",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Wife's reaction to compulsions",
+   "content": "Barbara is suffering because of the compulsions, but Tomas knows it is draining her.",
+   "evidence": "She's suffering, but I know it's draining her.",
+   "scope": "session",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Cinema trip incident",
+   "content": "Yesterday, Tomas and his wife went to the cinema, arriving 40 minutes late.",
+   "evidence": "Yesterday we came to the cinema 40 minutes later.",
+   "scope": "session",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Wife's reaction at cinema",
+   "content": "Barbara looked at Tomas without saying anything when he returned to check the room for the third time at the cinema.",
+   "evidence": "She didn't say anything, just looked at me.",
+   "scope": "session",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Feeling like a child",
+   "content": "Tomas felt like a child who cannot get out of the house.",
+   "evidence": "I felt like a child who can't get out of the house.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Occupation as electrician",
+   "content": "Tomas works as an electrician and has done this for a long time.",
+   "evidence": "I work as a electrician for a long time.",
+   "scope": "profile",
+   "category": "Work & Career",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Work involves property issues",
+   "content": "Tomas's work involves divorces in houses and sometimes in family homes.",
+   "evidence": "I have divorces in houses and sometimes in family homes.",
+   "scope": "profile",
+   "category": "Work & Career",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Fear of making mistakes at work",
+   "content": "Tomas fears he might make a mistake because of his head.",
+   "evidence": "I'm afraid I'll make a mistake because of my head.",
+   "scope": "session",
+   "category": "Self-concept & Identity",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Boss called Tomas stingy",
+   "content": "Tomas's boss told him he is the most stingy in the company.",
+   "evidence": "The boss told me I'm the most stingy in the company.",
+   "scope": "session",
+   "category": "Work & Career",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas returns to control room",
+   "content": "Tomas returns to the control room after every order.",
+   "evidence": "I return to the control room after every order.",
+   "scope": "profile",
+   "category": "Work & Career",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas checks control room daily",
+   "content": "Tomas goes back to the control room the next day to check.",
+   "evidence": "I just go back there the next day to check.",
+   "scope": "profile",
+   "category": "Work & Career",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas fears coming to work",
+   "content": "Tomas is afraid to come to work, especially now.",
+   "evidence": "I'm afraid I'll come to work.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Work milestone in fourth month",
+   "content": "Tomas is celebrating something related to his work in the fourth month.",
+   "evidence": "For my work in the fourth month.",
+   "scope": "session",
+   "category": "Work & Career",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas fears hurting partner",
+   "content": "Tomas has thoughts about hurting his partner and her children.",
+   "evidence": "That I'll hurt her and her children.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Thoughts scare Tomas most",
+   "content": "Tomas feels the worst when he hasn't told anyone about his thoughts.",
+   "evidence": "It's the worst when I haven't told anyone about it.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas's coping mechanism",
+   "content": "When the idea appears, Tomas leaves the room or checks something to stop it.",
+   "evidence": "I leave the room. Or I go back and check something to stop it.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "Tomas's sleep pattern",
+   "content": "Tomas wakes up twice a night and checks the room.",
+   "evidence": "I wake up twice a night and check the room.",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas walks with Barbara",
+   "content": "Tomas walks with Barbara twice a week, or almost every day.",
+   "evidence": "Walks twice a week. Well, almost every day.",
+   "scope": "session",
+   "category": "Family & Relationships",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "Tomas's hope for future",
+   "content": "Tomas hopes to leave the hospital and look forward to having a child.",
+   "evidence": "To leave the hospital in 5 minutes and look forward to having a child",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas fears losing partner",
+   "content": "Tomas is afraid that his partner would not want to be with him.",
+   "evidence": "I'm afraid that she wouldn't want to be with me.",
+   "scope": "session",
+   "category": "Family & Relationships",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Belief about partner's actions",
+   "content": "Tomas believes his partner would leave him.",
+   "evidence": "That she would leave me.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas's uncertainty about telling partner",
+   "content": "Tomas is unsure about telling his partner something.",
+   "evidence": "I'm not sure about that.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 3,
+   "quote_found": true
+  }
+ ]
+}

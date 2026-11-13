@@ -1,0 +1,263 @@
+{
+ "round": "r1",
+ "engine": "whisper-small-translate",
+ "model": "qwen3.5-4b",
+ "lane": 2,
+ "client": "jana-n",
+ "lang": "cs",
+ "seconds": 348.4,
+ "facts": [
+  {
+   "heading": "Divorce meeting with manhole doctor",
+   "content": "Jana had a meeting with her ex-husband's doctor regarding their divorce after 15 years of marriage.",
+   "evidence": "After 15 years of the manhole, we had a meeting with the manhole doctor for a divorce.",
+   "scope": "session",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Two children ages 12 and 8",
+   "content": "Jana has two children, one who is 12 years old and another who is 8 years old.",
+   "evidence": "I have two children, one is C12 and the other is 8 years old.",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Teaches at basic school in Prna",
+   "content": "Jana works as a teacher at a basic school in Prna, teaching grades 8 and 9.",
+   "evidence": "I work as a teacher at the basic school in Prna.",
+   "scope": "profile",
+   "category": "Work & Career",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Older child Radek is 12",
+   "content": "Jana's older child is named Radek and is 12 years old.",
+   "evidence": "Radek wants me to tell you this together",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Younger child is 8 years old",
+   "content": "Jana's younger child is 8 years old.",
+   "evidence": "the other is 8 years old",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Feeling of fever from under feet",
+   "content": "Jana reported feeling like she had a fever coming from under her feet.",
+   "evidence": "I have a feeling that I have a fever from under my feet.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Angry feelings about children",
+   "content": "Jana described feeling angry and empty three times a day regarding her children.",
+   "evidence": "Empty, then angry, then again empty, three times a few times a day.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Teaches 3rd grade",
+   "content": "Jana teaches 3rd grade to a little boy in kindergarten.",
+   "evidence": "I go to the 3rd grade with a little boy in the kindergarten.",
+   "scope": "profile",
+   "category": "Work & Career",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Feels like a loser",
+   "content": "Jana feels that everyone knows she is a loser.",
+   "evidence": "I feel that everyone knows that I'm a loser.",
+   "scope": "session",
+   "category": "Self-concept & Identity",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Cried the other day",
+   "content": "Jana cried a lot the other day.",
+   "evidence": "I told him that because I cried a lot the other day.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Received tree from teacher",
+   "content": "A teacher left a tree in Jana's house.",
+   "evidence": "She left me a tree in the house.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Woke up at 3 am",
+   "content": "Jana wakes up at 3 am every night.",
+   "evidence": "Every night I wake up at 3 am and I go to sleep.",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Has no mortgage",
+   "content": "Jana has no mortgage.",
+   "evidence": "I don't have a mortgage",
+   "scope": "session",
+   "category": "Work & Career",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Has no salary",
+   "content": "Jana has no salary.",
+   "evidence": "I don't have a salary",
+   "scope": "session",
+   "category": "Work & Career",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Has no savings",
+   "content": "Jana has no savings.",
+   "evidence": "I don't have anything",
+   "scope": "session",
+   "category": "Work & Career",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Counts money for children",
+   "content": "Jana counts money to imagine how she will tell her children.",
+   "evidence": "I'm counting money, so I can imagine how I'll tell my children.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Sleeps until 7 am",
+   "content": "Jana sleeps until 7 am.",
+   "evidence": "I'll go to bed at 5 and I'll get up at 7.",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Feels fat",
+   "content": "Jana feels she is really fat.",
+   "evidence": "My friend tells me that I'm really fat.",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Calls sister Alon",
+   "content": "Jana's sister Alon calls her almost every evening.",
+   "evidence": "She calls me almost every evening.",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Friend Evus works",
+   "content": "Jana's friend Evus works.",
+   "evidence": "And my friend Evus works.",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Afraid of lying",
+   "content": "Jana is afraid that she is lying.",
+   "evidence": "That I'm lying.",
+   "scope": "session",
+   "category": "Self-concept & Identity",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Afraid of bad mothering",
+   "content": "Jana is afraid she cannot keep her husband for good children.",
+   "evidence": "That a woman who can't keep her husband for good children.",
+   "scope": "session",
+   "category": "Self-concept & Identity",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Mother blamed her",
+   "content": "Jana's mother said she overestimated something and was angry.",
+   "evidence": "Then she said that she was angry and that I had overestimated it.",
+   "scope": "profile",
+   "category": "History & Life Events",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Begs for help",
+   "content": "Jana is crying and begging for help when she says things out loud.",
+   "evidence": "I'm crying and I'm begging you.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Only plays with a horse",
+   "content": "Jana plays with a horse and nothing else.",
+   "evidence": "I'm playing with a horse, and that's all.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Afraid of missing children",
+   "content": "Jana is afraid she would not be able to wake up for children in time.",
+   "evidence": "I'm afraid that I wouldn't be able to wake up for children in time",
+   "scope": "session",
+   "category": "Self-concept & Identity",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Client named Mr. Karim",
+   "content": "Jana mentioned crying with Mr. Karim.",
+   "evidence": "That I'll cry with Mr. Karim.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Sleep problems mentioned",
+   "content": "Jana stated she won't be able to sleep.",
+   "evidence": "That I won't be able to sleep.",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 3,
+   "quote_found": true
+  }
+ ]
+}

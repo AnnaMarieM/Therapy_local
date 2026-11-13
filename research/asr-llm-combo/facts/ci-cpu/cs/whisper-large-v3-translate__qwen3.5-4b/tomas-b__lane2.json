@@ -1,0 +1,452 @@
+{
+ "round": "r1",
+ "engine": "whisper-large-v3-translate",
+ "model": "qwen3.5-4b",
+ "lane": 2,
+ "client": "tomas-b",
+ "lang": "cs",
+ "seconds": 350.6,
+ "facts": [
+  {
+   "heading": "Client name is Tomas",
+   "content": "The client's name is Tomas.",
+   "evidence": "Good day, Mr. Barton.",
+   "scope": "profile",
+   "category": "Self-concept & Identity",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client is nervous about session",
+   "content": "The client feels quite nervous about the session.",
+   "evidence": "I'm quite nervous.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client is not a psychologist",
+   "content": "The client has never been a psychologist.",
+   "evidence": "I've never been a psychologist.",
+   "scope": "profile",
+   "category": "Self-concept & Identity",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client's marriage is failing",
+   "content": "The client's wife says their marriage is not going to work anymore.",
+   "evidence": "She says it's not going to work anymore.",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client checks door repeatedly",
+   "content": "The client checks the door every time they close and open it.",
+   "evidence": "I'm checking every time I close the door and open the door.",
+   "scope": "profile",
+   "category": "Addictions & Habits",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client spends hour checking door",
+   "content": "It takes the client an hour before they leave the house.",
+   "evidence": "It takes me an hour before I leave the house.",
+   "scope": "profile",
+   "category": "Addictions & Habits",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client checks flower garden",
+   "content": "The client goes to the flower garden and closes the door again.",
+   "evidence": "I close the door, go to the flower garden, come back and close the door.",
+   "scope": "profile",
+   "category": "Addictions & Habits",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client checks floor buttons",
+   "content": "The client checks the spores and every button on the floor.",
+   "evidence": "Then I check the spores, every button on the floor.",
+   "scope": "profile",
+   "category": "Addictions & Habits",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client checks door again",
+   "content": "The client checks the door again after checking the floor.",
+   "evidence": "Then the door again.",
+   "scope": "profile",
+   "category": "Addictions & Habits",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client has no time to think",
+   "content": "The client does not have time to think when checking the door.",
+   "evidence": "I don't have time to think.",
+   "scope": "profile",
+   "category": "Coping & Strengths",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client fears doing it wrong",
+   "content": "The client thinks about a picture they didn't do right and have to redo.",
+   "evidence": "I think about the picture that I didn't do it right and I have to do it again.",
+   "scope": "profile",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client sees fire movie",
+   "content": "The client sees a picture of being in flames clearly as a movie.",
+   "evidence": "Being in flames. I see it clearly as a movie.",
+   "scope": "profile",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client checks door daily",
+   "content": "The client checks the door every day, especially in the evening and morning.",
+   "evidence": "Every day. In the evening it's the worst when we go out or sleep. And in the morning too.",
+   "scope": "profile",
+   "category": "Addictions & Habits",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client started checking door two years ago",
+   "content": "The client started checking the door two years ago after a fire evacuation.",
+   "evidence": "It started two years ago, when I was burning next door and I had to evacuate.",
+   "scope": "profile",
+   "category": "History & Life Events",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client had fever during fire",
+   "content": "The client had a fever when the fire happened.",
+   "evidence": "Then I had a fever, there was smoke on the corridor and I was screaming.",
+   "scope": "profile",
+   "category": "History & Life Events",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client felt it was over after fire",
+   "content": "The client felt that it was over after the fire incident.",
+   "evidence": "That it's over.",
+   "scope": "profile",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client believes they can cause fire",
+   "content": "The client feels they can do it if they don't control something.",
+   "evidence": "Since then I have a feeling that I can do it.",
+   "scope": "profile",
+   "category": "Self-concept & Identity",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client feels free if they cause fire",
+   "content": "The client believes they will be free if they don't control something.",
+   "evidence": "That if I don't control something, it will happen and I will be free.",
+   "scope": "profile",
+   "category": "Self-concept & Identity",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client feels responsible for fire",
+   "content": "The client knows it is a big responsibility to control the fire.",
+   "evidence": "That's a big responsibility.",
+   "scope": "profile",
+   "category": "Self-concept & Identity",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client knows logic doesn't make sense",
+   "content": "The client knows the logic doesn't make sense.",
+   "evidence": "I know it doesn't make sense. I know the logic.",
+   "scope": "profile",
+   "category": "Self-concept & Identity",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client feels like they must do it",
+   "content": "The client feels they would rather do it than stop.",
+   "evidence": "I'd rather do it.",
+   "scope": "profile",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client has heart cramp",
+   "content": "The client gets a cramp in their heart when they try to stop.",
+   "evidence": "I try to keep it. Then I got a cramp and I feel like I'm going crazy.",
+   "scope": "profile",
+   "category": "Health, Body & Sleep",
+   "part": 1,
+   "quote_found": false
+  },
+  {
+   "heading": "Client has stomach pain",
+   "content": "The client has a bad stomach after cutting their hand.",
+   "evidence": "Heart, after I cut my hand and I got a bad stomach.",
+   "scope": "profile",
+   "category": "Health, Body & Sleep",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client's wife knows about the habit",
+   "content": "The client's wife Barbara knows about the habit and the cramps.",
+   "evidence": "Barbara. My wife.",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client's wife thinks it's a habit",
+   "content": "The client's wife initially took the behavior as a habit.",
+   "evidence": "At first she took it as a habit, now she knows it's more.",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client's wife suffers from the behavior",
+   "content": "The client's wife is suffering from the client's behavior.",
+   "evidence": "She's suffering, but I know it's getting to her.",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client waited 40 minutes at cinema",
+   "content": "The client waited 40 minutes at the cinema before returning to check the room.",
+   "evidence": "We went to the cinema yesterday and it was 40 minutes later.",
+   "scope": "session",
+   "category": "Addictions & Habits",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client's wife checked room third time",
+   "content": "The client's wife waited outside until the client came back and checked the room for the third time.",
+   "evidence": "She waited outside until I came back and checked the room for the third time.",
+   "scope": "session",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client feels like a child",
+   "content": "The client feels like a child who can't get out of the house.",
+   "evidence": "I felt like a child who can't get out of the house.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client works as an electrician",
+   "content": "The client works as an electrician for a long time.",
+   "evidence": "I work as an electrician for a long time.",
+   "scope": "profile",
+   "category": "Work & Career",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client has experience with house fires",
+   "content": "The client has experience with divorces in houses and sometimes in family homes.",
+   "evidence": "I have divorces in houses and sometimes in family homes.",
+   "scope": "profile",
+   "category": "History & Life Events",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client name is Tomas",
+   "content": "The client's name is Tomas.",
+   "evidence": "Client: Tomas",
+   "scope": "profile",
+   "category": "Self-concept & Identity",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "Client works in control room",
+   "content": "Tomas works in a control room and returns there after every order.",
+   "evidence": "I return to the control room after every order",
+   "scope": "profile",
+   "category": "Work & Career",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Boss called client stingy",
+   "content": "Tomas' boss told him he is the most stingy person in the company.",
+   "evidence": "The boss told me I'm the most stingy in the company",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Client has birthday in April",
+   "content": "Tomas has a birthday in the fourth month of the year.",
+   "evidence": "For my birthday in the fourth month",
+   "scope": "session",
+   "category": "History & Life Events",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Client waited three years for birthday",
+   "content": "Tomas and his family have been waiting for his birthday for three years.",
+   "evidence": "We've been waiting for it for three years",
+   "scope": "profile",
+   "category": "History & Life Events",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Client fears harming children",
+   "content": "Tomas fears he will accidentally harm his wife and children.",
+   "evidence": "That I will take care of her and her children",
+   "scope": "profile",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Client fears cutting bread on stairs",
+   "content": "Tomas fears he will cut his wife's bread on the stairs.",
+   "evidence": "cut the bread and put it on the stairs",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Client fears thoughts happen without action",
+   "content": "Tomas fears his thoughts will cause harm even if he does nothing.",
+   "evidence": "I'm afraid it will happen by itself",
+   "scope": "profile",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Client hides thoughts from Barbara",
+   "content": "Tomas has not told his wife Barbara about his fears.",
+   "evidence": "not even Barbara",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Client fears being dangerous",
+   "content": "Tomas asks if he is considered dangerous by others.",
+   "evidence": "Do you think I'm dangerous?",
+   "scope": "session",
+   "category": "Self-concept & Identity",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Client leaves room when thoughts appear",
+   "content": "Tomas leaves the room when intrusive thoughts appear.",
+   "evidence": "I leave the room",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Client checks orders to stop thoughts",
+   "content": "Tomas goes back to check orders to stop the thoughts.",
+   "evidence": "Or I go back and check something to stop it",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Client walks with Barbara twice a week",
+   "content": "Tomas walks with his wife Barbara twice a week.",
+   "evidence": "Walks twice a week",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Client walks almost every day",
+   "content": "Tomas walks almost every day with his wife.",
+   "evidence": "almost every day",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Client wants to leave hospital quickly",
+   "content": "Tomas wants to leave the hospital in 5 minutes.",
+   "evidence": "To leave the hospital in 5 minutes",
+   "scope": "session",
+   "category": "Goals & Plans",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Client wants to look forward to child",
+   "content": "Tomas wants to look forward to his child without intrusive thoughts.",
+   "evidence": "look forward to a child without those thoughts",
+   "scope": "session",
+   "category": "Goals & Plans",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Client has been to therapy before",
+   "content": "Tomas has previously attended therapy where he gradually discovered his fears.",
+   "evidence": "I have been to therapy where the person gradually discovers what they are afraid of",
+   "scope": "profile",
+   "category": "History & Life Events",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Client name is Tomas",
+   "content": "The client's name is Tomas.",
+   "evidence": "Client: Tomas",
+   "scope": "profile",
+   "category": "Self-concept & Identity",
+   "part": 3,
+   "quote_found": false
+  }
+ ]
+}

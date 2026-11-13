@@ -1,0 +1,778 @@
+{
+ "engine": "turbo-loudnorm",
+ "base": "whisper-large-v3-turbo",
+ "opts": {
+  "ffmpeg_filter": "highpass=f=80,loudnorm=I=-18"
+ },
+ "client": "tomas-b",
+ "lang": "cs",
+ "lane": 2,
+ "audio_s": 411.5,
+ "seconds": 196.6,
+ "rtf": 0.478,
+ "wer": 0.2152,
+ "cer": 0.0958,
+ "segments": [
+  {
+   "start": 1.65,
+   "end": 5.07,
+   "text": "Dobrý den, pane Bárto, pojďte dál. Jak se vám zde zdaří?"
+  },
+  {
+   "start": 5.59,
+   "end": 8.61,
+   "text": "Dobrý den, docela jsem nervózní, jestli mám být upřímný."
+  },
+  {
+   "start": 8.71,
+   "end": 9.81,
+   "text": "Nikdy jsem psychologa nebyl."
+  },
+  {
+   "start": 10.39,
+   "end": 13.43,
+   "text": "To je naprosto v pořádku. Co vás tam přivádí?"
+  },
+  {
+   "start": 14.03,
+   "end": 18.01,
+   "text": "Manželka. Ríká, že už to takhle nejde. A vlastně taky ne."
+  },
+  {
+   "start": 18.43,
+   "end": 19.35,
+   "text": "A co nejde?"
+  },
+  {
+   "start": 20.09,
+   "end": 23.71,
+   "text": "Třicetkrát zážer kontroluji, jestli jsem zamknu dveře a vypnu sporák."
+  },
+  {
+   "start": 24.13,
+   "end": 25.79,
+   "text": "Trvá mi to hodinu, než odejdu z betu."
+  },
+  {
+   "start": 26.69,
+   "end": 28.35,
+   "text": "Hodinu? Jak to vypadá?"
+  },
+  {
+   "start": 28.79,
+   "end": 32.53,
+   "text": "Zamknu dveře, odejdu k výtahu, vrátím se a zatáhnu zaklíku."
+  },
+  {
+   "start": 33.17,
+   "end": 35.31,
+   "text": "Pak zkontroluji sporák, každý knoftí vzdlář."
+  },
+  {
+   "start": 35.93,
+   "end": 36.73,
+   "text": "Pak zase dveře."
+  },
+  {
+   "start": 37.49,
+   "end": 39.21,
+   "text": "A když to uděláte, co se stane?"
+  },
+  {
+   "start": 40.13,
+   "end": 40.99,
+   "text": "Chvíl se mi umaví."
+  },
+  {
+   "start": 41.71,
+   "end": 46.79,
+   "text": "Pak se mi do hlavy přijde obraz, že jsem to neudala pořádně a musím vznovu."
+  },
+  {
+   "start": 47.57,
+   "end": 48.73,
+   "text": "Co je to za obraz?"
+  },
+  {
+   "start": 49.33,
+   "end": 51.33,
+   "text": "Byt v plamenách, vidím to jasně jako film."
+  },
+  {
+   "start": 52.19,
+   "end": 53.97,
+   "text": "Jak často se vám to stává?"
+  },
+  {
+   "start": 54.33,
+   "end": 57.05,
+   "text": "Každý den. Večer je to nejhorší, když jdeme ven."
+  },
+  {
+   "start": 57.05,
+   "end": 58.77,
+   "text": "nebo spát. Ráno taky."
+  },
+  {
+   "start": 59.75,
+   "end": 61.45,
+   "text": "Jak dlouho už to trvá?"
+  },
+  {
+   "start": 61.93,
+   "end": 63.01,
+   "text": "Začalo to před dvěma lety,"
+  },
+  {
+   "start": 63.17,
+   "end": 65.85,
+   "text": "kdy hořil u sousedu a my se musela evakuovat."
+  },
+  {
+   "start": 66.43,
+   "end": 67.65,
+   "text": "Řekněte mi o tom víc."
+  },
+  {
+   "start": 68.27,
+   "end": 68.83,
+   "text": "Bylo to v noci."
+  },
+  {
+   "start": 69.35,
+   "end": 71.67,
+   "text": "Prv byl mě avar, na chodbě byl kůř"
+  },
+  {
+   "start": 71.67,
+   "end": 72.41,
+   "text": "a kde je křičel."
+  },
+  {
+   "start": 73.11,
+   "end": 74.45,
+   "text": "Vyběhli jsme jenom v pěžamech."
+  },
+  {
+   "start": 75.19,
+   "end": 76.39,
+   "text": "Jak vám tehdy bylo?"
+  },
+  {
+   "start": 77.03,
+   "end": 78.49,
+   "text": "Že tohle je konec."
+  },
+  {
+   "start": 79.17,
+   "end": 81.43,
+   "text": "Někdo nebyl zraněn, ale sousedem to vyhořelo celá."
+  },
+  {
+   "start": 81.97,
+   "end": 82.99,
+   "text": "Stál jsem venku v země"
+  },
+  {
+   "start": 82.99,
+   "end": 84.17,
+   "text": "a koukal, jak hoří okno."
+  },
+  {
+   "start": 85.47,
+   "end": 86.45,
+   "text": "A od té doby?"
+  },
+  {
+   "start": 87.05,
+   "end": 90.05,
+   "text": "V téhle době mám pocit, že to můžu způsobit já."
+  },
+  {
+   "start": 90.05,
+   "end": 94.05,
+   "text": "Když něco neskontroluji, jak se to stane a budu jiná."
+  },
+  {
+   "start": 94.05,
+   "end": 96.05,
+   "text": "To je velká zodpovědnost."
+  },
+  {
+   "start": 96.05,
+   "end": 99.05,
+   "text": "Já vím, že to nedává smysl. Zdám logiku."
+  },
+  {
+   "start": 99.05,
+   "end": 101.05,
+   "text": "Prost se to nedá vypnout."
+  },
+  {
+   "start": 101.05,
+   "end": 104.05,
+   "text": "Co děláte, když to nechcete dělat?"
+  },
+  {
+   "start": 104.05,
+   "end": 106.05,
+   "text": "No zkusím to nechat."
+  },
+  {
+   "start": 106.05,
+   "end": 109.05,
+   "text": "Pak mi dostá úzkost, až mám pocit, že se zblázním."
+  },
+  {
+   "start": 109.05,
+   "end": 111.05,
+   "text": "Raději to udělám."
+  },
+  {
+   "start": 111.05,
+   "end": 113.05,
+   "text": "Čím se úzkost projevuje?"
+  },
+  {
+   "start": 113.05,
+   "end": 116.05,
+   "text": "Srdce po třesu zemi ruce a jme špatný od žaludku."
+  },
+  {
+   "start": 117.05,
+   "end": 118.03,
+   "text": "Kde o tom ví?"
+  },
+  {
+   "start": 118.57,
+   "end": 120.97,
+   "text": "Barbara. Moje manželka."
+  },
+  {
+   "start": 121.65,
+   "end": 122.91,
+   "text": "Na začátku to brala jako zvyk,"
+  },
+  {
+   "start": 122.97,
+   "end": 123.99,
+   "text": "tak už vidí, že je to víc."
+  },
+  {
+   "start": 124.71,
+   "end": 125.81,
+   "text": "Jak na to reaguje?"
+  },
+  {
+   "start": 126.41,
+   "end": 129.29,
+   "text": "Řekla trpělá, ale vidím, že ji to vyčerpávala."
+  },
+  {
+   "start": 129.97,
+   "end": 131.09,
+   "text": "Včera jsme přišli na kino"
+  },
+  {
+   "start": 131.09,
+   "end": 132.33,
+   "text": "a o 40 minut později."
+  },
+  {
+   "start": 132.77,
+   "end": 133.75,
+   "text": "Co se stalo?"
+  },
+  {
+   "start": 133.99,
+   "end": 137.01,
+   "text": "Čekala venku, až se vrátím a zkontroluji z poráků pocítím."
+  },
+  {
+   "start": 137.73,
+   "end": 138.35,
+   "text": "Neřekla nic."
+  },
+  {
+   "start": 138.89,
+   "end": 139.99,
+   "text": "Jevím, co na mě podívala."
+  },
+  {
+   "start": 140.53,
+   "end": 141.25,
+   "text": "Jak vám bylo?"
+  },
+  {
+   "start": 141.79,
+   "end": 145.21,
+   "text": "Ano. Cítil jsem se jako dítě, který nezvládne vyjít z domu."
+  },
+  {
+   "start": 145.93,
+   "end": 147.39,
+   "text": "Co dělat za práci?"
+  },
+  {
+   "start": 147.67,
+   "end": 149.01,
+   "text": "Pracuji jako elektrikář, mám moc."
+  },
+  {
+   "start": 149.45,
+   "end": 151.63,
+   "text": "Já mám rozvody v bytech a občas v rodněných domech."
+  },
+  {
+   "start": 152.53,
+   "end": 154.73,
+   "text": "Jak to souvisí s kontrolováním?"
+  },
+  {
+   "start": 155.59,
+   "end": 155.91,
+   "text": "Hodně."
+  },
+  {
+   "start": 156.33,
+   "end": 158.75,
+   "text": "Bojím se, že kvůli své hlavě jednou nám chybují,"
+  },
+  {
+   "start": 158.79,
+   "end": 160.39,
+   "text": "že v patěm připojím voděč a něco skoří."
+  },
+  {
+   "start": 160.89,
+   "end": 162.59,
+   "text": "Stalo se vám něco takového?"
+  },
+  {
+   "start": 162.91,
+   "end": 164.03,
+   "text": "Ne, nikdy."
+  },
+  {
+   "start": 164.61,
+   "end": 166.43,
+   "text": "Ale pokaždé taká se se vracíme kontrolové."
+  },
+  {
+   "start": 166.67,
+   "end": 168.57,
+   "text": "Když se tam vrátím druhý den, jen se podívat."
+  },
+  {
+   "start": 169.49,
+   "end": 170.37,
+   "text": "A kolegové?"
+  },
+  {
+   "start": 170.97,
+   "end": 172.33,
+   "text": "Myslí si, že jsem pět."
+  },
+  {
+   "start": 172.33,
+   "end": 175.63,
+   "text": "Žeš mi říká, že jsem nejpačtovější v firmě,"
+  },
+  {
+   "start": 175.67,
+   "end": 177.05,
+   "text": "ale nevědí, kolik času to stojí."
+  },
+  {
+   "start": 177.51,
+   "end": 178.87,
+   "text": "Kolik času to stojí?"
+  },
+  {
+   "start": 179.21,
+   "end": 181.35,
+   "text": "V poslední pristí si smidla práce o hodinu výzdaně."
+  },
+  {
+   "start": 182.03,
+   "end": 183.35,
+   "text": "Už jsem pár zakázek přišel kolido,"
+  },
+  {
+   "start": 183.43,
+   "end": 184.35,
+   "text": "protože jsem to nestíhal."
+  },
+  {
+   "start": 185.27,
+   "end": 186.59,
+   "text": "Co to s vámi dělá?"
+  },
+  {
+   "start": 187.27,
+   "end": 188.95,
+   "text": "No, straně, že přijde o práce."
+  },
+  {
+   "start": 189.75,
+   "end": 190.27,
+   "text": "Hlavně teď."
+  },
+  {
+   "start": 191.29,
+   "end": 192.21,
+   "text": "Proč řevna teď?"
+  },
+  {
+   "start": 192.83,
+   "end": 194.67,
+   "text": "Proborat děnutá ve čtvrtém měsíce."
+  },
+  {
+   "start": 195.57,
+   "end": 197.67,
+   "text": "Gratuluj. Jak jsi to přijal?"
+  },
+  {
+   "start": 197.67,
+   "end": 199.81,
+   "text": "No, jsem vlastný. Opravdu."
+  },
+  {
+   "start": 200.55,
+   "end": 201.91,
+   "text": "Čekali jsme na to tři roky."
+  },
+  {
+   "start": 201.91,
+   "end": 203.67,
+   "text": "a potom přišla další myšlenka."
+  },
+  {
+   "start": 203.97,
+   "end": 204.53,
+   "text": "Jaká?"
+  },
+  {
+   "start": 204.91,
+   "end": 207.41,
+   "text": "Že jí a dítě tě ublíží."
+  },
+  {
+   "start": 208.07,
+   "end": 209.11,
+   "text": "Ublížíte jak?"
+  },
+  {
+   "start": 209.61,
+   "end": 210.67,
+   "text": "Ne, že bych chtěl."
+  },
+  {
+   "start": 211.11,
+   "end": 212.79,
+   "text": "To je hrazné, nikdy bych to neudal."
+  },
+  {
+   "start": 213.03,
+   "end": 216.23,
+   "text": "Ale ta myšlenka přijde, když krájím chleba,"
+  },
+  {
+   "start": 216.31,
+   "end": 217.83,
+   "text": "dostajím v schodu a pak se obojím,"
+  },
+  {
+   "start": 217.89,
+   "end": 218.45,
+   "text": "že to půjde samo."
+  },
+  {
+   "start": 219.21,
+   "end": 222.09,
+   "text": "Takže je to myšlenka, která vás děsí?"
+  },
+  {
+   "start": 223.19,
+   "end": 223.81,
+   "text": "Ám, ne."
+  },
+  {
+   "start": 224.25,
+   "end": 227.45,
+   "text": "Je to nejhorší, když jsem to někomu neřekl."
+  },
+  {
+   "start": 227.69,
+   "end": 228.67,
+   "text": "Ani Barboře."
+  },
+  {
+   "start": 229.37,
+   "end": 230.85,
+   "text": "Děkuji, že jste mi to řekl."
+  },
+  {
+   "start": 230.85,
+   "end": 232.05,
+   "text": "To je důležité."
+  },
+  {
+   "start": 233.33,
+   "end": 234.47,
+   "text": "Myslíte, že jsem nebezpečný?"
+  },
+  {
+   "start": 235.61,
+   "end": 241.39,
+   "text": "Takové vtíravé myšlenky, jako u lidí s tímto typem potíží, jsou velmi časté."
+  },
+  {
+   "start": 241.81,
+   "end": 243.65,
+   "text": "Hlavně, když se plíží velká změna."
+  },
+  {
+   "start": 244.25,
+   "end": 246.29,
+   "text": "Nejsou důkazem, že byste něco udělal."
+  },
+  {
+   "start": 246.71,
+   "end": 249.51,
+   "text": "Jejich síla je právě v tom, jak vás děsí."
+  },
+  {
+   "start": 250.73,
+   "end": 251.45,
+   "text": "To mě pomáhá."
+  },
+  {
+   "start": 252.03,
+   "end": 254.93,
+   "text": "Přesto chce čas, až tomu věřím."
+  },
+  {
+   "start": 255.65,
+   "end": 256.25,
+   "text": "Rozumím."
+  },
+  {
+   "start": 256.81,
+   "end": 259.73,
+   "text": "Co děláte, když se ta myšlenka objeví?"
+  },
+  {
+   "start": 259.73,
+   "end": 264.73,
+   "text": "Odejdu z místnosti. Nebo se vrátím a zkontroluji něco, aby to přestalo."
+  },
+  {
+   "start": 264.73,
+   "end": 269.73,
+   "text": "Takže kontrola vám pomáhá uklidnit i tuhle?"
+  },
+  {
+   "start": 269.73,
+   "end": 272.73,
+   "text": "Vlastně hned. Nikdy mě napadlo, že to spousobující."
+  },
+  {
+   "start": 272.73,
+   "end": 274.73,
+   "text": "Jak spíte?"
+  },
+  {
+   "start": 274.73,
+   "end": 280.73,
+   "text": "Spím mezerně. Stávám v noci vlakrát a kontrolu je z morák, když tam je zna stojí."
+  },
+  {
+   "start": 280.73,
+   "end": 282.73,
+   "text": "Pomáhá vám něco?"
+  },
+  {
+   "start": 282.73,
+   "end": 287.73,
+   "text": "Pomáháme na procházky s Barborou, pokud ještě právě něco doma. To mě zaměstná."
+  },
+  {
+   "start": 287.73,
+   "end": 288.73,
+   "text": "Nezaměstná."
+  },
+  {
+   "start": 288.73,
+   "end": 290.73,
+   "text": "Jak často to děláte?"
+  },
+  {
+   "start": 290.73,
+   "end": 294.73,
+   "text": "Procházky dvakrát dýdně, no právě, no když všechno."
+  },
+  {
+   "start": 294.73,
+   "end": 299.73,
+   "text": "Co by pro vás znamenalo, kdyby se to zlepšilo?"
+  },
+  {
+   "start": 299.73,
+   "end": 304.73,
+   "text": "Odejít věců za pět minut a těšit se na dítě bez těch myšlenek."
+  },
+  {
+   "start": 304.73,
+   "end": 309.73,
+   "text": "To jsou jasné cíle. Víte, že existuje léčba, která tomu pomáhá?"
+  },
+  {
+   "start": 309.73,
+   "end": 314.73,
+   "text": "Zdošel jsem o terapii, když se člověk postupně vystavuje tomu, čemu se bojí."
+  },
+  {
+   "start": 314.73,
+   "end": 316.73,
+   "text": "Měl jsem z toho strach."
+  },
+  {
+   "start": 316.73,
+   "end": 318.73,
+   "text": "Strach je pochopitelný."
+  },
+  {
+   "start": 318.73,
+   "end": 322.73,
+   "text": "Šlo by se po malých krocích a vy byste o tempu rozhodoval."
+  },
+  {
+   "start": 323.73,
+   "end": 326.73,
+   "text": "To je uklidňující."
+  },
+  {
+   "start": 326.73,
+   "end": 330.73,
+   "text": "Myslel jsem, že mě někdo do nutí nechat otevřená dveře a odejít."
+  },
+  {
+   "start": 331.73,
+   "end": 332.73,
+   "text": "Tak to ne."
+  },
+  {
+   "start": 332.73,
+   "end": 337.73,
+   "text": "Začali bychom třeba jen tím, že zkontrolujete dveře jenom jednou, ne třikrát."
+  },
+  {
+   "start": 337.73,
+   "end": 340.73,
+   "text": "To zní malé, ale to je pro mě velké."
+  },
+  {
+   "start": 341.73,
+   "end": 343.73,
+   "text": "Velké kroky začínají malými."
+  },
+  {
+   "start": 343.73,
+   "end": 347.05,
+   "text": "Řekl jste něco důležitého o Barboře."
+  },
+  {
+   "start": 347.61,
+   "end": 350.87,
+   "text": "Co byste jí chtěl říct?"
+  },
+  {
+   "start": 351.17,
+   "end": 351.73,
+   "text": "Že jí mluví."
+  },
+  {
+   "start": 352.43,
+   "end": 354.99,
+   "text": "A že se potřebovala, že zabech ji nestratil."
+  },
+  {
+   "start": 356.01,
+   "end": 358.95,
+   "text": "Zatím se bojím, že by se mnou nechtěla být."
+  },
+  {
+   "start": 360.11,
+   "end": 362.59,
+   "text": "Co si myslíte, že by řekla?"
+  },
+  {
+   "start": 363.69,
+   "end": 364.95,
+   "text": "Sebe mě objala."
+  },
+  {
+   "start": 365.73,
+   "end": 366.79,
+   "text": "Ona je taková."
+  },
+  {
+   "start": 367.57,
+   "end": 370.77,
+   "text": "Pak možná jste jí za to říct alespoň část."
+  },
+  {
+   "start": 370.77,
+   "end": 376.51,
+   "text": "Co kdybyste jí řekl, že jste tu byl a co jste se dozvěděl?"
+  },
+  {
+   "start": 376.95,
+   "end": 379.81,
+   "text": "Tak vlád. O těch myšlenkách ještě ne."
+  },
+  {
+   "start": 380.31,
+   "end": 382.83,
+   "text": "To je v pořádku. Tempo určujete vy."
+  },
+  {
+   "start": 383.43,
+   "end": 386.09,
+   "text": "Děkuji. Tohle mi dalo víc, než jsem čekal."
+  },
+  {
+   "start": 387.93,
+   "end": 389.91,
+   "text": "Dopříště zkuste jednu věc."
+  },
+  {
+   "start": 390.63,
+   "end": 393.77,
+   "text": "Když odcházíte z bytu, zkontrolujte dveře jenom jednou"
+  },
+  {
+   "start": 394.37,
+   "end": 397.53,
+   "text": "a zavište si, jak moc vám bylo úzko."
+  },
+  {
+   "start": 397.53,
+   "end": 404.39,
+   "text": "Jednou. Zkusím to. Aspoň jednou. A zapíšu číslo od jedna do desetě."
+  },
+  {
+   "start": 405.19,
+   "end": 407.97,
+   "text": "Přesně tak. Pro dnešek tedy skončíme."
+  },
+  {
+   "start": 408.65,
+   "end": 410.25,
+   "text": "Děkuji. Pojďme se příští týden."
+  }
+ ],
+ "round": "r2a"
+}

@@ -1,0 +1,326 @@
+{
+ "round": "r1",
+ "engine": "whisper-small",
+ "model": "gemma4-e4b",
+ "lane": 1,
+ "client": "tomas-b",
+ "lang": "cs",
+ "seconds": 529.7,
+ "facts": [
+  {
+   "heading": "Nervozita a obavy o požár",
+   "content": "Tomas je nervózní ohledně toho, zda stihne kontrolovat svůj dům před odjezdem.",
+   "evidence": "jestli mám odby tu príjný, nikdy jsem přichl ganabel.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Kontrola domu před odjezdem",
+   "content": "Tomas se snaží kontrolovat, zda je vše v pořádku, než opustí dům.",
+   "evidence": "Před skrázešer kontroluji, jasno jsem zamknout dleže a vypnout v porádku.",
+   "scope": "session",
+   "category": "Osobní témata a sebepojetí",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Obavy z požáru",
+   "content": "Tomas má pocit, že pokud něco neskontroluje, stane se požár a bude vinen.",
+   "evidence": "Když něco neskontroli, jak se to stané a budu věnene.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Obavy z požáru se opakují",
+   "content": "Tomas vidí obraz požáru každý den, a je to nejhorší při odchodu nebo spánku.",
+   "evidence": "Byt v plamanach vidím to jasně jako film.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Požár u souseda spustil obavy",
+   "content": "Obavy z požáru začaly po tom, když se u souseda požáril a museli evakuovat.",
+   "evidence": "Začal to před výmovete, kdy je hořel u susedu a me se musela jevakulovat.",
+   "scope": "profile",
+   "category": "Historie a události",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Úraz při evakuaci",
+   "content": "Během evakuace byl Tomas zraněn, ale soused mu pomohl.",
+   "evidence": "Nírne byl zraně, ale susedom to je hodil celá.",
+   "scope": "profile",
+   "category": "Zdraví, tělo a spánek",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Pocit zodpovědnosti za požár",
+   "content": "Tomas má pocit, že by měl být zodpovědný za to, že se stane požár.",
+   "evidence": "Před té doby mám pocit, že tomu vůzpůsobět já.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Úzkost při odkládání kontroly",
+   "content": "Když odkládá kontrolu, trápí ho úzkost, až má pocit, že se zbrazní.",
+   "evidence": "Tak mroste úzkost, až mám pocit, že se zbázním.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Fyzické projevy úzkosti",
+   "content": "Úzkost se projevuje bolestí srdce a patnící dlátkou.",
+   "evidence": "Srdce po 3 suzem je rucele, měž patnil dělutku.",
+   "scope": "session",
+   "category": "Zdraví, tělo a spánek",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Manželka reaguje na úzkost",
+   "content": "Manželka Tomasa vidí, že jeho úzkost je více než dříve.",
+   "evidence": "Do začátku to bralo jako zvyk, tak už vidí, že je to víc.",
+   "scope": "session",
+   "category": "Rodina a vztahy",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Konflikt při kino",
+   "content": "Manželka Tomasa reagovala negativně, když se zpozdil na kino.",
+   "evidence": "Řekla něco, je se na mě bydilo.",
+   "scope": "session",
+   "category": "Rodina a vztahy",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Pocit nezvládnutosti v vztahu",
+   "content": "Tomas se při situaci s manželkou cítil jako dítě, které nezvládne vyjít z domů.",
+   "evidence": "Cítil jsem se jak odítě, který nezvládne výjít s domů.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Práce v kolektivu",
+   "content": "Tomas pracuje v kolektivu, kde je káčvalomomce.",
+   "evidence": "Pracujekolek, kde káčvalomomce.",
+   "scope": "profile",
+   "category": "Práce a kariéra",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Přesvědčení o pečlivosti v práci",
+   "content": "Šéf mu říká, že je nejpečlivější ve firmě, ale Tomas cítí, že to stojí hodně času.",
+   "evidence": "Čef mi říká, že jsem nejpečtojší ve firmě, ale nevidí, kolik času to stojí.",
+   "scope": "session",
+   "category": "Práce a kariéra",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Strach z chyb v práci",
+   "content": "Tomas se bojí, že jeho chybovost způsobí problém nebo něco zkorí.",
+   "evidence": "Bojím se, že kole své hlavěnou nám chybdu, že vpadném připlejím vodit, če neco zkorí.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 1,
+   "quote_found": false
+  },
+  {
+   "heading": "Strašné myšlenky o ubližení",
+   "content": "Tomas má strašné myšlenky, že by mohl ublížit ženě a dítěti.",
+   "evidence": "Že ji a dítěte tě uplížit.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Myšlenky přicházejí při práci",
+   "content": "Tomas se obává, že tyto myšlenky přijdou, když krájí chleba, nebo z té jemů schodu.",
+   "evidence": "Ale ta myšlenka přijde, když krajím chleba, no z té jemů schodu",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Překvapení z neřeknutých myšlenek",
+   "content": "Tomas se obává, že tyto myšlenky, které neřekl ani parboře, ho děsí.",
+   "evidence": "A, no, je to nejhorší, když jsem to v nikou neřekl ani parboře.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Závazek k neubližování",
+   "content": "Tomas tvrdí, že by nikdy neudělal to, co by mohl ublížit.",
+   "evidence": "To je hrazné, nikdy bych to neudlal.",
+   "scope": "session",
+   "category": "Osobní témata a sebepojetí",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Závazek k neubližování",
+   "content": "Tomas neuvádí, že by chtěl ublížit.",
+   "evidence": "Ne, že bych chtěl.",
+   "scope": "session",
+   "category": "Osobní témata a sebepojetí",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Závazek k neubližování",
+   "content": "Tomas se neptá, zda by je považoval za nebezpečného.",
+   "evidence": "Myslíš, že jsem nebezpečný?",
+   "scope": "session",
+   "category": "Osobní témata a sebepojetí",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Závazek k neubližování",
+   "content": "Tomas se obává, že tyto myšlenky ho děsí.",
+   "evidence": "a pak se bojím, že tu půjde sam.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Závazek k neubližování",
+   "content": "Tomas se obává, že tyto myšlenky se objeví.",
+   "evidence": "Ale ta myšlenka přijde, když krajím chleba",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Závazek k neubližování",
+   "content": "Tomas se obává, že by se to stalo.",
+   "evidence": "a pak se bojím, že tu půjde sam.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Závazek k neubližování",
+   "content": "Tomas se obává, že by se to stalo.",
+   "evidence": "a pak se bojím, že tu půjde sam.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Závazek k neubližování",
+   "content": "Tomas se obává, že by se to stalo.",
+   "evidence": "a pak se bojím, že tu půjde sam.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Závazek k neubližování",
+   "content": "Tomas se obává, že by se to stalo.",
+   "evidence": "a pak se bojím, že tu půjde sam.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Závazek k neubližování",
+   "content": "Tomas se obává, že by se to stalo.",
+   "evidence": "a pak se bojím, že tu půjde sam.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Závazek k neubližování",
+   "content": "Tomas se obává, že by se to stalo.",
+   "evidence": "a pak se bojím, že tu půjde sam.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Závazek k neubližování",
+   "content": "Tomas se obává, že by se to stalo.",
+   "evidence": "a pak se bojím, že tu půjde sam.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Závazek k neubližování",
+   "content": "Tomas se obává, že by se to stalo.",
+   "evidence": "a pak se bojím, že tu půjde sam.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Závazek k neubližování",
+   "content": "Tomas se obává, že by se to stalo.",
+   "evidence": "a pak se bojím, že tu půjde sam.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Závazek k neubližování",
+   "content": "Tomas se obává, že by se to stalo.",
+   "evidence": "a pak se bojím, že tu půjde sam.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Závazek k neubližování",
+   "content": "Tomas se obává, že by se to stalo.",
+   "evidence": "a pak se bojím, že tu půjde sam.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Závazek k neubližování",
+   "content": "Tomas se obává, že by se to stalo.",
+   "evidence": "a pak se bojím, že tu půjde sam.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 2,
+   "quote_found": true
+  }
+ ]
+}

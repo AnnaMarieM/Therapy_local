@@ -1,0 +1,323 @@
+{
+ "round": "r2b",
+ "engine": "whisper-large-v3",
+ "model": "gemma4-e4b+roles",
+ "base_model": "gemma4-e4b",
+ "opts": {},
+ "lane": 4,
+ "client": "jana-n",
+ "lang": "cs",
+ "seconds": 519.5,
+ "facts": [
+  {
+   "heading": "Rozhodla se o rozvodu po 15 letech",
+   "content": "Jana a její manžel Radek se rozhodli pro rozvod po patnácti letech manželství.",
+   "evidence": "Po patnácti letech manželství jsme se s manželem Radkem rozhodli pro rozvod",
+   "scope": "session",
+   "category": "Historie a události",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Rozhodnutí o rozvodu v září",
+   "content": "Radek oznámil Janě v září, že vztah už takhle dál nejde.",
+   "evidence": "v září mi řekl, že už to takhle dál nejde",
+   "scope": "session",
+   "category": "Historie a události",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Pocity po oznámení rozvodu",
+   "content": "Jana pociťuje prázdnotu a zlost několikrát denně po oznámení rozvodu.",
+   "evidence": "Prázdno, pak zlost, pak zase prázdnost. Třídá se to několikrát denně.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Důvody rozvodu podle Radka",
+   "content": "Radek uvedl, že se oni vzdálili a žijí vedle sebe.",
+   "evidence": "Říká, že jsme se vzdáleli, že žijeme vedle sebe.",
+   "scope": "session",
+   "category": "Rodina a vztahy",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana hledá chybu v sobě",
+   "content": "Jana si myslí, že měla vidět, že je slepá a hledá, kde udělala chybu.",
+   "evidence": "pořád se v hlavě vracím a hledám, kde jsem udělala chybu.",
+   "scope": "session",
+   "category": "Osobní témata a sebepojetí",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Děti mají 12 a 8 let",
+   "content": "Jana má dvě děti: Aničku, která je 12 let, a Matěje, který je 8 let.",
+   "evidence": "Mám dvě děti, Aničce 12 a Matějovi 8 let",
+   "scope": "profile",
+   "category": "Rodina a vztahy",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Děti nebyly informovány o rozvodu",
+   "content": "Jana a Radek plánují oznámit dětem rozvod společně, nebo ho odkládat.",
+   "evidence": "Radek chce, abychom to řekli společně, alebo řád to odkládáme.",
+   "scope": "session",
+   "category": "Rodina a vztahy",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Anička už něco tuší",
+   "content": "Anička už něco tuší o rozvodu.",
+   "evidence": "Anička už něco tuší.",
+   "scope": "session",
+   "category": "Rodina a vztahy",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana lhala Aničce",
+   "content": "Jana lhala Aničce, když se jí zeptala, jestli se s tátou hádají.",
+   "evidence": "Protože jsem lhala. A ona to poznala.",
+   "scope": "session",
+   "category": "Rodina a vztahy",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana se obává slz dětí",
+   "content": "Jana se obává slz dětí při oznámení rozvodu.",
+   "evidence": "bojím se jejich slz.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Bydlení je na hypotéce",
+   "content": "Bydlení je na hypotéku a Radek se asi odstihuje k bratrově.",
+   "evidence": "Byd je na hypotéku, Radek se asi odstihuje k bratrově",
+   "scope": "session",
+   "category": "Historie a události",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Děti zůstanou s Janou",
+   "content": "Jana uvádí, že děti zůstanou s ní.",
+   "evidence": "Dítě zůstanou se mnou.",
+   "scope": "session",
+   "category": "Rodina a vztahy",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana se obává nezvládnout sama",
+   "content": "Jana má strach, že sama nezvládne situaci, protože Radek by řešil peníze.",
+   "evidence": "Mám strach, že to sama nezvládnu. Radek by vždycky řešil peníze.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana pracuje jako učitelka",
+   "content": "Jana pracuje jako učitelka češtiny na základní škole v Brně.",
+   "evidence": "Pracuji jako učitelka češtiny na základní škole v Brně.",
+   "scope": "profile",
+   "category": "Práce a kariéra",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana se cítí zranitelná v práci",
+   "content": "Jana má pocit, že všichni ve škole vidí, že se jí rozpadá život.",
+   "evidence": "Mám pocit, že všichni vidí, že se mi rozpadá život.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Ředitelka věděla o situaci",
+   "content": "Jana řekla o situaci ředitelce školy, protože se rozplakala na chodbě.",
+   "evidence": "Jen ředitelka. Řekla jsem jí to, protože jsem se jednou rozplakala na chodbě.",
+   "scope": "session",
+   "category": "Zdroje a zvládání",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Byla sama za hlavou",
+   "content": "Jana byla sama za hlavou.",
+   "evidence": "Protože jsem byla sama za hlavou.",
+   "scope": "session",
+   "category": "Osobní témata a sebepojetí",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Špatný spánek a přemýšlení",
+   "content": "Jana spí špatně a každou noc se budí ve tři hodiny ráno s přemýšlením o budoucnosti.",
+   "evidence": "Každou noc se budím ve tři hodiny ráno a přemýšlím, co bude dál.",
+   "scope": "session",
+   "category": "Zdraví, tělo a spánek",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Pocity bezhodnosti a strach",
+   "content": "Když se probudí, Jana si myslí, že nemá hypotéku, manžela ani nic, a spočítá peníze a jak to řekne dětem.",
+   "evidence": "Že nemám hypotéku, nemám manžela, nemám nic. Pak spočítám peníze, pak si představím, jak to řeknu dětem.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Problémy se spánkem a únavou",
+   "content": "Jana usne kolem páté a vstává v půl sedmé, což ji činí unavenou už ráno.",
+   "evidence": "Kolem páté usnu a v půl sedmé vstávám. Jsem unavená už ráno.",
+   "scope": "session",
+   "category": "Zdraví, tělo a spánek",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Ztráta hmotnosti a vzhled",
+   "content": "Jana jídá málo a zubla čtyři kyla, a kamarádka jí říká, že vypadá hrozně.",
+   "evidence": "Jím málo. Zubla jsem čtyři kyla. Kamarádka mi říká, že vypadám hrozně.",
+   "scope": "session",
+   "category": "Zdraví, tělo a spánek",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Kontakty s podporou",
+   "content": "Jana má sestru Alanu v Olomouci, která jí volá skoro každý večer, a kamarádku Evu z práce.",
+   "evidence": "Mám sestru Alanu v Olomouci. Volá mi skoro každý večer. A kamarádku Evu z práce.",
+   "scope": "profile",
+   "category": "Rodina a vztahy",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Strach z toho, co si myslí",
+   "content": "Jana se obává, že Evě myslí, že se lhala a že žena, která nedokáže udržet manželství, není dobrý příklad pro děti.",
+   "evidence": "Že jsem se lhala. Že žena, která nedokážu udržet manželství, není pro děti dobrý příklad.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Vliv matky na přesvědčení",
+   "content": "Jana věří, že její přesvědčení o manželství a dětech pochází od její matky, která vždy říkala, že manželství se drží a děto jak chce.",
+   "evidence": "Asi od mojí mámy. Ta vždycky říkala, že manželství se drží a děto jak chce.",
+   "scope": "profile",
+   "category": "Osobní témata a sebepojetí",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Reakce matky na oznámení",
+   "content": "Jana oznámila matce, a ta mlčela a pak řekla, že doufá, že vše dobře zvážila.",
+   "evidence": "Mlčela. Pak řekla, že doufá, že jsem to dobře zvážela.",
+   "scope": "session",
+   "category": "Rodina a vztahy",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Potřeba uznání od matky",
+   "content": "Jana cítí smutek a potřebuje, aby ji matka olobila.",
+   "evidence": "Smutno. Potřebovala bych, aby mě oloběla.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Těžké vyznání a pláč",
+   "content": "Když řekne, že nechce být sama, pláče a omlouvá se.",
+   "evidence": "Pláču a omlouvám se.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Pomoc z mluvení",
+   "content": "Jana cítí, že jí pomáhá říkat to všechno nahlas v terapii.",
+   "evidence": "trochu to pomáhá",
+   "scope": "session",
+   "category": "Zdroje a zvládání",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Cíle pro terapii",
+   "content": "Jana si přeje zlepšit spánek a najít způsob, jak to říct dětem.",
+   "evidence": "Spát a vědět, jak to říct dětem",
+   "scope": "session",
+   "category": "Osobní témata a sebepojetí",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Používaná pomoc při spánku",
+   "content": "Jana používá hrvánkový čej, ale odmítá léky od lékařky.",
+   "evidence": "Hrvánkový čej a to je všechno. Doktorka mi nebídla prášky, ale nechci.",
+   "scope": "session",
+   "category": "Zdraví, tělo a spánek",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Strach z užívání léků",
+   "content": "Jana se bojí, že by se nemohla včas vzbudit pro děti, a nechce být závislá.",
+   "evidence": "Bojím se, že bych se nemohla včas vzbudit pro děti a nechci pít závisla.",
+   "scope": "session",
+   "category": "Závislosti a návyky",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Strach z paniky před dětmi",
+   "content": "Jana se bojí, že s panikařím rozpláče se a že nezvládne zůstat klidná před dětmi.",
+   "evidence": "Že s panikařím rozpláču se, že nezvládnu zůstat klidná.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Dovolení smutku pro děti",
+   "content": "Jana si uvědomila, že děti by mohly vidět, že smutek je dovolený.",
+   "evidence": "Nebo by mohly vidět, že smutek je dovolený.",
+   "scope": "session",
+   "category": "Osobní témata a sebepojetí",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Dnesní cíl terapie",
+   "content": "Jana si stanovila si cíl, že nejsem sama a že to nemusí zvládnout hned.",
+   "evidence": "Že nejsem sama a že to nemusím zvládnout hned.",
+   "scope": "session",
+   "category": "Osobní témata a sebepojetí",
+   "part": 2,
+   "quote_found": true
+  }
+ ],
+ "roles": {
+  "roles": "right",
+  "raw": "```json\n{\n  \"therapist\": \"S1\",\n  \"patient\": \"S0\",\n  \"confidence\": 0.95,\n  \"evidence\": [\n    \"Dobrý den, paní Nováková, pojďte dál.\",\n    \"Řekněte mi víc.\",\n    \"Vypadá to, že se v tom hodině trápíte.\""
+ }
+}

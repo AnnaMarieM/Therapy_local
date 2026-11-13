@@ -1,0 +1,272 @@
+{
+ "round": "r1",
+ "engine": "whisper-small",
+ "model": "qwen3.5-4b",
+ "lane": 4,
+ "client": "jana-n",
+ "lang": "cs",
+ "seconds": 610.0,
+ "facts": [
+  {
+   "heading": "Rozvod manželství po 15 letech",
+   "content": "Jana se rozvedla s manželem Radkem po 15 letech manželství.",
+   "evidence": "Po 15-letech mančelství jsme se s mančelem, ratkem, rozhodli pro rozvoč.",
+   "scope": "profile",
+   "category": "Rodina a vztahy",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Rozvod nastal v září",
+   "content": "Manžel Radkovi řekl Jana v září, že jejich vztah již nefunguje.",
+   "evidence": "a v září mi řekl, že už to takhle dál nejde.",
+   "scope": "profile",
+   "category": "Rodina a vztahy",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana se rozvedla s Radkem",
+   "content": "Jana se rozvedla s manželem Radkem.",
+   "evidence": "Radecky dětka řešil peníze.",
+   "scope": "profile",
+   "category": "Rodina a vztahy",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana má dvě děti",
+   "content": "Jana má dvě děti, Aničku 12 let a Matěje 8 let.",
+   "evidence": "Mám dvě děti ani štze dvanás, a matějové osmlet.",
+   "scope": "profile",
+   "category": "Rodina a vztahy",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana lžela dětem o rozvodu",
+   "content": "Jana lžela dětem, že se s manželem nehadají, ať si to myslí.",
+   "evidence": "Řekl jsem, že ne, či cítil jsem se hrozně.",
+   "scope": "session",
+   "category": "Rodina a vztahy",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana se bojí reakcí dětí",
+   "content": "Jana se bojí, že děti budou plakat, protože Matěj je ještě malý.",
+   "evidence": "bojím se jich slz a matě je ještě malý, ten moc nic nechápe.",
+   "scope": "session",
+   "category": "Rodina a vztahy",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana pracuje jako učitelka",
+   "content": "Jana pracuje jako učitelka češtiny na základní škole.",
+   "evidence": "Pracují jak učílka češtiny na základní škole v prně.",
+   "scope": "profile",
+   "category": "Práce a kariéra",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana učí děti 9. a 8. třídu",
+   "content": "Jana učí svým dětem v 9. a 8. ročníku.",
+   "evidence": "Učí jim 9 a 8.",
+   "scope": "profile",
+   "category": "Práce a kariéra",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana má strach z rozvodu",
+   "content": "Jana má strach, že se s manželem nezvládnou.",
+   "evidence": "Mám strah, že to se má nezvládnu.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana si myslí, že dětem ubližuje",
+   "content": "Jana si myslí, že všichni vidí, že jí dětem zničila život.",
+   "evidence": "Mám poce, že všichni vidí, že jsem je rozpará život.",
+   "scope": "session",
+   "category": "Osobní témata a sebepojetí",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana se snaží dětem říct pravdu",
+   "content": "Jana se snaží říct dětem pravdu, že se s manželem rozvedou.",
+   "evidence": "Nehledí bych to měla za sebou, ale bojím se jich slz.",
+   "scope": "session",
+   "category": "Zdroje a zvládání",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana dostala volna",
+   "content": "Jana dostala hodinu volna na práci.",
+   "evidence": "dela mi hodinu volna",
+   "scope": "session",
+   "category": "Zdroje a zvládání",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana nespí dobře",
+   "content": "Jana se každou noc budí ve 3 hodin ráno.",
+   "evidence": "Každou noce budím ve 3 hodiní rána",
+   "scope": "profile",
+   "category": "Zdraví, tělo a spánek",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana má hypotéku",
+   "content": "Jana má hypotéku.",
+   "evidence": "Že nemám hypotéku",
+   "scope": "profile",
+   "category": "Osobní témata a sebepojetí",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana nemá manžela",
+   "content": "Jana nemá manžela.",
+   "evidence": "nemám manžela",
+   "scope": "profile",
+   "category": "Rodina a vztahy",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana má děti",
+   "content": "Jana má děti, kterým se stará.",
+   "evidence": "jak to řeknu dětem",
+   "scope": "profile",
+   "category": "Rodina a vztahy",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana se probouzí v 5 hodin",
+   "content": "Jana se v 5 hodin ráno probouzí a v 7 vztáhá.",
+   "evidence": "Kolém 5. jú snul a v půl 7. vztáhám",
+   "scope": "profile",
+   "category": "Zdraví, tělo a spánek",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana má sestru Alenu",
+   "content": "Jana má sestru Alenu v Olomouci.",
+   "evidence": "Mám sestru Alenu v Olmouce",
+   "scope": "profile",
+   "category": "Rodina a vztahy",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana má kamarádku Evu",
+   "content": "Jana má kamarádku Evu, která pracuje.",
+   "evidence": "kamarádku Evus práce",
+   "scope": "profile",
+   "category": "Rodina a vztahy",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana má těžké období",
+   "content": "Jana má těžké období a nechce, aby se o ni něco myslilo.",
+   "evidence": "Evěn to, že mám těžké období. Nechce, aby se o mě něco myslila.",
+   "scope": "profile",
+   "category": "Osobní témata a sebepojetí",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "Jana se obává být špatným příkladem",
+   "content": "Jana se obává, že jako žena, která nedokáže udržet manželství, není pro děti dobrý příklad.",
+   "evidence": "že žena, která nedokážu dřed manželství, není pro děti dobrý příklad",
+   "scope": "profile",
+   "category": "Osobní témata a sebepojetí",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana se rozvedla",
+   "content": "Jana se rozvedla a od té doby se od manžela neozývá.",
+   "evidence": "Močela. Pak řekla, že doufa, že jí jsem to do přezvážela. Už se od tedy by moc neozvala.",
+   "scope": "profile",
+   "category": "Rodina a vztahy",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "Jana cítí smutek",
+   "content": "Jana cítí smutek a potřebu, ale by se omlouvala.",
+   "evidence": "Smutno. Potřeba, ale bych mě olobyla.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "Jana pláče před dětmi",
+   "content": "Jana pláče a omlouvá se před dětmi, když to řekne na hlas.",
+   "evidence": "Pláču, omlouvám se.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana nechce léky",
+   "content": "Jana nechce léky, protože by se mohla stát závislou.",
+   "evidence": "nechci. Pojím si, že bych se nemohl v času zbudit pro děti a nechci být závisla.",
+   "scope": "profile",
+   "category": "Závislosti a návyky",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "Jana se bojí, že děti budou panikařit",
+   "content": "Jana se bojí, že děti budou panikařit a nezvládnou zůstat klidné.",
+   "evidence": "Že ho se nejbí zbojít? Že s panikařím rozpláčus, že nezvládnou zůstat klidná.",
+   "scope": "session",
+   "category": "Zdroje a zvládání",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "Jana se bojí, že děti budou vidět, že je dovolená",
+   "content": "Jana se bojí, že děti budou vidět, že je tak dovolená.",
+   "evidence": "Nebo by mohle vidět, že jsme tak dovolení.",
+   "scope": "session",
+   "category": "Zdroje a zvládání",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana chce, aby děti věděly, že není sama",
+   "content": "Jana chce, aby děti věděly, že nejsem sama a že to ne musí zvládnout sama.",
+   "evidence": "Že nejsem sama, že to ne musím zvládnout denet.",
+   "scope": "session",
+   "category": "Zdroje a zvládání",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Plánování další schůzky",
+   "content": "Jana se domluví na další schůzce příští týden.",
+   "evidence": "Čekaj, uvidíme se příště týden.",
+   "scope": "session",
+   "category": "Zdroje a zvládání",
+   "part": 3,
+   "quote_found": false
+  }
+ ]
+}

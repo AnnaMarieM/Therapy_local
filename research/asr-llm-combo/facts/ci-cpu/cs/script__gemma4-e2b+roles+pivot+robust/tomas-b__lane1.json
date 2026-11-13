@@ -1,0 +1,392 @@
+{
+ "round": "r2b",
+ "engine": "script",
+ "model": "gemma4-e2b+roles+pivot+robust",
+ "base_model": "gemma4-e2b",
+ "opts": {
+  "pivot": true,
+  "prompt_dir": {
+   "cs": "e2e/combo/prompts/robust/cs",
+   "en": "e2e/combo/prompts/robust"
+  }
+ },
+ "lane": 1,
+ "client": "tomas-b",
+ "lang": "cs",
+ "seconds": 578.2,
+ "facts": [
+  {
+   "heading": "Client nervous about therapy",
+   "content": "Tomas is nervous about attending therapy. He has never been to a psychologist before.",
+   "evidence": "I have never been to a psychologist.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Wife disagrees with current way",
+   "content": "Tomas's wife believes the current way of doing things will not work anymore. Tomas also agrees.",
+   "evidence": "She says it won't work this way anymore. And I don't either.",
+   "scope": "session",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Checking door and stove nightly",
+   "content": "Tomas checks if he locked the door and turned off the stove thirty times a night. It takes him an hour to leave the apartment.",
+   "evidence": "Thirty times a night I check if I locked the door and turned off the stove, and it takes me an hour to leave the apartment.",
+   "scope": "session",
+   "category": "Coping & Habits",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Checking procedure details",
+   "content": "Tomas locks the door, goes to the elevator, returns, and pulls the latch. He then checks every stove knob separately.",
+   "evidence": "I lock the door, go to the elevator, come back, and pull the latch. Then I check the stove, every knob separately. Then the door again.",
+   "scope": "session",
+   "category": "Coping & Habits",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Relief followed by image",
+   "content": "After checking, Tomas feels relieved for a moment. Then an image appears in his head.",
+   "evidence": "I feel relieved for a moment. And then an image comes to my head that I didn't do it properly, and I have to do it again.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Image of apartment in flames",
+   "content": "The image that appears is of the apartment in flames. He sees it clearly, like a movie.",
+   "evidence": "The apartment in flames. I see it clearly, like a movie.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Frequency of intrusive thoughts",
+   "content": "This happens every day. It is worst in the evening when they go out or sleep, and also in the morning.",
+   "evidence": "Every day. It's worst in the evening when we go out or sleep. In the morning too.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Start date of current issue",
+   "content": "The current pattern started two years ago. This began when the neighbors' place was burning and they had to evacuate.",
+   "evidence": "It started two years ago, when it was burning at the neighbors' place and we had to evacuate.",
+   "scope": "profile",
+   "category": "History & Life Events",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Nighttime event details",
+   "content": "The event happened at night when the alarm woke him up. There was smoke and people were screaming in the hallway. They ran out in their pajamas.",
+   "evidence": "It was at night. The alarm woke me up. There was smoke and people were screaming in the hallway. We ran out in our pajamas.",
+   "scope": "profile",
+   "category": "History & Life Events",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Reaction to fire event",
+   "content": "Tomas stood outside in the winter and watched the windows burn. No one was injured, but the neighbors' place burned down.",
+   "evidence": "I stood outside in the winter and watched the windows burn.",
+   "scope": "profile",
+   "category": "History & Life Events",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Belief about control and guilt",
+   "content": "Tomas has a feeling that he can cause the fire. He believes if he doesn't control something, it will happen and he will be guilty.",
+   "evidence": "Since then I have the feeling that I can cause it. That if I don't control something, it will happen and I will be guilty.",
+   "scope": "profile",
+   "category": "Self-concept & Identity",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Inability to turn off thoughts",
+   "content": "Tomas knows that his logic does not make sense, but he feels it cannot be turned off.",
+   "evidence": "I know that doesn't make sense. I know that logic. Still, it can't be turned off.",
+   "scope": "profile",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Anxiety leads to desire to act",
+   "content": "When he tries to leave the situation, anxiety grows until he feels like he is going crazy, and he would rather do it.",
+   "evidence": "I try to leave it. And then anxiety grows in me, until I feel like I'm going crazy. I'd rather do it.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Physical manifestations of anxiety",
+   "content": "The anxiety manifests as a heart rate increase, sweating, trembling hands, and feeling sick to his stomach.",
+   "evidence": "Heart, sweat. My hands are trembling and I feel sick to my stomach.",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Wife's reaction to anxiety",
+   "content": "Tomas's wife, Barbora, initially saw it as a habit but now sees that it is more. She finds it exhausting.",
+   "evidence": "At first she took it as a habit, now she sees that it's more. She is patient, but I see that it is exhausting her.",
+   "scope": "session",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": false
+  },
+  {
+   "heading": "Wife's reaction during checking",
+   "content": "Tomas's wife waited outside until he returned and checked the stove for the third time without saying anything.",
+   "evidence": "She waited outside until I returned and checked the stove for the third time. She didn't say anything, just looked at me.",
+   "scope": "session",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas's current feeling",
+   "content": "Tomas felt like a child who cannot get out of the house.",
+   "evidence": "Hanba. I felt like a child who can't get out of the house.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Electrician job in Olomouc",
+   "content": "Tomas works as an electrician in Olomouc. He does wiring in houses and sometimes in family homes.",
+   "evidence": "I work as an electrician in Olomouc. I do wiring in houses and sometimes in family homes.",
+   "scope": "profile",
+   "category": "Work & Career",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Fear of making mistakes",
+   "content": "Tomas is afraid of making a mistake at work. He worries about connecting a wire incorrectly and something burning.",
+   "evidence": "I'm afraid that because of my head, I will make a mistake once. That I will connect a wire incorrectly and something will burn.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Checking after every job",
+   "content": "Tomas checks his work after every job. He sometimes goes back the next day just to look.",
+   "evidence": "But after every job I go back and check. Sometimes I'll go back the next day, just to look.",
+   "scope": "profile",
+   "category": "Coping & Strengths",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Colleague views Tomas as pedant",
+   "content": "A colleague thinks Tomas is a pedant. The boss acknowledges Tomas is the most meticulous but does not see the time cost.",
+   "evidence": "He thinks I'm a pedant. The boss tells me that I am the most meticulous in the company, but he doesn't see how much time that costs.",
+   "scope": "session",
+   "category": "Work & Career",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Work time increasing",
+   "content": "Tomas's work is taking an hour more per day in recent months. He has passed some jobs to a colleague because he cannot keep up.",
+   "evidence": "In recent months, my work is taking an hour more per day. I have already passed a few jobs to a colleague because I can't keep up.",
+   "scope": "session",
+   "category": "Work & Career",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Fear of losing job",
+   "content": "Tomas is afraid he will not get a job, especially now.",
+   "evidence": "I am afraid I won't get a job. Especially now.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Barbora is pregnant",
+   "content": "Barbora is pregnant in the fourth month. Tomas was happy about this news.",
+   "evidence": "Barbora is pregnant in the fourth month. I was happy. Really. We were waiting for this for three years.",
+   "scope": "history",
+   "category": "Family & Relationships",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "Thought of harming baby",
+   "content": "Tomas had a thought about harming Barbora and the baby. He stated he would never do it.",
+   "evidence": "That I will harm her and the baby. Not that I want to. That is terrible, I would never do it.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "Thought occurs during daily life",
+   "content": "The thought comes up when Tomas is cutting bread or standing on the stairs. He fears it might happen on its own.",
+   "evidence": "But that thought comes, maybe when I'm cutting bread or standing on the stairs. Then I'm afraid it will happen on its own.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Hiding thoughts from others",
+   "content": "Tomas has not told anyone about this thought, not even Barbora.",
+   "evidence": "I never told anyone about it, not even Barbora.",
+   "scope": "profile",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Checking to stop thoughts",
+   "content": "When the thought comes up, Tomas leaves the room or goes back to check something to make it stop.",
+   "evidence": "I leave the room. Or I come back and check something to make it stop.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Checking helps calm down",
+   "content": "Tomas believes checking helps him calm down. He never thought the thoughts were connected.",
+   "evidence": "Actually yes. I never thought that they are connected.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Poor sleep quality",
+   "content": "Tomas sleeps poorly and wakes up twice at night. He checks the stove even if there is nothing on it.",
+   "evidence": "I sleep poorly. I wake up twice at night and check the stove, even if there's nothing on it.",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Activities that help sleep",
+   "content": "Going for walks with Barbora or fixing something at home keeps Tomas busy.",
+   "evidence": "It helps me to go for walks with Barbora. Or when I fix something at home, it keeps me busy.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Frequency of activities",
+   "content": "Tomas goes for walks twice a week and repairs things when there is something to do.",
+   "evidence": "Walks twice a week, repairs when there's something to do.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Goal for improvement",
+   "content": "Tomas wants to leave the apartment in five minutes and look forward to the child without the thoughts.",
+   "evidence": "Leave the apartment in five minutes. And look forward to the child without those thoughts.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Interest in exposure therapy",
+   "content": "Tomas has heard about therapy where a person gradually exposes themselves to fears. Tomas was afraid of that.",
+   "evidence": "I have heard about therapy where a person gradually exposes themselves to what they are afraid of. I was afraid of that.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Reassurance about pace",
+   "content": "Tomas found the suggestion of small steps reassuring. He thought someone would force him to leave the door open and go.",
+   "evidence": "That is reassuring. I thought someone would force me to leave the door open and go.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Difficulty with small steps",
+   "content": "Tomas found even small steps difficult.",
+   "evidence": "That sounds small. But even that is big for me.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Desire to tell Barbara",
+   "content": "Tomas wants to tell Barbara that he loves her and needs treatment so he doesn't lose her. He is afraid she won't want him.",
+   "evidence": "That I love her. And that I need to get treatment so I don't lose her. For now, I am afraid that she won't want me.",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Anticipated reaction from Barbara",
+   "content": "Tomas believes Barbara would probably hug him because she is like that.",
+   "evidence": "She would probably hug me. She is like that.",
+   "scope": "session",
+   "category": "Family & Relationships",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Ability to manage thoughts",
+   "content": "Tomas stated he can manage telling Barbara some of what he feels.",
+   "evidence": "I can manage that. Not those thoughts yet.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Gratitude for session",
+   "content": "Tomas expressed gratitude for the session.",
+   "evidence": "Thank you. This gave me more than I expected.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Plan for next session",
+   "content": "Tomas agreed to try checking the door once and writing a number from one to ten.",
+   "evidence": "Once. I'll try that. At least once, and I'll write a number from one to ten.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 3,
+   "quote_found": true
+  }
+ ],
+ "roles": {
+  "roles": "right",
+  "raw": "```json\n{\"therapist\": \"S1\", \"patient\": \"S0\", \"confidence\": 0.9, \"evidence\": [\"Good day. I am quite nervous, if I should be honest.\", \"My wife. She says it won't work this way anymore.\", \"Thirty times "
+ }
+}

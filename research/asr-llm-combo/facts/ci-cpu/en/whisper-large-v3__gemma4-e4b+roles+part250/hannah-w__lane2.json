@@ -1,0 +1,559 @@
+{
+ "round": "r2b",
+ "engine": "whisper-large-v3",
+ "model": "gemma4-e4b+roles+part250",
+ "base_model": "gemma4-e4b",
+ "opts": {
+  "part_words": 250
+ },
+ "lane": 2,
+ "client": "hannah-w",
+ "lang": "en",
+ "seconds": 520.9,
+ "facts": [
+  {
+   "heading": "Anxiety worsened in September",
+   "content": "Hannah feels anxious all the time, and this feeling got worse in September.",
+   "evidence": "I think I'm just anxious all the time and it got worse in September.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Taught at school for 11 years",
+   "content": "Hannah has taught at her school for 11 years.",
+   "evidence": "I've taught here for 11 years",
+   "scope": "profile",
+   "category": "Work & Career",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Asked to step up at school",
+   "content": "Hannah was asked to step up when the deputy head left at her school.",
+   "evidence": "they had asked me to step up and when our deputy left.",
+   "scope": "profile",
+   "category": "Work & Career",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Fears being noticed for lack of skill",
+   "content": "Hannah worries that someone will notice she has no idea what she is doing.",
+   "evidence": "sooner or later someone will notice I have no idea what I'm doing.",
+   "scope": "session",
+   "category": "Self-concept & Identity",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Anxiety peaks Sunday evenings",
+   "content": "Hannah's chest feels tight on Sunday evenings.",
+   "evidence": "Mostly Sunday evenings, my chest goes tight",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Rehearses staff meeting in head",
+   "content": "Hannah rehearses Monday's staff meeting in her head.",
+   "evidence": "I start rehearsing Monday's staff meeting in my head.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Fears being perceived as incompetent",
+   "content": "Hannah imagines people will think she is out of her depth or can't read.",
+   "evidence": "That I'm out of my depth. That they gave the job to a nice earful teacher who can't actually read.",
+   "scope": "session",
+   "category": "Self-concept & Identity",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Rewrote email four times last week",
+   "content": "Last week, Hannah rewrote the same email to the governors four times.",
+   "evidence": "Last week I rewrote the same email to the governors four times.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Email about behavior policy",
+   "content": "The email Hannah rewrote was about the change to the behavior policy.",
+   "evidence": "Change to the behavior policy.",
+   "scope": "session",
+   "category": "Work & Career",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Fears Mr. Hargraves' judgment",
+   "content": "Hannah was afraid Mr. Hargraves, the chair of governors, would think she was stupid.",
+   "evidence": "I was afraid Mr. Hargraves, the chair of governors, would think that I was stupid.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Delighted in September",
+   "content": "Hannah's partner told her in September that he was delighted.",
+   "evidence": "He told me in September he was delighted",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Feeling incapable to partner",
+   "content": "Hannah feels like she is lying to her partner about being capable.",
+   "evidence": "I feel like I'm lying to him",
+   "scope": "session",
+   "category": "Self-concept & Identity",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Comparing to mother's competence",
+   "content": "Hannah feels like she is pretending to be someone who knows what she is doing.",
+   "evidence": "About being capable, as if I'm pretending",
+   "scope": "session",
+   "category": "Self-concept & Identity",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Mother was headteacher 20 years",
+   "content": "Hannah's mother was a headteacher for 20 years.",
+   "evidence": "She was a headteacher for 20 years",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Mother retired six years ago",
+   "content": "Hannah's mother retired six years ago.",
+   "evidence": "She retired six years ago",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Hannah in deputy's job",
+   "content": "Hannah is currently in a deputy's job.",
+   "evidence": "A deputy's job",
+   "scope": "profile",
+   "category": "Work & Career",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Hannah worries about doing better",
+   "content": "Hannah thinks everything she does would her mother have done better.",
+   "evidence": "Everything I do, I think, would she have done it better?",
+   "scope": "session",
+   "category": "Self-concept & Identity",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Mother is supportive on surface",
+   "content": "Hannah's mother is supportive on the surface.",
+   "evidence": "She is very supportive on the surface",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Mother suggests Hannah worries",
+   "content": "Hannah's mother says Hannah has always worried too much and should stop being silly.",
+   "evidence": "She says I've always worried too much and I should stop being silly",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Hannah hides bad feelings from mother",
+   "content": "Hannah does not tell her mother how bad things are because it makes her feel like she is making a fuss.",
+   "evidence": "so I don't tell her how bad it is",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Wakes up at 4 AM daily",
+   "content": "Hannah is awake at 4 every morning.",
+   "evidence": "I'm awake at 4 every morning",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Wakes at 4 AM with to-do list",
+   "content": "Hannah is awake at 4 AM going through her to-do list.",
+   "evidence": "Then I'm awake at 4 going through the to-do list",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "To-do list includes various concerns",
+   "content": "Hannah's to-do list includes timetable changes, offset prep, a parent complaint, and a worried child.",
+   "evidence": "Timetable changes, the offset prep, a parent complaint, a child I'm worried about",
+   "scope": "session",
+   "category": "Work & Career",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Coffee intake started in term",
+   "content": "Hannah started drinking a lot of coffee around the second week of term.",
+   "evidence": "Since about the second week of term, I drink a lot of coffee",
+   "scope": "session",
+   "category": "Addictions & Habits",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Coffee intake amount",
+   "content": "Hannah drinks five or six cups of coffee.",
+   "evidence": "Five or six",
+   "scope": "session",
+   "category": "Addictions & Habits",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Physical symptoms after coffee",
+   "content": "Hannah experiences a fast heart rate and shaky hands in the afternoons.",
+   "evidence": "My heart goes fast. My hands are a bit shaky",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Left meeting due to symptoms",
+   "content": "Hannah had to leave a meeting last Thursday to splash water on her face.",
+   "evidence": "Last Thursday, I had to leave a meeting to splash my face with water",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Exhaustion from pretending",
+   "content": "Hannah feels exhausted by the end of every day from pretending.",
+   "evidence": "I am exhausted by the end of every day. Just from pretending",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Partner Ben knows some",
+   "content": "Hannah's partner, Ben, knows a bit about her situation.",
+   "evidence": "My partner Ben knows a bit",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Partner Ben's perspective",
+   "content": "Ben believes Hannah should just enjoy her situation.",
+   "evidence": "He says I should just enjoy it",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Hannah feels guilty and alone",
+   "content": "Hannah feels guilty and a bit alone when Ben says she should enjoy it.",
+   "evidence": "Guilty and a bit alone",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Ben's profession and belief",
+   "content": "Ben is an engineer and believes problems should be fixed.",
+   "evidence": "He's an engineer. He thinks if something's a problem, you fix it",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Loss of school friends",
+   "content": "Hannah no longer has friends at school.",
+   "evidence": "Not anymore, not really",
+   "scope": "session",
+   "category": "Family & Relationships",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Change in school role",
+   "content": "Hannah is now a line manager at school, which is awkward.",
+   "evidence": "Now I'm their line manager and it's awkward",
+   "scope": "session",
+   "category": "Work & Career",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Misses former school friends",
+   "content": "Hannah misses her former school friends.",
+   "evidence": "I miss them",
+   "scope": "session",
+   "category": "Family & Relationships",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Misses children at school",
+   "content": "Hannah misses the children at school, especially the daily moments of discovery.",
+   "evidence": "The children mostly. The daily bit where a child gets something for the first time",
+   "scope": "session",
+   "category": "Work & Career",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Current work focus",
+   "content": "Hannah's current days at work involve spreadsheets.",
+   "evidence": "No, my days are spreadsheets",
+   "scope": "session",
+   "category": "Work & Career",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Accepted promotion due to pressure",
+   "content": "Hannah said she said yes to the promotion because she couldn't say no to the person.",
+   "evidence": "I said yes in the room because I couldn't say no to her.",
+   "scope": "session",
+   "category": "Work & Career",
+   "part": 4,
+   "quote_found": true
+  },
+  {
+   "heading": "Cried after accepting promotion",
+   "content": "Hannah cried after going home from the meeting about the promotion.",
+   "evidence": "Then I went home and cried.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 4,
+   "quote_found": true
+  },
+  {
+   "heading": "Tears related to fear",
+   "content": "Hannah believes her tears were about fear.",
+   "evidence": "Fear, I think.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 4,
+   "quote_found": true
+  },
+  {
+   "heading": "Fear of not returning",
+   "content": "Hannah felt fear that she would never get to go back.",
+   "evidence": "And that I would never get to go back.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 4,
+   "quote_found": true
+  },
+  {
+   "heading": "Lack of personal reflection",
+   "content": "Hannah feels that people only say 'well done' and nobody has asked her how she feels.",
+   "evidence": "Nobody has asked me that, they just say well done.",
+   "scope": "session",
+   "category": "Self-concept & Identity",
+   "part": 4,
+   "quote_found": true
+  },
+  {
+   "heading": "Relaxed during summer holidays",
+   "content": "Hannah felt properly relaxed during the summer holidays.",
+   "evidence": "These summer holidays.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 4,
+   "quote_found": true
+  },
+  {
+   "heading": "Walking in lakes for ten days",
+   "content": "Hannah went walking in the lakes during the summer holidays and did not think about school for ten days.",
+   "evidence": "We went walking in the lakes and I didn't think about school once for ten days.",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 4,
+   "quote_found": true
+  },
+  {
+   "heading": "Ben carried sandwiches",
+   "content": "Ben carried the sandwiches during the time Hannah felt relaxed.",
+   "evidence": "Ben carried the sandwiches.",
+   "scope": "session",
+   "category": "Family & Relationships",
+   "part": 4,
+   "quote_found": true
+  },
+  {
+   "heading": "Wreck before term started",
+   "content": "Hannah felt like a wreck the week before the term started.",
+   "evidence": "The week before term, I was a wreck again.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 4,
+   "quote_found": true
+  },
+  {
+   "heading": "Inability to eat Sunday",
+   "content": "Hannah could not eat on the Sunday before the term started.",
+   "evidence": "I couldn't eat on the Sunday.",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 4,
+   "quote_found": true
+  },
+  {
+   "heading": "Started evening journaling",
+   "content": "Hannah started writing down what went well each evening.",
+   "evidence": "I started writing down what went well each evening.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 4,
+   "quote_found": true
+  },
+  {
+   "heading": "Journaling lasted two weeks",
+   "content": "Hannah's practice of writing down good things lasted for about two weeks.",
+   "evidence": "It held for about two weeks,",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 4,
+   "quote_found": true
+  },
+  {
+   "heading": "Stopped journaling due to feeling silly",
+   "content": "Hannah stopped journaling because she felt silly doing it.",
+   "evidence": "and then I stopped because I felt silly.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 4,
+   "quote_found": true
+  },
+  {
+   "heading": "Wants to do job without feeling fraud",
+   "content": "Hannah wants to do the job without feeling like a fraud.",
+   "evidence": "would like to do the job without feeling like a fraud.",
+   "scope": "session",
+   "category": "Self-concept & Identity",
+   "part": 4,
+   "quote_found": true
+  },
+  {
+   "heading": "Goals for Tuesday",
+   "content": "Hannah's goal for Tuesday is to walk into a meeting without rehearsing and send only one email.",
+   "evidence": "Walking into a meeting and not rehearsing at first. Sending an email once.",
+   "scope": "session",
+   "category": "Self-concept & Identity",
+   "part": 5,
+   "quote_found": true
+  },
+  {
+   "heading": "Goals for Sunday",
+   "content": "Hannah's goal for Sunday is to sit on the sofa in the evening without feeling stomach knots.",
+   "evidence": "Being able to sit on the sofa in the evening without my stomach in knots.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 5,
+   "quote_found": true
+  },
+  {
+   "heading": "Feeling after stating goals",
+   "content": "Hannah feels lighter but also a bit tearful after stating her goals out loud.",
+   "evidence": "Lighter. A bit tearful actually.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 5,
+   "quote_found": true
+  },
+  {
+   "heading": "Disclosing 4am issue to Ben",
+   "content": "Hannah has never told anyone about the 4am issue, not even Ben.",
+   "evidence": "Not even Ben knows how about the 4am.",
+   "scope": "session",
+   "category": "Family & Relationships",
+   "part": 5,
+   "quote_found": true
+  },
+  {
+   "heading": "Plan to tell Ben this week",
+   "content": "Hannah might try telling Ben this week.",
+   "evidence": "I might try this week.",
+   "scope": "session",
+   "category": "Family & Relationships",
+   "part": 5,
+   "quote_found": true
+  },
+  {
+   "heading": "Obstacle to telling Ben",
+   "content": "Hannah feels telling Ben would be scary, and he might be hurt she didn't say sooner.",
+   "evidence": "Scary. He would probably be hurt that I didn't say sooner.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 5,
+   "quote_found": true
+  },
+  {
+   "heading": "Preferred time to talk to Ben",
+   "content": "Hannah prefers to talk to Ben on Saturday morning over breakfast.",
+   "evidence": "Yeah, over breakfast. He is always in a good mood then.",
+   "scope": "session",
+   "category": "Family & Relationships",
+   "part": 5,
+   "quote_found": true
+  },
+  {
+   "heading": "Commitment to evening notebook",
+   "content": "Hannah will try using the evening notebook again for one week, placing it by the kettle.",
+   "evidence": "I will put it by the kettle so I don't forget.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 5,
+   "quote_found": true
+  },
+  {
+   "heading": "Glad about attending session",
+   "content": "Hannah is glad she did not cancel the session that morning.",
+   "evidence": "lady I nearly cancelled this morning. I'm glad I didn't.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 5,
+   "quote_found": true
+  }
+ ],
+ "roles": {
+  "roles": "right",
+  "raw": "{\"therapist\": \"S0\", \"patient\": \"S1\", \"confidence\": 1, \"evidence\": [\"What would you like to talk about today?\", \"What happened in September?\", \"What does it look like when that thought arrives?\"]}"
+ }
+}

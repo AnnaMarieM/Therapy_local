@@ -1,0 +1,434 @@
+{
+ "round": "r1",
+ "engine": "whisper-medium-translate",
+ "model": "qwen3.5-4b",
+ "lane": 2,
+ "client": "tomas-b",
+ "lang": "cs",
+ "seconds": 455.4,
+ "facts": [
+  {
+   "heading": "Client name is Tomas",
+   "content": "The client's name is Tomas.",
+   "evidence": "Good morning, Mr. Bart",
+   "scope": "profile",
+   "category": "Self-concept & Identity",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client is nervous about session",
+   "content": "The client feels nervous about the session.",
+   "evidence": "I'm pretty nervous, if I have to be honest",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client hasn't seen a psychologist",
+   "content": "The client has not visited a psychologist before.",
+   "evidence": "I haven't been to the psychologist",
+   "scope": "profile",
+   "category": "Coping & Strengths",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Wife says marriage is failing",
+   "content": "The client's wife says the marriage is not working anymore.",
+   "evidence": "She says it's not going to work like this anymore",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client checks door repeatedly",
+   "content": "The client checks the door, turns it off, and locks it.",
+   "evidence": "I'm checking the door and turning it off",
+   "scope": "profile",
+   "category": "Addictions & Habits",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client spends an hour checking",
+   "content": "The client takes an hour to complete the checking routine.",
+   "evidence": "It takes me an hour before she gets out of bed",
+   "scope": "profile",
+   "category": "Addictions & Habits",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client locks door with flowers",
+   "content": "The client closes the door, goes to the flower, and pulls the lock.",
+   "evidence": "I close the door, go to the flower, turn around and pull the lock",
+   "scope": "profile",
+   "category": "Addictions & Habits",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client presses buttons repeatedly",
+   "content": "The client presses every button on the door system.",
+   "evidence": "Then the check is done, every button is pressed",
+   "scope": "profile",
+   "category": "Addictions & Habits",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client worries about doing it wrong",
+   "content": "The client worries that he did not do the check properly.",
+   "evidence": "I have a picture in my head that I didn't do it properly",
+   "scope": "profile",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client imagines house on fire",
+   "content": "The client imagines the house burning like a movie.",
+   "evidence": "Being in flames. I see it clearly like a movie",
+   "scope": "profile",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client checks door every day",
+   "content": "The client checks the door every day.",
+   "evidence": "Every day",
+   "scope": "profile",
+   "category": "Addictions & Habits",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client checks door at night",
+   "content": "The client checks the door in the evening, especially when going out or sleeping.",
+   "evidence": "In the evening is the worst, when we go out or sleep",
+   "scope": "profile",
+   "category": "Addictions & Habits",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client checks door in morning",
+   "content": "The client checks the door in the morning as well.",
+   "evidence": "And in the morning too",
+   "scope": "profile",
+   "category": "Addictions & Habits",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client started checking two years ago",
+   "content": "The client started checking the door two years ago.",
+   "evidence": "It started two years ago, when it was burning next door and we had to evacuate",
+   "scope": "profile",
+   "category": "History & Life Events",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Neighbor house burned two years ago",
+   "content": "A house next door burned down two years ago.",
+   "evidence": "when it was burning next door and we had to evacuate",
+   "scope": "profile",
+   "category": "History & Life Events",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client had warning alarm two years ago",
+   "content": "There was a warning alarm ringing two years ago.",
+   "evidence": "A warning was ringing",
+   "scope": "profile",
+   "category": "History & Life Events",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client saw smoke on corridor two years ago",
+   "content": "There was smoke on the corridor two years ago.",
+   "evidence": "There was smoke on the corridor and someone was screaming",
+   "scope": "profile",
+   "category": "History & Life Events",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client heard screaming two years ago",
+   "content": "Someone was screaming during the fire two years ago.",
+   "evidence": "There was smoke on the corridor and someone was screaming",
+   "scope": "profile",
+   "category": "History & Life Events",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client was in pajamas during fire",
+   "content": "The client was in pajamas when the fire happened two years ago.",
+   "evidence": "We were only in pajamas",
+   "scope": "profile",
+   "category": "History & Life Events",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client felt relief after fire",
+   "content": "The client felt that the fire was over after it happened.",
+   "evidence": "That it was over",
+   "scope": "profile",
+   "category": "History & Life Events",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "No one was hurt in fire",
+   "content": "Nobody was hurt in the fire two years ago.",
+   "evidence": "Nobody was hurt, but it was burning next door",
+   "scope": "profile",
+   "category": "History & Life Events",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client stood on ground during fire",
+   "content": "The client stood on the ground and looked out the window during the fire.",
+   "evidence": "I stood on the ground and looked out the window",
+   "scope": "profile",
+   "category": "History & Life Events",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client feels he can manage if he checks",
+   "content": "The client feels he can manage the situation if he checks the door.",
+   "evidence": "I have a feeling that I can manage it",
+   "scope": "profile",
+   "category": "Self-concept & Identity",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client feels in trouble if he doesn't check",
+   "content": "The client feels he will be in trouble if something doesn't work.",
+   "evidence": "If something doesn't work, it happens and I'll be in trouble",
+   "scope": "profile",
+   "category": "Self-concept & Identity",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client feels like he is going crazy",
+   "content": "The client feels like he is going crazy if he tries to stop checking.",
+   "evidence": "Then I grow a narrowness and I feel like I'm going crazy",
+   "scope": "profile",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client prefers to check door",
+   "content": "The client would rather check the door than stop.",
+   "evidence": "I'd rather do it",
+   "scope": "profile",
+   "category": "Coping & Strengths",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client feels narrowness when not checking",
+   "content": "The client feels a narrowness and panic if he tries to leave the door uncheck.",
+   "evidence": "Then I grow a narrowness and I feel like I'm going crazy",
+   "scope": "profile",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client's wife broke his arm",
+   "content": "The client's wife broke his arm and neck.",
+   "evidence": "He's a man who broke my arm and broke my neck",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client's wife is Barbara",
+   "content": "The client's wife is named Barbara.",
+   "evidence": "Barbara",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client's wife is suffering",
+   "content": "The client's wife is suffering from the situation.",
+   "evidence": "She's suffering, but I know she's suffering",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client went to cinema with wife",
+   "content": "The client and his wife went to the cinema 40 minutes after the incident.",
+   "evidence": "We came to the cinema 40 minutes later",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Wife waited outside for client",
+   "content": "The client's wife waited outside until he came back.",
+   "evidence": "She was waiting outside until I came back and finally she came to me",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Wife said nothing to client",
+   "content": "The client's wife said nothing to him when she found him.",
+   "evidence": "She said nothing, just looked at me",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client feels like child trapped",
+   "content": "The client feels like a child who cannot get out of the house.",
+   "evidence": "Yes. I felt like a child who can't get out of the house",
+   "scope": "profile",
+   "category": "Self-concept & Identity",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client works as pharmacist",
+   "content": "The client works as a pharmacist in a hospital.",
+   "evidence": "I work as a pharmacist in a hospital",
+   "scope": "profile",
+   "category": "Work & Career",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client has conversations in hospital",
+   "content": "The client has conversations in the hospital.",
+   "evidence": "I have a conversation in the hospital",
+   "scope": "profile",
+   "category": "Work & Career",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client has conversations in parents' homes",
+   "content": "The client has conversations in his parents' homes.",
+   "evidence": "sometimes in my parents' homes",
+   "scope": "profile",
+   "category": "Work & Career",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Worked in office for an hour",
+   "content": "Tomas has been working in the office for an hour lately.",
+   "evidence": "You've been working in the office for an hour lately.",
+   "scope": "session",
+   "category": "Work & Career",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Jeff calls him most annoying boss",
+   "content": "Jeff says Tomas is the most annoying boss in the company.",
+   "evidence": "Jeff says I'm the most annoying boss in the company.",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Ate bread on stairs",
+   "content": "Tomas puts bread on the stairs when he makes it.",
+   "evidence": "when I make bread and put it on the stairs.",
+   "scope": "session",
+   "category": "History & Life Events",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Walks with Barbara twice a week",
+   "content": "Tomas walks with Barbara twice a week, just in the morning.",
+   "evidence": "Walk twice a week, just in the morning.",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Wakes up twice a night",
+   "content": "Tomas wakes up twice a night while sleeping.",
+   "evidence": "I wake up twice a night",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Ate bread on stairs",
+   "content": "Tomas puts bread on the stairs when he makes it.",
+   "evidence": "when I make bread and put it on the stairs.",
+   "scope": "session",
+   "category": "History & Life Events",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Ate bread on stairs",
+   "content": "Tomas puts bread on the stairs when he makes it.",
+   "evidence": "when I make bread and put it on the stairs.",
+   "scope": "session",
+   "category": "History & Life Events",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas plans to check door once",
+   "content": "Tomas will check the door only once when leaving the house.",
+   "evidence": "check the door only once",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas rates thirst 1 to 10",
+   "content": "Tomas will write down his thirst level as a number from 1 to 10.",
+   "evidence": "write down the number from 1 to 10",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas plans to try one thing",
+   "content": "Tomas plans to try one thing next time.",
+   "evidence": "Next time try one thing",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 3,
+   "quote_found": true
+  }
+ ]
+}

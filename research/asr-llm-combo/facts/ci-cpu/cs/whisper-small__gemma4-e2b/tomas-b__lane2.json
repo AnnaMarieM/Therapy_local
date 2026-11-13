@@ -1,0 +1,191 @@
+{
+ "round": "r1",
+ "engine": "whisper-small",
+ "model": "gemma4-e2b",
+ "lane": 2,
+ "client": "tomas-b",
+ "lang": "cs",
+ "seconds": 232.2,
+ "facts": [
+  {
+   "heading": "Nervozita a strach",
+   "content": "Tomas se cítil nervozní. Tomas se bojí, že kolegové nebudou správně.",
+   "evidence": "celé jsem nervozní, jestli mám odby tu príjný, nikdy jsem přichl ganabel.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Problém s kontrolou",
+   "content": "Tomas se bojí, že se něco stane při kontrolách. Tomas se cítí zodpovědný.",
+   "evidence": "Před skrázešer kontroluji, jasno jsem zamknout dleže a vypnout v porádku. To je velká zodpovědnost.",
+   "scope": "profile",
+   "category": "Zdroje a zvládání",
+   "part": 1,
+   "quote_found": false
+  },
+  {
+   "heading": "Zranění u suseda",
+   "content": "Tomas se pamatoval událost, kdy se zranil sused.",
+   "evidence": "Před té doby mám pocit, že tomu vůzpůsobět já.",
+   "scope": "Historie a události",
+   "category": "Historie a události",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Zranění v noční době",
+   "content": "Tomas se pamatoval, že se v noční době zranil.",
+   "evidence": "Byla to v noce. Prvnul mi avar, na chodin byl kůlš a v nejakřiče.",
+   "scope": "Historie a události",
+   "category": "Historie a události",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Pocity při úzkosti",
+   "content": "Tomas pociťoval úzkost, která se mu projeví. Tomas se cítil smutný.",
+   "evidence": "Srdce po 3 suzem je rucele, měž patnil dělutku.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Reakce manželky",
+   "content": "Manželka Tomasa vidí, že se jí to večer pává.",
+   "evidence": "vidím, že jí to večer pává.",
+   "scope": "Rodina a vztahy",
+   "category": "Rodina a vztahy",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Pocity po setkání",
+   "content": "Tomas se cítil jako odítě, který nezvládne jít domů.",
+   "evidence": "Cítil jsem se jak odítě, který nezvládne výjít s domů.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Práce a kolegové",
+   "content": "Tomas pracuje v firmě, kde se děje neobvyklé věci. Tomas se bojí chyby kolegovů.",
+   "evidence": "Pracujekolek, kde káčvalomomce. Bojím se, že kole své hlavěnou nám chybdu, že vpadném připlejím vodit, če neco zkorí.",
+   "scope": "Práce a kariéra",
+   "category": "Práce a kariéra",
+   "part": 1,
+   "quote_found": false
+  },
+  {
+   "heading": "Hodnota práce",
+   "content": "Čef Tomasa považuje ho za nejpečtojší ve firmě. Tomas si uvědomuje, že to stojí čas.",
+   "evidence": "Čef mi říká, že jsem nejpečtojší ve firmě, ale nevidí, kolik času to stojí.",
+   "scope": "Práce a kariéra",
+   "category": "Práce a kariéra",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Příděl práce a strach",
+   "content": "Tomas se bojí, když mu je přidělí práci. Tomas se bojí, že se to bude dělat samo.",
+   "evidence": "Mám strah, když je přídil práce. se bojím, že tu půjde sam.",
+   "scope": "Nálada a emoce",
+   "category": "Osobní témata a sebepojetí",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "Myšlenka o ubližení",
+   "content": "Tomas má myšlenku, že by se učil ublížit. Tomas se bojí, že to bude, pokud to neřekne.",
+   "evidence": "Že ji a dítěte tě uplížit. ne, že bych chtěl. ale ta myšlenka přijde, když krajím chleba, no z té jemů schodu, a pak se bojím, že tu půjde sam.",
+   "scope": "Nálada a emoce",
+   "category": "Osobní témata a sebepojetí",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "Zvládání myšlenek",
+   "content": "Tomas se snaží zvládat myšlenky tím, že se odebere z místnosti nebo kontroluje něco. Tomas se snaží, aby se jeho tempo určovalo.",
+   "evidence": "Vodejdu z místnosti. nebo se vrátím a zkontrolují něco, abyte přes to. Takže kontrola vám pomáhá uplytnit i tuhle? Tempo určuje teví.",
+   "scope": "Zdroje a zvládání",
+   "category": "Zdroje a zvládání",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "Spánek a kontrola",
+   "content": "Tomas spí nezerdne. Tomas kontroluje něco roci dva krát.",
+   "evidence": "Spím, nezerdne. Stávám roci dva krat a kontroli je spodáv.",
+   "scope": "Zdraví, tělo a spánek",
+   "category": "Zdraví, tělo a spánek",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "Pomoc při procházkách",
+   "content": "Procházky s barborou pomáhají Tomasu, když je něco doma. Procházky jsou dva krát.",
+   "evidence": "Pomáhá vám něco? Pomáhá na procházky s barborou, bo když je pravě něco doma, podmězověstná. Procházky dva krat",
+   "scope": "Zdroje a zvládání",
+   "category": "Zdroje a zvládání",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "Cíle pro zlepšení",
+   "content": "Tomas má cíle, aby se zlepšil rychle. Cílem je udělat něco během pěti minut.",
+   "evidence": "Udejíš ve co za 5 minut. A češit se nadítě bez těch nešlené. To jsou věstné cíle.",
+   "scope": "Zdroje a zvládání",
+   "category": "Zdroje a zvládání",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "Terapie pro strach",
+   "content": "Tomas zložil terapii, aby se postupně vyspál je tom, čeho se boí. Tomas z toho strach.",
+   "evidence": "Zložel jsem terapy, když jsem se všlo, postupně vyspala je tom, čeho se boí. Nys jsem z toho strach.",
+   "scope": "Zdroje a zvládání",
+   "category": "Zdroje a zvládání",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "Změna přístupu k krokům",
+   "content": "Tomas se snaží udělat malá kroky, aby rozhodoval o tempu.",
+   "evidence": "Šlo by si po malých kroci, aby byste o tempu rozhodovalu. Velké kroky začímejí malými.",
+   "scope": "Zdroje a zvládání",
+   "category": "Zdroje a zvládání",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "Komunikace s barborou",
+   "content": "Tomas se ptá, co by barbora chtěla říct. Tomas se bojí, že se mu odoví.",
+   "evidence": "Že jim bou. A že se bocí odoval, že to bych jí nestrat mo. Zatím se bojím, že te se mnou nechtěla vít.",
+   "scope": "Rodina a vztahy",
+   "category": "Rodina a vztahy",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "Zkusit kontrolu rvářů",
+   "content": "Speaker 1 navrhuje zkusit kontrolu rvářů jen jednou a zabíjet si, jak moc bylo úzko.",
+   "evidence": "skontrolojte rváře jenom jednou a zabíšte si, jak moc vám bylo úzko",
+   "scope": "session",
+   "category": "Zdroje a zvládání",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Zkusit zapsat čísla",
+   "content": "Speaker 1 navrhuje zkusit zapsat čísla od jednou do desetě.",
+   "evidence": "Skusem to, asi spodně jednou a zapišu tisle od jednou do desetě",
+   "scope": "session",
+   "category": "Zdroje a zvládání",
+   "part": 3,
+   "quote_found": true
+  }
+ ]
+}

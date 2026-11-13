@@ -1,0 +1,443 @@
+{
+ "round": "r1",
+ "engine": "whisper-small",
+ "model": "gemma4-e4b",
+ "lane": 3,
+ "client": "daniel-r",
+ "lang": "en",
+ "seconds": 486.9,
+ "facts": [
+  {
+   "heading": "GP suggested visit due to exhaustion",
+   "content": "Daniel's general practitioner suggested he come to therapy because she noticed he looked exhausted.",
+   "evidence": "My general practitioner suggested I come. She said I look exhausted",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Daniel's job and burnout start date",
+   "content": "Daniel works as a project manager at a logistics company. He has been completely burnt out since October.",
+   "evidence": "I work as a project manager at a logistics company and I've been completely burnt out since October",
+   "scope": "profile",
+   "category": "Work & Career",
+   "part": 1,
+   "quote_found": false
+  },
+  {
+   "heading": "Workload increased due to client loss",
+   "content": "Daniel's company lost a big client, and he ended up doing three people's jobs after half the team moved onto the rescue plan.",
+   "evidence": "We lost a big client, half of our team moved onto the rescue plan, so I ended up doing three people's jobs",
+   "scope": "profile",
+   "category": "Work & Career",
+   "part": 1,
+   "quote_found": false
+  },
+  {
+   "heading": "Daniel's current work hours",
+   "content": "Daniel starts at his desk by 7 AM and continues answering messages until 10 PM.",
+   "evidence": "I'm at my desk by 7 and I'm still answering messages at 10 at night",
+   "scope": "session",
+   "category": "Work & Career",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Daniel's sleep duration and pattern",
+   "content": "Daniel sleeps about four hours most nights, waking up at three in the morning and being unable to fall back asleep.",
+   "evidence": "Most nights I sleep about four hours. I wake up at three in the morning and just can't fall back asleep",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 1,
+   "quote_found": false
+  },
+  {
+   "heading": "Waking up at 3 AM triggers stress",
+   "content": "When Daniel wakes up at three in the morning, he worries about shipping schedules and whether he has forgotten something.",
+   "evidence": "We have to start shipping schedules, the client, whether or not I've forgotten something",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Father's Parkinson's diagnosis",
+   "content": "Daniel's father was diagnosed with Parkinson's disease in the autumn.",
+   "evidence": "His diagnosis was Parkinson's disease in the autumn",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Father's current symptoms",
+   "content": "Daniel's father's handshake is slower, he gets frustrated, and he is having a drink and being distraught.",
+   "evidence": "His handshake is slower, he gets frustrated, he's having a drink and he's always being distraught",
+   "scope": "session",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": false
+  },
+  {
+   "heading": "Daniel drives father to hospital",
+   "content": "Daniel drives his father to the hospital in Leeds for neurology appointments every few weeks, which is about an hour each way.",
+   "evidence": "I'm the one who drives him to the hospital in Leeds. Neurology appointments are every few weeks, it's about an hour each way",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": false
+  },
+  {
+   "heading": "Daniel is solely responsible for care",
+   "content": "Daniel is the only one responsible for his father's care because his younger sister Hannah lives in Toronto.",
+   "evidence": "all the care for our father falls on me",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Daniel feels guilty about being tired",
+   "content": "Daniel feels guilty for being tired when his father is ill.",
+   "evidence": "He feels selfish to be tired when he's the one who's ill",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Daniel tells sister he is fine",
+   "content": "When his sister Hannah asks how he is, Daniel tells her he is fine.",
+   "evidence": "She asks how I am, and I say fine",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Daniel's sister calls father weekly",
+   "content": "Daniel's younger sister Hannah calls his father every Sunday.",
+   "evidence": "She calls him every Sunday",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "GP blood tests normal",
+   "content": "Daniel's GP ran blood tests which were all normal.",
+   "evidence": "They were all normal",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "GP suggested stress/exhaustion",
+   "content": "Daniel's GP attributed his symptoms to stress and exhaustion.",
+   "evidence": "She said it's stress and exhaustion",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "GP unavailable for talking",
+   "content": "Daniel's GP stated she did not have time to talk to him.",
+   "evidence": "they said I hadn't got the time",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Girlfriend Claire's concern",
+   "content": "Claire, Daniel's girlfriend, expressed that she was done watching him disappear.",
+   "evidence": "Claire. She said she was done watching me disappear",
+   "scope": "session",
+   "category": "Family & Relationships",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Claire's supportive behavior",
+   "content": "Claire makes Daniel tea and does not push him to talk.",
+   "evidence": "She makes me tea and doesn't push me to talk",
+   "scope": "session",
+   "category": "Family & Relationships",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Claire stopped weekend invites",
+   "content": "Claire stopped asking Daniel if he wanted to go away for the weekend.",
+   "evidence": "She stopped asking if I want to go away for the weekend",
+   "scope": "session",
+   "category": "Family & Relationships",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Emails prevent travel",
+   "content": "Daniel feels that emails prevent him from going away for the weekend.",
+   "evidence": "The emails",
+   "scope": "session",
+   "category": "Work & Career",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Fear of returning to emails",
+   "content": "Daniel anticipates returning to 200 emails if he goes away.",
+   "evidence": "I'll come back to 200 of them",
+   "scope": "session",
+   "category": "Work & Career",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Last proper break unknown",
+   "content": "Daniel cannot remember the last time he was properly off.",
+   "evidence": "Can't remember the last time I was properly off",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Ran before October",
+   "content": "Daniel used to run before October.",
+   "evidence": "I ran",
+   "scope": "profile",
+   "category": "Coping & Strengths",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Serious training routine",
+   "content": "Daniel used to get serious training every Saturday morning.",
+   "evidence": "I got me serious every Saturday morning",
+   "scope": "profile",
+   "category": "Coping & Strengths",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Running stopped two months ago",
+   "content": "Daniel's running stopped about two months ago.",
+   "evidence": "It stopped about two months ago",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Legs feel heavy when running",
+   "content": "Daniel's legs feel heavy when running.",
+   "evidence": "My legs feel like, like, loud",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Lost part of self",
+   "content": "Daniel feels he has lost a part of himself due to the change in running.",
+   "evidence": "I've lost a part of myself",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Work emails sent late",
+   "content": "Daniel's boss, Pearson, sends emails at 11 at night.",
+   "evidence": "he sends emails at 11 at night",
+   "scope": "profile",
+   "category": "Work & Career",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Boss expects early reply",
+   "content": "Daniel's boss expects an answer before breakfast.",
+   "evidence": "and expects an answer before breakfast",
+   "scope": "profile",
+   "category": "Work & Career",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Fear of not answering emails",
+   "content": "Daniel is afraid his boss will think he isn't committed if he doesn't answer.",
+   "evidence": "he'd think I wasn't come at it",
+   "scope": "session",
+   "category": "Work & Career",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Restructuring fear in spring",
+   "content": "Daniel is afraid he might be let go due to a restructuring in the spring.",
+   "evidence": "There's a restructuring in the spring and I'm afraid they'll let me go",
+   "scope": "session",
+   "category": "Work & Career",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Feels horrible about relief",
+   "content": "Daniel would feel horrible about being relieved if he were let go.",
+   "evidence": "I'd feel horrible about being relieved",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Experiences irritability",
+   "content": "Daniel reports feeling irritable.",
+   "evidence": "And irritable",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Hand shaking incident",
+   "content": "Daniel experienced a moment where his hand was shaking.",
+   "evidence": "my hand was shaking",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Thought it was heart attack",
+   "content": "Daniel thought the shaking incident was a heart attack for a second.",
+   "evidence": "It thought for a second it was a heart attack",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Past panic attacks experienced",
+   "content": "Daniel has experienced panic attacks a couple of times.",
+   "evidence": "couple of times.",
+   "scope": "profile",
+   "category": "Mood & Emotions",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Panic attack on train",
+   "content": "Daniel experienced a panic attack on a train to Manchester.",
+   "evidence": "Once on a train to Manchester, just to get off and stand on a platform.",
+   "scope": "profile",
+   "category": "History & Life Events",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Daniel previously kept secret",
+   "content": "Daniel had not told anyone about his panic attacks, not even Claire.",
+   "evidence": "Well, I hadn't told anyone about it, not even Claire.",
+   "scope": "profile",
+   "category": "Self-concept & Identity",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Daniel uses substances to cope",
+   "content": "Daniel consumes coffee, wine, and sometimes tea to cope.",
+   "evidence": "Coffee, probably. I went about six cups a day and I started having wine in the evenings to switch my head off, to glasses, sometimes tree.",
+   "scope": "session",
+   "category": "Addictions & Habits",
+   "part": 3,
+   "quote_found": false
+  },
+  {
+   "heading": "Wine only works for an hour",
+   "content": "The wine Daniel drinks only works for about an hour.",
+   "evidence": "It works for an hour.",
+   "scope": "session",
+   "category": "Addictions & Habits",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Daniel wakes up three times",
+   "content": "Daniel wakes up three times during the night.",
+   "evidence": "I wake up three anyway.",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Daniel feels like listing wrongs",
+   "content": "Daniel feels like he is listing everything that is wrong with him.",
+   "evidence": "It feels like I'm listing everything that's wrong with me.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Daniel's grandfather worked in mines",
+   "content": "Daniel's grandfather worked at the mines in the orchard.",
+   "evidence": "My grandfather worked at the mines in the orchard.",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Grandfather never complained",
+   "content": "Daniel's grandfather never complained about anything.",
+   "evidence": "He never complained about anything.",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Daniel plans phone cutoff time",
+   "content": "Daniel plans to set a time at half past nine to switch off his phone.",
+   "evidence": "Yeah, half past nine, perhaps.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Daniel will track sleep",
+   "content": "Daniel will write down when he wakes up during the night.",
+   "evidence": "Write down when I wake up, if I wake up.",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Session attendance plan",
+   "content": "Daniel plans to attend the next session next week.",
+   "evidence": "Same time next week?",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 4,
+   "quote_found": true
+  },
+  {
+   "heading": "Travel difficulty mentioned",
+   "content": "Daniel mentioned that the trains are awful.",
+   "evidence": "The trains are awful.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 4,
+   "quote_found": true
+  }
+ ]
+}

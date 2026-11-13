@@ -1,0 +1,308 @@
+{
+ "round": "r1",
+ "engine": "whisper-medium",
+ "model": "qwen3.5-4b",
+ "lane": 2,
+ "client": "jana-n",
+ "lang": "cs",
+ "seconds": 415.5,
+ "facts": [
+  {
+   "heading": "Jana je učitelkou češtiny",
+   "content": "Jana pracuje jako učitelka češtiny na základní škole v Prně a učí devítky a osmičky.",
+   "evidence": "Pracuji jako učitelka češtiny na základní škole v Prně.",
+   "scope": "profile",
+   "category": "Práce a kariéra",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana má dvě děti",
+   "content": "Jana má dvě děti, Anšce 12 let a Matějovi 8 let.",
+   "evidence": "Mám dvě děti, Anšce 12 a Matějový 8 let",
+   "scope": "profile",
+   "category": "Rodina a vztahy",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana a Raděk se rozvedli",
+   "content": "Jana a její manžel Raděk, s kterým byla 15 let, se rozhodli pro rozvod.",
+   "evidence": "Po 15 letech menšelství jsme se s menšelem Radkem rozhodli pro rozhod.",
+   "scope": "profile",
+   "category": "Rodina a vztahy",
+   "part": 1,
+   "quote_found": false
+  },
+  {
+   "heading": "Jana se cítí slepě",
+   "content": "Jana si myslí, že byla slepá a neměla vidět, že se s Raděkem vzdalují.",
+   "evidence": "Že jsem tom měla vidět, že jsem slepá.",
+   "scope": "session",
+   "category": "Osobní témata a sebepojetí",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana hledá chybu",
+   "content": "Jana si pořád v hlavě vrací a hledá, kde by udělala chybu.",
+   "evidence": "pořád se v hlavě vracím a hledám, kde jsem udělala chybu.",
+   "scope": "session",
+   "category": "Osobní témata a sebepojetí",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana se cítí unavená",
+   "content": "Jana se jednou domnívá, že byla moc unavená a nezajímala se o Raděka.",
+   "evidence": "Jednou si myslím, že jsem byla moc unavená a nezajímala jsem se o něj",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana se cítí přetížená",
+   "content": "Jana se domnívá, že se o Raděka starala moc.",
+   "evidence": "jen když se... že jsem se starala moc.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana lhala dcera",
+   "content": "Jana lhala své dceři Aně, když jí řekla, že se s tátou hádáme.",
+   "evidence": "Řekla jsem, že ne.",
+   "scope": "session",
+   "category": "Rodina a vztahy",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana se bojí dcery",
+   "content": "Jana se bojí, že ji Anička vezme domů, protože ji nicím život.",
+   "evidence": "Že ji ničím život, že ji vezmu domů.",
+   "scope": "session",
+   "category": "Rodina a vztahy",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana se bojí slz dětí",
+   "content": "Jana se bojí, že jí děti plakají, protože je ještě malý Matěj nic nechápe.",
+   "evidence": "bojím se jejich slz a Matěj je ještě malý, ten moc nic nechápe.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana má strach z bytu",
+   "content": "Jana má strach, že byt na hypotéku nezvládne sama, protože Raděk se odstěhuje.",
+   "evidence": "Byt je na hypotéku, Radek se asi odstěhla jak pravdrově, ale spíš se tím.",
+   "scope": "session",
+   "category": "Zdroje a zvládání",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana má strach z financí",
+   "content": "Jana má strach, že sama nezvládne situaci, protože Raděk by vždycky řešil peníze.",
+   "evidence": "Mám strah, že to sama nezvládnu. Radek by vždycky řešil peníze.",
+   "scope": "session",
+   "category": "Zdroje a zvládání",
+   "part": 1,
+   "quote_found": false
+  },
+  {
+   "heading": "Jana má hrdzí v krku",
+   "content": "Jana má pocit, že má hrdzí v krku, když se jí učí děti.",
+   "evidence": "Do tři dechovním skrlíkem v krku.",
+   "scope": "session",
+   "category": "Zdraví, tělo a spánek",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana se cítí rozpadat se",
+   "content": "Jana má pocit, že všichni vidí, že se jí život rozpadá.",
+   "evidence": "Mám poces, že všichni vidí, že se mi rozpadá život.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana se rozplakala",
+   "content": "Jana se jednou rozplakala na chodbě u ředitelky školy.",
+   "evidence": "Řekla jsem jí to, protože jsem se jednou rozplakala na chodbě.",
+   "scope": "session",
+   "category": "Zdraví, tělo a spánek",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana má pocit zlosti",
+   "content": "Jana se po rozhovoru s Raděkem cítila prázdně a pak zlost.",
+   "evidence": "Prázdno a pak zlost.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana má pocit prázdnosti",
+   "content": "Jana se po rozhovoru s Raděkem cítila prázdně a pak zase prázdnost.",
+   "evidence": "Pak zase prázdnost.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana má pocit ztráty",
+   "content": "Jana se po 15 letech menšelského vztahu s Raděkem cítí, že se nic nedělo.",
+   "evidence": "Pak jsem šla uklidit nádoby, jako by se nic nedělo.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana si myslí, že se to nezmění",
+   "content": "Jana říká, že má oba děti rády a že se jejich situace nezmění.",
+   "evidence": "Že ho máme oba rádě a že se to nezmění.",
+   "scope": "session",
+   "category": "Osobní témata a sebepojetí",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana si není jistá pravdou",
+   "content": "Jana si není jistá, jestli je pravda, že se to nezmění, protože sama to neví.",
+   "evidence": "Jenže já nevím, jestli je to pravda, když sama nevím, jak to bude vypadat.",
+   "scope": "session",
+   "category": "Osobní témata a sebepojetí",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana se probouzí ve tři ráno",
+   "content": "Jana se každou noc probouzí ve tři hodiny ráno.",
+   "evidence": "Každou noc budím ve tři hodiny ráno",
+   "scope": "profile",
+   "category": "Zdraví, tělo a spánek",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "Jana jímá jen triky",
+   "content": "Jana jímá pouze triky.",
+   "evidence": "Zubla jsem či třiky",
+   "scope": "profile",
+   "category": "Zdraví, tělo a spánek",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana vypadá hrozně",
+   "content": "Jana vypadá hrozně podle kamarádky.",
+   "evidence": "Kamarádka mi říká, že vypadám hrozně",
+   "scope": "profile",
+   "category": "Osobní témata a sebepojetí",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana má sestru Alanu",
+   "content": "Jana má sestru Alanu, která žije v Olomouci.",
+   "evidence": "Mám sestru Alanu v Olomouce",
+   "scope": "profile",
+   "category": "Rodina a vztahy",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana má kamarádku Evu",
+   "content": "Jana má kamarádku Evu z práce.",
+   "evidence": "A kamarádku Evu z práce",
+   "scope": "profile",
+   "category": "Rodina a vztahy",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana se bojí, že je špatný příklad",
+   "content": "Jana se bojí, že jako žena, která nedokáže udržet manželství, není dobrý příklad pro děti.",
+   "evidence": "Že žena, která nedokážu udržet manělství, není pro děti dobrý příklad",
+   "scope": "profile",
+   "category": "Osobní témata a sebepojetí",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana se bojí, že děti vidí, že je zklamaná",
+   "content": "Jana se bojí, že děti vidí, že je zklamaná, a že by se mohly rozplakat.",
+   "evidence": "Že spanikařím a rozpláču se. Že nezvládnou zůstat klidná",
+   "scope": "profile",
+   "category": "Osobní témata a sebepojetí",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana se bojí být závislá",
+   "content": "Jana se bojí, že by se mohla stát závislá na práškách.",
+   "evidence": "nechci být závislá",
+   "scope": "profile",
+   "category": "Závislosti a návyky",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana nechce prášky",
+   "content": "Jana nechce brát prášky, protože jí nedělá dobře.",
+   "evidence": "Doktorka mi nebídla prášky, ale nechci",
+   "scope": "session",
+   "category": "Zdroje a zvládání",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana se cítí sama",
+   "content": "Jana se cítí sama a potřebuje, aby jí někdo oloběl.",
+   "evidence": "Potřebovala bych, by mě oloběla",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana se bojí, že bude zklamaná před dětmi",
+   "content": "Jana se bojí, že bude zklamaná před dětmi a že by to pro ně bylo děsivé.",
+   "evidence": "Že bych byla kala před tětmi? Ždeď to by pro ně bylo děsivé",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "Jana pláče, když se zklamí",
+   "content": "Jana pláče a omolouvá se, když se zklamí.",
+   "evidence": "Pláču, omolouvám se",
+   "scope": "profile",
+   "category": "Zdroje a zvládání",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana se učí připravovat papír",
+   "content": "Jana se učí připravovat papír, aby děti věděly, co ji budí.",
+   "evidence": "Zkusíte tohle noc něco malého třeba sevzla po stale, nechá to papíra napsat, co vás zbudí?",
+   "scope": "session",
+   "category": "Zdroje a zvládání",
+   "part": 2,
+   "quote_found": true
+  }
+ ]
+}

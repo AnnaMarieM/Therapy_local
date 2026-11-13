@@ -1,0 +1,200 @@
+{
+ "round": "r1",
+ "engine": "whisper-medium",
+ "model": "gemma4-e2b",
+ "lane": 4,
+ "client": "tomas-b",
+ "lang": "cs",
+ "seconds": 243.9,
+ "facts": [
+  {
+   "heading": "Ztráta kontroly",
+   "content": "Tomas se bojí, že bude vězněn, pokud něco neskontroluje.",
+   "evidence": "Že když něco neskontroluje, tak se to stane a budu věná. To je velká zatpovědnost.",
+   "scope": "Osobní témata a sebepojetí",
+   "category": "Nálada a emoce",
+   "part": 1,
+   "quote_found": false
+  },
+  {
+   "heading": "Pocity úzkosti",
+   "content": "Tomas pociťuje úzkost, která se projevuje fyzicky.",
+   "evidence": "mražíte úzkost až mám pocit, že se zblázně. Srdce počasu vzemel ruce a nešpatnil dělutku.",
+   "scope": "Nálada a emoce",
+   "category": "Nálada a emoce",
+   "part": 1,
+   "quote_found": false
+  },
+  {
+   "heading": "Příčina úzkosti",
+   "content": "Úzkost se projevuje v reakci manželky.",
+   "evidence": "Kdo o tom ví? Barbara. Moje manželka. Do začátku to bralo jako zvyk, tak už vidíš, že je to víc.",
+   "scope": "Rodina a vztahy",
+   "category": "Nálada a emoce",
+   "part": 1,
+   "quote_found": false
+  },
+  {
+   "heading": "Reakce manželky",
+   "content": "Manželka trpěla, ale viděla, že se to pro Tomasu zhoršuje.",
+   "evidence": "Trpěla, ale vidím, že ji to dočarpával.",
+   "scope": "Rodina a vztahy",
+   "category": "Rodina a vztahy",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Ztráta kontroly v práci",
+   "content": "Tomas se bojí udělat chybu v práci.",
+   "evidence": "Bojím se, že kvole své hlavy jednou dám chybu, že vpadním při plným vodě čo něco skoří.",
+   "scope": "Práce a kariéra",
+   "category": "Práce a kariéra",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Práce Tomasa",
+   "content": "Tomas pracuje jako elektrikář v Alamoce.",
+   "evidence": "Pracuji jako elektrikář v Alamoce.",
+   "scope": "Práce a kariéra",
+   "category": "Práce a kariéra",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Rozvody Tomasa",
+   "content": "Tomas má rozvody v DTech a občas v rodněných domách.",
+   "evidence": "Mám rozvody v DTech a občas v rodněných domách.",
+   "scope": "Rodina a vztahy",
+   "category": "Rodina a vztahy",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Zkušenost s požárem",
+   "content": "Tomas zažil situaci, kdy se sousedovi vyhořely okna.",
+   "evidence": "sousedom to vyhořel celé.",
+   "scope": "Historie a události",
+   "category": "Historie a události",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Pocity po požáru",
+   "content": "Tomas po požáru měl pocit, že to může způsobit.",
+   "evidence": "V té doby mám pocit, že to můžu způsobět já.",
+   "scope": "Nálada a emoce",
+   "category": "Nálada a emoce",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Pocity při kontrolách",
+   "content": "Tomas se bojí, že v kontrole udělá chybu.",
+   "evidence": "Bojím se, že kvole své hlavy jednou dám chybu, že vpadním při plným vodě čo něco skoří.",
+   "scope": "Závislosti a návyky",
+   "category": "Závislosti a návyky",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Osobní reakce na stres",
+   "content": "Tomas se snaží kontrolovat situaci.",
+   "evidence": "Jeden znamrátím druhý den, jen co podívat.",
+   "scope": "Zdroje a zvládání",
+   "category": "Zdroje a zvládání",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Komunikace s kolegy",
+   "content": "Kolegové si mysle, že je pečaný.",
+   "evidence": "Mysleli jsi, že jsem pečaný.",
+   "scope": "Práce a kariéra",
+   "category": "Práce a kariéra",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Přesun práce a strach",
+   "content": "Tomas se bojí přijde o práci. Tomas se bojí, že bude ublížit dítě.",
+   "evidence": "Mám strach, že přijde o práce. Hlavně teď. Že ji a dítě tě ublížím.",
+   "scope": "Nálada a emoce",
+   "category": "Nálada a emoce",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "Myšlenky při chlebu",
+   "content": "Myšlenka o ublížení dítěte se objevuje při krajování chleba.",
+   "evidence": "Ale ta myšlenka přijde když krajím chleba na nůstejmu schodu, a pak se bojím, že to bude sam.",
+   "scope": "Nálada a emoce",
+   "category": "Nálada a emoce",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "Zvládání vtíravých myšlenek",
+   "content": "Tomas se snaží myšlenky z místností odhalit. Tomas se snaží kontrolou uklidnit.",
+   "evidence": "Odejdou z místností. Nebo se vrátím a zkontroluje něco, aby to přestalo. Takže kontrola vám pomáhá uplidnit i tuhle?",
+   "scope": "Zdroje a zvládání",
+   "category": "Zdroje a zvládání",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "Spánek a kontrola",
+   "content": "Tomas spí mezeřně a provádí kontrolu. Kontrola pomáhá při procházkách.",
+   "evidence": "Zpím mezeřně. Stávám noce dva krat a kontrola je spora, když tam jsme stojí. Pomáha mě nochy na procházke s Barborou, když opravdu je něco doma, pomězo městná.",
+   "scope": "Zdraví, tělo a spánek",
+   "category": "Zdraví, tělo a spánek",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "Cíl zlepšení stavu",
+   "content": "Cílem je udej večer za pět minut a těšit se na dítě.",
+   "evidence": "Udejíš večer za pět minut a těšíte na dítě bez těch nešleněn.",
+   "scope": "Cíle a plány",
+   "category": "Cíle a plány",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Léčba strachu",
+   "content": "Tomas zložil terapii kvůli strachu. Tomas měl s terapeutem strach.",
+   "evidence": "Zložil jsem terapii, když jsem se všichni vystal o tom, čemu se bojí. Měl jsem s tebe strach.",
+   "scope": "Historie a události",
+   "category": "Historie a události",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "Přijetí tempu",
+   "content": "Tomas chce o tempu rozhodovat. Tomas se snaží postupovat malými kroky.",
+   "evidence": "Šlo by si po malých krocích, aby byste o tempu rozhodovalo? To je uklidňující.",
+   "scope": "Zdroje a zvládání",
+   "category": "Zdroje a zvládání",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "Komunikace s Barborou",
+   "content": "Tomas by chtěl říct Barborě, že ji miluje. Tomas se bojí, že se mnou nechtěla vít.",
+   "evidence": "Že jí milu. A že se bych chtěl dolačit, abych ji nestratil. Zatím se bojím, že by se mnou nechtěla vít.",
+   "scope": "Rodina a vztahy",
+   "category": "Rodina a vztahy",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "Zkouška kontroly dveří",
+   "content": "Speaker 1 navrhl zkontrolovat dveře jen jednou při odchodu z bytu. Speaker 1 se pokusí zapsat, jak moc bylo úsko.",
+   "evidence": "zkontrolojte dveře jenom jednou a zapište si, jak moc vám bylo úsko. Jednou. Zkusím to. Aspoň jednou. A zapišu tíslo od 1 do 10.",
+   "scope": "session",
+   "category": "Zdroje a zvládání",
+   "part": 3,
+   "quote_found": false
+  }
+ ]
+}

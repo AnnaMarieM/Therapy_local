@@ -1,0 +1,728 @@
+{
+ "engine": "turbo-prevtext",
+ "base": "whisper-large-v3-turbo",
+ "opts": {
+  "condition_on_previous_text": true
+ },
+ "client": "daniel-r",
+ "lang": "en",
+ "lane": 2,
+ "audio_s": 556.4,
+ "seconds": 123.7,
+ "rtf": 0.222,
+ "wer": 0.1013,
+ "cer": 0.0665,
+ "segments": [
+  {
+   "start": 0.0,
+   "end": 6.88,
+   "text": "Hello Danielle, come in, have a seat. Where would you like to start today?"
+  },
+  {
+   "start": 7.76,
+   "end": 12.8,
+   "text": "I don't really know. My general practitioner suggested I come."
+  },
+  {
+   "start": 14.26,
+   "end": 17.2,
+   "text": "She said I look exhausted and she's right, I am."
+  },
+  {
+   "start": 18.1,
+   "end": 20.46,
+   "text": "What does exhausted look like for you?"
+  },
+  {
+   "start": 20.86,
+   "end": 27.94,
+   "text": "Like I'm running on fumes. I work as a project manager at a logistics company and I've been completely burnt out since October."
+  },
+  {
+   "start": 27.94,
+   "end": 31.8,
+   "text": "Since October? Did something happen then?"
+  },
+  {
+   "start": 32.44,
+   "end": 40.96,
+   "text": "Not one thing. We lost a big client, half of the team got moved on to the rescue plan, so I ended up doing three people's jobs."
+  },
+  {
+   "start": 41.7,
+   "end": 43.54,
+   "text": "Just never came back up after that."
+  },
+  {
+   "start": 44.48,
+   "end": 48.02,
+   "text": "What does a normal working day look for you now?"
+  },
+  {
+   "start": 48.92,
+   "end": 53.66,
+   "text": "I'm at my desk by 7 and I'm still answering messages at 10 at night."
+  },
+  {
+   "start": 54.26,
+   "end": 56.52,
+   "text": "Even when I'm not working, I'm thinking about work."
+  },
+  {
+   "start": 56.52,
+   "end": 60.92,
+   "text": "That's a very long day. How is your sleep?"
+  },
+  {
+   "start": 61.88,
+   "end": 69.7,
+   "text": "Terrible. Most nights I sleep about four hours. I wake up at three in the morning and just can't fall back asleep."
+  },
+  {
+   "start": 71.16,
+   "end": 73.66,
+   "text": "What happens when you wake at three?"
+  },
+  {
+   "start": 74.4,
+   "end": 77.68,
+   "text": "My head's a start. Shipping schedules, decline."
+  },
+  {
+   "start": 78.18,
+   "end": 79.94,
+   "text": "Whether I've forgotten something."
+  },
+  {
+   "start": 79.94,
+   "end": 85.92,
+   "text": "Then I look at the clock and I do the math on how little sleep I'm gonna get, which makes it worse."
+  },
+  {
+   "start": 87.06,
+   "end": 87.9,
+   "text": "And then?"
+  },
+  {
+   "start": 88.36,
+   "end": 92.98,
+   "text": "Then I land till about five and get up and make tea. I've started dreading the nights, if I'm honest."
+  },
+  {
+   "start": 94.34,
+   "end": 99.96,
+   "text": "That sounds draining. Is there anything else going on in your life besides work?"
+  },
+  {
+   "start": 99.96,
+   "end": 104.3,
+   "text": "Yeah, my father. He was diagnosed with Parkinson's disease in the autumn."
+  },
+  {
+   "start": 105.42,
+   "end": 109.22,
+   "text": "That's a lot to carry alongside everything else. How is he?"
+  },
+  {
+   "start": 109.42,
+   "end": 117.1,
+   "text": "Still himself, mostly. His hands are weak. He's slower. He gets frustrated. He's having a dream and he's always been a strong one."
+  },
+  {
+   "start": 117.1,
+   "end": 120.86,
+   "text": "And how are you involved in his care?"
+  },
+  {
+   "start": 121.7,
+   "end": 128.68,
+   "text": "I'm the one who drives him to the hospital in Leeds. Neurology appointments are every few weeks. It's about an hour each way."
+  },
+  {
+   "start": 129.4,
+   "end": 132.12,
+   "text": "Is there anybody who shares that with you?"
+  },
+  {
+   "start": 132.46,
+   "end": 137.96,
+   "text": "Not really. My younger sister Hannah lives in Toronto, so all the care for our father falls on me."
+  },
+  {
+   "start": 138.82,
+   "end": 140.36,
+   "text": "How do you feel about that?"
+  },
+  {
+   "start": 140.36,
+   "end": 149.0,
+   "text": "Guilty for even saying it. She calls him every Sunday. She's not the one who's neglecting him. Just I'm the one who's here."
+  },
+  {
+   "start": 150.2,
+   "end": 152.68,
+   "text": "Can you say more about the girl?"
+  },
+  {
+   "start": 153.34,
+   "end": 159.7,
+   "text": "He feels selfish to be tired when he's the one who is ill. So I don't say anything to anyone."
+  },
+  {
+   "start": 160.98,
+   "end": 162.88,
+   "text": "Not to Hannah either?"
+  },
+  {
+   "start": 163.4,
+   "end": 169.88,
+   "text": "She asks how I am when I say fine. What would be the point? She can't do anything from Canada."
+  },
+  {
+   "start": 170.36,
+   "end": 174.2,
+   "text": "What would you want her to know if you said it?"
+  },
+  {
+   "start": 175.0,
+   "end": 180.74,
+   "text": "That I'm not fine. That someday she'll sit in a car park at the hospital for 10 minutes before I go in."
+  },
+  {
+   "start": 181.24,
+   "end": 183.26,
+   "text": "Because I can't face it."
+  },
+  {
+   "start": 184.14,
+   "end": 189.04,
+   "text": "That's an important thing to notice. What happens in those 10 minutes?"
+  },
+  {
+   "start": 189.34,
+   "end": 195.24,
+   "text": "Nothing really. I just breathe. I look at every people going in. Everybody looks tired here."
+  },
+  {
+   "start": 195.24,
+   "end": 199.56,
+   "text": "You mentioned your GP. What did she say?"
+  },
+  {
+   "start": 200.06,
+   "end": 209.78,
+   "text": "She did blood tests. They were all normal. She said it's stress and exhaustion. If I asked about talking to someone, they said I hadn't got time."
+  },
+  {
+   "start": 209.78,
+   "end": 214.48,
+   "text": "And yet, you are here."
+  },
+  {
+   "start": 215.2,
+   "end": 221.14,
+   "text": "A girlfriend booked her, to be honest. Claire. She said she was done watching me disappear."
+  },
+  {
+   "start": 222.26,
+   "end": 223.54,
+   "text": "How is it with Claire?"
+  },
+  {
+   "start": 223.9,
+   "end": 229.34,
+   "text": "She's very patient. She makes me think and doesn't push me to talk. But I can see she's wearing a beard too."
+  },
+  {
+   "start": 230.04,
+   "end": 230.78,
+   "text": "In what way?"
+  },
+  {
+   "start": 230.78,
+   "end": 238.06,
+   "text": "She stopped asking if I want to go away for the weekend because I always said no. That's the thing I feel worst about, actually."
+  },
+  {
+   "start": 238.94,
+   "end": 240.9,
+   "text": "What stops you from saying yes?"
+  },
+  {
+   "start": 241.44,
+   "end": 241.98,
+   "text": "The emails."
+  },
+  {
+   "start": 243.18,
+   "end": 248.04,
+   "text": "And if I'm away, I'll come back to 200 of them. That might need something."
+  },
+  {
+   "start": 248.88,
+   "end": 251.46,
+   "text": "So even rest has a price?"
+  },
+  {
+   "start": 252.26,
+   "end": 256.24,
+   "text": "Yeah, exactly. Can't remember the last time I was properly off."
+  },
+  {
+   "start": 256.24,
+   "end": 260.06,
+   "text": "What did she do for yourself before October?"
+  },
+  {
+   "start": 260.78,
+   "end": 265.74,
+   "text": "I ran. 10 kilometers every Saturday morning. We've done it for six years."
+  },
+  {
+   "start": 266.42,
+   "end": 267.08,
+   "text": "And now?"
+  },
+  {
+   "start": 268.04,
+   "end": 274.66,
+   "text": "I stopped about two months ago. My legs feel like lead. And I just never went back."
+  },
+  {
+   "start": 275.56,
+   "end": 277.12,
+   "text": "How do you feel about that?"
+  },
+  {
+   "start": 277.32,
+   "end": 282.34,
+   "text": "Like I've lost a part of myself. It was still one time in the week. Nobody could reach me."
+  },
+  {
+   "start": 282.34,
+   "end": 286.64,
+   "text": "What would it mean to get some of that back?"
+  },
+  {
+   "start": 286.96,
+   "end": 291.88,
+   "text": "A lot, probably. We can't picture the time that would come from."
+  },
+  {
+   "start": 294.04,
+   "end": 299.6,
+   "text": "Let's leave that for a moment. What is your relationship with your boss like?"
+  },
+  {
+   "start": 299.76,
+   "end": 307.34,
+   "text": "Peterson. He's alright as a person. But he sends emails at 11 at night and expects an answer before breakfast."
+  },
+  {
+   "start": 308.04,
+   "end": 310.1,
+   "text": "What do you do when one arrives?"
+  },
+  {
+   "start": 310.1,
+   "end": 314.48,
+   "text": "I answer it. Every time. Even if I'm in bed. Claire hates it."
+  },
+  {
+   "start": 315.08,
+   "end": 317.82,
+   "text": "What are you afraid would happen if you didn't answer?"
+  },
+  {
+   "start": 318.76,
+   "end": 324.44,
+   "text": "Then he'd think I wasn't committed. There's a restructuring in the spring and I'm afraid they'll let me go."
+  },
+  {
+   "start": 324.86,
+   "end": 325.76,
+   "text": "And if they did?"
+  },
+  {
+   "start": 326.52,
+   "end": 332.14,
+   "text": "I don't know. I'd think part of me would be relieved and I'd feel horrible about being relieved."
+  },
+  {
+   "start": 332.98,
+   "end": 333.62,
+   "text": "I have a mortgage."
+  },
+  {
+   "start": 334.68,
+   "end": 336.34,
+   "text": "Both things can be true."
+  },
+  {
+   "start": 336.34,
+   "end": 340.36,
+   "text": "I suppose so. Never said that I was told."
+  },
+  {
+   "start": 341.3,
+   "end": 343.78,
+   "text": "How are you moves apart from the tiredness?"
+  },
+  {
+   "start": 344.5,
+   "end": 346.84,
+   "text": "Flat, mostly. And irritable."
+  },
+  {
+   "start": 347.42,
+   "end": 351.9,
+   "text": "I slept at a colleague last week or nothing and went and sat in the toilets for 10 minutes."
+  },
+  {
+   "start": 352.6,
+   "end": 355.18,
+   "text": "What was happening for you in those minutes?"
+  },
+  {
+   "start": 355.96,
+   "end": 358.34,
+   "text": "Heart was going and my hands were shaking."
+  },
+  {
+   "start": 359.22,
+   "end": 362.08,
+   "text": "I thought for a second it was a heart attack, but it passed."
+  },
+  {
+   "start": 362.08,
+   "end": 363.9,
+   "text": "Has that happened before?"
+  },
+  {
+   "start": 364.26,
+   "end": 369.74,
+   "text": "A couple of times. Once on a train to Manchester. Just to get off and stand on a platform."
+  },
+  {
+   "start": 370.42,
+   "end": 371.56,
+   "text": "That sounds frightening."
+  },
+  {
+   "start": 372.06,
+   "end": 375.54,
+   "text": "It was. I hadn't told anyone about it. Not even Claire."
+  },
+  {
+   "start": 376.1,
+   "end": 379.2,
+   "text": "Thank you for telling me. What are you afraid it means?"
+  },
+  {
+   "start": 379.46,
+   "end": 380.26,
+   "text": "That I'm losing it."
+  },
+  {
+   "start": 381.1,
+   "end": 383.78,
+   "text": "That I'm going to end up like, I don't know, coping."
+  },
+  {
+   "start": 383.78,
+   "end": 386.88,
+   "text": "Have you noticed anything that makes it worse?"
+  },
+  {
+   "start": 387.66,
+   "end": 388.82,
+   "text": "Coffee? Probably."
+  },
+  {
+   "start": 389.78,
+   "end": 395.28,
+   "text": "I want about 6 cups a day and I've started having wine in the evenings to switch my head off."
+  },
+  {
+   "start": 395.82,
+   "end": 397.24,
+   "text": "Two glasses, sometimes three."
+  },
+  {
+   "start": 397.82,
+   "end": 399.54,
+   "text": "How do you feel about the wine?"
+  },
+  {
+   "start": 400.14,
+   "end": 402.46,
+   "text": "Easy. It works for an hour."
+  },
+  {
+   "start": 403.36,
+   "end": 406.12,
+   "text": "I wake at 3 anyway. I know it's not helping."
+  },
+  {
+   "start": 407.24,
+   "end": 410.3,
+   "text": "You're noticing that clearly. That is useful."
+  },
+  {
+   "start": 410.3,
+   "end": 415.48,
+   "text": "It doesn't feel useful. Feels like I'm listing everything that's wrong with me."
+  },
+  {
+   "start": 416.38,
+   "end": 420.68,
+   "text": "I hear a person who has been holding a great deal on his own for a long time."
+  },
+  {
+   "start": 421.44,
+   "end": 424.04,
+   "text": "What was it like to say today?"
+  },
+  {
+   "start": 424.62,
+   "end": 426.74,
+   "text": "Strange. A bit of relief actually."
+  },
+  {
+   "start": 427.34,
+   "end": 429.82,
+   "text": "Like putting an angle bad, but I didn't realize I was carrying."
+  },
+  {
+   "start": 430.26,
+   "end": 433.56,
+   "text": "What do you carry when you would like to put down first?"
+  },
+  {
+   "start": 433.8,
+   "end": 434.96,
+   "text": "The nights, I think."
+  },
+  {
+   "start": 435.46,
+   "end": 437.64,
+   "text": "If I could sleep, I could probably cope with the rest."
+  },
+  {
+   "start": 437.64,
+   "end": 443.98,
+   "text": "We can start, dear. Does anything about your family growing up shape how you handle this?"
+  },
+  {
+   "start": 444.4,
+   "end": 447.06,
+   "text": "My grandfather worked at the mines in Yorkshire."
+  },
+  {
+   "start": 447.98,
+   "end": 450.62,
+   "text": "He never complained about anything. Not once."
+  },
+  {
+   "start": 451.3,
+   "end": 453.46,
+   "text": "That's the same. Just get on with it."
+  },
+  {
+   "start": 460.81,
+   "end": 461.59,
+   "text": "And you?"
+  },
+  {
+   "start": 462.21,
+   "end": 467.87,
+   "text": "I'm the same. I keep thinking he would think I was weak for being here."
+  },
+  {
+   "start": 468.47,
+   "end": 471.53,
+   "text": "What would you say to him if he were here?"
+  },
+  {
+   "start": 471.53,
+   "end": 474.51,
+   "text": "Then I'm not weak. Just very tired."
+  },
+  {
+   "start": 474.87,
+   "end": 478.91,
+   "text": "That sounds like something you could say to yourself as well."
+  },
+  {
+   "start": 479.29,
+   "end": 481.59,
+   "text": "Maybe. I don't know if I believe it yet."
+  },
+  {
+   "start": 482.29,
+   "end": 483.99,
+   "text": "That's fine. You don't have to."
+  },
+  {
+   "start": 484.61,
+   "end": 488.77,
+   "text": "Let's think about what we could do between now and next week."
+  },
+  {
+   "start": 489.49,
+   "end": 491.69,
+   "text": "Would you be willing to try something small?"
+  },
+  {
+   "start": 492.23,
+   "end": 494.63,
+   "text": "Depends how small. I haven't got much left."
+  },
+  {
+   "start": 494.63,
+   "end": 500.53,
+   "text": "Very small. Fix time in the evening when you switch off your phone."
+  },
+  {
+   "start": 500.97,
+   "end": 502.29,
+   "text": "Even for 20 minutes."
+  },
+  {
+   "start": 503.21,
+   "end": 504.77,
+   "text": "Beers don't hate that."
+  },
+  {
+   "start": 506.35,
+   "end": 509.35,
+   "text": "What would actually happen in 20 minutes?"
+  },
+  {
+   "start": 509.69,
+   "end": 512.63,
+   "text": "Nothing. Probably. You wouldn't even notice."
+  },
+  {
+   "start": 513.43,
+   "end": 514.49,
+   "text": "Would you try it?"
+  },
+  {
+   "start": 514.49,
+   "end": 517.69,
+   "text": "Yeah. Half past nine. Perhaps."
+  },
+  {
+   "start": 518.35,
+   "end": 519.63,
+   "text": "I could make it a thing with glare."
+  },
+  {
+   "start": 520.21,
+   "end": 520.75,
+   "text": "Do you know a sofa?"
+  },
+  {
+   "start": 521.33,
+   "end": 522.21,
+   "text": "That sounds good."
+  },
+  {
+   "start": 522.43,
+   "end": 525.13,
+   "text": "And a note of how the night goes?"
+  },
+  {
+   "start": 525.43,
+   "end": 526.45,
+   "text": "I can do that."
+  },
+  {
+   "start": 527.07,
+   "end": 528.93,
+   "text": "I'll pray down when I wake up."
+  },
+  {
+   "start": 529.17,
+   "end": 529.93,
+   "text": "If I wake up."
+  },
+  {
+   "start": 530.79,
+   "end": 532.21,
+   "text": "We're nearly out of time."
+  },
+  {
+   "start": 532.41,
+   "end": 533.87,
+   "text": "How are you feeling really now?"
+  },
+  {
+   "start": 534.83,
+   "end": 535.23,
+   "text": "Dired."
+  },
+  {
+   "start": 535.23,
+   "end": 536.43,
+   "text": "But lighter."
+  },
+  {
+   "start": 536.43,
+   "end": 540.43,
+   "text": "It's normal to feel a bit shaky after saying all that."
+  },
+  {
+   "start": 540.87,
+   "end": 541.77,
+   "text": "Very normal."
+  },
+  {
+   "start": 541.97,
+   "end": 544.09,
+   "text": "It takes energy to say it loud, loud."
+  },
+  {
+   "start": 544.69,
+   "end": 545.17,
+   "text": "Right."
+  },
+  {
+   "start": 545.91,
+   "end": 546.47,
+   "text": "Thank you."
+  },
+  {
+   "start": 546.73,
+   "end": 547.87,
+   "text": "I think I needed to hear that."
+  },
+  {
+   "start": 548.47,
+   "end": 549.81,
+   "text": "Same time next week?"
+  },
+  {
+   "start": 550.13,
+   "end": 551.15,
+   "text": "Yeah. I'll be here."
+  },
+  {
+   "start": 551.71,
+   "end": 553.67,
+   "text": "I'll try to make it on time."
+  },
+  {
+   "start": 553.91,
+   "end": 554.79,
+   "text": "The trains are awful."
+  },
+  {
+   "start": 554.79,
+   "end": 584.77,
+   "text": "Thank you."
+  }
+ ],
+ "round": "r2a"
+}

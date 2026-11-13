@@ -1,0 +1,235 @@
+{
+ "round": "r2b",
+ "engine": "script",
+ "model": "gemma4-e2b+roles",
+ "base_model": "gemma4-e2b",
+ "opts": {},
+ "lane": 4,
+ "client": "tomas-b",
+ "lang": "cs",
+ "seconds": 169.9,
+ "facts": [
+  {
+   "heading": "Reakce manželky",
+   "content": "Manželka se vyčerpává tímto stavem.",
+   "evidence": "Je trpělivá, ale vidím, že ji to vyčerpává.",
+   "scope": "Rodina a vztahy",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Příjeh na kino",
+   "content": "Manželka čekala venku, než Tomas zkontroluje sporák.",
+   "evidence": "Čekala venku, než se vrátím a zkontroluji sporák potřetí. Neřekla nic, jen se na mě podívala.",
+   "scope": "Rodina a vztahy",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Pocity v minulosti",
+   "content": "Tomas se cítil jako dítě, které nezvládne vyjít z domu.",
+   "evidence": "Hanba. Cítil jsem se jako dítě, které nezvládne vyjít z domu.",
+   "scope": "Historie a události",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Práce jako elektrikář",
+   "content": "Tomas pracuje jako elektrikář v Olomouci.",
+   "evidence": "Pracuji jako elektrikář v Olomouci. Dělám rozvody v bytech a občas v rodinných domech.",
+   "scope": "Práce a kariéra",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Strach z chyby",
+   "content": "Tomas bojí se udělat chybu v práci.",
+   "evidence": "Bojím se, že kvůli své hlavě jednou udělám chybu. Že špatně připojím vodič a něco shoří.",
+   "scope": "Práce a kariéra",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Kontrola po zakázce",
+   "content": "Tomas po každé zakázce kontroluje práci.",
+   "evidence": "Po každé zakázce se vracím a kontroluji. Někdy se tam vrátím druhý den, jen se podívat.",
+   "scope": "Práce a kariéra",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Kolegové pohled",
+   "content": "Kolegové si myslí, že je pedant.",
+   "evidence": "Myslí si, že jsem pedant. Šéf mi říká, že jsem nejpečlivější ve firmě, ale nevidí, kolik času to stojí.",
+   "scope": "Práce a kariéra",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Práce a práce",
+   "content": "Tomas mi dělá práci o hodinu víc denně. Předal zakázky kolegovi.",
+   "evidence": "V posledních měsících mi dělá práce o hodinu víc denně. Už jsem pár zakázek předal kolegovi, protože jsem se nestíhal.",
+   "scope": "Práce a kariéra",
+   "category": "Práce a kariéra",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Strach z nového rodičství",
+   "content": "Tomas má strach, že přijde o práci. Strach je hlavně teď.",
+   "evidence": "Mám strach, že přijdu o práci. Hlavně teď.",
+   "scope": "Nálada a emoce",
+   "category": "Nálada a emoce",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Barbora je těhotná",
+   "content": "Barbora je těhotná ve čtvrtém měsíci.",
+   "evidence": "Barbora je těhotná ve čtvrtém měsíci.",
+   "scope": "Rodina a vztahy",
+   "category": "Rodina a vztahy",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Myšlenka o ublížení",
+   "content": "Tomas má myšlenku, že jí a dítěti ublížím. Boj se, že to půjde samo.",
+   "evidence": "Že jí a dítěti ublížím. Pak se bojím, že to půjde samo.",
+   "scope": "Osobní témata a sebepojetí",
+   "category": "Osobní témata a sebepojetí",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "Zážitky při myšlenkách",
+   "content": "Tomas se bojí, že myšlenka přijde při krájení chleba nebo při stanování u schodů.",
+   "evidence": "Pak se bojím, že to půjde samo. Ale ta myšlenka přijde, třeba když krájím chleba nebo stojím u schodů.",
+   "scope": "Osobní témata a sebepojetí",
+   "category": "Osobní témata a sebepojetí",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "Tajemství o strachu",
+   "content": "Tomas o tom, že se bojí, nikomu neřekl, ani Barboře.",
+   "evidence": "Nikdy jsem o tom nikomu neřekl, ani Barboře.",
+   "scope": "Osobní témata a sebepojetí",
+   "category": "Osobní témata a sebepojetí",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Zážitky při kontrolách",
+   "content": "Tomas se kontroluje, když se myšlenka objeví.",
+   "evidence": "Odejdu z místnosti. Nebo se vrátím a zkontroluji něco, aby to přestalo.",
+   "scope": "Zdroje a zvládání",
+   "category": "Zdroje a zvládání",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Spánek mizerně",
+   "content": "Tomas spí mizerně a vstává dvakrát v noci.",
+   "evidence": "Spím mizerně. Vstávám dvakrát v noci",
+   "scope": "Zdraví, tělo a spánek",
+   "category": "Zdraví, tělo a spánek",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Zážitky při opravách",
+   "content": "Tomas se zaměstnává opravami, když je co.",
+   "evidence": "Opravy když je co.",
+   "scope": "Zdroje a zvládání",
+   "category": "Zdroje a zvládání",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Procházky s Barborou",
+   "content": "Tomas chodí na procházky s Barborou a když opravuje, je to jeho odvedení.",
+   "evidence": "Pomáhá mi chodit na procházky s Barborou. Nebo když opravuji něco doma, to mě zaměstná.",
+   "scope": "Zdroje a zvládání",
+   "category": "Zdroje a zvládání",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Cíl odejít z bytu",
+   "content": "Tomas má cíl odejít z bytu za pět minut.",
+   "evidence": "Odejít z bytu za pět minut. A těšit se na dítě bez těch myšlenek.",
+   "scope": "Osobní témata a sebepojetí",
+   "category": "Osobní témata a sebepojetí",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Zážitky při kontrolách dveří",
+   "content": "Tomas se snaží zkontrolovat dveře, aby myšlenka přestala.",
+   "evidence": "Tak to ne. Začali bychom třeba jen tím, že zkontrolujete dveře jednou, ne třikrát.",
+   "scope": "Zdroje a zvládání",
+   "category": "Zdroje a zvládání",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Přijetí léčby terapie",
+   "content": "Tomas slyšel o terapii, kde se člověk postupně vystavuje tomu, čeho se bojí.",
+   "evidence": "Slyšel jsem o terapii, kde se člověk postupně vystavuje tomu, čeho se bojí.",
+   "scope": "Zdroje a zvládání",
+   "category": "Zdroje a zvládání",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Příjem příjmu terapie",
+   "content": "Tomas měl strach z terapie, ale přijal, že tempo určuje on.",
+   "evidence": "Měl jsem z toho strach. To je uklidňující.",
+   "scope": "Zdroje a zvládání",
+   "category": "Zdroje a zvládání",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "Cíl pro Barboru",
+   "content": "Tomas by chtěl říct Barborě, že ji miluje a potřebuje se léčit.",
+   "evidence": "Že ji miluju. A že se potřebuju léčit, aby ji neztratil.",
+   "scope": "Rodina a vztahy",
+   "category": "Rodina a vztahy",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Reakce Barborou",
+   "content": "Tomas si myslí, že Barbora pravděpodobně objemkne a že je taková.",
+   "evidence": "Asi by mě objala. Ona je taková.",
+   "scope": "Rodina a vztahy",
+   "category": "Rodina a vztahy",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Zážitky při sdělení",
+   "content": "Tomas se bojí, že se mu Barbora nechtěla být, když jí řekne.",
+   "evidence": "Zatím se bojím, že by se mnou nechtěla být.",
+   "scope": "Rodina a vztahy",
+   "category": "Rodina a vztahy",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Závěr schůzky",
+   "content": "Tomas vyjádral vděčnost za schůzku. Tomas se zavázal zkusit novou techniku.",
+   "evidence": "Děkuji. Tohle mi dalo víc, než jsem čekal. Jednou. Zkusím to. Aspoň jednou, a zapíšu číslo od jedné do deseti.",
+   "scope": "session",
+   "category": "Zdroje a zvládání",
+   "part": 3,
+   "quote_found": false
+  }
+ ],
+ "roles": {
+  "roles": "right",
+  "raw": "{\"therapist\": \"S1\", \"patient\": \"S0\", \"confidence\": 0.95, \"evidence\": [\"Docela jsem nervózní, jestli mám být upřímný.\", \"Manželka. Říká, že už to takhle nejde.\", \"Od té doby mám pocit, že to můžu způso"
+ }
+}

@@ -1,0 +1,138 @@
+{
+ "engine": "canary-loudnorm",
+ "base": "canary-1b-v2",
+ "opts": {
+  "ffmpeg_filter": "highpass=f=80,loudnorm=I=-18"
+ },
+ "client": "tomas-b",
+ "lang": "cs",
+ "lane": 1,
+ "audio_s": 411.5,
+ "seconds": 124.7,
+ "rtf": 0.303,
+ "wer": 0.2838,
+ "cer": 0.1574,
+ "segments": [
+  {
+   "start": 0.0,
+   "end": 19.8,
+   "text": "Dobrý den, pane Barto, pojďte dál. Jak se vám dnes daří? Dobrý den. Docela jsem nervózní, jestli to mám být upřímný. Nikdy jsem psychologa nebyl. To je naprosto v pořádku. Co vás sem přivádí? Manželka říká, že už to takhle nejde. A to vlastně taky ne. Co nejde?"
+  },
+  {
+   "start": 19.8,
+   "end": 39.5,
+   "text": "Předskrás večer kontroluje, jestli jsem zavřel dveře a vypnul sporák. Trvá mi to hodinu, než hodím z betu. Hodinu? Jak to vypadá? Zamknu dveře. Odjdi, vypnul. Vrátím se a zatáhnu za chviku. Páček kontroluje sporák, každý knu v těch zvlášť. Pojďme se do dveře. A když to udělá, tak co zase?"
+  },
+  {
+   "start": 39.5,
+   "end": 55.5,
+   "text": "Chvilku jsem se uvolnil. Pak se mi do hlavy přišel obraz, že jsem to neudělal pořádně a musím jít dolů. Co je to za obraz? Beat in flame. Vidím to jasně jako film. Jak často se vám to stává? Každý den."
+  },
+  {
+   "start": 55.5,
+   "end": 74.9,
+   "text": "Večeře je to nejhorší, když jdeme ven nebo spát. Ráno také. Jak dlouho už to trvá? Začalo to před dvěma lety, kdy hořelo u sousedů a my jsme museli lakovat. Řekněte, bylo to v noci? Bylo to v noci. První byl mi alar. Na chodbě byl koluš a byl jířička. Vyvěláš jméno v pěžemech."
+  },
+  {
+   "start": 74.9,
+   "end": 94.0,
+   "text": "Jak vám tehdy bylo? Že to bylo jako konec. Měr byl zraněn, ale sousedom to vyhrál celé. Stal jsem venku země, jako káve, horí okno. A od té doby? Od té doby mám pocit, že to budu způsobovat, jo. Že když něco neskontroluji, tak se to stane a budu vynáněn."
+  },
+  {
+   "start": 94.0,
+   "end": 111.1,
+   "text": "To je velká zodpovědnost. Já bych měl to nedávat smysl. Znám člověka. Přesto se to nedá vypnout. Co děláte, když to nechcete dělat? No zkusím to nechat. Pak mě roste úzkost, až mám pocit, že se zblázním. Radši to udělám."
+  },
+  {
+   "start": 111.1,
+   "end": 129.8,
+   "text": "Čím se úzkost projevuje? Srdce to přesušené ruce, než tak měl děloutku. Kdo o tom mluví? Barbara. Moje manželka. Na začátku to brala jako člověk, teď už vidí, že je to víc. Jak na to reaguje? Jo, trpěla, ale věděli, že ji to vyčerpává."
+  },
+  {
+   "start": 129.8,
+   "end": 145.9,
+   "text": "Včera jsme přišli na kino 40 minut později. Co se stalo? Čekala venku, než se vrátím a skončím s porádkou po třetím. Neřekla nic, se na mě pýtilo. Jak vám bylo? Ano. Cítil jsem se jako dítě, který nezvládne víc domů."
+  },
+  {
+   "start": 145.9,
+   "end": 162.8,
+   "text": "Co dělat za práci? Pracujete jako dekář v Amonce. Mám rozhovory v detailech a občas v rodinných domech. Je to souvisí s kontrolováním. Hodně. Bojím se, že kola své hlavy jdou na chybu, že v takém šikném vodiču něco skoří. Stalo se něco takového?"
+  },
+  {
+   "start": 162.8,
+   "end": 179.1,
+   "text": "Ne, nikde. No to pokaždé, když se vrátím a kontroluji, jen musím vrátit druhý den a se podívat. A kolegové? Pesky si, že jsem pečat. Šéf říká, že jsem nejpečtější v firmě, ale neví, kolik času to stojí. Kolik času to stojí?"
+  },
+  {
+   "start": 179.1,
+   "end": 195.2,
+   "text": "Poslední příští týden jsem jídla práce o hodinu víc, než mě. Už jsem pár zakázek přišel kolik, ale proč jsem to dnes dělal? Co to s vámi dělá? Mám strach, že přijde do práce. Hlavně teď. Proč právě teď? Arbora dělat na čtvrtém měsíci."
+  },
+  {
+   "start": 195.2,
+   "end": 214.4,
+   "text": "Gratuluji, jsi to přijal. No, jsem šťastný, opravdu. Čekali jsme na to tři roky a potom přišla další myšlenka. Jaká? Že jí a dítě tě ublíží. Ublíží to jak? Ne, že bych chtěl. To je hrozné, někde bych to neměl. Ale ta myšlenka přijde."
+  },
+  {
+   "start": 214.4,
+   "end": 232.6,
+   "text": "Když krájím chleba, nebo jste jim uschodil, tak si bojíte tu presanu. Takže je to myšlenka, která vás děsí. A je to nejhorší, když jsem to nikomu neřekl, ani Barboře. Děkuji, že jste mi to řekl, to je důležité."
+  },
+  {
+   "start": 232.6,
+   "end": 250.3,
+   "text": "Myslíte, že jste nebezpečný? Takové vtiravé myšlenky, jako u lidí s tímto typem potíží, jsou velmi časté. Hlavně, když se blíží velká změna. Nejsou důkazem, že byste něco udělal. Jejich síla je právě v tom, jak vás děsí."
+  },
+  {
+   "start": 250.3,
+   "end": 265.6,
+   "text": "To by pomohlo. Často chce čas, než tomu věří. Rozumím. Co děláte, když se ta myšlenka objeví? Odejdu do místnosti. Nebo se vrátím a zkontroluji něco, aby to přestalo."
+  },
+  {
+   "start": 265.6,
+   "end": 281.7,
+   "text": "Takže kontrola vám pomáhá uklidnit i tohle? Vlastně ano. Nikdy mě nenapadlo, že je to spousu věcí. Jak spíte? Spím bez země. Stávám v roce 2 akrát na kontrole zhorák, i když tam nic nestojí."
+  },
+  {
+   "start": 281.7,
+   "end": 299.8,
+   "text": "Pomáhá vám něco? Pomáhá vám trochu na procházky s barbarou, protože je pravda, něco nemá. Mě zaměstná. Jak často to děláte? Procházky dvakrát týdně. No pravda, když je něco. Co by pro vás znamenalo, kdyby se to zlepšilo?"
+  },
+  {
+   "start": 299.8,
+   "end": 319.2,
+   "text": "Odejdeš ve něco za pět minut a těšíš se na dítě bez všech myšlenek. To jsou jasné cíle. Víte, že existuje léčba, která tomu pomáhá? Začal jsem terapii, kde se člověk postupně stává tomu, čeho se bojí. Byl jsem z toho strach. Strach je pochopitelný."
+  },
+  {
+   "start": 319.2,
+   "end": 337.9,
+   "text": "Šlo by se po malých krocích, abyste o tempu rozhodoval. To je uklidňující. Myslel jsem, že mě někdo donutí nechat otevřené dveře odejít. Tak to ne. Začali bychom třeba jen tím, že zkontrolujete dveře jenom jednou, ne třikrát."
+  },
+  {
+   "start": 337.9,
+   "end": 356.0,
+   "text": "To není malé, ale to je pro mě velké. Velké kroky začínají malými. Řekl jste něco důležitého o Barboře. Chtěl byste jí... Co byste jí chtěl říct? Že jenom. A že se potřebuje, aby chyň ztratila."
+  },
+  {
+   "start": 356.0,
+   "end": 371.7,
+   "text": "Zatím se bojím, že by se mnou nechtěla být. Co si myslíte, že by řekla? Seděla mě odjela. Ona je taková. Pak možná stojí za to jí říct alespoň část."
+  },
+  {
+   "start": 371.7,
+   "end": 387.2,
+   "text": "Co kdybyste jí řekl, že jste tu byl a co jste se dozvěděl? Tak ano. Ček myšlenka ještě. To je v pořádku. Tempo určujete vy. Děkuji. Tohle mi dalo víc, než jsem čekal."
+  },
+  {
+   "start": 387.2,
+   "end": 402.5,
+   "text": "Do příště zkuste jednu věc. Když odcházíte z bitvu, zkontrolujte veřejně jednou a zavěšte si, jak moc vám bylo úzko. I jednou. Zkuste to. Aspoň jednou."
+  },
+  {
+   "start": 402.5,
+   "end": 411.5,
+   "text": "A zapíšu číslo od 1 do 10. Přesně tak. Pro dnešek tedy skončíme. Děkuji. Podívejme se příští týden."
+  }
+ ],
+ "round": "r2a"
+}

@@ -1,0 +1,317 @@
+{
+ "round": "r1",
+ "engine": "whisper-small-translate",
+ "model": "gemma4-e4b",
+ "lane": 4,
+ "client": "tomas-b",
+ "lang": "cs",
+ "seconds": 409.5,
+ "facts": [
+  {
+   "heading": "Reports stomach ache",
+   "content": "Tomas reported having a stomach ache.",
+   "evidence": "I have a stomach ache, I can't do it like this.",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Plans to visit clinic by 1 pm",
+   "content": "Tomas plans to go to the clinic and will be there by 1 pm.",
+   "evidence": "I'll be there by 1 pm.",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Experiences daily occurrences",
+   "content": "Tomas experiences the described issue every day.",
+   "evidence": "Every day.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Issue worsens at bedtime",
+   "content": "The worst time for Tomas is when he goes to bed or sleeps.",
+   "evidence": "The worst thing is that we go to bed or sleep.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Issue started two years ago",
+   "content": "The issue started two years ago.",
+   "evidence": "It started two years ago",
+   "scope": "profile",
+   "category": "History & Life Events",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Onset related to neighbors",
+   "content": "The issue started when Tomas was playing with his neighbors and needed to go to the toilet.",
+   "evidence": "when I was playing with my neighbors and I had to go to the toilet.",
+   "scope": "profile",
+   "category": "History & Life Events",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Fever followed incident",
+   "content": "A couple of days after the incident, Tomas had a fever.",
+   "evidence": "A couple of days later I had a fever.",
+   "scope": "profile",
+   "category": "Health, Body & Sleep",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Belief about lack of control",
+   "content": "Tomas feels that if something doesn't control him, it will happen and he will do it.",
+   "evidence": "If something doesn't control me, it will happen and I will do it.",
+   "scope": "profile",
+   "category": "Self-concept & Identity",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Coping mechanism is running away",
+   "content": "Tomas prefers to run away when faced with something.",
+   "evidence": "I rather run away.",
+   "scope": "profile",
+   "category": "Coping & Strengths",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Heart beats fast while working",
+   "content": "Tomas reports his heart is beating fast after working for a while.",
+   "evidence": "My heart is beating fast, I've been working for a while now.",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Has a young daughter named Barbara",
+   "content": "Tomas has a little girl named Barbara.",
+   "evidence": "Barbara, my little girl.",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Works as factory collector",
+   "content": "Tomas works as a collector at the factory.",
+   "evidence": "I'm working as a collector at the factory.",
+   "scope": "profile",
+   "category": "Work & Career",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Workload is high at home and office",
+   "content": "Tomas has a lot of work both in the office and at home.",
+   "evidence": "I have a lot of work in the office and during the time I'm in the house.",
+   "scope": "session",
+   "category": "Work & Career",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas feels like a peddler",
+   "content": "Tomas stated that he thinks he is a peddler.",
+   "evidence": "I think I'm a peddler.",
+   "scope": "session",
+   "category": "Self-concept & Identity",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Boss praises passion for company",
+   "content": "Tomas's boss tells him he is the most passionate about the company.",
+   "evidence": "The boss tells me I'm the most passionate about the company",
+   "scope": "session",
+   "category": "Work & Career",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Work takes a lot of time",
+   "content": "Tomas feels the amount of time required for his work is significant.",
+   "evidence": "but he doesn't know how much time it takes.",
+   "scope": "session",
+   "category": "Work & Career",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Busy with work for one hour",
+   "content": "Tomas was busy with work for one hour last time.",
+   "evidence": "Last time I was busy with work an hour in the office.",
+   "scope": "session",
+   "category": "Work & Career",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas is going to work now",
+   "content": "Tomas stated he is going to work now.",
+   "evidence": "I'm going to work now.",
+   "scope": "session",
+   "category": "Work & Career",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Work started in fourth month",
+   "content": "Tomas's work started in the fourth month.",
+   "evidence": "To work in the fourth month.",
+   "scope": "session",
+   "category": "Work & Career",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas feels sad",
+   "content": "Tomas stated that he is sad.",
+   "evidence": "I'm sad, really.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Fear of being alone",
+   "content": "Tomas is afraid that things will be alone.",
+   "evidence": "and then I'm afraid that it will be alone.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Intrusive thoughts are common",
+   "content": "Tomas mentioned that intrusive thoughts are very common for people with stress.",
+   "evidence": "Such intrusive thoughts, like people with this type of stress, are very common.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas goes to room when thoughts appear",
+   "content": "When thoughts appear, Tomas goes back to his room.",
+   "evidence": "I go back to my room.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas controls room to stop thoughts",
+   "content": "Tomas goes back to his room to control something so it stops.",
+   "evidence": "Or I go back to my room and control something, so that it stops.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas does not think control works",
+   "content": "Tomas stated that he never thinks the control works.",
+   "evidence": "Actually, no. I never think that it works.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "Sleeps in bedroom and controls room",
+   "content": "Tomas sleeps in the bedroom and stays there twice a night to control the room.",
+   "evidence": "I stay there two times a night and control the room.",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Helps with barbershop delivery",
+   "content": "Tomas helps with the delivery for the barbershop.",
+   "evidence": "I help with the delivery with the barbershop, because I don't know what to do.",
+   "scope": "session",
+   "category": "Work & Career",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Delivery happens twice daily",
+   "content": "The delivery happens twice a day.",
+   "evidence": "The delivery twice a day.",
+   "scope": "session",
+   "category": "Work & Career",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas wants five minutes improvement",
+   "content": "Tomas stated that an improvement would take him five minutes.",
+   "evidence": "It would take me five minutes.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Was in therapy in hospital",
+   "content": "Tomas was in therapy when he was in the hospital.",
+   "evidence": "I was in therapy when I was in the hospital.",
+   "scope": "profile",
+   "category": "Health, Body & Sleep",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Wants to keep barber",
+   "content": "Tomas wants to keep the barber.",
+   "evidence": "I would like to say that I would not lose him.",
+   "scope": "session",
+   "category": "Family & Relationships",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Believes in small steps",
+   "content": "Tomas believes that big steps start with small ones.",
+   "evidence": "Big steps start with small ones.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Discussed someone's comments",
+   "content": "Tomas mentioned that a woman said a lot to him.",
+   "evidence": "She said a lot to me.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Believes someone found out",
+   "content": "Tomas believes someone found out something by being there.",
+   "evidence": "That you were here and you found out something.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 3,
+   "quote_found": true
+  }
+ ]
+}

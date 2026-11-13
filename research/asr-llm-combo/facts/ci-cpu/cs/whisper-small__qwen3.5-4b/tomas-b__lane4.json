@@ -1,0 +1,227 @@
+{
+ "round": "r1",
+ "engine": "whisper-small",
+ "model": "qwen3.5-4b",
+ "lane": 4,
+ "client": "tomas-b",
+ "lang": "cs",
+ "seconds": 574.9,
+ "facts": [
+  {
+   "heading": "Úzkostný stav před kontrolou",
+   "content": "Tomas je nervózní a cítí úzkost před kontrolou domu.",
+   "evidence": "celé jsem nervozný",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Kontrola domu trvá hodinu",
+   "content": "Tomas kontroluje domovní zázemí a trvá mu to hodinu.",
+   "evidence": "Trváme to hodinu, než o rejde z betu.",
+   "scope": "session",
+   "category": "Zdroje a zvládání",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Kontrola trvá od 2 let",
+   "content": "Tomas kontroluje domovní zázemí každý den od před 2 lety.",
+   "evidence": "Začal to před 2 lete",
+   "scope": "profile",
+   "category": "Osobní témata a sebepojetí",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Horečka u souseda v noci",
+   "content": "Tomas byl evakuován kvůli horečce u souseda v noci.",
+   "evidence": "kdy je hořel u susedu a me se musel evakuvat",
+   "scope": "session",
+   "category": "Historie a události",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas byl zraněn",
+   "content": "Tomas byl při evakuaci zraněn, ale susedovi to neublížilo.",
+   "evidence": "Nírne byl zraně, ale susedom to je hodil celá.",
+   "scope": "session",
+   "category": "Zdraví, tělo a spánek",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Pocit vlastní vinou",
+   "content": "Tomas má pocit, že za události zodpovídá on sám.",
+   "evidence": "mám pocit, že to mluz působět já",
+   "scope": "profile",
+   "category": "Osobní témata a sebepojetí",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Strach z požáru v bytě",
+   "content": "Tomas se bojí, že by mu vpadl požár a že by mu něco skořilo.",
+   "evidence": "bojím se, že konec v jahle jednou nám chybdu, že vpadním připlejím vodit, če neco skoří.",
+   "scope": "profile",
+   "category": "Osobní témata a sebepojetí",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Manželka vidí, že to bralo",
+   "content": "Tomasova manželka vidí, že jeho kontrola přestává být zvykem.",
+   "evidence": "Do začátku to bralo jako zvyk, tak už vidí, že je to víc.",
+   "scope": "session",
+   "category": "Rodina a vztahy",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Manželka čekala venku",
+   "content": "Tomasova manželka čekala venku, když se Tomas vrátil pozdě.",
+   "evidence": "Čekala Venku, měž se vrátím a skonplizí sporát po 3.",
+   "scope": "session",
+   "category": "Rodina a vztahy",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Manželka ho kritizovala",
+   "content": "Tomasova manželka řekla Tomasovi, že je na něj zlobí.",
+   "evidence": "Řekla něc, je se na mě bydilo.",
+   "scope": "session",
+   "category": "Rodina a vztahy",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas pracuje v BT",
+   "content": "Tomas pracuje v BT, kde má kolegovy a šéfa.",
+   "evidence": "Pracujekolek, kde káčvalomomce",
+   "scope": "profile",
+   "category": "Práce a kariéra",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Kolegové si myslí, že Tomas je 5-6",
+   "content": "Tomasovi kolegové si myslí, že Tomas je 5-6 let starý.",
+   "evidence": "Myslí si, že jsem 5-6.",
+   "scope": "session",
+   "category": "Práce a kariéra",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Šéf Tomasovi říká, že je nejpečlivější",
+   "content": "Tomasův šéf mu říká, že je nejpečlivější ve firmě.",
+   "evidence": "Čef mi říká, že jsem nejpečtojší ve firmě",
+   "scope": "profile",
+   "category": "Práce a kariéra",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas ztrácí čas na kontrole",
+   "content": "Tomas ztrácí hodně času na kontrole, což šéf nevidí.",
+   "evidence": "ale nevidí, kolik času to stojí.",
+   "scope": "session",
+   "category": "Práce a kariéra",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas pracuje v pošťácním ryse",
+   "content": "Tomas pracuje v pošťácním ryse a už pár zakázek předal kolegové.",
+   "evidence": "V pošletním rysící jsme jdela práce ve hodinu výzdeně. Už jsem pár zakážek předal kolegové, protože jsem to nestíhal.",
+   "scope": "profile",
+   "category": "Práce a kariéra",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "Tomas má strach z přídilu práce",
+   "content": "Tomas má strach z přídilu práce a myšlenka mu přijde, když krají chleba.",
+   "evidence": "Mám strah, když je přídil práce. Ale ta myšlenka přijde, když krajím chleba, no z té jemů schodu, a pak se budem, že tu půjde sam.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "Tomas se bojí ublížit dítěti",
+   "content": "Tomas se bojí, že by mohl dítěti ublížit, ačkoliv to nikdy neudělá.",
+   "evidence": "Že ji a dítětě tě uplíží. Ne, že bych chtěl. To je hrazné, nikdy bych to neudlal.",
+   "scope": "session",
+   "category": "Osobní témata a sebepojetí",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "Tomas se bojí, že ho někdo odvede",
+   "content": "Tomas se bojí, že by ho někdo (Barbora) mohl odvézt nebo nechat odejít.",
+   "evidence": "že se bocí odoval, že tady chyjí nestat mu. Zatím se bojím, že stejí se mnou nechtěla vít. sebe mě odjela.",
+   "scope": "session",
+   "category": "Rodina a vztahy",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "Tomas spí a nezerví se",
+   "content": "Tomas spí a nezerví se, kontroluje to dvakrát ročně.",
+   "evidence": "Spím, nezervím. Stávám roce dva krát a kontroli je spodáv.",
+   "scope": "profile",
+   "category": "Zdraví, tělo a spánek",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "Tomas jde na procházky s Barbarou",
+   "content": "Tomas jde na procházky s Barbarou, když je něco do mnoho.",
+   "evidence": "Pomáhá vám něco? Pomáhá na procházky s barborou, bo když je právě něco do mnoho.",
+   "scope": "profile",
+   "category": "Zdroje a zvládání",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "Tomas má cíl, že by se zlepšilo za 5 minut",
+   "content": "Tomas má cíl, že by se zlepšilo za 5 minut, a chce se činit nadítě bez nešlené.",
+   "evidence": "Udejíš ve co za 5 minut. A češit se nadítě bez těch nešlené.",
+   "scope": "session",
+   "category": "Cíle a plány",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "Tomas se bojí, že Barbora ho nechala odejít",
+   "content": "Tomas se bojí, že Barbora ho nechala odejít a že se s ním nestala.",
+   "evidence": "Myslal jsem, že mě kdo do nítí nechal toto řadno dvaře odejít. Zatím se bojím, že stejí se mnou nechtěla vít.",
+   "scope": "session",
+   "category": "Rodina a vztahy",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "Tomas chce říct Barbarě, že byl",
+   "content": "Tomas chce říct Barbarě, že byl a co se dozvěděl, aby se zmínil o tom, že jim bůl.",
+   "evidence": "Co kdybyste ji řekl, že jste tu byl a co jste se dozvěděl? Že jim bůl. A že se bocí odoval, že tady chyjí nestat mu.",
+   "scope": "session",
+   "category": "Rodina a vztahy",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "Schůzka skončila",
+   "content": "Tomas se sešel s terapeutem a schůzka byla ukončena.",
+   "evidence": "pro dneši vtedy skončíme",
+   "scope": "session",
+   "category": "Zdroje a zvládání",
+   "part": 3,
+   "quote_found": true
+  }
+ ]
+}

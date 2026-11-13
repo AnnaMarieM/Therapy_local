@@ -1,0 +1,542 @@
+{
+ "round": "r1",
+ "engine": "canary-1b-v2",
+ "model": "qwen3.5-4b",
+ "base_model": "qwen3.5-4b",
+ "opts": {},
+ "lane": 1,
+ "client": "daniel-r",
+ "lang": "en",
+ "seconds": 475.8,
+ "facts": [
+  {
+   "heading": "Daniel diagnosed with Parkinson's disease",
+   "content": "Daniel was diagnosed with Parkinson's disease in the autumn.",
+   "evidence": "I was diagnosed with Parkinson's disease in the autumn",
+   "scope": "profile",
+   "category": "History & Life Events",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Daniel drives father to Leeds hospital",
+   "content": "Daniel drives his father to the hospital in Leeds for neurology appointments.",
+   "evidence": "I'm the one who drives him to the hospital in Leeds",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Daniel feels guilty about caregiving",
+   "content": "Daniel feels guilty for being the one caring for his father while his sister is in Canada.",
+   "evidence": "I'm the one who's hearing",
+   "scope": "profile",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Daniel hides his condition from sister",
+   "content": "Daniel tells his sister Hannah that he is fine even when he is not.",
+   "evidence": "I say fine",
+   "scope": "profile",
+   "category": "Coping & Strengths",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Daniel works as project manager",
+   "content": "Daniel works as a project manager in a logistics company.",
+   "evidence": "I work as a project manager in a logistics company",
+   "scope": "profile",
+   "category": "Work & Career",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Daniel burnt out since October",
+   "content": "Daniel has been completely burnt out since October.",
+   "evidence": "I've been completely burnt out since October",
+   "scope": "profile",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Daniel sleeps about four hours",
+   "content": "Daniel mostly sleeps about four hours a night.",
+   "evidence": "Mostly I sleep about four hours",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Daniel wakes up at three am",
+   "content": "Daniel wakes up at three in the morning and goes back to sleep.",
+   "evidence": "I wake up at three in the morning and just go back to sleep",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Daniel dreads the nights",
+   "content": "Daniel has started dreading the nights.",
+   "evidence": "I've started dreading the nights, if I'm honest",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Daniel sits in car park before hospital",
+   "content": "Daniel sometimes sits in a car park at a hospital for ten minutes before entering.",
+   "evidence": "That some days I sit in a car park at a dead hospital for ten minutes before I go in",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Daniel's sister lives in Toronto",
+   "content": "Daniel's younger sister Hannah lives in Toronto.",
+   "evidence": "My younger sister Hannah lives in Toronto",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Daniel's sister calls father every Sunday",
+   "content": "Daniel's sister Hannah calls their father every Sunday.",
+   "evidence": "She calls him every Sunday",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Daniel's father is slower due to Parkinson's",
+   "content": "Daniel's father is slower and gets frustrated due to his condition.",
+   "evidence": "He's slower? He gets frustrated?",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Daniel is exhausted",
+   "content": "Daniel feels exhausted and looks exhausted.",
+   "evidence": "I look exhausted and she's right. I am.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Blood test results normal",
+   "content": "Daniel's GP blood test results were normal.",
+   "evidence": "They were all normal",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "GP diagnosis stress and exhaustion",
+   "content": "Daniel's GP diagnosed his condition as stress and exhaustion.",
+   "evidence": "She said it's stress and exhaustion",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Doug suggested Daniel talk to someone",
+   "content": "Daniel's GP suggested he speak to someone, but Daniel's friend Doug said he had no time.",
+   "evidence": "he said I hadn't got time",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Girlfriend Claire booked session",
+   "content": "Daniel's girlfriend Claire booked a therapy session for him.",
+   "evidence": "Your girlfriend booked it",
+   "scope": "session",
+   "category": "Family & Relationships",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Claire stopped asking about weekend trips",
+   "content": "Claire stopped asking Daniel if he wanted to go away for a weekend because he always said no.",
+   "evidence": "She stopped asking if I wanted to go away for a weekend because I always said no",
+   "scope": "session",
+   "category": "Family & Relationships",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Daniel feels Claire is wearing out",
+   "content": "Daniel believes Claire is wearing herself out by being patient with him.",
+   "evidence": "She's very patient. She makes me do and doesn't push me to talk. But I can see she's wearing out her too",
+   "scope": "session",
+   "category": "Family & Relationships",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Daniel has 200 emails from boss",
+   "content": "Daniel has approximately two hundred emails from his boss.",
+   "evidence": "we'll come back to two hundred of them",
+   "scope": "session",
+   "category": "Work & Career",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Daniel ran 20km weekly for 6 years",
+   "content": "Daniel ran 20 km every Saturday morning for six years before October.",
+   "evidence": "We ran 20 km every Saturday morning. I've been doing it for six years",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Daniel stopped running two months ago",
+   "content": "Daniel stopped running about two months ago.",
+   "evidence": "It stopped about two months ago",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Daniel feels his legs are heavy",
+   "content": "Daniel says his legs feel like lead.",
+   "evidence": "My legs feel like lead",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Daniel lost part of himself",
+   "content": "Daniel feels he lost a part of himself when he stopped running.",
+   "evidence": "I kind of lost a part of myself",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Daniel's boss is named Pearson",
+   "content": "Daniel's boss is named Pearson.",
+   "evidence": "Pearson",
+   "scope": "session",
+   "category": "Work & Career",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Boss Pearson sends emails at night",
+   "content": "Daniel's boss Pearson sends emails at 11:00 at night.",
+   "evidence": "But he sends emails at 11.00 at night",
+   "scope": "session",
+   "category": "Work & Career",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Daniel answers boss emails even when on bed",
+   "content": "Daniel answers his boss's emails every time, even when he is in bed.",
+   "evidence": "I answer it. Every time. Even if I'm on bed",
+   "scope": "session",
+   "category": "Work & Career",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Daniel fears boss will think he is uncommitted",
+   "content": "Daniel fears his boss will think he is not committed if he does not answer emails.",
+   "evidence": "Then he'd think I wasn't committed",
+   "scope": "session",
+   "category": "Work & Career",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Daniel fears restructuring will let him go",
+   "content": "Daniel fears a restructuring in his boss's brain will result in him being let go.",
+   "evidence": "There's a restructuring in his brain and I'm afraid they'll let me go",
+   "scope": "session",
+   "category": "Work & Career",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Daniel feels relieved if he is let go",
+   "content": "Daniel thinks part of him would be relieved if he was let go.",
+   "evidence": "I think part of me would be relieved",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Daniel feels like a mortgage",
+   "content": "Daniel feels like a mortgage.",
+   "evidence": "I'm a mortgage",
+   "scope": "session",
+   "category": "Self-concept & Identity",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Daniel feels irritable with colleague",
+   "content": "Daniel feels mostly irritable with his colleague.",
+   "evidence": "Lot mostly. And irritable",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Daniel had heart attack scare",
+   "content": "Daniel thought his colleague's fainting was a heart attack, but it passed.",
+   "evidence": "I heard it was going and my hands were shaking. I thought for a second it was a heart attack, but it passed",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Daniel had heart attack scare on train",
+   "content": "Daniel had a similar scare on a train to Manchester.",
+   "evidence": "Once on a train to Manchester, just to get off and stand on a platform",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Uses coffee to cope",
+   "content": "Daniel drinks about six cups of coffee a day.",
+   "evidence": "I want about six cups a day",
+   "scope": "session",
+   "category": "Addictions & Habits",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Uses wine to cope",
+   "content": "Daniel drinks two to three glasses of wine in the evenings.",
+   "evidence": "Two glasses, sometimes three",
+   "scope": "session",
+   "category": "Addictions & Habits",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Wakes up at 3 AM",
+   "content": "Daniel wakes up at three in the morning.",
+   "evidence": "I wake at three anyway",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Plans to stop phone use",
+   "content": "Daniel plans to switch off his phone for twenty minutes at half past nine.",
+   "evidence": "half past nine, perhaps",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Plans to write a note",
+   "content": "Daniel plans to write a note about how the night goes when he wakes up.",
+   "evidence": "I'll write it down when I wake up",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Agrees to next week session",
+   "content": "Daniel agrees to attend the next session at the same time.",
+   "evidence": "Same time next week? Yeah, I'll be here",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Feels tired and shaky",
+   "content": "Daniel feels dark, lighter, and a bit shaky after speaking.",
+   "evidence": "Dark, but lighter. It's normal to feel a bit shaky after saying all out",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Believes grandfather was strong",
+   "content": "Daniel believes his grandfather never complained about anything.",
+   "evidence": "My grandfather who worked at tender mines in Yorkshire, he never complained about anything, not once",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Feels weak in front of grandfather",
+   "content": "Daniel thinks his grandfather would think he is weak for being in therapy.",
+   "evidence": "I keep thinking he would think I was a weak for being here",
+   "scope": "session",
+   "category": "Self-concept & Identity",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Tries to tell grandfather he is not weak",
+   "content": "Daniel wants to tell his grandfather he is not weak, just very tired.",
+   "evidence": "That I'm not weak. Just very tired",
+   "scope": "session",
+   "category": "Self-concept & Identity",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Does not believe he is not weak yet",
+   "content": "Daniel does not yet believe he is not weak.",
+   "evidence": "I don't know if I believe it yet",
+   "scope": "session",
+   "category": "Self-concept & Identity",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Feels he has lost control",
+   "content": "Daniel feels he is losing it and will end up coping.",
+   "evidence": "I'm losing it. Uh, I'm gonna end up, I don't know, coping",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Feels afraid of Divine",
+   "content": "Daniel feels that Divine works for an hour but then he feels it is not helping.",
+   "evidence": "It works for an hour. I know it's not helping",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 3,
+   "quote_found": false
+  },
+  {
+   "heading": "Has not told Claire about issues",
+   "content": "Daniel has not told Claire about his problems.",
+   "evidence": "Well, I hadn't told anyone about it, not even Claire",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Feels he is carrying a lot alone",
+   "content": "Daniel feels he has been holding a great deal on his own for a long time.",
+   "evidence": "I hear a person who has been holding a great deal on his own for a long time",
+   "scope": "profile",
+   "category": "Self-concept & Identity",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Feels he is listing everything wrong",
+   "content": "Daniel feels like he is listing everything that's wrong with him.",
+   "evidence": "It doesn't feel useful. It feels like I'm listing everything that's wrong with me",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Feels he has little left",
+   "content": "Daniel feels he does not have much left.",
+   "evidence": "I don't got much left",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Thinks he wouldn't notice phone switch off",
+   "content": "Daniel thinks he probably wouldn't even notice if he switched off his phone for twenty minutes.",
+   "evidence": "Probably. You wouldn't even notice",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Plans to make it an English play",
+   "content": "Daniel plans to make the twenty-minute phone switch-off time an English play.",
+   "evidence": "I could make it an English play",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Has trouble with trains",
+   "content": "Daniel says the trains are awful.",
+   "evidence": "The trains are awful",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 3,
+   "quote_found": true
+  }
+ ],
+ "lines": [
+  "Hello Danielle. Come in. Have a seat. Uh, where would you like to start today? I don't really know. My general practitioner suggested that I come. Uh, she said I look exhausted and she's right. I am.",
+  "What does exhausted look like for you? Like, I'm running on fumes. I work as a project manager in a logistics company and I've been completely burnt out since October. Since October? Did something happen then? Not one thing. We lost a big client. Half of our team got moved on to risk.",
+  "So I ended up doing three people's jobs. Just never came back up after that. What does a normal working day look for you now? I'm up to my desk by seven and I'm still having certain messages at then that night. Even when I'm not working and thinking about work.",
+  "That's a very long day. How's your sleep? Terrible. Mostly I sleep about four hours. I wake up at three in the morning and just go back to sleep. What happens when you wake up at three?",
+  "We had to start shipping schedules, look line, whether I've forgotten something. Then I look at the clock and I do the mountain how little sleep I'm gonna get, which makes it worse. And then. Then I lie until about five and get up and make tea. I've started dreading the nights, if I'm honest.",
+  "That sounds draining. Is there anything else going on in your life besides work? Yeah, my father. I was diagnosed with Parkinson's disease in the autumn. That's a lot to carry alongside everything else. How is he? Still himself, mostly.",
+  "His hand trick? He's slower? He gets frustrated? He's having a dream and he's always being disturbed. And how are you involved in his care? I'm the one who drives him to the hospital in Leeds. Neurology appointments are every few weeks. It's about an hour each way.",
+  "Is there anyone who shares debt with you? Not really. My younger sister Hannah lives in Toronto, so old to care for our father who falls on me. How do you feel about debt? Guilty of even saying it. She calls him every Sunday. She's not the one who's neglecting him.",
+  "Just I'm the one who's hearing. Can you say more about the guilt? You feel selfish to be dirty when he's the one who is settled. So I don't say anything to anyone. Not to Hannah either. She asks. How are I? I say fine.",
+  "What would be the point? She can't do anything from Canada. What would you want her to know if you said it? That I'm not fine. That some days I sit in a car park at a dead hospital for ten minutes before I go in? Because I can't face it.",
+  "That's an important thing to notice. What happens in those ten minutes? Nothing really. Just breathe. I look at every people going in. Everybody looks tired here. You mentioned your GP. What did she say? She did a blood test.",
+  "They were all normal. She said it's stress and exhaustion and if I asked Doug about talking to someone, he said I hadn't got time. And yet you are here. Your girlfriend booked it, if I'm to be honest.",
+  "Claire? She said she was done watching me disappear. How is it with Claire? She's very patient. She makes me do and doesn't push me to talk. But I can see she's wearing out her too. In what way? She stopped asking if I wanted to go away for a weekend because I always said no.",
+  "That's the thing that you feel worst about actually. What stops you from saying yes? The emails. If I'm allowed, we'll come back to two hundred of them. And that might need something. So even rest has a price.",
+  "Yeah, exactly. I can't remember the last time I was properly off. What did you do for yourself before October? We ran 20 km every Saturday morning. I've been doing it for six years. And now?",
+  "It stopped about two months ago. My legs feel like lead. And I just never went back. How do you feel about that? I kind of lost a part of myself. It was still one time in a week nobody could reach me.",
+  "What would it mean to get some of that back? A lot probably. I can't picture the time that would come from. Let's leave that for a moment. What is your relationship with your boss like? Pearson. He was a right as a person.",
+  "But he sends emails at 11.00 at night and expects an answer before breakfast. What do you do when one arrives? I answer it. Every time. Even if I'm on bed. I hate it. What are you afraid would happen if you didn't answer?",
+  "Then he'd think I wasn't committed. There's a restructuring in his brain and I'm afraid they'll let me go. And if they did? I don't know. I think part of me would be relieved. I'd feel horrible about being really... I'm a mortgage. Both things can be true.",
+  "Suppose so. Never said it out loud. How are you moves apart from the third mass? Lot mostly. And irritable. He just looked at a colleague post vehicle or nothing and went and sat in the toilet for ten minutes. What was happening to you in those minutes?",
+  "I heard it was going and my hands were shaking. I thought for a second it was a heart attack, but it passed. Has it happened before? A couple of times. Once on a train to Manchester, just to get off and stand on a platform. That sounds frightening.",
+  "Well, I hadn't told anyone about it, not even Claire. Thank you for telling me. What are you afraid of means? I'm losing it. Uh, I'm gonna end up, I don't know, coping. Have you noticed anything that makes it worse?",
+  "Coffee? Probably. I want about six cups a day and I started having wine in the evenings to switch my head off. Two glasses, sometimes three. How do you feel about Divine? Easy. It works for an hour. I wake at three anyway. I know it's not helping.",
+  "You're noticing that clearly. That is useful. It doesn't feel useful. It feels like I'm listing everything that's wrong with me. I hear a person who has been holding a great deal on his own for a long time. What was it like to say it today? Strange.",
+  "But a footnote, actually. Like putting in a bag that I didn't realize I was carrying. What do you carry when you would like to put down first? The nice thing. If I could sleep, I could probably go put to rest. We can start here. Didn't a thing about your family growing shape how you handled this?",
+  "My grandfather who worked at tender mines in Yorkshire, he never complained about anything, not once. That's the same. Just get on with it.",
+  "And you? I'm the same. I keep thinking he would think I was a weak for being here. What would you say to him if he were here? That I'm not weak. Just very tired. That sounds like something you could say to yourself as well.",
+  "Maybe. I don't know if I believe it yet. That's fine. You don't have to. Let's think about what we could do between now and next week. Would you be willing to try something small? I can't tell small. I don't got much left.",
+  "Very small. Uh, fixed time in the evening when you switch off your phone. Even for twenty minutes. Bears would hate that. What would actually happen in twenty minutes? I think. Probably. You wouldn't even notice.",
+  "Would you try it? Yeah, half past nine, perhaps. I could make it an English play. Piano sofa. That sounds good. And a note of how the night goes? I can do that. I'll write it down when I wake up. If I wake up.",
+  "We're nearly out of time. How are you feeling, let me know. Dark, but lighter. It's normal to feel a bit shaky after saying all out. Very normal. It takes energy to say low, low. Right. Thank you. I think I needed to hear it out.",
+  "Same time next week? Yeah, I'll be here. I'll try to make it on time. The trains are awful."
+ ]
+}

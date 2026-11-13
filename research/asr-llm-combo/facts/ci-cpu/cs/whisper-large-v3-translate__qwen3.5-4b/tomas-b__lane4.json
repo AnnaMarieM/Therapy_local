@@ -1,0 +1,353 @@
+{
+ "round": "r1",
+ "engine": "whisper-large-v3-translate",
+ "model": "qwen3.5-4b",
+ "lane": 4,
+ "client": "tomas-b",
+ "lang": "cs",
+ "seconds": 325.9,
+ "facts": [
+  {
+   "heading": "Client name is Bart",
+   "content": "The client's name is Bart.",
+   "evidence": "Good day, Mr. Bart",
+   "scope": "profile",
+   "category": "Self-concept & Identity",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client is nervous",
+   "content": "Bart feels quite nervous.",
+   "evidence": "I'm quite nervous",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client is not a psychologist",
+   "content": "Bart has never been a psychologist.",
+   "evidence": "I've never been a psychologist",
+   "scope": "profile",
+   "category": "Self-concept & Identity",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Wife says marriage is failing",
+   "content": "Bart's wife says the marriage is not going to work anymore.",
+   "evidence": "My wife says it's not going to work anymore",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client checks locks 30 times daily",
+   "content": "Bart checks if he has locked the door and turned on the switch 30 times a day.",
+   "evidence": "30 times a day I check if I've locked the door and turned on the switch",
+   "scope": "profile",
+   "category": "Addictions & Habits",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client spends an hour before leaving house",
+   "content": "Bart takes an hour before he leaves the house.",
+   "evidence": "It takes me an hour before I leave the house",
+   "scope": "profile",
+   "category": "Addictions & Habits",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client checks door multiple times",
+   "content": "Bart closes the door, goes to the bathroom, comes back and closes the door, then checks again.",
+   "evidence": "I close the door, go to the bathroom, come back and close the door. Then I check the...and I have to go back.",
+   "scope": "profile",
+   "category": "Addictions & Habits",
+   "part": 1,
+   "quote_found": false
+  },
+  {
+   "heading": "Client visualizes house on fire",
+   "content": "Bart sees a house in flames clearly as a movie.",
+   "evidence": "A house in flames. I see it clearly as a movie.",
+   "scope": "profile",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Problem happens every day",
+   "content": "Bart experiences this every day.",
+   "evidence": "Every day.",
+   "scope": "profile",
+   "category": "Addictions & Habits",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Problem worsens in evening",
+   "content": "The problem is the worst in the evening when they go out or to sleep.",
+   "evidence": "In the evening it's the worst when we go out or to sleep.",
+   "scope": "profile",
+   "category": "Addictions & Habits",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Problem happens in morning too",
+   "content": "The problem happens in the morning as well.",
+   "evidence": "In the morning too.",
+   "scope": "profile",
+   "category": "Addictions & Habits",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Problem started two years ago",
+   "content": "The problem started two years ago.",
+   "evidence": "It started two years ago",
+   "scope": "profile",
+   "category": "History & Life Events",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Neighbor burned down house",
+   "content": "A neighbor burned down their house and they had to evacuate.",
+   "evidence": "No one was hurt, but the neighbour burned it all.",
+   "scope": "profile",
+   "category": "History & Life Events",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client had fever during fire",
+   "content": "Bart had a fever when the neighbor burned down the house.",
+   "evidence": "Then I got a fever, there was smoke on the floor and I was screaming.",
+   "scope": "profile",
+   "category": "Health, Body & Sleep",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client felt relief after fire",
+   "content": "Bart felt that it was over after the fire.",
+   "evidence": "That it's over.",
+   "scope": "profile",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client feels they can burn things",
+   "content": "Bart has a feeling that if he doesn't control something, it will happen and he will be free.",
+   "evidence": "Since then I have a feeling that I can do it. That if I don't control something, it will happen and I will be free.",
+   "scope": "profile",
+   "category": "Self-concept & Identity",
+   "part": 1,
+   "quote_found": false
+  },
+  {
+   "heading": "Client feels tightness when stopping",
+   "content": "When Bart tries to stop the checking, tightness grows and he feels like he is going crazy.",
+   "evidence": "Then the tightness grows and I feel like I'm going crazy.",
+   "scope": "profile",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client prefers to continue checking",
+   "content": "Bart would rather do the checking than stop.",
+   "evidence": "I'd rather do it.",
+   "scope": "profile",
+   "category": "Coping & Strengths",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client has stomach issues when stopping",
+   "content": "Bart has a bad stomach after his hand is crossed when he tries to stop.",
+   "evidence": "Heart, after the hand is crossed, I have a bad stomach.",
+   "scope": "profile",
+   "category": "Health, Body & Sleep",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Wife knows about the behavior",
+   "content": "Bart's wife Barbara knows about his checking behavior.",
+   "evidence": "Barbara. My wife.",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Wife initially thought it was a habit",
+   "content": "Bart's wife initially took his checking as a habit, but now knows it is more serious.",
+   "evidence": "At first she took it as a habit, now she knows it's more.",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Wife is suffering from the behavior",
+   "content": "Bart's wife is suffering from his checking behavior and knows it is draining her.",
+   "evidence": "She's suffering, but I know it's draining her.",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client came to cinema 40 minutes late",
+   "content": "Bart came to the cinema 40 minutes later than planned yesterday.",
+   "evidence": "Yesterday we came to the cinema 40 minutes later.",
+   "scope": "session",
+   "category": "Addictions & Habits",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client checked room for third time",
+   "content": "Bart checked the room for the third time when he came back to the cinema.",
+   "evidence": "She was waiting outside, when I came back and checked the room for the third time.",
+   "scope": "session",
+   "category": "Addictions & Habits",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client feels like a child",
+   "content": "Bart feels like a child who can't get out of the house.",
+   "evidence": "Yes. I felt like a child who can't get out of the house.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client works as an electrician",
+   "content": "Bart works as an electrician for a long time.",
+   "evidence": "I work as a electrician for a long time.",
+   "scope": "profile",
+   "category": "Work & Career",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client fixes divorces in houses",
+   "content": "Bart fixes divorces in houses and sometimes in family homes.",
+   "evidence": "I have divorces in houses and sometimes in family homes.",
+   "scope": "profile",
+   "category": "Work & Career",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client fears making mistakes due to head",
+   "content": "Bart is afraid he will make a mistake because of his head.",
+   "evidence": "A lot. I'm afraid I'll make a mistake because of my head.",
+   "scope": "profile",
+   "category": "Self-concept & Identity",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Waits for Barbara at work",
+   "content": "Tomas waits for Barbara at the control room after every order.",
+   "evidence": "I return to the control room after every order.",
+   "scope": "session",
+   "category": "Family & Relationships",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Wakes twice nightly to check",
+   "content": "Tomas wakes up twice a night and checks the room.",
+   "evidence": "I wake up twice a night and check the room.",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Walks with Barbara twice weekly",
+   "content": "Tomas walks with Barbara twice a week.",
+   "evidence": "Walks twice a week.",
+   "scope": "session",
+   "category": "Family & Relationships",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Works with Barbara daily",
+   "content": "Tomas works with Barbara almost every day.",
+   "evidence": "Well, almost every day.",
+   "scope": "session",
+   "category": "Family & Relationships",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Has intrusive thoughts about hurting Barbara",
+   "content": "Tomas has thoughts that he will hurt Barbara and her children.",
+   "evidence": "That I'll hurt her and her children.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Feels afraid of hurting Barbara",
+   "content": "Tomas is afraid he will hurt Barbara and her children.",
+   "evidence": "I'm afraid that she wouldn't want to be with me.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Feels safe to leave hospital soon",
+   "content": "Tomas feels he can leave the hospital in 5 minutes.",
+   "evidence": "To leave the hospital in 5 minutes",
+   "scope": "session",
+   "category": "Self-concept & Identity",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Plans to have a child soon",
+   "content": "Tomas plans to have a child without the therapist deciding the pace.",
+   "evidence": "look forward to having a child without the",
+   "scope": "session",
+   "category": "Goals & Plans",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Does not want to lose Barbara",
+   "content": "Tomas wants to tell Barbara he wouldn't lose her.",
+   "evidence": "And that I wanted to tell her that I wouldn't lose her.",
+   "scope": "session",
+   "category": "Family & Relationships",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Waits for Barbara to return",
+   "content": "Tomas waits for Barbara to come back to him.",
+   "evidence": "That she was there.",
+   "scope": "session",
+   "category": "Family & Relationships",
+   "part": 2,
+   "quote_found": true
+  }
+ ]
+}

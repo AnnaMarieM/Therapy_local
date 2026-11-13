@@ -1,0 +1,138 @@
+{
+ "round": "r1",
+ "engine": "whisper-large-v3",
+ "model": "gemma4-e2b",
+ "lane": 4,
+ "client": "jana-n",
+ "lang": "cs",
+ "seconds": 222.9,
+ "facts": [
+  {
+   "heading": "Rozvod manželství",
+   "content": "Jana se rozhodla pro rozvod s manželem Radkem po patnácti letech manželství.",
+   "evidence": "Po patnácti letech manželství jsme se s manželem Radkem rozhodli pro rozvod",
+   "part": 1,
+   "quote_found": false
+  },
+  {
+   "heading": "Rozdělení dětí",
+   "content": "Jana má dvě děti, Aničku 12 let a Matějovi 8 let.",
+   "evidence": "Mám dvě děti, Aničce 12 a Matějovi 8 let",
+   "part": 1,
+   "quote_found": false
+  },
+  {
+   "heading": "Komunikace s dětmi",
+   "content": "Jana ještě svým dětem neřekla o rozvodu.",
+   "evidence": "Ještě jste jim to neřekla? Ne",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Reakce Aničky na rozvod",
+   "content": "Anička se zeptala, jestli se s tátou hádají.",
+   "evidence": "Minulý týden se mě zeptala, jestli se s tátou hádáme",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana se cítila hrozně",
+   "content": "Jana se cítila hrozně, když řekla, že ne hádá s tátou.",
+   "evidence": "Cítila jsem se hrozně. Proč hrozně? Protože jsem lhala.",
+   "part": 1,
+   "quote_found": false
+  },
+  {
+   "heading": "Strach z reakce dětí",
+   "content": "Jana bojí se slz dětí a neví, jak jim předat zprávu.",
+   "evidence": "ale bojím se jejich slz. A Matěj je ještě malý, ten moc nic nechápe.",
+   "part": 1,
+   "quote_found": false
+  },
+  {
+   "heading": "Bydlení a peníze",
+   "content": "Bydlení je na hypotéku a Radek se odstihuje k bratrově.",
+   "evidence": "Byd je na hypotéku, Radek se asi odstihuje k bratrově, alespoň zatím",
+   "part": 1,
+   "quote_found": false
+  },
+  {
+   "heading": "Práce jako učitelka",
+   "content": "Jana pracuje jako učitelka češtiny na základní škole v Brně.",
+   "evidence": "Pracuji jako učitelka češtiny na základní škole v Brně",
+   "part": 1,
+   "quote_found": false
+  },
+  {
+   "heading": "Pocity rozpadu života",
+   "content": "Jana má pocit, že se její život rozpadá.",
+   "evidence": "Mám pocit, že všichni vidí, že se mi rozpadá život",
+   "part": 1,
+   "quote_found": false
+  },
+  {
+   "heading": "Rozhovor s ředitelkou",
+   "content": "Jana řekla ředitelce o rozpadu života.",
+   "evidence": "Řekla jsem jí to, protože jsem se jednou rozplakala na chodbě",
+   "part": 1,
+   "quote_found": false
+  },
+  {
+   "heading": "Jana byla sama doma",
+   "content": "Jana byla sama doma a cítila se horší.",
+   "evidence": "Jenže pak jsem seděla doma a bylo to horší. Protože jsem byla sama za hlavou.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "Problémy s učením se spát",
+   "content": "Jana má problémy se spánkem.",
+   "evidence": "Každou noc se budím ve tři hodiny ráno. Co spánek? Zkoušela jste něco?",
+   "scope": "Zdraví, tělo a spánek",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "Myšlenky o budoucím životě",
+   "content": "Jana se přemýšlí o budoucím životě.",
+   "evidence": "a přemýšlím, co bude dál. Co se říkáte, když se probudíte?",
+   "scope": "Osobní témata a sebepojetí",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "Zabránění závislosti na návycích",
+   "content": "Jana bojí se závislosti na návycích.",
+   "evidence": "Bojím se, že bych se nemohla včas vzbudit pro děti a nechci pít závisla.",
+   "scope": "Závislosti a návyky",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Strach z reakce na smutek",
+   "content": "Jana bojí se reakce na smutek.",
+   "evidence": "Že s panikařím rozpláču se, že nezvládnu zůstat klidná. Že bych polakala před dětmi? Vždyť to by pro ně bylo děsivé.",
+   "scope": "Osobní témata a sebepojetí",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "Osobní strategie pro spánek",
+   "content": "Jana se snaží najít řešení pro spánek.",
+   "evidence": "Zkusíte tohle noc něco malého, třeba se vedle postele nechat papíra napsat, co vás vzbudí? Mohla bych, ale aspoň to dostanu z hlavy.",
+   "scope": "Zdroje a zvládání",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "Osobní cíl pro dnešek",
+   "content": "Jana stanovila si cíl pro dnešek.",
+   "evidence": "Co dnes je test dneška? Že nejsem sama a že to nemusím zvládnout hned. Přesně to. Pro dnešek tady skončíme.",
+   "scope": "Osobní témata a sebepojetí",
+   "part": 2,
+   "quote_found": false
+  }
+ ]
+}

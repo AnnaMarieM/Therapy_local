@@ -1,0 +1,505 @@
+{
+ "round": "r1",
+ "engine": "whisper-small-translate",
+ "model": "gemma4-e2b",
+ "lane": 4,
+ "client": "tomas-b",
+ "lang": "cs",
+ "seconds": 250.1,
+ "facts": [
+  {
+   "heading": "Stomach ache during session",
+   "content": "Tomas had a stomach ache and could not do the session as planned.",
+   "evidence": "I have a stomach ache, I can't do it like this.",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Will be at clinic by 1 pm",
+   "content": "Tomas planned to go to the clinic to check if he was closed.",
+   "evidence": "I'll be there by 1 pm.",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Can't remember what happened",
+   "content": "Tomas could not remember what happened when he did something.",
+   "evidence": "I can't remember.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "See picture clearly in flames",
+   "content": "Tomas could see something clearly in the flames.",
+   "evidence": "I can see it clearly in the flames.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Happens every day at night",
+   "content": "The event happens every day, especially when going to bed or sleeping.",
+   "evidence": "Every day. The worst thing is that we go to bed or sleep.",
+   "scope": "profile",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Started two years ago",
+   "content": "The behavior started two years ago when Tomas was playing with neighbors.",
+   "evidence": "It started two years ago when I was playing with my neighbors and I had to go to the toilet.",
+   "scope": "profile",
+   "category": "History & Life Events",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Had a fever later",
+   "content": "A couple of days after the initial event, Tomas had a fever.",
+   "evidence": "A couple of days later I had a fever.",
+   "scope": "profile",
+   "category": "Health, Body & Sleep",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Toilet was wet",
+   "content": "The toilet was wet after the event, but Tomas was still alive.",
+   "evidence": "the toilet was wet, but I was still alive.",
+   "scope": "profile",
+   "category": "Health, Body & Sleep",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Went out running",
+   "content": "Tomas and someone else went out running.",
+   "evidence": "We went out in the running.",
+   "scope": "profile",
+   "category": "History & Life Events",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Felt like a dream",
+   "content": "The experience felt like a dream to Tomas.",
+   "evidence": "It was like a dream.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Nero was not injured",
+   "content": "Nero was not injured in the event.",
+   "evidence": "Nero was not injured, but his neighbors were playing all day.",
+   "scope": "profile",
+   "category": "History & Life Events",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Was in the ground",
+   "content": "Tomas was in the ground, and a hole was in the top of the window.",
+   "evidence": "I was in the ground, a hole was in the top of the window.",
+   "scope": "profile",
+   "category": "History & Life Events",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Feels he can do it",
+   "content": "From that time, Tomas feels he can do it.",
+   "evidence": "From that time I feel that I can do it.",
+   "scope": "profile",
+   "category": "Self-concept & Identity",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Believes if uncontrolled, will happen",
+   "content": "Tomas believes that if something doesn't control him, it will happen and he will do it.",
+   "evidence": "If something doesn't control me, it will happen and I will do it.",
+   "scope": "profile",
+   "category": "Coping & Strengths",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Tries to leave it",
+   "content": "When he does not want to do something, Tomas tries to leave it.",
+   "evidence": "I try to leave it.",
+   "scope": "profile",
+   "category": "Coping & Strengths",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Feels free when narrow",
+   "content": "Tomas feels free when he grows up narrow.",
+   "evidence": "I grow up narrow, so I feel that I'm free.",
+   "scope": "profile",
+   "category": "Self-concept & Identity",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Wants to run away",
+   "content": "Tomas prefers to run away rather than face the situation.",
+   "evidence": "I rather run away.",
+   "scope": "profile",
+   "category": "Coping & Strengths",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Heart beating fast",
+   "content": "Tomas's heart is beating fast due to working for a while.",
+   "evidence": "My heart is beating fast, I've been working for a while now.",
+   "scope": "profile",
+   "category": "Health, Body & Sleep",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Barbara is his little girl",
+   "content": "Tomas mentioned his little girl named Barbara.",
+   "evidence": "Barbara, my little girl.",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Reaction is annoying",
+   "content": "The reaction to something is annoying to Tomas.",
+   "evidence": "It's annoying, but I know it's more annoying.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Came to cinema late",
+   "content": "Tomas came to the cinema 40 minutes late.",
+   "evidence": "Yesterday we came to the cinema 40 minutes later.",
+   "scope": "session",
+   "category": "History & Life Events",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Felt better the next morning",
+   "content": "Tomas felt better the morning after the event.",
+   "evidence": "and the next morning I felt better.",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Said something didn't work",
+   "content": "Tomas said something, but it did not work out.",
+   "evidence": "I said something, but it didn't work out.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Felt great during event",
+   "content": "Tomas felt great during the event.",
+   "evidence": "It was great.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Felt like a child",
+   "content": "Tomas felt like a child who cannot go out of the house.",
+   "evidence": "I felt like a child who can't go out of the house.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Working as a collector",
+   "content": "Tomas is working as a collector at the factory.",
+   "evidence": "I'm working as a collector at the factory.",
+   "scope": "Work & Career",
+   "category": "Work & Career",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Work workload management",
+   "content": "Tomas has a lot of work in the office and at home. Tomas is afraid he will miss his head when he returns to the water.",
+   "evidence": "I have a lot of work in the office and during the time I'm in the house. Yes, I'm afraid that I'll miss my head when I come back to the water.",
+   "scope": "session",
+   "category": "Work & Career",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "Colleague questions about actions",
+   "content": "Tomas has been asking questions about colleagues and why he did not do something.",
+   "evidence": "I've been asking a few questions about colleagues, why I didn't do it.",
+   "scope": "session",
+   "category": "Work & Career",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "New company started fourth month",
+   "content": "Tomas started a company in the fourth month. Tomas is sad about it.",
+   "evidence": "To work in the fourth month. I'm sad, really.",
+   "scope": "session",
+   "category": "Work & Career",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "Intrusive thoughts about relationship",
+   "content": "Tomas had a thought that she and her child will be together. Tomas would like to be together.",
+   "evidence": "That she and her child will be together. Will you be together? No, I would like to.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "Fear of being alone",
+   "content": "Tomas is afraid that he will be alone if he cuts bread the same way.",
+   "evidence": "and then I'm afraid that it will be alone.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Thought as desired outcome",
+   "content": "The thought that he wants is the one that comes when he cuts bread a certain way.",
+   "evidence": "So it's the thought that you want.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Fear of telling Barbara",
+   "content": "Tomas is afraid if he does not tell anyone or Barbara.",
+   "evidence": "And it's the worst thing if I didn't tell anyone or Barbara.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Intrusive thoughts are common",
+   "content": "Intrusive thoughts like these are common for people with this type of stress.",
+   "evidence": "Such intrusive thoughts, like people with this type of stress, are very common.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Thought wants to change belief",
+   "content": "The thought wants to be something else than what Tomas believes.",
+   "evidence": "I mean, it wants to be something else than it believes.",
+   "scope": "session",
+   "category": "Self-concept & Identity",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Coping mechanism for thoughts",
+   "content": "When the thought appears, Tomas goes back to his room or controls something to stop it.",
+   "evidence": "I go back to my room. Or I go back to my room and control something, so that it stops.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "Controller does not work",
+   "content": "Tomas does not think the controller helps him control the thought.",
+   "evidence": "I never think that it works.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Sleep routine established",
+   "content": "Tomas sleeps in the bedroom and stays there two times a night to control the room.",
+   "evidence": "I sleep in the bedroom. I stay there two times a night and control the room.",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "Help with barbershop delivery",
+   "content": "Tomas helps with the delivery at the barbershop because he does not know what to do.",
+   "evidence": "I help with the delivery with the barbershop, because I don't know what to do.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Delivery frequency twice daily",
+   "content": "Tomas does the delivery twice a day.",
+   "evidence": "The delivery twice a day.",
+   "scope": "session",
+   "category": "Work & Career",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Time needed for improvement",
+   "content": "It would take Tomas five minutes for the delivery to improve.",
+   "evidence": "It would take me five minutes.",
+   "scope": "session",
+   "category": "Work & Career",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Past therapy experience",
+   "content": "Tomas was in therapy when he was in the hospital.",
+   "evidence": "I was in therapy when I was in the hospital.",
+   "scope": "History & Life Events",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Fear of understanding",
+   "content": "Tomas was afraid of understanding.",
+   "evidence": "Fear of understanding?",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Control door access",
+   "content": "Speaker 1 stated they would control the door only once, not three times. Speaker 1 noted that big steps start with small ones.",
+   "evidence": "I will control the door only once, not three times. Big steps start with small ones.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 3,
+   "quote_found": false
+  },
+  {
+   "heading": "Said something about barber",
+   "content": "Speaker 1 mentioned something important about the barber. Speaker 1 expressed a desire to say something to him.",
+   "evidence": "You said something important about the barber. I would.",
+   "scope": "session",
+   "category": "Family & Relationships",
+   "part": 3,
+   "quote_found": false
+  },
+  {
+   "heading": "Wants to not lose barber",
+   "content": "Speaker 1 stated they would not lose the barber. Speaker 1 expressed a wish to say this to him.",
+   "evidence": "I would like to say that I would not lose him.",
+   "scope": "session",
+   "category": "Family & Relationships",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Thought about what she said",
+   "content": "Speaker 1 asked what she said. Speaker 1 wondered what she said.",
+   "evidence": "What do you think she said?",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "She said a lot",
+   "content": "Speaker 1 reported that she said a lot to them.",
+   "evidence": "She said a lot to me.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Thought she was standing",
+   "content": "Speaker 1 considered that she might be standing behind and saying something.",
+   "evidence": "Maybe she's standing behind her and saying something.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Thought she said you were there",
+   "content": "Speaker 1 thought she said that they were there and found out something.",
+   "evidence": "That you were here and you found out something.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Vlad's reaction to comments",
+   "content": "Speaker 1 asked Vlad what he thought about the situation.",
+   "evidence": "So, Vlad? What do you think about it?",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 3,
+   "quote_found": false
+  },
+  {
+   "heading": "It is okay",
+   "content": "Speaker 1 stated that it was okay.",
+   "evidence": "It's okay.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Will teach a skill",
+   "content": "Speaker 1 stated they would teach something.",
+   "evidence": "I'll teach you.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Check bit only once",
+   "content": "Speaker 1 instructed to check the bit only once when leaving it.",
+   "evidence": "When you leave the bit, check it only once and write down how much you were in a row.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Write down score out of ten",
+   "content": "Speaker 1 instructed to write down a number out of ten.",
+   "evidence": "And I'll write down the number of one out of ten.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 3,
+   "quote_found": true
+  }
+ ]
+}

@@ -1,0 +1,290 @@
+{
+ "round": "r1",
+ "engine": "whisper-medium-translate",
+ "model": "qwen3.5-4b",
+ "lane": 4,
+ "client": "tomas-b",
+ "lang": "cs",
+ "seconds": 201.9,
+ "facts": [
+  {
+   "heading": "Client name is Tomas",
+   "content": "Tomas is the client's name.",
+   "evidence": "Good morning, Mr. Bart",
+   "scope": "profile",
+   "category": "Self-concept & Identity",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client name is Bart",
+   "content": "Tomas's name is Bart.",
+   "evidence": "Good morning, Mr. Bart",
+   "scope": "profile",
+   "category": "Self-concept & Identity",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Wife is Barbara",
+   "content": "Tomas's wife is named Barbara.",
+   "evidence": "Barbara. My wife.",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Wife says marriage is failing",
+   "content": "Tomas's wife says the marriage is not working anymore.",
+   "evidence": "She says it's not going to work like this anymore.",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas locks door repeatedly",
+   "content": "Tomas locks his door multiple times before the control arrives.",
+   "evidence": "I close the door, go to the flower, turn around and pull the lock.",
+   "scope": "profile",
+   "category": "Coping & Strengths",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas checks security system",
+   "content": "Tomas checks if the control system is on and off.",
+   "evidence": "The head of the control is checking if I've locked the door and turned it off.",
+   "scope": "profile",
+   "category": "Coping & Strengths",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas takes an hour to lock door",
+   "content": "It takes Tomas an hour for the control to arrive.",
+   "evidence": "It takes me an hour before they get here.",
+   "scope": "profile",
+   "category": "Coping & Strengths",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas has daily anxiety",
+   "content": "Tomas experiences the anxiety every day.",
+   "evidence": "Every day.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Anxiety is worst in evening",
+   "content": "Tomas finds the anxiety worst in the evening.",
+   "evidence": "In the evening is the worst, when we go out or sleep.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Anxiety is worst in morning",
+   "content": "Tomas finds the anxiety worst in the morning.",
+   "evidence": "And in the morning too.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Anxiety started two years ago",
+   "content": "Tomas's anxiety started two years ago.",
+   "evidence": "It started two years ago, when it was burning next door and we had to evacuate.",
+   "scope": "profile",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Neighbor house burned down",
+   "content": "A house next door burned down two years ago.",
+   "evidence": "when it was burning next door and we had to evacuate.",
+   "scope": "profile",
+   "category": "History & Life Events",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Neighbor was burned alive",
+   "content": "The neighbor was burned to death.",
+   "evidence": "Nobody was hurt, but the neighbor was burning whole.",
+   "scope": "profile",
+   "category": "History & Life Events",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas feels like he will be in trouble",
+   "content": "Tomas believes if something doesn't work out, he will be in trouble.",
+   "evidence": "That if something doesn't work out, it will happen and I will be in trouble.",
+   "scope": "profile",
+   "category": "Self-concept & Identity",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas feels like a child",
+   "content": "Tomas feels like a child who can't get out of the house.",
+   "evidence": "Yes, I felt like a child who can't get out of the house.",
+   "scope": "session",
+   "category": "Self-concept & Identity",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas works as a doctor",
+   "content": "Tomas works as a doctor in a hospital.",
+   "evidence": "I work as a doctor in a hospital.",
+   "scope": "profile",
+   "category": "Work & Career",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Works in hospital and nursing home",
+   "content": "Tomas works in a hospital and sometimes in a nursing home.",
+   "evidence": "I have a job in the hospital, sometimes in a nursing home.",
+   "scope": "profile",
+   "category": "Work & Career",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Has contract to return to control room",
+   "content": "Tomas has a contract to return to the control room the next day.",
+   "evidence": "I have a contract to return to the control room.",
+   "scope": "session",
+   "category": "Work & Career",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Jeff calls him annoying",
+   "content": "Tomas's colleague Jeff calls him the most annoying guy in the company.",
+   "evidence": "Jeff says I'm the most annoying guy in the company.",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Plans to return in fourth month",
+   "content": "Tomas plans to be back in the control room on the fourth month.",
+   "evidence": "I'm going to be there on the fourth month.",
+   "scope": "profile",
+   "category": "Work & Career",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Waits three years for return",
+   "content": "Tomas waited three years for the opportunity to return.",
+   "evidence": "We waited for it for three years.",
+   "scope": "profile",
+   "category": "History & Life Events",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Has idea to hurt wife and child",
+   "content": "Tomas has an idea that he would hurt his wife and child.",
+   "evidence": "That I'll hurt her and the child.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Afraid of hurting wife and child",
+   "content": "Tomas is afraid that he will hurt his wife and child.",
+   "evidence": "I'm afraid he'll come to work.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Has idea when baking bread",
+   "content": "Tomas has the idea when he bakes bread on the same floor.",
+   "evidence": "when I bake bread on the same floor",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Afraid of being lonely",
+   "content": "Tomas is afraid it will be lonely.",
+   "evidence": "and then I'm afraid it'll be lonely.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Hasn't told anyone about idea",
+   "content": "Tomas hasn't told anyone about the idea, not even Barbarian.",
+   "evidence": "It's the worst thing, when I haven't told anyone, not even Barbarian.",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Leaves room or checks something",
+   "content": "Tomas leaves the room or goes back to check something when the thought appears.",
+   "evidence": "I leave the room. Or I go back and check something, but I stop.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Checks bed twice a day",
+   "content": "Tomas wakes up twice a day and checks the bed every time.",
+   "evidence": "I wake up twice a day and check the bed every time.",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Walks with Barbara twice a week",
+   "content": "Tomas walks with Barbara twice a week when she is at home.",
+   "evidence": "We walk twice a week.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Client named himself Tomas",
+   "content": "The client identified himself as Tomas.",
+   "evidence": "Client: Tomas",
+   "scope": "profile",
+   "category": "Self-concept & Identity",
+   "part": 3,
+   "quote_found": false
+  },
+  {
+   "heading": "Client agreed to track thirst",
+   "content": "Tomas agreed to write down his thirst level on a scale of one to ten when he leaves the house.",
+   "evidence": "I'll try. At least one. And I'll write down the number from one to ten.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 3,
+   "quote_found": true
+  }
+ ]
+}

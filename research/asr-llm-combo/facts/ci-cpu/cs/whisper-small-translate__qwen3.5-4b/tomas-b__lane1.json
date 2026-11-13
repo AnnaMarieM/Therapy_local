@@ -1,0 +1,272 @@
+{
+ "round": "r1",
+ "engine": "whisper-small-translate",
+ "model": "qwen3.5-4b",
+ "lane": 1,
+ "client": "tomas-b",
+ "lang": "cs",
+ "seconds": 349.5,
+ "facts": [
+  {
+   "heading": "Stomach ache prevents attending",
+   "content": "Tomas has a stomach ache that prevents him from attending the session as planned.",
+   "evidence": "I have a stomach ache, I can't do it like this.",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Clinic visit scheduled for 1 pm",
+   "content": "Tomas plans to visit the clinic at 1 pm to check if he is closed.",
+   "evidence": "I'll be there by 1 pm.",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Repetitive door closing ritual",
+   "content": "Tomas repeatedly closes the door, goes to the kitchen, and checks the counter every button in the drawer.",
+   "evidence": "I close the door, go to the kitchen, go back and close the door.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Daily recurring episode",
+   "content": "Tomas experiences this episode every day.",
+   "evidence": "Every day.",
+   "scope": "profile",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Insomnia lasting two years",
+   "content": "Tomas has not been able to sleep properly for two years.",
+   "evidence": "It started two years ago.",
+   "scope": "profile",
+   "category": "Health, Body & Sleep",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Waking up to neighbors playing",
+   "content": "Tomas had to wake up because his neighbors were playing.",
+   "evidence": "When the neighbors were playing, I had to wake up.",
+   "scope": "profile",
+   "category": "History & Life Events",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Fever developed after neighbors playing",
+   "content": "Tomas developed a fever a couple of days after the neighbors were playing.",
+   "evidence": "A couple of days later, I had a fever.",
+   "scope": "profile",
+   "category": "Health, Body & Sleep",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Feeling of being in the way",
+   "content": "Tomas feels that he is in the way from that point forward.",
+   "evidence": "From that point I feel that I'm in the way.",
+   "scope": "profile",
+   "category": "Self-concept & Identity",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Fear of losing control",
+   "content": "Tomas states that if something doesn't control him, he will stand still and do nothing.",
+   "evidence": "If something doesn't control me, I'll stand still and I'll do nothing.",
+   "scope": "profile",
+   "category": "Self-concept & Identity",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Feels crazy due to rapid growth",
+   "content": "Tomas feels like he is crazy because he grew up really fast.",
+   "evidence": "I grow up really fast, so I feel like I'm crazy.",
+   "scope": "profile",
+   "category": "Self-concept & Identity",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Prefers running away",
+   "content": "Tomas would rather run away than face the situation.",
+   "evidence": "I'd rather run away.",
+   "scope": "profile",
+   "category": "Coping & Strengths",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Mother named Barbara",
+   "content": "Tomas' mother is named Barbara.",
+   "evidence": "Barbara, my mother.",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Cinema visit delayed by 40 minutes",
+   "content": "Tomas and his mother went to the cinema 40 minutes later than scheduled.",
+   "evidence": "Yesterday we came to the cinema 40 minutes later.",
+   "scope": "session",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Feels like a child at home",
+   "content": "Tomas feels like a child who can't go out of the house.",
+   "evidence": "I felt like a child who can't go out of the house.",
+   "scope": "session",
+   "category": "Self-concept & Identity",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Works as a detective",
+   "content": "Tomas works as a detective in the police station.",
+   "evidence": "I'm working as a detective in the police station.",
+   "scope": "profile",
+   "category": "Work & Career",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas has no job",
+   "content": "Tomas has never had a job.",
+   "evidence": "No, never.",
+   "scope": "profile",
+   "category": "Work & Career",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas works as a peddler",
+   "content": "Tomas identifies as a peddler.",
+   "evidence": "I thought I was a peddler.",
+   "scope": "profile",
+   "category": "Work & Career",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas works one hour a week",
+   "content": "Tomas works one hour in the office last week.",
+   "evidence": "Last week I was busy with work an hour in the office.",
+   "scope": "session",
+   "category": "Work & Career",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas works for fourth month",
+   "content": "Tomas is working for the fourth month.",
+   "evidence": "I'd like to do it for you, for the fourth month.",
+   "scope": "session",
+   "category": "Work & Career",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas sleeps twice a night",
+   "content": "Tomas stays in the bedroom two times a night.",
+   "evidence": "I stay there two times a night and control the room.",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas uses bathroom twice a day",
+   "content": "Tomas goes to the bathroom two times a day.",
+   "evidence": "The bathroom is two times a day.",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas fears hospital",
+   "content": "Tomas was afraid of the hospital when he went there.",
+   "evidence": "I was in therapy when I went to the hospital. I was afraid of something.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas fears hospital steps",
+   "content": "Tomas would walk a few steps to decide on the right time.",
+   "evidence": "Fear of the hospital? Would you walk a few steps and decide on the right time?",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas has intrusive thoughts",
+   "content": "Tomas has intrusive thoughts about killing people.",
+   "evidence": "It's terrible, I would never kill them.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas hides thoughts from Barbara",
+   "content": "Tomas did not tell Barbara about the idea.",
+   "evidence": "And it's the worst, when I didn't tell anyone, not even Barbara.",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas controls the room",
+   "content": "Tomas controls the room while sleeping.",
+   "evidence": "I stay there two times a night and control the room.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas controls the bathroom",
+   "content": "Tomas controls the bathroom twice a day.",
+   "evidence": "The bathroom is two times a day.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas believes controller does not work",
+   "content": "Tomas believes the controller does not work.",
+   "evidence": "Actually, no. I never think that it works.",
+   "scope": "profile",
+   "category": "Self-concept & Identity",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "No facts recorded",
+   "content": "No specific facts about the client were stated or confirmed in this transcript segment.",
+   "evidence": "None",
+   "scope": "session",
+   "category": "None",
+   "part": 3,
+   "quote_found": false
+  }
+ ]
+}
