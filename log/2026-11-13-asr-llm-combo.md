@@ -47,3 +47,8 @@ native vs pivot (English logic) x robust prompt, E4B and E2B, part size 250/450/
 ## Round 2a result / 2b failure
 - 2a (run 43380472185): 86/86 jobs ok.
 - 2b (run 43380701110): all 44 large-v3 LLM jobs failed: `download-artifact` with `run-id` lists only the first 100 artifacts of the old run (it found 2 of 88+ asr artifacts), so no transcript was found. Fix: the round runs its own large-v3 ASR (1 lane) and the LLM jobs read it from the same run. Re-pushed as 2b-2.
+
+## Round 3a: audio preprocessing and decoding sweep (2 lanes, large-v3 and turbo)
+- Searched (en/cs): no independent conversational-Czech benchmark; Czech Whisper fine-tunes exist (mikr large-v3 cv13, BuzzASR/czech, moravianai/CzechSpeech) but none for sherpa-onnx; sherpa-onnx hotwords only work with transducers (Parakeet), not Whisper/Canary.
+- Spec `rounds/r3a-asr.json`: slowdown sweep `atempo` 0.5 / 0.6 / 0.7 / 0.8 / 0.9 (pitch kept), FFT denoise (`highpass,afftdn`), beam 10 + patience 2, and slow 0.8 + beam 5 + domain prompt; each on large-v3 and turbo. 16 variants, 128 jobs.
+- Not yet: per-turn audio cutting (needs turn timestamps, scripts have none), dictionary repair, constrained decoding, LLM rescoring, Czech fine-tunes, Parakeet v3.
