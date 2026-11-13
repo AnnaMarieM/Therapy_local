@@ -1,0 +1,31 @@
+{
+ "device": "poco",
+ "serial": "POCO",
+ "pipeline": "fast",
+ "whisper_beam": 5,
+ "recordings": [
+  "tomas-b"
+ ],
+ "build": {
+  "application_id": "com.therapylocal.app.qa",
+  "version": "0.1.0",
+  "commit": "5557d3b8ad12",
+  "build_type": "qa"
+ },
+ "started_epoch": 1794587118.2570062,
+ "ended_epoch": 1794588080.0630922,
+ "wall_s": 961.8,
+ "wait_exit": 0,
+ "jobs_final": {
+  "idle": true,
+  "total": 9,
+  "pending": 0,
+  "blocked": 0,
+  "failed": 0,
+  "done": 9,
+  "running": null,
+  "open_kinds": [],
+  "stopping": false
+ },
+ "script_start_epoch": 1794587108.082474
+}
