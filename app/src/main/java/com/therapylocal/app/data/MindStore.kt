@@ -156,7 +156,15 @@ class MindStore(context: Context, name: String, password: ByteArray) :
 
     private fun recreate(db: SQLiteDatabase) {
         val tables = query(db, "SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE 'android_%'") { it.getString(0) }
-        tables.forEach { db.execSQL("DROP TABLE IF EXISTS $it") }
+        // Children before parents: with foreign keys on, dropping a table whose parent is already gone fails ("no such table: main.clients"), and the
+        // failed upgrade rolls back, so the database would never open again. A table nothing else references is dropped first.
+        val remaining = tables.toMutableList()
+        while (remaining.isNotEmpty()) {
+            val referenced = remaining.flatMap { t -> query(db, "PRAGMA foreign_key_list($t)") { it.getString(2) } }.toSet()
+            val next = remaining.firstOrNull { it !in referenced } ?: remaining.first()
+            db.execSQL("DROP TABLE IF EXISTS $next")
+            remaining -= next
+        }
         onCreate(db)
     }
 
