@@ -92,7 +92,10 @@ class MemoryService : Service() {
                     summaryFormat = { com.therapylocal.app.config.SummaryFormatSetting.get(app) },
                     processingMode = { ProcessingLanguageSetting.get(app) },
                     appLanguage = { LocaleStore.current(app).tag },
+                    workflow = { com.therapylocal.app.config.WorkflowSetting.get(app) },
                 )
+                // Every stage line carries the thermal status and the process memory (AD-22 measurements).
+                com.therapylocal.app.perf.StageLog.extras = { arrayOf(*com.therapylocal.app.models.Backends.thermal(app), *DeviceMemory.memorySnapshot(app)) }
                 PerfStats.init(app)
                 // The live-cue embedder (GPU, with its audio encoder) must not stay loaded beside the LLM and the speech model.
                 runBlocking { Engines.suspend() }
@@ -101,6 +104,7 @@ class MemoryService : Service() {
                 val runner = JobRunner(
                     queue, pipeline.handlers, pool,
                     canRun = { !JobRunner.recordingActive && ModelSetup.isReady(app) },
+                    workflow = { com.therapylocal.app.config.WorkflowSetting.get(app).key },
                     // The recording is already gone once the session is done (cleanup deletes it), so its length is the transcript's.
                     onSessionDone = { sid -> PerfStats.sessionDone(sid, pool.llmModel(), maxOf(store.recordings().filter { it.sessionId == sid }.sumOf { it.durationMs }, store.transcriptLengthMs(sid)), store.windows(sid).size) },
                 )

@@ -26,7 +26,7 @@ data class ChunkRow(val recordingId: Long, val idx: Int, val startMs: Long, val 
 data class SegmentRow(val idx: Int, val startMs: Long, val endMs: Long, val text: String, val speaker: String? = null)
 
 /** One stretch of one speaker found by diarization, kept until it is transcribed; [text] is null until then. */
-data class TurnRow(val idx: Int, val startMs: Long, val endMs: Long, val speaker: String, val text: String? = null)
+data class TurnRow(val idx: Int, val startMs: Long, val endMs: Long, val speaker: String, val text: String? = null, val textEn: String? = null)
 
 /** One version of the speaker-to-role map of a session ([mapJson] as written by SpeakerMaps); [source] is "llm", "user" or "fallback". */
 data class SpeakerMapRow(val sessionId: String, val version: Int, val mapJson: String, val source: String, val confidence: Double, val evidenceJson: String, val createdAt: Long)
@@ -311,17 +311,18 @@ class MindStore(context: Context, name: String, password: ByteArray) :
         for (t in turns) db.insertOrThrow("diarization_turns", null, ContentValues().apply {
             put("recording_id", recordingId); put("idx", t.idx); put("start_ms", t.startMs); put("end_ms", t.endMs); put("speaker", t.speaker)
             if (t.text != null) put("text", t.text)
+            if (t.textEn != null) put("text_en", t.textEn)
         })
     }
 
     fun turns(recordingId: Long): List<TurnRow> =
-        query("SELECT idx, start_ms, end_ms, speaker, text FROM diarization_turns WHERE recording_id = ? ORDER BY idx", recordingId.toString()) {
-            TurnRow(it.getInt(0), it.getLong(1), it.getLong(2), it.getString(3), it.getStringOrNull(4))
+        query("SELECT idx, start_ms, end_ms, speaker, text, text_en FROM diarization_turns WHERE recording_id = ? ORDER BY idx", recordingId.toString()) {
+            TurnRow(it.getInt(0), it.getLong(1), it.getLong(2), it.getString(3), it.getStringOrNull(4), it.getStringOrNull(5))
         }
 
     /** Stores the transcription of one turn; false when there is no such turn. */
-    fun setTurnText(recordingId: Long, idx: Int, text: String): Boolean =
-        writableDatabase.update("diarization_turns", ContentValues().apply { put("text", text) }, "recording_id = ? AND idx = ?", arrayOf(recordingId.toString(), idx.toString())) > 0
+    fun setTurnText(recordingId: Long, idx: Int, text: String, textEn: String? = null): Boolean =
+        writableDatabase.update("diarization_turns", ContentValues().apply { put("text", text); if (textEn != null) put("text_en", textEn) }, "recording_id = ? AND idx = ?", arrayOf(recordingId.toString(), idx.toString())) > 0
 
     /** Appends the next version of the map of [session] (1 for the first) and returns it. Maps are never changed or deleted, so a swap keeps the history. */
     fun appendSpeakerMap(session: String, mapJson: String, source: String, confidence: Double, evidenceJson: String = "[]"): Int = tx { db ->
@@ -378,13 +379,13 @@ class MindStore(context: Context, name: String, password: ByteArray) :
      * Stores [segments] as the next transcript version of [session] and returns it; content equal to the current version, by hash, writes
      * nothing and returns the current one. Versions are never changed (AD-10). [audioSha] is [AudioHash.of] the audio the text came from.
      */
-    fun appendTranscript(session: String, segments: List<SegmentRow>, recordingId: Long? = null, audioSha: String? = null): TranscriptVersion = tx { db ->
+    fun appendTranscript(session: String, segments: List<SegmentRow>, recordingId: Long? = null, audioSha: String? = null, kind: String = KIND_SPOKEN): TranscriptVersion = tx { db ->
         val sha = TranscriptHash.of(segments)
         val head = currentTranscript(session)
         if (head?.sha256 == sha) return@tx head
         val v = TranscriptVersion(session, (head?.version ?: 0) + 1, sha, recordingId, audioSha, System.currentTimeMillis())
         db.insertOrThrow("transcripts", null, ContentValues().apply {
-            put("session_id", session); put("version", v.version); put("sha256", sha); put("created_at", v.createdAt)
+            put("session_id", session); put("version", v.version); put("sha256", sha); put("created_at", v.createdAt); put("kind", kind)
             if (recordingId != null) put("recording_id", recordingId)
             if (audioSha != null) put("audio_sha256", audioSha)
         })
@@ -396,6 +397,13 @@ class MindStore(context: Context, name: String, password: ByteArray) :
         }
         v
     }
+
+    /**
+     * What the text of the current transcript is: [KIND_SPOKEN] (in the language spoken) or [KIND_ENGLISH_ONLY] (the Quality workflow: Whisper wrote
+     * English from the audio, so there is no text in the client's language, docs/AD/AD-22.md). Spoken when there is no transcript.
+     */
+    fun transcriptKind(session: String): String =
+        query("SELECT kind FROM transcripts WHERE session_id = ? ORDER BY version DESC LIMIT 1", session) { it.getString(0) }.firstOrNull() ?: KIND_SPOKEN
 
     /** The latest transcript version, or null before the session was transcribed. */
     override fun currentTranscript(session: String): TranscriptVersion? =
@@ -750,7 +758,13 @@ class MindStore(context: Context, name: String, password: ByteArray) :
         const val NAME = "mind.db"
 
         /** Bumped whenever the schema changes; there are no migrations, a database of another version is wiped (AD-11). */
-        private const val VERSION = 8
+        private const val VERSION = 9
+
+        /** [transcriptKind]: the stored text is in the language spoken. */
+        const val KIND_SPOKEN = "spoken"
+
+        /** [transcriptKind]: the stored text is English written from the audio; the language spoken was never written down. */
+        const val KIND_ENGLISH_ONLY = "english_only"
 
         // Both cascade: deleting a recording or a session removes them.
         private const val DIARIZATION_TURNS_SQL = """CREATE TABLE diarization_turns(
@@ -760,6 +774,7 @@ class MindStore(context: Context, name: String, password: ByteArray) :
                  end_ms INTEGER NOT NULL,
                  speaker TEXT NOT NULL,
                  text TEXT,
+                 text_en TEXT,
                  PRIMARY KEY(recording_id, idx))"""
         private const val SPEAKER_MAPS_SQL = """CREATE TABLE speaker_maps(
                  session_id TEXT NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,
@@ -842,6 +857,7 @@ class MindStore(context: Context, name: String, password: ByteArray) :
                  recording_id INTEGER,
                  audio_sha256 TEXT,
                  created_at INTEGER NOT NULL,
+                 kind TEXT NOT NULL DEFAULT 'spoken',
                  PRIMARY KEY(session_id, version))""",
             """CREATE TABLE segments(
                  session_id TEXT NOT NULL,

@@ -21,6 +21,7 @@ import com.therapylocal.app.models.BackendLadder
 import com.therapylocal.app.models.Backends
 import com.therapylocal.app.models.ModelRegistry
 import com.therapylocal.app.models.ModelRuntime
+import com.therapylocal.app.models.ModelSpec
 import com.therapylocal.app.models.SpeechLanguage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
@@ -42,9 +43,16 @@ class SpeechRecogniser(
     private val ladder: () -> BackendLadder = { Backends.ladder(context, TAG, ENGINE, host.guardRole) },
     private val guard: () -> BackendGuard? = { Backends.guard(context) },
     private val proxy: EngineProxy = EngineProxy(context, { host }, TAG, ENGINE),
+    /** The model: Canary (default) or Whisper large-v3 (Quality workflow, docs/AD/AD-22.md, CPU only). */
+    modelSpec: ModelSpec = ModelRegistry.CANARY_1B_V2,
+    /** Whisper only: write English text whatever language is spoken (the Whisper translate task). */
+    private val translate: Boolean = false,
+    /** Whisper only: beam size (1 is greedy). 0 for Canary. */
+    private val beam: Int = 0,
 ) : AsrEngine {
-    private val spec = com.therapylocal.app.engine.LabWiring.spec(ModelRegistry.CANARY_1B_V2)
-    override val engineName = ENGINE
+    private val spec = com.therapylocal.app.engine.LabWiring.spec(modelSpec)
+    private val whisper = modelSpec.id == ModelRegistry.WHISPER_LARGE_V3_Q8.id
+    override val engineName = if (whisper) "whisper" else ENGINE
     override val modelName = spec.id
     override var backend: String = "none"
         private set
@@ -79,7 +87,8 @@ class SpeechRecogniser(
                     ladder().load(
                         loadId = loadId,
                         model = spec.id,
-                        candidates = listOf(asked) + Accelerators.order(spec.id, ModelRuntime.ONNX),
+                        // Whisper runs through whisper.cpp on the CPU only (AD-21: no other backend, no other weights).
+                        candidates = if (whisper) listOf(Accelerators.fallback.id) else listOf(asked) + Accelerators.order(spec.id, ModelRuntime.ONNX),
                         respectBlocks = judged,
                         gate = { id -> if (Accelerators.get(id) == null) null else Accelerators.unavailable(context, id, spec.id, ModelRuntime.ONNX) },
                         open = { name -> proxy.open(EngineKind.ASR, spec.id, spec.id, name, loadId = loadId, language = language.code) },
@@ -125,7 +134,7 @@ class SpeechRecogniser(
                 val audioSec = Pcm.seconds(pcm)
                 val start = SystemClock.elapsedRealtime()
                 val text = try {
-                    proxy.call<EngineReply.Text>(EngineOp.Transcribe(proxy.newTag("transcribe", null), h, pcm)).text
+                    proxy.call<EngineReply.Text>(EngineOp.Transcribe(proxy.newTag("transcribe", null), h, pcm, if (whisper) language.code else null, translate, if (whisper) beam.coerceAtLeast(1) else 0)).text
                 } catch (d: EngineDied) {
                     // The host ended under the handle. The connection's registry already settled it in the guard (a strike for a death,
                     // `unloaded` for a benign end), so this recogniser neither closes it nor settles it again; the pool loads another.

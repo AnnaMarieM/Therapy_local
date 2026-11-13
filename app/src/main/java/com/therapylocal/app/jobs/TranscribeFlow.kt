@@ -19,6 +19,8 @@ import com.therapylocal.app.engine.EngineDied
 import com.therapylocal.app.engine.EngineUnavailable
 import com.therapylocal.app.log.AppLog
 import com.therapylocal.app.log.LogCtx
+import com.therapylocal.app.perf.StageLog
+import com.therapylocal.app.workflow.TurnListener
 import kotlinx.coroutines.runBlocking
 import java.io.IOException
 import java.security.GeneralSecurityException
@@ -30,9 +32,23 @@ interface TranscribeStore {
     fun putChunk(c: ChunkRow)
     fun turns(recordingId: Long): List<TurnRow>
     fun replaceTurns(recordingId: Long, turns: List<TurnRow>)
-    fun setTurnText(recordingId: Long, idx: Int, text: String)
-    /** Stores the next transcript version (docs/AD/AD-10.md); the same content as the current one writes nothing. */
-    fun appendTranscript(session: String, segments: List<SegmentRow>, recordingId: Long?, audioSha: String?)
+    fun setTurnText(recordingId: Long, idx: Int, text: String, textEn: String? = null)
+    /** Stores the next transcript version (docs/AD/AD-10.md); the same content as the current one writes nothing. [kind] is the store's transcript kind. */
+    fun appendTranscript(session: String, segments: List<SegmentRow>, recordingId: Long?, audioSha: String?, kind: String = "spoken")
+    /** Stores the English text of the segments of the current transcript, by segment index, as written by [model] with [promptVersion] (the TRANSLATE job skips those). */
+    fun putEnglish(session: String, english: Map<Int, String>, model: String, promptVersion: String) {}
+}
+
+/** What the turns are put through (docs/AD/AD-22.md). */
+enum class TurnMode {
+    /** Canary writes the text in the language spoken; the TRANSLATE job makes the English (AD-17). */
+    Spoken,
+
+    /** Fast: Gemma hears the turn and writes the text in the language spoken and the English in one answer. */
+    Listen,
+
+    /** Quality: Whisper writes English from the audio. For a client who does not speak English there is no text in their language. */
+    EnglishOnly,
 }
 
 /**
@@ -51,6 +67,10 @@ class TranscribeFlow(
     private val chunk: (Long, Int) -> AudioChunk?,
     /** True when the diarization model is on the phone. An existing install without it still processes sessions, on the chunk path. */
     private val diarizationReady: () -> Boolean = { true },
+    /** How the turns of a client speaking this language are put through; [TurnMode.Spoken] is the Canary path. */
+    private val mode: (clientLanguage: String) -> TurnMode = { TurnMode.Spoken },
+    /** The workflow key, for the stage lines of the log. */
+    private val workflow: () -> String = { "canary" },
 ) {
     /** How a run ended: [skipped] is the `diarization_skipped` reason when the chunk path was taken, null when the recording was diarized or had nothing to do. */
     data class Outcome(val diarized: Boolean, val skipped: String? = null)
@@ -65,7 +85,9 @@ class TranscribeFlow(
         val audio = ChunkAudio(rows) { idx -> readChunk(rid, idx) }
         if (store.turns(rid).isNotEmpty()) return Outcome(true).also { byTurns(rid, session, language, audio, run) }
         if (rows.any { it.text != null }) return Outcome(false).also { byChunks(rid, session, language, run) }
-        val reason = diarize(rid, audio, run)
+        val reason = diarize(rid, session, audio, run, mode(language))
+        // Fast and Quality have no chunk path (nothing there could hear the audio): a recording that cannot be diarized fails the job.
+        if (reason != null && mode(language) != TurnMode.Spoken) throw JobFailure("DIARIZE_" + reason.uppercase())
         if (reason == null) byTurns(rid, session, language, audio, run) else byChunks(rid, session, language, run)
         return Outcome(reason == null, reason)
     }
@@ -105,20 +127,43 @@ class TranscribeFlow(
     /** The turns without text, each cut from the saved chunks (the whole recording is not held while Canary is loaded), then the utterances. */
     private fun byTurns(rid: Long, session: String, language: String, audio: ChunkAudio, run: JobContext) {
         val pending = store.turns(rid).filter { it.text == null }
+        val m = mode(language)
+        val t0 = System.nanoTime()
+        var audioMs = 0L
         run.progress(JobPhase.Transcribing, 0, pending.size)
         pending.forEachIndexed { i, t ->
             run.checkStop()
-            store.setTurnText(rid, t.idx, run.pool.asr(language).transcribe(audio.slice(t.startMs, t.endMs)).trim())
+            val pcm = audio.slice(t.startMs, t.endMs)
+            audioMs += t.endMs - t.startMs
+            val turn0 = System.nanoTime()
+            when (m) {
+                TurnMode.Listen -> TurnListener.listen(run.pool.llm(), pcm, language).let { store.setTurnText(rid, t.idx, it.source, it.english) }
+                TurnMode.EnglishOnly -> run.pool.asr(language).transcribe(pcm).trim().let { store.setTurnText(rid, t.idx, it, if (language.equals("en", true)) null else it) }
+                TurnMode.Spoken -> store.setTurnText(rid, t.idx, run.pool.asr(language).transcribe(pcm).trim())
+            }
+            // The turn's own line (counts and times, no text): the spread of the per-turn times is what a slow phone shows first.
+            AppLog.i(StageLog.TAG, "turn_done", LogCtx(rid), "workflow" to workflow(), "turn" to t.idx, "audio_ms" to (t.endMs - t.startMs), "wall_ms" to (System.nanoTime() - turn0) / 1_000_000)
             run.progress(JobPhase.Transcribing, i + 1, pending.size)
         }
-        store.appendTranscript(session, UtteranceBuilder.build(store.turns(rid).map { Piece(it.startMs, it.endMs, it.text.orEmpty(), it.speaker) }), rid, audioHash(rid))
+        if (pending.isNotEmpty()) {
+            StageLog.done(if (m == TurnMode.Listen) "listen" else "transcribe", workflow(), session, (System.nanoTime() - t0) / 1_000_000, "turns" to pending.size, "audio_sec" to "%.1f".format(audioMs / 1000.0))
+        }
+        val turns = store.turns(rid)
+        val pieces = turns.map { Piece(it.startMs, it.endMs, it.text.orEmpty(), it.speaker, it.textEn) }
+        val englishOnly = m == TurnMode.EnglishOnly && !language.equals("en", true)
+        store.appendTranscript(session, UtteranceBuilder.build(pieces), rid, audioHash(rid), if (englishOnly) "english_only" else "spoken")
+        // Fast and Quality have the English already: stored under the model and prompt that wrote it, so the TRANSLATE job leaves those segments alone.
+        if (m != TurnMode.Spoken && !language.equals("en", true)) {
+            val model = if (m == TurnMode.Listen) run.pool.llmModel() else com.therapylocal.app.models.ModelRegistry.WHISPER_LARGE_V3_Q8.id
+            store.putEnglish(session, UtteranceBuilder.english(pieces), model, if (m == TurnMode.Listen) TurnListener.VERSION else "whisper-translate")
+        }
     }
 
     /**
      * Diarizes and stores the planned turns. Null when that worked, else the reason it was skipped. The recording's PCM lives only inside this
      * function: it is gone before Canary is asked for.
      */
-    private fun diarize(rid: Long, audio: ChunkAudio, run: JobContext): String? {
+    private fun diarize(rid: Long, session: String, audio: ChunkAudio, run: JobContext, m: TurnMode): String? {
         val ctx = LogCtx(rid)
         fun skipped(reason: String, error: Throwable? = null): String {
             val fields = arrayOf<Pair<String, Any?>>("reason" to reason, "type" to error?.javaClass?.simpleName)
@@ -134,6 +179,7 @@ class TranscribeFlow(
         } catch (_: OutOfMemoryError) {
             return skipped(FAILED)
         }
+        val d0 = System.nanoTime()
         val turns = try {
             val diarizer = run.pool.diarizer()
             runBlocking { diarizer.diarize(pcm, MemoryConfig.DIARIZE_SPEAKERS_HINT, ctx) }
@@ -145,7 +191,9 @@ class TranscribeFlow(
             return skipped(FAILED, t)
         }
         val planned = TurnPlanner.plan(turns.map { TimedTurn(it.startMs, it.endMs, "S${it.speaker}") }, durationMs) { s, e -> QuietCut.at(pcm, s, e) }
-        if (planned.map { it.speaker }.distinct().size < 2) return skipped(ONE_SPEAKER)
+        StageLog.done("diarize", workflow(), session, (System.nanoTime() - d0) / 1_000_000, "turns" to planned.size, "raw_turns" to turns.size, "speakers" to planned.map { it.speaker }.distinct().size, "audio_sec" to "%.1f".format(durationMs / 1000.0))
+        // Fast and Quality work per turn whatever the speaker count; only the Canary path falls back to chunks for a single voice.
+        if (m == TurnMode.Spoken && planned.map { it.speaker }.distinct().size < 2) return skipped(ONE_SPEAKER)
         store.replaceTurns(rid, planned.mapIndexed { i, t -> TurnRow(i, t.startMs, t.endMs, t.speaker) })
         return null
     }

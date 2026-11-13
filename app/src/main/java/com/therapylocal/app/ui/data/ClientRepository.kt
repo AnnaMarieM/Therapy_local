@@ -129,6 +129,9 @@ class ClientRepository(context: Context, private val open: (Context) -> MindStor
         FactMention(o.sessionId, date(o.startedAt), o.first, o.segIdx, o.segTo, o.startMs, o.endMs)
     }
 
+    /** True when the transcript of [session] is English written from the audio (the Quality workflow): there is no text in the client's language (docs/AD/AD-22.md). */
+    fun transcriptIsEnglishOnly(session: String): Boolean = store.transcriptKind(session) == MindStore.KIND_ENGLISH_ONLY
+
     /** The whole transcript of [session], each line with its role label (see [TranscriptLine.role]). */
     fun transcript(session: String): List<TranscriptLine> = store.segments(session).let { rows -> rows.map(lineOf(session, rows)) }
 

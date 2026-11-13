@@ -9,6 +9,7 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import com.therapylocal.app.R
+import com.therapylocal.app.config.WorkflowSetting
 import com.therapylocal.app.log.AppLog
 import com.therapylocal.app.log.LogCtx
 import kotlinx.coroutines.CoroutineScope
@@ -59,12 +60,14 @@ object ModelSetup {
      * `diarization_skipped reason=model_missing`) and gets the model in the background.
      */
     fun essential(context: Context): List<ModelSpec> {
-        val base = listOf(ModelRegistry.EMBED, ModelRegistry.CANARY_1B_V2, gemma(context))
+        // The speech model follows the workflow (AD-22): Canary for the control, Whisper large-v3 for Quality, none for Fast (Gemma hears the audio).
+        val base = listOf(ModelRegistry.EMBED) + ModelRegistry.speechFor(WorkflowSetting.get(context)) + gemma(context)
         // An optimised device (AD-09) also fetches the accelerator-specific builds of the models that have one for its SoC; any other device fetches nothing extra.
         return base + ModelRegistry.backendSpecsFor(base.map { it.id }, NpuRuntime.deviceSoc())
     }
 
-    fun gemmaVariant(context: Context): GemmaVariant = ModelChoice.resolve(prefs(context).getString(ModelChoice.PREF, null))
+    /** Fast uses E2B and Quality E4B whatever the Gemma setting says (AD-22); under the control workflow the setting chooses. */
+    fun gemmaVariant(context: Context): GemmaVariant = WorkflowSetting.get(context).gemma ?: ModelChoice.resolve(prefs(context).getString(ModelChoice.PREF, null))
 
     /** The Gemma build the settings choose, for the memory LLM. */
     fun gemma(context: Context): ModelSpec = ModelRegistry.gemma(gemmaVariant(context))

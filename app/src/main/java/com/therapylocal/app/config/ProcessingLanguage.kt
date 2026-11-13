@@ -27,7 +27,11 @@ object ProcessingLanguageSetting {
 
     private fun prefs(context: Context) = context.applicationContext.getSharedPreferences("settings", Context.MODE_PRIVATE)
 
-    fun get(context: Context): ProcessingLanguage = ProcessingLanguage.of(prefs(context).getString(PREF, null))
+    /** The stored choice, whatever the workflow is. */
+    fun stored(context: Context): ProcessingLanguage = ProcessingLanguage.of(prefs(context).getString(PREF, null))
+
+    /** What the app works with now: English whenever the Fast or Quality workflow is chosen (AD-22), else the stored choice. */
+    fun get(context: Context): ProcessingLanguage = if (WorkflowSetting.get(context).forcesEnglish) ProcessingLanguage.English else stored(context)
 
     fun set(context: Context, mode: ProcessingLanguage) {
         prefs(context).edit().putString(PREF, mode.key).apply()

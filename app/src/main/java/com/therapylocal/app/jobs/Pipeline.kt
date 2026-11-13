@@ -5,6 +5,7 @@ import com.therapylocal.app.engine.EngineUnavailable
 import com.therapylocal.app.audio.AudioChunk
 import com.therapylocal.app.config.EmbeddingConfig
 import com.therapylocal.app.config.ProcessingLanguage
+import com.therapylocal.app.config.Workflow
 import com.therapylocal.app.config.MemoryConfig
 import com.therapylocal.app.config.SummaryConfig
 import com.therapylocal.app.data.ChunkRow
@@ -75,8 +76,13 @@ class Pipeline(
     private val processingMode: () -> ProcessingLanguage = { ProcessingLanguage.Native },
     /** The language tag of the app, what LOCALIZE translates what is shown into (read when a job runs). */
     private val appLanguage: () -> String = { Pivot.EN },
+    /** The workflow (docs/AD/AD-22.md), read when a job runs. Fast and Quality always work in English; [Workflow.Canary] follows [processingMode]. */
+    private val workflow: () -> Workflow = { Workflow.Canary },
 ) {
     private val summaries = SessionSummaries(store)
+
+    /** The processing language of this run: English for Fast and Quality whatever the setting says, else the setting. */
+    private fun mode(): ProcessingLanguage = if (workflow().forcesEnglish) ProcessingLanguage.English else processingMode()
 
     /** The language of the prompts for the client of [job]: Czech only for a Czech app and a Czech client. */
     private fun language(job: Job): String = promptLanguage(store.clientLanguage(job.clientId))
@@ -84,13 +90,13 @@ class Pipeline(
     private fun promptFor(name: String, job: Job): String = prompt(Prompts.named(name, language(job)))
 
     /** True when the transcript of [job]'s session is translated to English and every job after TRANSLATE reads that ([Pivot.translatesInput]). */
-    private fun translatesInput(job: Job): Boolean = Pivot.translatesInput(processingMode(), store.clientLanguage(job.clientId))
+    private fun translatesInput(job: Job): Boolean = Pivot.translatesInput(mode(), store.clientLanguage(job.clientId))
 
     /** What the jobs after TRANSLATE read: the English transcript in pivot mode (same indices, times and speakers as the original), else the transcript as spoken. */
     private fun segs(job: Job): List<SegmentRow> = if (translatesInput(job)) store.workingSegments(job.sessionId, Pivot.EN) else store.segments(job.sessionId)
 
     /** The pivot tag of the job's client: part of every prompt version and of the window cut version, so a mode switch makes derived data stale. */
-    private fun tag(job: Job): String = Pivot.tag(processingMode(), store.clientLanguage(job.clientId))
+    private fun tag(job: Job): String = Pivot.tag(mode(), store.clientLanguage(job.clientId))
 
     val handlers: Map<String, JobHandler> = mapOf(
         JobGraph.TRANSCRIBE to JobHandler(::transcribe),
@@ -110,10 +116,21 @@ class Pipeline(
             override fun putChunk(c: ChunkRow) = store.putChunk(c)
             override fun turns(recordingId: Long) = store.turns(recordingId)
             override fun replaceTurns(recordingId: Long, turns: List<TurnRow>) = store.replaceTurns(recordingId, turns)
-            override fun setTurnText(recordingId: Long, idx: Int, text: String) { store.setTurnText(recordingId, idx, text) }
-            override fun appendTranscript(session: String, segments: List<SegmentRow>, recordingId: Long?, audioSha: String?) { store.appendTranscript(session, segments, recordingId, audioSha) }
+            override fun setTurnText(recordingId: Long, idx: Int, text: String, textEn: String?) { store.setTurnText(recordingId, idx, text, textEn) }
+            override fun appendTranscript(session: String, segments: List<SegmentRow>, recordingId: Long?, audioSha: String?, kind: String) { store.appendTranscript(session, segments, recordingId, audioSha, kind) }
+            override fun putEnglish(session: String, english: Map<Int, String>, model: String, promptVersion: String) {
+                english.forEach { (idx, text) -> store.putSegmentTranslation(session, idx, Pivot.EN, text, model, promptVersion) }
+            }
         },
         chunks, chunk, diarizationReady,
+        mode = { language ->
+            when (workflow()) {
+                Workflow.Fast -> TurnMode.Listen
+                Workflow.Quality -> TurnMode.EnglishOnly
+                Workflow.Canary -> TurnMode.Spoken
+            }
+        },
+        workflow = { workflow().key },
     )
 
     /**
@@ -133,13 +150,15 @@ class Pipeline(
     private fun translate(job: Job, run: JobContext) {
         val sid = job.sessionId
         val source = store.clientLanguage(job.clientId)
-        if (!Pivot.translatesInput(processingMode(), source)) return
+        if (!Pivot.translatesInput(mode(), source)) return
         val system = Prompts.fill(prompt(Prompts.TRANSLATE_SYSTEM), mapOf("LANGUAGE" to Pivot.languageName(source)))
         val model = run.pool.llmModel()
         val version = Prompts.version(system)
         val spoken = store.segments(sid).filter { it.text.isNotBlank() }
         val have = store.segmentTranslations(sid, Pivot.EN)
-        val todo = spoken.filter { s -> have[s.idx]?.let { it.model == model && it.promptVersion == version } != true }
+        // Fast and Quality wrote the English in the transcribe step (any model and prompt): only a segment with none is translated here.
+        val todo = if (workflow().forcesEnglish) spoken.filter { s -> have[s.idx] == null }
+        else spoken.filter { s -> have[s.idx]?.let { it.model == model && it.promptVersion == version } != true }
         val translator = BatchTranslator(
             askText(run, system, MemoryConfig.TRANSLATE_TEMPERATURE, MemoryConfig.TRANSLATE_TOP_K, "translate_call_failed"),
             MemoryConfig.TRANSLATE_BATCH_WORDS, MemoryConfig.TRANSLATE_OUTPUT_FACTOR, run::checkStop,
@@ -167,7 +186,7 @@ class Pipeline(
     private fun localize(job: Job, run: JobContext) {
         val sid = job.sessionId
         val lang = appLanguage()
-        if (!Pivot.translatesOutput(processingMode(), lang)) return
+        if (!Pivot.translatesOutput(mode(), lang)) return
         val system = Prompts.fill(prompt(Prompts.LOCALIZE_SYSTEM), mapOf("LANGUAGE" to Pivot.languageName(lang)))
         val model = run.pool.llmModel()
         val version = Prompts.version(system)
@@ -250,7 +269,7 @@ class Pipeline(
             "calls" to r?.calls, "levels" to r?.levels, "forced_splits" to r?.forcedSplits, "chars" to r?.chars, "speaker_map_version" to r?.speakerMapVersion,
             "model" to run.pool.llmModel(), "prompt_version" to prompts.version(), "format" to prompts.formatId, "method" to summaryMethod.id,
         )
-        if (r != null && Pivot.translatesOutput(processingMode(), appLanguage())) JobGraph.enqueueLocalize(queue, job.sessionId)
+        if (r != null && Pivot.translatesOutput(mode(), appLanguage())) JobGraph.enqueueLocalize(queue, job.sessionId)
     }
 
     /** Cuts the transcript into embedded windows, then queues the rest of the session's graph. */
@@ -452,7 +471,7 @@ class Pipeline(
         val at = sessions.indexOf(sid)
         if (at >= 0) JobGraph.recommit(queue, job, sessions.drop(at + 1).filter(store::hasWindows))
         // What is shown is translated at the end of the commit (a recommit too); not a dependency of anything.
-        if (Pivot.translatesOutput(processingMode(), appLanguage())) JobGraph.enqueueLocalize(queue, sid)
+        if (Pivot.translatesOutput(mode(), appLanguage())) JobGraph.enqueueLocalize(queue, sid)
     }
 
     /** The LLM's duplicate verdict, cached per session under the prompt version, model, candidate and the known facts it was shown. */

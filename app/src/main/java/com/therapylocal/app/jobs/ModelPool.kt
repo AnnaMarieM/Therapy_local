@@ -40,6 +40,11 @@ class ModelPool(
     private val baseContext: Int = 0,
     /** Loads the speaker diarizer. */
     private val loadDiarizer: () -> Diarizer = { throw IllegalStateException("no diarizer configured") },
+    /**
+     * True while the Fast workflow is chosen (docs/AD/AD-22.md): the LLM is loaded with its audio encoder and is the one that hears the turns, so
+     * TRANSCRIBE uses the LLM and no speech recogniser, and an LLM that cannot hear is reloaded.
+     */
+    private val listening: () -> Boolean = { false },
 ) : AutoCloseable {
     private val chosenLlm = llmModel
     private var llm: Llm? = null
@@ -55,7 +60,7 @@ class ModelPool(
 
     /** The text LLM, loaded with the context [refresh] counted for the open work. */
     fun llm(): Llm {
-        llm?.takeIf { it.healthy && it.contextTokens >= needed }?.let { return it }
+        llm?.takeIf { it.healthy && it.contextTokens >= needed && (!listening() || it.hearing) }?.let { return it }
         closeLlm()
         closeEmbed()
         closeAsr()
@@ -111,8 +116,9 @@ class ModelPool(
         }
         val needs = nextKind?.let { Needs.of(it) } ?: return
         needed = maxOf(contextNeeded(), baseContext)
-        trim(needs)
+        trim(if (nextKind == JobGraph.TRANSCRIBE && listening()) Needs(llm = true, diarize = true) else needs)
     }
+
 
     /** Unloads the models [needs] does not list, and an LLM whose context the open work outgrew. */
     private fun trim(needs: Needs) {
@@ -120,7 +126,7 @@ class ModelPool(
         if (!needs.diarize) closeDiarizer()
         if (!needs.embed) closeEmbed()
         val loaded = llm ?: return
-        if (!(loaded.healthy && needs.llm && loaded.contextTokens >= needed)) closeLlm()
+        if (!(loaded.healthy && needs.llm && loaded.contextTokens >= needed && (!listening() || loaded.hearing))) closeLlm()
     }
 
     /** A close that throws still forgets the engine: it is never handed out again. */

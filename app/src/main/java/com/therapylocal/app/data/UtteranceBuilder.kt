@@ -1,7 +1,7 @@
 package com.therapylocal.app.data
 
 /** The transcription of one planned piece. [speaker] is null when the recording was not diarized. */
-data class Piece(val startMs: Long, val endMs: Long, val text: String, val speaker: String? = null)
+data class Piece(val startMs: Long, val endMs: Long, val text: String, val speaker: String? = null, val textEn: String? = null)
 
 /**
  * Pieces to utterances (the stored segments): empty texts are dropped, and neighbouring pieces of the same speaker, which are the parts of a
@@ -22,6 +22,25 @@ object UtteranceBuilder {
             }
         }
         return out
+    }
+
+    /**
+     * The English text of each utterance of [build], by segment index: the English of its pieces joined, for the pieces that have one. An utterance
+     * none of whose pieces has English is not in the map. Uses the same merging, so the indices are those of [build].
+     */
+    fun english(pieces: List<Piece>): Map<Int, String> {
+        val out = LinkedHashMap<Int, StringBuilder>()
+        var idx = 0
+        var lastSpeaker: String? = null
+        for (p in pieces) {
+            if (p.text.trim().isEmpty()) continue
+            val merges = idx > 0 && p.speaker != null && lastSpeaker == p.speaker
+            if (!merges) idx++
+            lastSpeaker = p.speaker
+            val en = p.textEn?.trim().orEmpty()
+            if (en.isNotEmpty()) out.getOrPut(idx) { StringBuilder() }.let { if (it.isNotEmpty()) it.append(' '); it.append(en) }
+        }
+        return out.mapValues { it.value.toString() }
     }
 
     /** The fallback when diarization was skipped: every utterance keeps its own piece and has no speaker. */
