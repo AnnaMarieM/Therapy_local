@@ -12,8 +12,15 @@ opts (all optional): part_words (450)  temperature (0.3)  max_tokens (2000)  ctx
   roles       "llm" (default) | "none" = every line "Speaker 1" (how round 1 ran)
   prompt_dir  folder with extract.system.txt / extract.user.txt, or {"cs": dir, "en": dir}; default demo/prompts (cs/ for Czech)
   pivot       true = Czech turns are first translated to English by the same model (AD-17), then the English prompts run
+  translate_back  true = the extracted facts of a Czech recording are translated back to Czech (headings + content), timed separately
+
+Final-workflow additions (research/asr-llm-combo/final-workflow/PLAN.md):
+  --turns-file F   JSON {client: [{"who": "therapist"|"client", "text": ...}]}: the turns come from a per-turn pipeline (e.g. Gemma 4 listening) instead of an ASR
+                   transcript; `who` is the oracle diarization from turns-timed. With --turns-lang en the turns are already English (no pivot step, English prompts).
+  --llama-bin DIR / --gguf FILE / --ngl N / --port P   use a local llama.cpp build (CUDA) and a local model file instead of the CI download
+  Every stage is timed (translate_s, roles_s, facts_s, translate_back_s) and the raw roles answer and raw model output of every part are kept.
 """
-import argparse, json, re, sys, time, urllib.request, zlib
+import argparse, json, re, subprocess, sys, time, urllib.request, zlib
 from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "bench"))
@@ -26,8 +33,10 @@ PART_WORDS = 450
 LABEL = {"therapist": "Therapist", "client": "Patient", None: "Speaker 1"}
 
 
-def turns_for(engine, client, asr_dir, lane, roles):
+def turns_for(engine, client, asr_dir, lane, roles, turns_file=None):
     """[(who, text)] with who in therapist | client | None (unknown)."""
+    if turns_file:
+        return [(t["who"], t["text"]) for t in json.loads(Path(turns_file).read_text(encoding="utf-8"))[client]]
     if engine == "script":
         return [(t["who"], t["text"]) for t in script(client)["turns"]]
     f = Path(asr_dir) / f"{engine}__{client}__lane{lane}.json"
@@ -64,6 +73,23 @@ def translate_turns(turns, seed, o):
     return out
 
 
+def translate_facts_back(facts, seed, o):
+    """Step 5 of the final workflow: English facts -> Czech for display (heading and content), numbered lines so the count can be checked."""
+    sysp = ("You translate short notes of a therapy session from English into Czech. Each note has a heading and a content separated by ' || '. Translate both faithfully "
+            "into natural Czech, keep names, numbers and meaning, do not add anything. Output the same numbered lines in the same 'heading || content' form, nothing else.")
+    for i in range(0, len(facts), 10):
+        chunk = facts[i:i + 10]
+        raw = chat(sysp, "\n".join(f"{j + 1}. {f['heading']} || {f['content']}" for j, f in enumerate(chunk)), seed, 0.0, o.get("max_tokens", 2000))
+        got = {}
+        for l in raw.splitlines():
+            m = re.match(r"\s*(\d+)[.)]\s*(.*?)\s*\|\|\s*(.*)", l)
+            if m:
+                got[int(m.group(1))] = (m.group(2).strip(), m.group(3).strip())
+        for j, f in enumerate(chunk):
+            f["heading_cs"], f["content_cs"] = got.get(j + 1, (None, None))
+            f["back_raw"] = raw if j == 0 else None
+
+
 def assign_roles(turns, client, lang, seed, o):
     """The app's roles step: speaker ids S0/S1 (by oracle diarization), the model says which is the therapist. Returns (labelled turns, info)."""
     flip = zlib.crc32(client.encode()) % 2  # which of S0/S1 is the therapist in this recording
@@ -81,9 +107,9 @@ def assign_roles(turns, client, lang, seed, o):
         pass
     ok = guess == sid["therapist"]
     if guess not in ("S0", "S1"):
-        return [(None, t) for _, t in turns], {"roles": "unparsed", "raw": raw[:200]}
+        return [(None, t) for _, t in turns], {"roles": "unparsed", "raw": raw}
     swap = {"therapist": "therapist", "client": "client"} if ok else {"therapist": "client", "client": "therapist"}  # a wrong guess swaps the labels, as in the app
-    return [(swap[w], t) for w, t in turns], {"roles": "right" if ok else "WRONG", "raw": raw[:200]}
+    return [(swap[w], t) for w, t in turns], {"roles": "right" if ok else "WRONG", "raw": raw}
 
 
 def parts(turns, part_words=PART_WORDS):
@@ -122,27 +148,44 @@ def main():
     ap.add_argument("--opts", default="{}")
     ap.add_argument("--lane", type=int, default=1)
     ap.add_argument("--llama-build", default="b11960")
+    ap.add_argument("--turns-file")
+    ap.add_argument("--turns-lang", default="src", help="en = the turns are already English")
+    ap.add_argument("--llama-bin"); ap.add_argument("--gguf"); ap.add_argument("--ngl", type=int, default=99); ap.add_argument("--port", type=int, default=0)
+    ap.add_argument("--clients", default="")
     ap.add_argument("--out", required=True)
     a = ap.parse_args()
     out = Path(a.out)
     out.mkdir(parents=True, exist_ok=True)
-    bindir, _ = bench.fetch_llama(a.llama_build, "ubuntu-x64", out)
-    repo, fname = bench.model_source(a.model, "Q4_K_M")
-    gguf = out / "model" / fname
-    bench.download(f"https://huggingface.co/{repo}/resolve/main/{fname}", gguf)
     o = json.loads(a.opts)
     label = a.model + a.tag
-    srv = bench.Server(bindir, gguf, 4, o.get("ctx", 8192))
+    if a.port:
+        bench.PORT = a.port
+    if a.llama_bin:
+        class GpuServer(bench.Server):  # local CUDA build, all layers on the GPU
+            def __init__(self, bindir, model, ctx):
+                cmd = [str(Path(bindir) / "llama-server"), "-m", str(model), "-ngl", str(a.ngl), "-c", str(ctx), "-np", "1", "-fa", "off", "--host", "127.0.0.1", "--port", str(bench.PORT), "--jinja"]
+                self.logf = open(out / f"server_{label}.log", "w")
+                self.t0 = time.perf_counter()
+                self.proc = subprocess.Popen(cmd, stdout=self.logf, stderr=subprocess.STDOUT)
+                self.peak_rss, self.ps, self.load_s = 0, None, None
+        srv = GpuServer(a.llama_bin, a.gguf, o.get("ctx", 8192))
+    else:
+        bindir, _ = bench.fetch_llama(a.llama_build, "ubuntu-x64", out)
+        repo, fname = bench.model_source(a.model, "Q4_K_M")
+        gguf = out / "model" / fname
+        bench.download(f"https://huggingface.co/{repo}/resolve/main/{fname}", gguf)
+        srv = bench.Server(bindir, gguf, 4, o.get("ctx", 8192))
     srv.wait_ready()
     res = {"engine": a.engine, "model": label, "base_model": a.model, "opts": o, "lane": a.lane, "clients": {}}
     roles = o.get("roles", "llm")
     try:
-        for c in CLIENTS:
+        for c in (a.clients.split(",") if a.clients else CLIENTS):
             sc = script(c)
             translated = a.engine.endswith("-translate")
             if translated and sc["lang"] != "cs":
                 continue  # translating English to English is just transcribing
-            pivot = (o.get("pivot") and sc["lang"] == "cs") or translated  # translated text gets the English prompts
+            given_en = bool(a.turns_file) and a.turns_lang == "en"
+            pivot = (o.get("pivot") and sc["lang"] == "cs") or translated or given_en  # translated text gets the English prompts
             lang = "en" if pivot else sc["lang"]
             d = o.get("prompt_dir") or (PROMPTS / ("cs" if lang == "cs" else ""))
             if isinstance(d, dict):
@@ -150,22 +193,34 @@ def main():
             d = Path(d) if Path(d).is_absolute() else ROOT / d
             sysp, usrp = (d / "extract.system.txt").read_text(encoding="utf-8"), (d / "extract.user.txt").read_text(encoding="utf-8")
             facts, t0 = [], time.time()
-            turns = turns_for(a.engine, c, a.asr_dir, a.lane, roles)
-            if o.get("pivot") and sc["lang"] == "cs" and not translated:
+            turns = turns_for(a.engine, c, a.asr_dir, a.lane, roles, a.turns_file)
+            st = {}
+            if o.get("pivot") and sc["lang"] == "cs" and not translated and not given_en:
+                t1 = time.time()
                 turns = translate_turns(turns, a.lane, o)
+                st["translate_s"] = round(time.time() - t1, 1)
             info = {"roles": "none"}
             if roles != "none":
+                t1 = time.time()
                 turns, info = assign_roles(turns, c, lang, a.lane, o)
+                st["roles_s"] = round(time.time() - t1, 1)
+            t1, raws = time.time(), []
             ps = parts(turns, o.get("part_words", PART_WORDS))
             for i, p in enumerate(ps, 1):
                 user = usrp.replace("{{CLIENT}}", c.split("-")[0].capitalize()).replace("{{DATE}}", sc["date"]).replace("{{PART}}", str(i)).replace("{{PARTS}}", str(len(ps))).replace("{{TEXT}}", p)
                 raw = chat(sysp, user, a.lane, o.get("temperature", 0.3), o.get("max_tokens", 2000))
+                raws.append(raw)
                 body = " ".join(norm_words(p))
                 for f in parse(raw):
                     f["part"] = i
                     f["quote_found"] = bool(norm_words(f.get("evidence", ""))) and " ".join(norm_words(f.get("evidence", ""))) in body
                     facts.append(f)
-            res["clients"][c] = {"lang": sc["lang"], "seconds": round(time.time() - t0, 1), "facts": facts, "turns": [{"who": w, "text": t} for w, t in turns], "roles": info}
+            st["facts_s"] = round(time.time() - t1, 1)
+            if o.get("translate_back") and sc["lang"] == "cs":
+                t1 = time.time()
+                translate_facts_back(facts, a.lane, o)
+                st["translate_back_s"] = round(time.time() - t1, 1)
+            res["clients"][c] = {"lang": sc["lang"], "seconds": round(time.time() - t0, 1), "stages": st, "raw_parts": raws, "n_parts": len(ps), "facts": facts, "turns": [{"who": w, "text": t} for w, t in turns], "roles": info}
             print(a.engine, label, c, "lane", a.lane, len(facts), "facts, roles:", info["roles"], flush=True)
     finally:
         srv.proc.terminate()

@@ -1,0 +1,14 @@
+{
+ "client": "tomas-b",
+ "engine": "whisper large-v3 faster-whisper 1.2.1 CTranslate2 int8_float16",
+ "task": "transcribe",
+ "beam": 5,
+ "prompt": "Rozhovor v psychoterapii mezi terapeutem a klientem. Klient mluv\u00ed o rodin\u011b, pr\u00e1ci, sp\u00e1nku, \u00fazkosti a pocitech.",
+ "language": "cs",
+ "model_load_s": 18.9,
+ "listen_wall_s": 110.6,
+ "audio_in_pieces_s": 390.4,
+ "rtf": 0.283,
+ "n_pieces": 92,
+ "started": "2026-11-13 16:23:17"
+}

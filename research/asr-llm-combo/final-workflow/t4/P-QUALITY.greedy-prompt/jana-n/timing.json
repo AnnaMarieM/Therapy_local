@@ -1,0 +1,14 @@
+{
+ "client": "jana-n",
+ "engine": "whisper large-v3 faster-whisper 1.2.1 CTranslate2 int8_float16",
+ "task": "translate",
+ "beam": 1,
+ "prompt": "A psychotherapy session between a therapist and a client. The client talks about family, work, sleep, anxiety and feelings.",
+ "language": "cs",
+ "model_load_s": 21.0,
+ "listen_wall_s": 82.0,
+ "audio_in_pieces_s": 361.4,
+ "rtf": 0.227,
+ "n_pieces": 92,
+ "started": "2026-11-13 16:09:54"
+}
