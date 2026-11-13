@@ -13,11 +13,12 @@ CLIENTS = ["jana-n", "tomas-b", "daniel-r", "hannah-w"]
 
 
 def expand(spec):
-    lanes = list(range(1, spec.get("lanes", 4) + 1))
+    def lanes(item):
+        return range(1, item.get("lanes", spec.get("lanes", 4)) + 1)
     asr = [{"id": a["id"], "engine": a["engine"], "opts": json.dumps(a.get("opts", {})), "client": c, "lane": l}
-           for a in spec.get("asr", []) for c in a.get("clients", CLIENTS) for l in lanes]
-    llm = [{"asr": m["asr"], "model": m["model"], "tag": m.get("tag", ""), "opts": json.dumps(m.get("opts", {})), "lane": l, "round": spec["round"]}
-           for m in spec.get("llm", []) for l in lanes]
+           for a in spec.get("asr", []) for c in a.get("clients", CLIENTS) for l in lanes(a)]
+    llm = [{"asr": m["asr"], "model": m["model"], "tag": m.get("tag", ""), "opts": json.dumps(m.get("opts", {})), "lane": l, "round": spec["round"],
+            "asr_run": m.get("asr_run", "")} for m in spec.get("llm", []) for l in lanes(m)]
     return {"include": asr}, {"include": llm}
 
 

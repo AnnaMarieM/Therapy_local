@@ -8,7 +8,7 @@ import argparse, html, itertools, json, statistics as st, sys
 from collections import defaultdict
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
-from common import CLIENTS, script, norm_words
+from common import CLIENTS, script, norm_words, wer, cer
 
 LANGS = {"cs": ["jana-n", "tomas-b"], "en": ["daniel-r", "hannah-w"]}
 
@@ -54,7 +54,13 @@ def main():
     ap.add_argument("--llm", default="llm")
     ap.add_argument("--out", default="report")
     a = ap.parse_args()
-    asr, llm = load(a.asr), load(a.llm)
+    asr = [r for r in load(a.asr) if "segments" in r]
+    for r in asr:  # recompute with the current normaliser (numbers folded), so old artifacts stay comparable with new ones
+        if r["wer"] is not None:
+            ref = " ".join(t["text"] for t in script(r["client"])["turns"])
+            hyp = " ".join(x["text"] for x in r["segments"])
+            r["wer"], r["cer"] = round(wer(ref, hyp, r["lang"]), 4), round(cer(ref, hyp, r["lang"]), 4)
+    llm = [r for r in load(a.llm) if "clients" in r]
     out = Path(a.out)
     out.mkdir(parents=True, exist_ok=True)
     md = ["# ASR x LLM combo test\n"]

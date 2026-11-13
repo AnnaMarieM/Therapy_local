@@ -106,7 +106,7 @@ def main():
     hyp = " ".join(s["text"] for s in segs)
     translated = a.engine.endswith("-translate")  # English output: WER against the Czech script is meaningless, read it instead
     res = {"engine": vid, "base": a.engine, "opts": o, "client": a.client, "lang": lang, "lane": a.lane, "audio_s": round(dur, 1), "seconds": round(secs, 1),
-           "rtf": round(secs / dur, 3), "wer": None if translated else round(wer(ref, hyp), 4), "cer": None if translated else round(cer(ref, hyp), 4), "segments": segs}
+           "rtf": round(secs / dur, 3), "wer": None if translated else round(wer(ref, hyp, lang), 4), "cer": None if translated else round(cer(ref, hyp, lang), 4), "segments": segs}
     (out / f"{vid}__{a.client}__lane{a.lane}.json").write_text(json.dumps(res, ensure_ascii=False, indent=1), encoding="utf-8")
     print(vid, a.client, "lane", a.lane, "WER", res["wer"], "CER", res["cer"], "RTF", res["rtf"])
 
