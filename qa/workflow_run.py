@@ -49,7 +49,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--serial", required=True)
     ap.add_argument("--device", required=True)
-    ap.add_argument("--pipeline", required=True, choices=["fast", "quality", "canary"])
+    ap.add_argument("--pipeline", required=True, choices=["fast", "quality", "quality-cs", "canary"])
     ap.add_argument("--wav-dir", required=True)
     ap.add_argument("--out", required=True)
     ap.add_argument("--recordings", default=",".join(c[0] for c in CLIENTS))
