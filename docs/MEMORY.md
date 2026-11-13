@@ -69,6 +69,7 @@ Queue rules (`JobQueue`):
 - **D9. The NPU runs only on SoCs validated on our own hardware** (each recorded in the model catalogue, `ModelRegistry.BACKEND_BUILDS`); every other device uses the GPU, then the CPU. Full record: [AD-09](AD/AD-09.md).
 - **D13. Gemma E2B runs on the GPU with FLOAT32 activations, on every device** (`activationDataType = FLOAT32` for the GPU backend only; no device list). The default GPU precision fails the second output proof on the Pixel 8 and the Galaxy Tab S7; FLOAT32 passes on all three test devices with no speed cost. E4B is not covered until it is measured on the smaller devices. Full record, with the benchmarks: [AD-19](AD/AD-19.md).
 - **D14. The human-voice test recordings are synthetic (scripts written by Claude) and may be published**: repo, CI artifacts, cloud runners. Real recordings stay out. Full record: [AD-20](AD/AD-20.md).
+- **D15. On-device GPU and NPU inference uses the same model as the CPU**: phones and handhelds have unified memory, so the backend is chosen for speed, never to shrink the model. Full record: [AD-21](AD/AD-21.md).
 
 ## Live cues
 During a session `LiveCues` embeds the last seconds of audio directly (EmbeddingGemma audio, no transcript) and compares them with the client's fact embeddings. Scores are averaged over ticks per fact, and the top 10 above the floor are shown by heading. Audio stays in an in-memory ring of `LiveCueConfig.MAX_LOOKBACK_S` (327 s) and is never written. Settings are read at session start, from "Knobs for nerds" in the settings (`LiveCueSettings`, values clamped):
