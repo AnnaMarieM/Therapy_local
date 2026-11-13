@@ -1,6 +1,7 @@
 package com.therapylocal.app.engine.runner
 
 import android.content.Context
+import com.google.ai.edge.litertlm.ActivationDataType
 import com.google.ai.edge.litertlm.Backend
 import com.google.ai.edge.litertlm.BenchmarkInfo
 import com.google.ai.edge.litertlm.ConversationConfig
@@ -47,7 +48,9 @@ internal class LlmRunner(private val context: Context) : AskEngine {
         val file = if (name == "NPU") npuFile(spec.id) else ModelRegistry.fileFor(context, spec, name)
         val f = callFields(op.tag)
         val be: Backend = LiteRtBindings.backend(context, name)
-        val config = EngineConfig(modelPath = file.path, backend = be, audioBackend = null, visionBackend = null, maxNumTokens = op.maxTokens, cacheDir = context.cacheDir.path)
+        val config = EngineConfig(modelPath = file.path, backend = be, audioBackend = null, visionBackend = null, maxNumTokens = op.maxTokens, cacheDir = context.cacheDir.path,
+            // AD-19: the GPU's default precision gives wrong output for Gemma E2B on some chips (fails the second proof); null keeps the default.
+            activationDataType = if (GpuPrecision.float32(spec.id, name)) ActivationDataType.FLOAT32 else null)
         notePhase(phases, op.tag, TAG, op.guardModel, name, "create")
         val e = AppLog.span(TAG, "memory_llm_engine_create", LogCtx.NONE, "backend_try" to name, *f) { Engine(config) }
         try {
