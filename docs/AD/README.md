@@ -21,3 +21,4 @@ Each record is immutable once merged (see [`AGENTS.md`](../../AGENTS.md); CI job
 | [AD-15](AD-15.md) | Every pull request shows screenshots of all screens at every layout size (one file per screenshot, step-by-step walkthrough), built by CI from the QA build with fake data and posted as one sticky PR comment | 2026-11-12 00:34 CET | Martin Hajný (@hajnina) | Accepted |
 | [AD-16](AD-16.md) | The QA build has a control API for adb (exported provider, shell user only, no network); no other build has it | 2026-11-12 01:34 CET | Martin Hajný (@hajnina) | Accepted |
 | [AD-19](AD-19.md) | Gemma E2B runs on the GPU with FLOAT32 activations on every device; E4B is not covered | 2026-11-13 04:14 CET | Martin Hajný (@hajnina) | Accepted |
+| [AD-20](AD-20.md) | The human-voice test recordings are synthetic and may be published (repo, CI, cloud runners) | 2026-11-13 04:49 CET | Martin Hajný (@hajnina) | Accepted |
