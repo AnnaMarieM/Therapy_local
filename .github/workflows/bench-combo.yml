@@ -1,0 +1,96 @@
+name: Bench combo (ASR x LLM, human recordings)
+
+# Every speech recogniser x every extraction model on the four human-voice recordings (AD-20), four parallel lanes per cell to expose flakiness.
+# Stage 1 (asr): engine x recording x lane. Stage 2 (llm): ASR engine (or the script as read = oracle) x model x lane. Stage 3: report.md + review.html.
+on:
+  push:
+    branches: [worktree-frolicking-foraging-aurora]
+    paths: [".github/workflows/bench-combo.yml"]
+  workflow_dispatch:
+
+jobs:
+  asr:
+    name: asr ${{ matrix.engine }} / ${{ matrix.client }} / lane ${{ matrix.lane }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    strategy:
+      fail-fast: false
+      matrix:
+        engine: [whisper-small, whisper-medium, whisper-large-v3, whisper-large-v3-turbo, canary-1b-v2]
+        client: [jana-n, tomas-b, daniel-r, hannah-w]
+        lane: [1, 2, 3, 4]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
+      - run: python -m pip install numpy faster-whisper sherpa-onnx
+      - run: python e2e/combo/asr.py --engine "${{ matrix.engine }}" --client "${{ matrix.client }}" --lane ${{ matrix.lane }} --out out
+      - run: rm -f out/*.wav && rm -rf out/canary
+        if: always()
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: asr-${{ matrix.engine }}-${{ matrix.client }}-${{ matrix.lane }}
+          path: out
+          retention-days: 30
+
+  llm:
+    name: llm ${{ matrix.engine }} + ${{ matrix.model }} / lane ${{ matrix.lane }}
+    needs: asr
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    strategy:
+      fail-fast: false
+      matrix:
+        engine: [script, whisper-small, whisper-medium, whisper-large-v3, whisper-large-v3-turbo, canary-1b-v2]
+        model: [gemma4-e2b, gemma4-e4b, qwen3.5-4b]
+        lane: [1, 2, 3, 4]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install psutil
+      - uses: actions/download-artifact@v4
+        with:
+          path: asr
+          pattern: asr-${{ matrix.engine }}-*
+          merge-multiple: true
+      - run: python e2e/combo/llm.py --asr-dir asr --engine "${{ matrix.engine }}" --model "${{ matrix.model }}" --lane ${{ matrix.lane }} --out out
+      - run: rm -rf out/model out/llama*
+        if: always()
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: llm-${{ matrix.engine }}-${{ matrix.model }}-${{ matrix.lane }}
+          path: out
+          retention-days: 30
+
+  report:
+    needs: [asr, llm]
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/download-artifact@v4
+        with:
+          path: asr
+          pattern: asr-*
+          merge-multiple: true
+      - uses: actions/download-artifact@v4
+        with:
+          path: llm
+          pattern: llm-*
+          merge-multiple: true
+      - run: python e2e/combo/report.py --asr asr --llm llm --out report | tee -a "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: combo-report
+          path: report
+          retention-days: 90
