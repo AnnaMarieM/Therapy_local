@@ -1,0 +1,141 @@
+{
+ "round": "r2b-llm",
+ "lanes": 4,
+ "asr": [],
+ "llm": [
+  {
+   "asr": "whisper-large-v3",
+   "model": "gemma4-e4b",
+   "tag": "+pivot",
+   "opts": {
+    "pivot": true
+   },
+   "asr_run": "43362037847"
+  },
+  {
+   "asr": "whisper-large-v3",
+   "model": "gemma4-e4b",
+   "tag": "+robust",
+   "opts": {
+    "prompt_dir": {
+     "cs": "e2e/combo/prompts/robust/cs",
+     "en": "e2e/combo/prompts/robust"
+    }
+   },
+   "asr_run": "43362037847"
+  },
+  {
+   "asr": "whisper-large-v3",
+   "model": "gemma4-e2b",
+   "tag": "+pivot",
+   "opts": {
+    "pivot": true
+   },
+   "asr_run": "43362037847"
+  },
+  {
+   "asr": "whisper-large-v3",
+   "model": "gemma4-e2b",
+   "tag": "+robust",
+   "opts": {
+    "prompt_dir": {
+     "cs": "e2e/combo/prompts/robust/cs",
+     "en": "e2e/combo/prompts/robust"
+    }
+   },
+   "asr_run": "43362037847"
+  },
+  {
+   "asr": "script",
+   "model": "gemma4-e4b",
+   "tag": "+pivot",
+   "opts": {
+    "pivot": true
+   }
+  },
+  {
+   "asr": "script",
+   "model": "gemma4-e4b",
+   "tag": "+robust",
+   "opts": {
+    "prompt_dir": {
+     "cs": "e2e/combo/prompts/robust/cs",
+     "en": "e2e/combo/prompts/robust"
+    }
+   }
+  },
+  {
+   "asr": "script",
+   "model": "gemma4-e2b",
+   "tag": "+pivot",
+   "opts": {
+    "pivot": true
+   }
+  },
+  {
+   "asr": "script",
+   "model": "gemma4-e2b",
+   "tag": "+robust",
+   "opts": {
+    "prompt_dir": {
+     "cs": "e2e/combo/prompts/robust/cs",
+     "en": "e2e/combo/prompts/robust"
+    }
+   }
+  },
+  {
+   "asr": "whisper-large-v3",
+   "model": "gemma4-e4b",
+   "tag": "+pivot+robust",
+   "opts": {
+    "pivot": true,
+    "prompt_dir": {
+     "cs": "e2e/combo/prompts/robust/cs",
+     "en": "e2e/combo/prompts/robust"
+    }
+   },
+   "asr_run": "43362037847"
+  },
+  {
+   "asr": "whisper-large-v3",
+   "model": "gemma4-e2b",
+   "tag": "+pivot+robust",
+   "opts": {
+    "pivot": true,
+    "prompt_dir": {
+     "cs": "e2e/combo/prompts/robust/cs",
+     "en": "e2e/combo/prompts/robust"
+    }
+   },
+   "asr_run": "43362037847"
+  },
+  {
+   "asr": "whisper-large-v3",
+   "model": "gemma4-e4b",
+   "tag": "+part250",
+   "opts": {
+    "part_words": 250
+   },
+   "asr_run": "43362037847"
+  },
+  {
+   "asr": "whisper-large-v3",
+   "model": "gemma4-e4b",
+   "tag": "+part800",
+   "opts": {
+    "part_words": 800,
+    "ctx": 12288
+   },
+   "asr_run": "43362037847"
+  },
+  {
+   "asr": "whisper-large-v3",
+   "model": "gemma4-e4b",
+   "tag": "+temp0",
+   "opts": {
+    "temperature": 0.0
+   },
+   "asr_run": "43362037847"
+  }
+ ]
+}

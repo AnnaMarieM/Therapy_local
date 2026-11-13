@@ -1,16 +1,141 @@
-{"round": "r2a-asr", "lanes": 2,
- "asr": [
-  {"id": "turbo-beam5", "engine": "whisper-large-v3-turbo", "opts": {"beam_size": 5}},
-  {"id": "turbo-prompt", "engine": "whisper-large-v3-turbo", "opts": {"initial_prompt": {"cs": "Rozhovor v psychoterapii mezi terapeutem a klientem. Klient mluví o rodině, práci, spánku, úzkosti a pocitech.", "en": "A psychotherapy session between a therapist and a client. The client talks about family, work, sleep, anxiety and feelings."}}},
-  {"id": "turbo-beam5-prompt", "engine": "whisper-large-v3-turbo", "opts": {"beam_size": 5, "initial_prompt": {"cs": "Rozhovor v psychoterapii mezi terapeutem a klientem. Klient mluví o rodině, práci, spánku, úzkosti a pocitech.", "en": "A psychotherapy session between a therapist and a client. The client talks about family, work, sleep, anxiety and feelings."}}},
-  {"id": "turbo-prevtext", "engine": "whisper-large-v3-turbo", "opts": {"condition_on_previous_text": true}},
-  {"id": "turbo-novad", "engine": "whisper-large-v3-turbo", "opts": {"vad": false}},
-  {"id": "turbo-loudnorm", "engine": "whisper-large-v3-turbo", "opts": {"ffmpeg_filter": "highpass=f=80,loudnorm=I=-18"}},
-  {"id": "v3-beam5", "engine": "whisper-large-v3", "opts": {"beam_size": 5}},
-  {"id": "v3-prompt", "engine": "whisper-large-v3", "opts": {"initial_prompt": {"cs": "Rozhovor v psychoterapii mezi terapeutem a klientem. Klient mluví o rodině, práci, spánku, úzkosti a pocitech.", "en": "A psychotherapy session between a therapist and a client. The client talks about family, work, sleep, anxiety and feelings."}}},
-  {"id": "v3-beam5-prompt", "engine": "whisper-large-v3", "opts": {"beam_size": 5, "initial_prompt": {"cs": "Rozhovor v psychoterapii mezi terapeutem a klientem. Klient mluví o rodině, práci, spánku, úzkosti a pocitech.", "en": "A psychotherapy session between a therapist and a client. The client talks about family, work, sleep, anxiety and feelings."}}},
-  {"id": "canary-chunk10", "engine": "canary-1b-v2", "lanes": 1, "opts": {"chunk_s": 10, "search_s": 4}},
-  {"id": "canary-chunk30", "engine": "canary-1b-v2", "lanes": 1, "opts": {"chunk_s": 30, "search_s": 8}},
-  {"id": "canary-loudnorm", "engine": "canary-1b-v2", "lanes": 1, "opts": {"ffmpeg_filter": "highpass=f=80,loudnorm=I=-18"}}
- ],
- "llm": []}
+{
+ "round": "r2b-llm",
+ "lanes": 4,
+ "asr": [],
+ "llm": [
+  {
+   "asr": "whisper-large-v3",
+   "model": "gemma4-e4b",
+   "tag": "+pivot",
+   "opts": {
+    "pivot": true
+   },
+   "asr_run": "43362037847"
+  },
+  {
+   "asr": "whisper-large-v3",
+   "model": "gemma4-e4b",
+   "tag": "+robust",
+   "opts": {
+    "prompt_dir": {
+     "cs": "e2e/combo/prompts/robust/cs",
+     "en": "e2e/combo/prompts/robust"
+    }
+   },
+   "asr_run": "43362037847"
+  },
+  {
+   "asr": "whisper-large-v3",
+   "model": "gemma4-e2b",
+   "tag": "+pivot",
+   "opts": {
+    "pivot": true
+   },
+   "asr_run": "43362037847"
+  },
+  {
+   "asr": "whisper-large-v3",
+   "model": "gemma4-e2b",
+   "tag": "+robust",
+   "opts": {
+    "prompt_dir": {
+     "cs": "e2e/combo/prompts/robust/cs",
+     "en": "e2e/combo/prompts/robust"
+    }
+   },
+   "asr_run": "43362037847"
+  },
+  {
+   "asr": "script",
+   "model": "gemma4-e4b",
+   "tag": "+pivot",
+   "opts": {
+    "pivot": true
+   }
+  },
+  {
+   "asr": "script",
+   "model": "gemma4-e4b",
+   "tag": "+robust",
+   "opts": {
+    "prompt_dir": {
+     "cs": "e2e/combo/prompts/robust/cs",
+     "en": "e2e/combo/prompts/robust"
+    }
+   }
+  },
+  {
+   "asr": "script",
+   "model": "gemma4-e2b",
+   "tag": "+pivot",
+   "opts": {
+    "pivot": true
+   }
+  },
+  {
+   "asr": "script",
+   "model": "gemma4-e2b",
+   "tag": "+robust",
+   "opts": {
+    "prompt_dir": {
+     "cs": "e2e/combo/prompts/robust/cs",
+     "en": "e2e/combo/prompts/robust"
+    }
+   }
+  },
+  {
+   "asr": "whisper-large-v3",
+   "model": "gemma4-e4b",
+   "tag": "+pivot+robust",
+   "opts": {
+    "pivot": true,
+    "prompt_dir": {
+     "cs": "e2e/combo/prompts/robust/cs",
+     "en": "e2e/combo/prompts/robust"
+    }
+   },
+   "asr_run": "43362037847"
+  },
+  {
+   "asr": "whisper-large-v3",
+   "model": "gemma4-e2b",
+   "tag": "+pivot+robust",
+   "opts": {
+    "pivot": true,
+    "prompt_dir": {
+     "cs": "e2e/combo/prompts/robust/cs",
+     "en": "e2e/combo/prompts/robust"
+    }
+   },
+   "asr_run": "43362037847"
+  },
+  {
+   "asr": "whisper-large-v3",
+   "model": "gemma4-e4b",
+   "tag": "+part250",
+   "opts": {
+    "part_words": 250
+   },
+   "asr_run": "43362037847"
+  },
+  {
+   "asr": "whisper-large-v3",
+   "model": "gemma4-e4b",
+   "tag": "+part800",
+   "opts": {
+    "part_words": 800,
+    "ctx": 12288
+   },
+   "asr_run": "43362037847"
+  },
+  {
+   "asr": "whisper-large-v3",
+   "model": "gemma4-e4b",
+   "tag": "+temp0",
+   "opts": {
+    "temperature": 0.0
+   },
+   "asr_run": "43362037847"
+  }
+ ]
+}
