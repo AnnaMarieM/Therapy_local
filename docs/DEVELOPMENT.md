@@ -9,6 +9,8 @@
 
 **Download:** the latest build of `main` is always available as the rolling [`main` release](https://github.com/AnnaMarieM/Therapy_local/releases/tag/main) (`Therapy-main.apk` only).
 
+**Pull request builds:** every open pull request (not from a fork) publishes its own QA APK as the prerelease `pr-<number>` (`Therapy-pr<number>-qa.apk`, with its `.sha256`). It installs as `com.therapylocal.app.qa` beside the real app, is replaced on every push, and is deleted with its tag when the pull request closes (`pr-apk-cleanup.yml`, plus a daily sweep for leftovers). Only the QA build is published per pull request, so a pull request's schema change can never wipe a real vault.
+
 ---
 
 ## ⚕️ Medical & Clinical Disclaimer

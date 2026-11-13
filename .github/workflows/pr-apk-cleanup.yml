@@ -1,0 +1,34 @@
+name: PR APK cleanup
+
+# When a pull request closes, its QA APK release `pr-<number>` (ci.yml, release-pr) and its tag are deleted, so no stale APK stays
+# downloadable. A daily sweep deletes any left over (a missed event, or a CI run that published just after the close). pull_request_target,
+# not pull_request: a fork's pull request gets a read-only token there, and this needs to write. It runs the base branch's script and never
+# checks out or runs the pull request's code; the only thing it takes from the event is the number.
+on:
+  pull_request_target:
+    types: [closed]
+  schedule:
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  prune:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+      pull-requests: read
+    concurrency:
+      group: pr-apk-${{ github.event.pull_request.number || 'sweep' }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.sha || github.sha }}
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+        run: scripts/prune-pr-apks.sh
