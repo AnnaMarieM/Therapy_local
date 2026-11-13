@@ -43,3 +43,7 @@ native vs pivot (English logic) x robust prompt, E4B and E2B, part size 250/450/
 ## Notes / open questions
 - Roles are unknown in the LLM stage (no diarization): all lines are "Speaker 1".
 - Whisper here is faster-whisper int8, not the app's sherpa-onnx: compare engines with each other, not with the device.
+
+## Round 2a result / 2b failure
+- 2a (run 43380472185): 86/86 jobs ok.
+- 2b (run 43380701110): all 44 large-v3 LLM jobs failed: `download-artifact` with `run-id` lists only the first 100 artifacts of the old run (it found 2 of 88+ asr artifacts), so no transcript was found. Fix: the round runs its own large-v3 ASR (1 lane) and the LLM jobs read it from the same run. Re-pushed as 2b-2.

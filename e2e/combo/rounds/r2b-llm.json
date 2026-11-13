@@ -1,14 +1,20 @@
 {
  "round": "r2b-llm",
  "lanes": 4,
- "asr": [],
+ "asr": [
+  {
+   "id": "whisper-large-v3",
+   "engine": "whisper-large-v3",
+   "lanes": 1,
+   "opts": {}
+  }
+ ],
  "llm": [
   {
    "asr": "whisper-large-v3",
    "model": "gemma4-e4b",
    "tag": "+roles",
-   "opts": {},
-   "asr_run": "43362037847"
+   "opts": {}
   },
   {
    "asr": "whisper-large-v3",
@@ -16,8 +22,7 @@
    "tag": "+roles+pivot",
    "opts": {
     "pivot": true
-   },
-   "asr_run": "43362037847"
+   }
   },
   {
    "asr": "whisper-large-v3",
@@ -28,8 +33,7 @@
      "cs": "e2e/combo/prompts/robust/cs",
      "en": "e2e/combo/prompts/robust"
     }
-   },
-   "asr_run": "43362037847"
+   }
   },
   {
    "asr": "whisper-large-v3",
@@ -41,15 +45,13 @@
      "cs": "e2e/combo/prompts/robust/cs",
      "en": "e2e/combo/prompts/robust"
     }
-   },
-   "asr_run": "43362037847"
+   }
   },
   {
    "asr": "whisper-large-v3",
    "model": "gemma4-e2b",
    "tag": "+roles",
-   "opts": {},
-   "asr_run": "43362037847"
+   "opts": {}
   },
   {
    "asr": "whisper-large-v3",
@@ -57,8 +59,7 @@
    "tag": "+roles+pivot",
    "opts": {
     "pivot": true
-   },
-   "asr_run": "43362037847"
+   }
   },
   {
    "asr": "whisper-large-v3",
@@ -69,8 +70,7 @@
      "cs": "e2e/combo/prompts/robust/cs",
      "en": "e2e/combo/prompts/robust"
     }
-   },
-   "asr_run": "43362037847"
+   }
   },
   {
    "asr": "whisper-large-v3",
@@ -82,8 +82,7 @@
      "cs": "e2e/combo/prompts/robust/cs",
      "en": "e2e/combo/prompts/robust"
     }
-   },
-   "asr_run": "43362037847"
+   }
   },
   {
    "asr": "script",
@@ -165,8 +164,7 @@
    "tag": "+roles+part250",
    "opts": {
     "part_words": 250
-   },
-   "asr_run": "43362037847"
+   }
   },
   {
    "asr": "whisper-large-v3",
@@ -175,8 +173,7 @@
    "opts": {
     "part_words": 800,
     "ctx": 12288
-   },
-   "asr_run": "43362037847"
+   }
   },
   {
    "asr": "whisper-large-v3",
@@ -184,8 +181,7 @@
    "tag": "+roles+temp0",
    "opts": {
     "temperature": 0.0
-   },
-   "asr_run": "43362037847"
+   }
   }
  ]
 }
