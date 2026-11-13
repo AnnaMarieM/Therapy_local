@@ -22,9 +22,13 @@ def to_wav(client, work):
 
 def whisper(engine, wav, lang):
     from faster_whisper import WhisperModel
-    name = engine.removeprefix("whisper-")
+    task = "translate" if engine.endswith("-translate") else "transcribe"  # translate: speech in any language -> English text
+    name = engine.removeprefix("whisper-").removesuffix("-translate")
     m = WhisperModel(name, device="cpu", compute_type="int8", cpu_threads=4)
-    segs, _ = m.transcribe(str(wav), language=lang, beam_size=1, temperature=0.0, vad_filter=True, condition_on_previous_text=False)
+    import numpy as np
+    with wave.open(str(wav)) as w:
+        x = np.frombuffer(w.readframes(w.getnframes()), dtype=np.int16).astype("float32") / 32768
+    segs, _ = m.transcribe(x, language=lang, task=task, beam_size=1, temperature=0.0, vad_filter=True, condition_on_previous_text=False)
     return [{"start": round(s.start, 2), "end": round(s.end, 2), "text": s.text.strip()} for s in segs]
 
 
@@ -77,8 +81,9 @@ def main():
         dur = w.getnframes() / SR
     ref = " ".join(t["text"] for t in sc["turns"])
     hyp = " ".join(s["text"] for s in segs)
+    translated = a.engine.endswith("-translate")  # English output: WER against the Czech script is meaningless, read it instead
     res = {"engine": a.engine, "client": a.client, "lang": lang, "lane": a.lane, "audio_s": round(dur, 1), "seconds": round(secs, 1),
-           "rtf": round(secs / dur, 3), "wer": round(wer(ref, hyp), 4), "cer": round(cer(ref, hyp), 4), "segments": segs}
+           "rtf": round(secs / dur, 3), "wer": None if translated else round(wer(ref, hyp), 4), "cer": None if translated else round(cer(ref, hyp), 4), "segments": segs}
     (out / f"{a.engine}__{a.client}__lane{a.lane}.json").write_text(json.dumps(res, ensure_ascii=False, indent=1), encoding="utf-8")
     print(a.engine, a.client, "lane", a.lane, "WER", res["wer"], "CER", res["cer"], "RTF", res["rtf"])
 

@@ -81,7 +81,9 @@ def main():
     try:
         for c in CLIENTS:
             sc = script(c)
-            d = PROMPTS / ("cs" if sc["lang"] == "cs" else "")
+            if a.engine.endswith("-translate") and sc["lang"] != "cs":
+                continue  # translating English to English is just transcribing
+            d = PROMPTS / ("cs" if sc["lang"] == "cs" and not a.engine.endswith("-translate") else "")  # translated text gets the English prompts
             sysp, usrp = (d / "extract.system.txt").read_text(encoding="utf-8"), (d / "extract.user.txt").read_text(encoding="utf-8")
             ps = parts(lines_for(a.engine, c, a.asr_dir, a.lane))
             facts, t0 = [], time.time()

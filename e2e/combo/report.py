@@ -67,10 +67,10 @@ def main():
     for lang, cl in LANGS.items():
         rows = []
         for e in sorted({k[0] for k in by}):
-            ws = [r["wer"] for c in cl for r in by.get((e, c), [])]
+            ws = [r["wer"] for c in cl for r in by.get((e, c), []) if r["wer"] is not None]
             if ws:
                 per = {c: [r["wer"] for r in by.get((e, c), [])] for c in cl}
-                rtf = st.mean(r["rtf"] for c in cl for r in by.get((e, c), []))
+                rtf = st.mean(r["rtf"] for c in cl for r in by.get((e, c), []) if r["wer"] is not None)
                 rows.append((st.mean(ws), e, per, rtf, max(ws) - min(ws)))
         md.append(f"### {lang}\n\n| engine | mean WER | " + " | ".join(f"{c} (min-max over lanes)" for c in cl) + " | RTF (CPU) |\n|---|---|" + "---|" * (len(cl) + 1))
         for m, e, per, rtf, _ in sorted(rows):
@@ -81,7 +81,7 @@ def main():
     cell = defaultdict(dict)  # (engine, model) -> lane -> result
     for r in llm:
         cell[(r["engine"], r["model"])][r["lane"]] = r
-    asr_wer = {(e, l): st.mean(r["wer"] for c in cl for r in by.get((e, c), [])) for e in {k[0] for k in by} for l, cl in LANGS.items() if any(by.get((e, c)) for c in cl)}
+    asr_wer = {(e, l): st.mean(r["wer"] for c in cl for r in by.get((e, c), [])) for e in {k[0] for k in by} for l, cl in LANGS.items() if any(r["wer"] is not None for c in cl for r in by.get((e, c), []))}
     md.append("## Extraction (facts), per ASR engine x model\n")
     md.append("- **coverage**: share of the facts the same model found on the perfect script (all lanes pooled) that this combo also found. A guide to what ASR errors cost, not a score of the model.")
     md.append("- **quote ok**: the evidence quote really is in the transcript the model saw (low = it makes things up).")
@@ -123,7 +123,7 @@ def main():
         h.append("<details><summary>Script as read</summary><pre>" + html.escape("\n".join(f"{t['who']}: {t['text']}" for t in script(c)["turns"])) + "</pre></details>")
         for e in sorted({r["engine"] for r in asr if r["client"] == c}):
             rs = sorted((r for r in asr if r["client"] == c and r["engine"] == e), key=lambda r: r["lane"])
-            h.append(f"<details><summary><b>{e}</b> transcript, WER {pct(rs[0]['wer'])} (lanes: {', '.join(pct(r['wer']) for r in rs)})</summary><pre>"
+            h.append(f"<details><summary><b>{e}</b> transcript, WER {pct(rs[0]['wer']) if rs[0]['wer'] is not None else 'n/a, English output'} (lanes: {', '.join(pct(r['wer']) if r['wer'] is not None else '-' for r in rs)})</summary><pre>"
                      + html.escape("\n".join(f"[{s['start']:.0f}s] {s['text']}" for s in rs[0]["segments"])) + "</pre></details>")
         for (e, m), lanes in sorted(cell.items()):
             if c not in next(iter(lanes.values()))["clients"]:
