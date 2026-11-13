@@ -1,0 +1,73 @@
+ggml_opencl: selected platform: 'QUALCOMM Snapdragon(TM)'
+
+ggml_opencl: device: 'QUALCOMM Adreno(TM) 830 (OpenCL 3.0 Adreno(TM) 830)'
+ggml_opencl: default device: 'QUALCOMM Adreno(TM) 830 (OpenCL 3.0 Adreno(TM) 830)'
+ggml-hex: Loading driver libcdsprpc.so
+ggml-hex: FASTRPC_GET_DOMAINS query failed (0x6c), using static CDSP domains
+ggml-hex: Hexagon backend (experimental) : allocating new registry : ndev 1
+ggml-hex: Hexagon Arch version v79, DMA64 disabled
+ggml-hex: device 0: HTP0 (phys=0, virt=0, domain=cdsp:3)
+whisper_init_from_file_with_params_no_state: loading model from '../ggml-large-v3-q8_0.bin'
+whisper_init_with_params_no_state: use gpu    = 1
+whisper_init_with_params_no_state: flash attn = 1
+whisper_init_with_params_no_state: gpu_device = 1
+whisper_init_with_params_no_state: dtw        = 0
+whisper_init_with_params_no_state: devices    = 3
+whisper_init_with_params_no_state: backends   = 4
+whisper_model_load: loading model
+whisper_model_load: n_vocab       = 51866
+whisper_model_load: n_audio_ctx   = 1500
+whisper_model_load: n_audio_state = 1280
+whisper_model_load: n_audio_head  = 20
+whisper_model_load: n_audio_layer = 32
+whisper_model_load: n_text_ctx    = 448
+whisper_model_load: n_text_state  = 1280
+whisper_model_load: n_text_head   = 20
+whisper_model_load: n_text_layer  = 32
+whisper_model_load: n_mels        = 128
+whisper_model_load: ftype         = 7
+whisper_model_load: qntvr         = 2
+whisper_model_load: type          = 5 (large v3)
+whisper_model_load: adding 1609 extra tokens
+whisper_model_load: n_langs       = 100
+whisper_model_load:          CPU total size =   743.28 MB
+ggml-hex: HTP0 allocating new session : domain 3 phys-idx 0 virt-idx 0
+ggml-hex: HTP0 hwinfo: threads 6, hvx 6, hmx 1, vtcm 8 MB
+ggml-hex: HTP0 new session : session-id 0 domain-id 3 uri file:///libggml-htp-v79.so?htp_iface_skel_handle_invoke&_modver=1.0&_dom=cdsp&_session=0 handle 0xb40000702556d150
+ggml-hex: HTP0 op batching: n-bufs 64 n-tensors 8206 n-ops 2048 vmem 3347161088
+ggml-hex: HTP0 power mode: burst
+whisper_model_load:         HTP0 total size =   912.59 MB
+whisper_model_load: model size    = 1655.86 MB
+whisper_backend_init_gpu: device 0: GPUOpenCL (type: 1)
+whisper_backend_init_gpu: found GPU device 0: GPUOpenCL (type: 1, cnt: 0)
+whisper_backend_init_gpu: device 1: HTP0 (type: 1)
+whisper_backend_init_gpu: found GPU device 1: HTP0 (type: 1, cnt: 1)
+whisper_backend_init_gpu: using HTP0 backend
+whisper_init_state: kv self size  =   83.89 MB
+whisper_init_state: kv cross size =  251.66 MB
+whisper_init_state: kv pad  size  =    7.86 MB
+whisper_init_state: compute buffer (conv)   =   37.69 MB
+whisper_init_state: compute buffer (encode) =   63.03 MB
+whisper_init_state: compute buffer (cross)  =   16.95 MB
+/__w/llama.cpp/llama.cpp/ggml/src/ggml-backend.cpp:1089: pre-allocated tensor (leaf_14) in a buffer (HTP0) that cannot run the operation (NONE)
+0: 0x70bbec991c 
+1: 0x70bbec9828 
+2: 0x70bbec9b14 ggml_abort
+3: 0x70bbeeacc8 
+4: 0x70bbee7e34 ggml_backend_sched_split_graph
+5: 0x70bbeec2d0 ggml_backend_sched_alloc_graph
+6: 0x70b5544a60 
+7: 0x70b554353c whisper_init_state
+8: 0x70b5547014 whisper_init_from_file_with_params
+9: 0x5555cb3544 
+10: 0x70bf12ccd4 __libc_init
+Real time (s): 1.284094
+User time (s): 0.228056
+System time (s): 0.993407
+Max RSS (KiB): 1108916
+Major faults: 7
+Minor faults: 278315
+File system inputs: 5376
+File system outputs: 0
+Voluntary context switches: 88
+Involuntary context switches: 118

@@ -1,0 +1,78 @@
+ggml_opencl: selected platform: 'QUALCOMM Snapdragon(TM)'
+
+ggml_opencl: device: 'QUALCOMM Adreno(TM) 830 (OpenCL 3.0 Adreno(TM) 830)'
+ggml_opencl: default device: 'QUALCOMM Adreno(TM) 830 (OpenCL 3.0 Adreno(TM) 830)'
+ggml-hex: Loading driver libcdsprpc.so
+ggml-hex: FASTRPC_GET_DOMAINS query failed (0x6c), using static CDSP domains
+ggml-hex: Hexagon backend (experimental) : allocating new registry : ndev 1
+ggml-hex: Hexagon Arch version v79, DMA64 disabled
+ggml-hex: device 0: HTP0 (phys=0, virt=0, domain=cdsp:3)
+whisper_init_from_file_with_params_no_state: loading model from '../ggml-large-v3-q8_0.bin'
+whisper_init_with_params_no_state: use gpu    = 1
+whisper_init_with_params_no_state: flash attn = 1
+whisper_init_with_params_no_state: gpu_device = 1
+whisper_init_with_params_no_state: dtw        = 0
+whisper_init_with_params_no_state: devices    = 3
+whisper_init_with_params_no_state: backends   = 4
+whisper_model_load: loading model
+whisper_model_load: n_vocab       = 51866
+whisper_model_load: n_audio_ctx   = 1500
+whisper_model_load: n_audio_state = 1280
+whisper_model_load: n_audio_head  = 20
+whisper_model_load: n_audio_layer = 32
+whisper_model_load: n_text_ctx    = 448
+whisper_model_load: n_text_state  = 1280
+whisper_model_load: n_text_head   = 20
+whisper_model_load: n_text_layer  = 32
+whisper_model_load: n_mels        = 128
+whisper_model_load: ftype         = 7
+whisper_model_load: qntvr         = 2
+whisper_model_load: type          = 5 (large v3)
+whisper_model_load: adding 1609 extra tokens
+whisper_model_load: n_langs       = 100
+ggml-hex: HTP0 allocating new session : domain 3 phys-idx 0 virt-idx 0
+ggml-hex: HTP0 hwinfo: threads 6, hvx 6, hmx 1, vtcm 8 MB
+ggml-hex: HTP0 new session : session-id 0 domain-id 3 uri file:///libggml-htp-v79.so?htp_iface_skel_handle_invoke&_modver=1.0&_dom=cdsp&_session=0 handle 0xb400006ecd177250
+ggml-hex: HTP0 op batching: n-bufs 64 n-tensors 8206 n-ops 2048 vmem 3347161088
+ggml-hex: HTP0 power mode: burst
+whisper_model_load:         HTP0 total size =  1655.87 MB
+whisper_model_load: model size    = 1655.86 MB
+whisper_backend_init_gpu: device 0: GPUOpenCL (type: 1)
+whisper_backend_init_gpu: found GPU device 0: GPUOpenCL (type: 1, cnt: 0)
+whisper_backend_init_gpu: device 1: HTP0 (type: 1)
+whisper_backend_init_gpu: found GPU device 1: HTP0 (type: 1, cnt: 1)
+whisper_backend_init_gpu: using HTP0 backend
+whisper_init_state: kv self size  =   83.89 MB
+whisper_init_state: kv cross size =  251.66 MB
+whisper_init_state: kv pad  size  =    7.86 MB
+whisper_init_state: compute buffer (conv)   =   37.69 MB
+whisper_init_state: compute buffer (encode) =   63.03 MB
+whisper_init_state: compute buffer (cross)  =   16.95 MB
+whisper_init_state: compute buffer (decode) =  102.34 MB
+read_audio_data: reading audio data from '../cs_harm30.wav' ...
+read_audio_data: trying to decode with miniaudio
+
+system_info: n_threads = 6 / 8 | WHISPER : VITISAI = 0 | COREML = 0 | OPENVINO = 0 | CPU : NEON = 1 | ARM_FMA = 1 | FP16_VA = 1 | MATMUL_INT8 = 1 | DOTPROD = 1 | REPACK = 1 | 
+
+main: processing '../cs_harm30.wav' (480000 samples, 30.0 sec), 6 threads, 1 processors, 5 beams + best of 5, lang = cs, task = transcribe, timestamps = 0 ...
+
+
+whisper_print_timings:     load time =   994.86 ms
+whisper_print_timings:     fallbacks =   0 p /   0 h
+whisper_print_timings:      mel time =    36.12 ms
+whisper_print_timings:   sample time =   967.38 ms /   895 runs (     1.08 ms per run)
+whisper_print_timings:   encode time =  1819.51 ms /     1 runs (  1819.51 ms per run)
+whisper_print_timings:   decode time =   390.44 ms /     2 runs (   195.22 ms per run)
+whisper_print_timings:   batchd time = 42146.75 ms /   892 runs (    47.25 ms per run)
+whisper_print_timings:   prompt time =     0.00 ms /     1 runs (     0.00 ms per run)
+whisper_print_timings:    total time = 46773.90 ms
+Real time (s): 47.084137
+User time (s): 57.224448
+System time (s): 17.041837
+Max RSS (KiB): 952104
+Major faults: 9811
+Minor faults: 699873
+File system inputs: 2474480
+File system outputs: 0
+Voluntary context switches: 144641
+Involuntary context switches: 17868

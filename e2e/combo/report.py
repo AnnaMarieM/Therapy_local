@@ -115,7 +115,9 @@ def main():
                 rows.append((st.mean(cov), e, m, st.mean(n), st.mean(ok), st.mean(stab), len(lanes)))
         for cv, e, m, n, ok, stab, ln in sorted(rows, reverse=True):
             w = asr_wer.get((e, lang))
-            md.append(f"| {e} | {m} | {pct(w) if w is not None else 'oracle'} | {n:.1f} | {pct(cv)} | {pct(ok)} | {pct(stab)} | {ln} |")
+            translated = e.endswith("-translate")  # English text from Czech audio: no WER against the Czech script, facts cannot be matched by word overlap
+            wcell = "n/a (translated)" if translated else (pct(w) if w is not None else "oracle")
+            md.append(f"| {e} | {m} | {wcell} | {n:.1f} | {'n/a' if translated else pct(cv)} | {pct(ok)} | {pct(stab)} | {ln} |")
             combos[(lang, e, m)] = cv
         md.append("")
     (out / "report.md").write_text("\n".join(md), encoding="utf-8")

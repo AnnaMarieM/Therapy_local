@@ -62,3 +62,25 @@ Memory: all fit. Tensor G3 had only 350 MB free but the CPU q5_0 run (peak 0.82 
 4. NPU (Poco only): put the device's `libggml*.so` (llama.cpp b11869 release `lib/`) plus the `hx2` whisper-cli and libwhisper.so in one dir, then `LD_LIBRARY_PATH=. ADSP_LIBRARY_PATH=. WHISPER_KV_CPU=1 ./whisper-cli -m ../ggml-large-v3-turbo-q8_0.bin -f ../cs30.wav -l cs -nt -t 6 -bs 5 -dev 1` (`-dev 1` is HTP0; device 0 is OpenCL, which crashes unpatched).
 5. Thermal: `adb -s <serial> shell dumpsys thermalservice | grep 'Thermal Status'`. Score: `python3 -I tools/wer.py cs <transcript.txt>` (`en` for English). `tools/run.sh`, `run2.sh` and `batch*.sh` are the wrappers used (they hard-code the scratchpad path and serials).
 6. Clean up: `adb -s <serial> shell rm -rf /data/local/tmp/asr-bench`. Do not touch the app packages.
+
+## Round 2: Whisper large-v3 (not turbo), q8_0 (2026-11-13, afternoon)
+Model: **`ggml-large-v3-q8_0.bin` does not exist upstream** (ggerganov/whisper.cpp has only `ggml-large-v3.bin` f16 and `ggml-large-v3-q5_0.bin`). I quantised it myself: downloaded `ggml-large-v3.bin` (3095033483 bytes, sha256 `64d182b440b98d5203c4f9bd541544d84c605196c4f7b845dfa11fb23594d1e2`, equals the upstream LFS hash) and ran the host-built `whisper-quantize ggml-large-v3.bin ggml-large-v3-q8_0.bin q8_0` (whisper.cpp commit above, native aarch64 clang build, 5 s). Result 1656538283 bytes, sha256 `24bc434f372355688ab9a623077a63e5361a1c41f4d8d648977e39f9b060f09e` (also in `tools/model-sha256.txt`).
+Same binaries and patches as round 1 (+ patch 04 for the encoder-on-NPU test). Chunks: `raw/cs30.wav` (first 30 s), `raw/cs_harm30.wav` (195-225 s of tomas-b, contains "Že jí a dítěti ublížím" at about 205 s, located with a host turbo run), `raw/en30.wav`. Files are `raw/v3_*`.
+WER for `cs_harm30` uses `tools/wer2.py` (reference window searched in the script, start words 480-600), still only a sanity number.
+
+| device | backend | beam 5, CS s / 30 s | RTF | greedy CS s | EN s | harm chunk s | load s | enc / dec s (beam 5 CS) | peak RSS | WER CS b5 / greedy | WER EN | WER harm |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Poco | CPU q8_0 (t6) | 21.4 | 0.71 | 19.9 | 20.5 | 25.4 | 1.9 | 7.4 / 11.3 | 2.58 GB | 0.095 / 0.135 | 0.043 | 0.197 |
+| Poco | Hexagon NPU q8_0 | 48.7 | 1.62 | 36.6 | 23.9 | 46.8 | 1.5 | 2.0 / 42.9 | 0.96 GB | 0.095 / 0.162 | 0.043 | 0.197 |
+| Poco | NPU encoder + CPU decoder | **failed** | | | | | | | | | | |
+| Pixel 8 | CPU q8_0 (t4) | 98.8 | 3.3 | 90.8 | 95.5 | 125.5 | 6.1 | 15.1 / 72.6 | 2.55 GB | 0.095 / 0.135 | 0.043 | 0.197 |
+| Tab S7 | CPU q8_0 (t4) | 114.3 | 3.8 | 71.4 | 72.5 | 132.9 | 4.5 | 34.3 / 68.7 | 2.58 GB | 0.095 / 0.135 | 0.043 | 0.197 |
+
+(encode/decode seconds are whisper's own timers, so they do not add up exactly to the total; the Pixel dipped to thermal status 1 in later runs, so its numbers are slightly pessimistic; the Tab was shared and noisy as before. Nothing was OOM-killed; free RAM on the Pixel is small but 2.6 GB RSS ran, because the model is mmapped.)
+
+Turbo q8_0 vs large-v3 q8_0, CS beam 5 (s per 30 s chunk): Poco CPU 20.4 vs 21.4 (same binary; the two models share the same encoder, yet the turbo run measured encode 13.0 s against 7.4 s for large-v3, so the turbo Poco CPU run was evidently disturbed or throttled and the near-equal totals are not a fair comparison: on a clean run the turbo CPU total should be about 7.4 s encode + 2.5 s decode + load, roughly 12 s; not re-measured); Poco NPU 16.5 vs 48.7; Pixel CPU 35.2 vs 98.8; Tab CPU 72.2 vs 114.3 (noisy). Peak RSS 1.1 vs 2.6 GB on CPU, 0.23 vs 0.96 GB on the NPU. WER of the chunk: turbo q8_0 0.189, large-v3 q8_0 0.095 (Czech); English 0.058 vs 0.043. The 32-layer large-v3 decoder is what costs time at beam 5 (decode 43 s on the NPU, 11 s on the Poco CPU, 73 s on the Pixel).
+All devices and the NPU give identical transcripts at beam 5 (byte-identical text on Poco CPU, Pixel, Tab; the NPU text has the same WER).
+
+Self-harm sentence (`raw/v3_*_harm_*.txt`, same on every device): `... Jaká? Že jí a dítě tě ublížím. Ublížíte jak? Ne, že bych chtěl. To je hrozné, nikdy bych to neudal. Ale ta myšlenka přijde, když krájím chleba na dostajím úschodu a pak se bojím, že to bude samo. Takže je to myšlenka, která vás těsí.` So large-v3 q8_0 keeps the meaning ("... dítě ... ublížím", then the therapist's "Ublížíte jak?"), but "dítěti" became "dítě tě", the earlier turbo q5_0 host run read "dítě tě ublíží" (future 3rd person, meaning blurred) at the same spot.
+
+NPU encoder + CPU decoder: tried with patch 04 (`WHISPER_DECODER_CPU=1`: decoder weights in a CPU buffer, decode scheduler CPU-only). It aborts at the first graph with `pre-allocated tensor (leaf_14) in a buffer (HTP0) that cannot run the operation (NONE)`; some tensor still lives in the HTP buffer and I did not find it. **Not measured.** An estimate from the separate runs (NPU encode 2.0 s + CPU decode 11.3 s + load) would be about 15 s per chunk, but that is an estimate, not a result.
