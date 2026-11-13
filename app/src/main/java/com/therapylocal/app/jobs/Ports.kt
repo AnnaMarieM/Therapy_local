@@ -13,6 +13,13 @@ interface Llm : AutoCloseable {
 
     /** [schema] switches on constrained decoding for this call only. Returns the reply text. */
     fun ask(system: String, user: String, schema: String?, maxOutputTokens: Int, temperature: Double, topK: Int): String
+
+    /** True when this engine was loaded with the audio encoder, so [listen] works (Fast workflow, docs/AD/AD-22.md). */
+    val hearing: Boolean get() = false
+
+    /** One fresh conversation in which the model hears [pcm] (16 kHz mono, at most 30 s) and follows [system] and [user]. Returns the reply text. */
+    fun listen(system: String, user: String, pcm: ShortArray, maxOutputTokens: Int, temperature: Double, topK: Int): String =
+        throw UnsupportedOperationException("this engine has no audio input")
 }
 
 /** Text embeddings as stored documents (the embedder adds the document task prefix). */

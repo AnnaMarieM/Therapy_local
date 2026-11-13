@@ -154,12 +154,16 @@ class QaAppBackend(private val context: Context) : QaBackend {
         val e = QaEngines(app)
         return try {
             when (op) {
-                "transcribe" -> e.transcribe(file!!, QaArgs.optString(args, "language") ?: "en", args.optDouble("start_s", 0.0), if (args.has("dur_s")) args.optDouble("dur_s") else null, choice)
+                "transcribe" -> e.transcribe(
+                    file!!, QaArgs.optString(args, "language") ?: "en", args.optDouble("start_s", 0.0), if (args.has("dur_s")) args.optDouble("dur_s") else null, choice,
+                    QaArgs.optString(args, "engine") ?: "canary", args.optBoolean("translate", false), args.optInt("beam", 5).coerceIn(1, 8),
+                )
                 "diarize" -> e.diarize(file!!, args.optInt("speakers", 2), choice)
                 "embed" -> e.embed(args.optJSONArray("texts")?.let { t -> (0 until t.length()).map { t.optString(it) } } ?: listOf(args.getString("text")), args.optBoolean("query", false), args.optBoolean("vectors", false), choice)
                 "ask" -> e.ask(
                     args.optString("system", ""), args.getString("user"), args.opt("schema")?.takeIf { it != JSONObject.NULL }?.toString(),
                     args.optInt("max_tokens", 512).coerceIn(1, 4096), args.optDouble("temperature", 0.0), args.optInt("top_k", 1), choice,
+                    file, args.optDouble("start_s", 0.0), if (args.has("dur_s")) args.optDouble("dur_s") else null,
                 )
                 else -> throw QaException(QaCode.UNKNOWN_COMMAND, "unknown op")
             }
@@ -245,6 +249,7 @@ class QaAppBackend(private val context: Context) : QaBackend {
             val current = store.currentSpeakerMap(sid)?.let { SpeakerMaps.decode(it.mapJson) }.orEmpty()
             val segs = s.getJSONArray("segments")
             // The English working text of each segment when the pipeline translated it (AD-17), so a pivot run can be compared with a native one.
+            s.put("transcript_kind", store.transcriptKind(sid)).put("workflow", com.therapylocal.app.config.WorkflowSetting.get(app).key)
             val english = store.segmentTranslations(sid, "en")
             for (k in 0 until segs.length()) {
                 val g = segs.getJSONObject(k)
