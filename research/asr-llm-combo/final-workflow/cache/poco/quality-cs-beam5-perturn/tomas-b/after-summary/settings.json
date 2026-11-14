@@ -1,0 +1,16 @@
+{
+ "app_language": "en",
+ "backend_override": "auto",
+ "default_language": "en",
+ "gemma_variant": "e4b",
+ "keep_screen_awake": true,
+ "live_cue_interval_ms": 2000,
+ "live_cue_lookback_s": 20,
+ "live_cue_score_floor": 0,
+ "live_cue_smoothing": 0.5,
+ "processing_language": "english",
+ "summary_format": "soap",
+ "thermal_log": true,
+ "whisper_beam": 5,
+ "workflow": "quality-cs"
+}
