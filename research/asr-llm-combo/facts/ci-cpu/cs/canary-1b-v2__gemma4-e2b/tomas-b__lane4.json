@@ -1,0 +1,240 @@
+{
+ "round": "r1",
+ "engine": "canary-1b-v2",
+ "model": "gemma4-e2b",
+ "base_model": "gemma4-e2b",
+ "opts": {},
+ "lane": 4,
+ "client": "tomas-b",
+ "lang": "cs",
+ "seconds": 105.1,
+ "facts": [
+  {
+   "heading": "Úzkost se projevuje",
+   "content": "Úzkost se projevuje přesušenými rukama a srdcem.",
+   "evidence": "Čím se úzkost projevuje? Srdce to přesušené ruce, než to měl děloutku.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Manželka vidí změnu",
+   "content": "Manželka Tomas vidí, že úzkost je víc.",
+   "evidence": "Na začátku to brala jako člověk, teď už vidí, že je to víc.",
+   "scope": "Rodina a vztahy",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Příjem v kině",
+   "content": "Tomas čekal na kino 40 minut později.",
+   "evidence": "Včera jsme přišli na kino 40 minut později.",
+   "scope": "Historie a události",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Pocity v kině",
+   "content": "Tomas cítil se jako dítě, které nezvládne víc domů.",
+   "evidence": "Cítil jsem se jako dítě, který nezvládne víc domů.",
+   "scope": "Nálada a emoce",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Práce v Amonce",
+   "content": "Tomas pracuje jako dekář v Amonce.",
+   "evidence": "Pracujeme jako dekář v Amonce.",
+   "scope": "Práce a kariéra",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Omezování práce",
+   "content": "Tomas bojí se, že kolega se hlavy jdou na chyb.",
+   "evidence": "Bojím se, že kole se hlavy jdou na chyb, že v takém šikovném vodiču něco skoří.",
+   "scope": "Práce a kariéra",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Strach z práce",
+   "content": "Tomas má strach, že přijde do práce.",
+   "evidence": "Mám strach, že přijde do práce. Hlavně teď. Proč právě teď?",
+   "scope": "Nálada a emoce",
+   "category": "Nálada a emoce",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Myšlenka o ublížení",
+   "content": "Tomas má myšlenku, že jí a dítě ublíží.",
+   "evidence": "Jaká? Že jí a dítě tě ublíží. Ublíží to jak? Že bych chtěl.",
+   "scope": "Nálada a emoce",
+   "category": "Nálada a emoce",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Strach z samotného činu",
+   "content": "Tomas bojí se, že se to bude samo.",
+   "evidence": "Když krájím chleba, no už to je muškodlo, tak si bojím, že to bude samo.",
+   "scope": "Nálada a emoce",
+   "category": "Nálada a emoce",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Zabránění sdělení myšlenky",
+   "content": "Tomas neřekl o myšlence nikomu.",
+   "evidence": "A je to nejlepší, když jsem to nikomu neřekl, ani Barboře.",
+   "scope": "Zdroje a zvládání",
+   "category": "Zdroje a zvládání",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Vtiravé myšlenky",
+   "content": "Vtiravé myšlenky jsou časté u lidí s tímto typem potíží.",
+   "evidence": "Takové vtiravé myšlenky, jako u lidí s tímto typem potíží, jsou velmi časté.",
+   "scope": "Osobní témata a sebepojetí",
+   "category": "Osobní témata a sebepojetí",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Zlepšující strategie",
+   "content": "Kontrola pomáhá Tomasu uklidnit.",
+   "evidence": "Takže kontrola vám pomáhá uklidnit i tohle.",
+   "scope": "Zdroje a zvládání",
+   "category": "Zdroje a zvládání",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Spánek ve země",
+   "content": "Tomas spí ve země.",
+   "evidence": "Jak spíte? Spím ve země.",
+   "scope": "Zdraví, tělo a spánek",
+   "category": "Zdraví, tělo a spánek",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Kontrola smůr",
+   "content": "Tomas kontroluje smůr.",
+   "evidence": "Stávám v roce 2 a krát a kontroluji smůr, i když tam nic nestojí.",
+   "scope": "Zdroje a zvládání",
+   "category": "Zdroje a zvládání",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Procházky s Barbarou",
+   "content": "Tomas pomáhá na procházky s Barbarou.",
+   "evidence": "Pomáhám na procházky s Barbarou, protože je to pravda, něco, co mě nezaměstná.",
+   "scope": "Rodina a vztahy",
+   "category": "Rodina a vztahy",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Frekvence procházek",
+   "content": "Tomas jde na procházky dvakrát týdně.",
+   "evidence": "Procházky dvakrát týdně.",
+   "scope": "Zdroje a zvládání",
+   "category": "Zdroje a zvládání",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Cíl bez myšlenek",
+   "content": "Cílem je těšit se na dítě bez myšlenek.",
+   "evidence": "A těšit se na dítě bez těch myšlenek.",
+   "scope": "Cíle a plány",
+   "category": "Cíle a plány",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Léčba strachu",
+   "content": "Existuje léčba, která pomáhá s obavami.",
+   "evidence": "Víte, že existuje léčba, která tomu pomáhá.",
+   "scope": "Zdroje a zvládání",
+   "category": "Zdroje a zvládání",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Postupné rozhodování",
+   "content": "Léčba se zaměřuje na postupné rozhodování.",
+   "evidence": "Šlo by se po malých krocích, abyste o tempu rozhodoval.",
+   "scope": "Zdroje a zvládání",
+   "category": "Zdroje a zvládání",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Komunikace s Barborou",
+   "content": "Tomas se ptá, co by Barbora chtěla říct.",
+   "evidence": "Chtěl byste jí. Co byste jí chtěl říct? Že jí. A že se do toho zamilovat, abych ji nestratil.",
+   "scope": "Rodina a vztahy",
+   "category": "Rodina a vztahy",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Strach z přijetí Barby",
+   "content": "Tomas se bojí, že Barbora nebude chtít být s ním.",
+   "evidence": "Začali bychom třeba jen tím, že zkontrolujete dveře jenom jednou, ne třikrát. To vnímám, ale to je pro mě velká.",
+   "scope": "Rodina a vztahy",
+   "category": "Rodina a vztahy",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Zkouška sezení",
+   "content": "Tomas byl požádán o zkoušku.",
+   "evidence": "Když odcházíte z bitvu, zkontrolujte veřejnou měnu a zapište si, jak moc vám bylo úzko.",
+   "scope": "Zdroje a zvládání",
+   "category": "Zdroje a zvládání",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Zkusím něco nového",
+   "content": "Tomas se snaží něco nového.",
+   "evidence": "I jednou. Zkusím to. Aspoň jednou.",
+   "scope": "session",
+   "category": "Osobní témata a sebepojetí",
+   "part": 3,
+   "quote_found": true
+  }
+ ],
+ "lines": [
+  "Dobrý den, pane Barto, pojďte dál. Jak se vám dnes daří? Dobrý den. Docela jsem nervózní, jestli mám být upřímný. Nikdy jsem psychologa nebyl. To je naprosto v pořádku. Co vás přivádí? Manželka říká, že už to takhle nejde. A to vlastně taky ne. Co nejde?",
+  "Předskrás večer kontroluje, jestli jsem zavřel dveře a vypnul sporák. Trvá mi to hodinu, než tady už zbytu. Hodinu? Jak to vypadá? Zamknu dveře. Odry, likvítal. Vrátím se a zatáhnu za chviku. Páč kontroluje sporák, každý knu v těch zvlášť. Pojďme se dveře. A když to udělá, tak co zase?",
+  "Chvilku jsem se neobavil. Pak se mi do hlavy přidal obraz, že jsem to nevydal pořádně a musím jít dolů. Co je to za obraz? Bech v plamenech. Vidím to jasně jako film. Jak často se vám to stává? Každý den. Večeře je to nejhorší, když jdeme ven nebo spát. Ráno také.",
+  "Jak dlouho už to trvá? Začalo to před dvěma lety, kdy hořelo u sousedů a muselo evakuovat. Řekněte na tom víc. Bylo to noc. První byl mi alarm. Na chodbě byl koluš a lidé křičkali. Vyvělali jsme jenom v běženech. Jak vám tehdy bylo?",
+  "že tohle je konec. Jenom nebyl zraněn, ale soused nám to vyhrál celá. Stal jsem venku země, jako v okraji horí okna. A od té doby? Od té doby mám pocit, že to budu způsobovat, že když něco neskontroluji, tak se to stane a budu vynáněn. To je velká zodpovědnost.",
+  "Já bych měl to nedávat smysl. Znám člověka. Přesto se to nedá lepnout. Co děláte, když to nechcete dělat? No zkusím to nechat. Pak mě roztí úzkost, až mám pocit, že se zblázním. Radši to udělám.",
+  "Čím se úzkost projevuje? Srdce to přesušené ruce, než to měl děloutku. Kdo o tom ví? Barbara. Moje manželka. Na začátku to brala jako člověk, teď už vidí, že je to víc. Jak na to reaguje? Jo, trpěla dlouho, ale vidím, že ji to vyčerpává.",
+  "Včera jsme přišli na kino 40 minut později. Co se stalo? Čekala venku, než se vrátím a skončila jsi pořád po třetím. Řekla něco, se na mě bál. Jak vám bylo? Ano. Cítil jsem se jako dítě, který nezvládne víc domů.",
+  "Co dělat za práci? Pracujeme jako dekář v Amonce. Mám rozhovory v detailech a občas v rodinných domech. Je to souvisí s kontrolováním. Hodně. Bojím se, že kole se hlavy jdou na chyb, že v takém šikovném vodiču něco skoří. Stalo se něco takového?",
+  "Ne, nikde. No to každá kasa se vrací na kontrolu. Jdu se vrátit první den a něco podívat. A kolegové? Myslím si, že jsem pečat. Česka říká, že jsem nejpečtější v firmě, ale neví, kolik času to stojí. Kolik času to stojí?",
+  "Poslední přistěh smí dlouho práce o hodinu víc než mě. Už jsem pár zakázek přil, kolik to je, proč jsem to dnes dělal. Co to s vámi dělá? Mám strach, že přijde do práce. Hlavně teď. Proč právě teď? A bylo raděno, že ve čtvrté měsíce.",
+  "Gratuluji, jsi to přijal. To už jsem šťastný, opravdu. Čekali jsme na to čeroké, a pak přišla další myšlenka. Jaká? Že jí a dítě tě ublíží. Ublíží to jak? Že bych chtěl. To je hrozné, někde bych to neměl. Ale ta myšlenka přijde.",
+  "Když krájím chleba, no už to je muškodlo, tak si bojím, že to bude samo. Takže je to myšlenka, která vás děsí. A je to nejlepší, když jsem to nikomu neřekl, ani Barboře. Děkuji, že jste mi to řekl, to je důležité.",
+  "Myslíte, že jsem nebezpečný? Takové vtiravé myšlenky, jako u lidí s tímto typem potíží, jsou velmi časté. Hlavně, když se blíží velká změna. Nejsou důkazem, že byste něco udělali. Jejich síla je právě v tom, jak vás děsí.",
+  "To by pomohlo. Často chce čas, než tomu věří. Rozumím. Co děláte, když se ta myšlenka objeví? Odejdu do místnosti. Nebo se vrátím a zkontroluji něco, aby to přestalo. Takže kontrola vám pomáhá uklidnit i tohle.",
+  "Vlastně ne, nikdy mě nenapadlo, že je to způsobující. Jak spíte? Spím ve země. Stávám v roce 2 a krát a kontroluji smůr, i když tam nic nestojí. Pomáhám vám něco. Pomáhám na procházky s Barbarou, protože je to pravda, něco, co mě nezaměstná.",
+  "Jak často to děláte? Procházky dvakrát týdně. No pravé, ne šetř. Co by pro vás znamenalo, kdyby se to zlepšilo? Odejít bez toho za pět minut. A těšit se na dítě bez těch myšlenek.",
+  "To jsou jasné cíle. Víte, že existuje léčba, která tomu pomáhá? Slyšel jsem terapii, se člověk postupně stává tomu, čeho se bojí. Měl jsem z toho strach. Strach je pochopitelný. Šlo by se po malých krocích, abyste o tempu rozhodoval.",
+  "To je uklidňující. Myslel jsem, že mě někdo donutí nechat otevřené dveře odejít. Tak to ne. Začali bychom třeba jen tím, že zkontrolujete dveře jenom jednou, ne třikrát. To vnímám, ale to je pro mě velká.",
+  "Velké kroky začínají malými. Řekl jste něco důležitého o Barboře. Chtěl byste jí. Co byste jí chtěl říct? Že jí. A že se do toho zamilovat, abych ji nestratil. Zatím se bojím, že byste se mnou nechtěla být.",
+  "Co si myslíte, že by řekla? Že by mě odjela. Ona je taková. Pak možná stojí za to jí říct alespoň část. Co kdybyste jí řekl, že jste tu byl a co jste se dozvěděl? Taková.",
+  "Ček myšlenka ještě. To je v pořádku. Tempo určujete vy. Jak jo? To bylo mnohem víc, než jsem čekal. Do příště zkuste jednu věc. Když odcházíte z bitvu, zkontrolujte veřejnou měnu a zapište si, jak moc vám bylo úzko.",
+  "I jednou. Zkusím to. Aspoň jednou. A zapíšu číslo od 1 do 10. Přesně tak. Pro dnešek tedy skončíme. Jak je? Uvidíme se příští týden."
+ ]
+}

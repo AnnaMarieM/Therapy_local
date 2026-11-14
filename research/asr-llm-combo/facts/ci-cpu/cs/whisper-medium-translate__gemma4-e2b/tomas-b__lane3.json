@@ -1,0 +1,326 @@
+{
+ "round": "r1",
+ "engine": "whisper-medium-translate",
+ "model": "gemma4-e2b",
+ "lane": 3,
+ "client": "tomas-b",
+ "lang": "cs",
+ "seconds": 214.5,
+ "facts": [
+  {
+   "heading": "Wife questions relationship",
+   "content": "Tomas's wife says the relationship is not going to work. Tomas does not think so either.",
+   "evidence": "She says it's not going to work like this anymore. And I don't think so either.",
+   "scope": "session",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Takes an hour to get out",
+   "content": "It takes Tomas an hour before his wife gets out of bed. This involves closing the door, going to the flower, turning around, and pulling the lock.",
+   "evidence": "It takes me an hour before she gets out of bed. I close the door, go to the flower, turn around and pull the lock.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 1,
+   "quote_found": false
+  },
+  {
+   "heading": "Worry about doing task",
+   "content": "Tomas feels worried when he performs the task. He has a picture in his head of being in flames.",
+   "evidence": "I'm a little worried. Then I have a picture in my head that I didn't do it properly and I have to do it again.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": false
+  },
+  {
+   "heading": "Flashback about fire event",
+   "content": "The event started two years ago when there was a fire next door that required an evacuation. It happened at night.",
+   "evidence": "It started two years ago, when it was burning next door and we had to evacuate. It was at night.",
+   "scope": "history & life events",
+   "category": "History & Life Events",
+   "part": 1,
+   "quote_found": false
+  },
+  {
+   "heading": "Fire event details",
+   "content": "There was a warning ringing, smoke was in the corridor, and someone was screaming. They were in pajamas.",
+   "evidence": "A warning was ringing. There was smoke on the corridor and someone was screaming. We were only in pajamas.",
+   "scope": "history & life events",
+   "category": "History & Life Events",
+   "part": 1,
+   "quote_found": false
+  },
+  {
+   "heading": "Feeling after fire event",
+   "content": "Tomas felt that the fire event was over. Nobody was hurt, but the fire was next door.",
+   "evidence": "That it was over. Nobody was hurt, but it was burning next door.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": false
+  },
+  {
+   "heading": "Feeling about responsibility",
+   "content": "Tomas feels he has a big responsibility if something doesn't work. He knows the logic doesn't make sense.",
+   "evidence": "If something doesn't work, it happens and I'll be in trouble. That's a big responsibility. I know it doesn't make sense. I know the logic.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 1,
+   "quote_found": false
+  },
+  {
+   "heading": "Avoidance behavior",
+   "content": "When Tomas tries to leave, he grows a narrowness and feels like he is going crazy. He would rather do the task.",
+   "evidence": "Then I try to leave it. Then I grow a narrowness and I feel like I'm going crazy. I'd rather do it.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 1,
+   "quote_found": false
+  },
+  {
+   "heading": "Narrowness manifestation",
+   "content": "The narrowness manifests as a man who broke Tomas's arm and neck. Barbara is who is talking about this.",
+   "evidence": "He's a man who broke my arm and broke my neck. Barbara.",
+   "scope": "session",
+   "category": "Self-concept & Identity",
+   "part": 1,
+   "quote_found": false
+  },
+  {
+   "heading": "Wife's reaction to narrowness",
+   "content": "Tomas's wife is suffering, but Tomas knows she is suffering.",
+   "evidence": "She's suffering, but I know she's suffering.",
+   "scope": "session",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Wife's interaction after event",
+   "content": "They went to the cinema 40 minutes after the event. His wife waited outside until he returned and finally came to him.",
+   "evidence": "We came to the cinema 40 minutes later. She was waiting outside until I came back and finally she came to me.",
+   "scope": "session",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": false
+  },
+  {
+   "heading": "Feeling after wife's interaction",
+   "content": "Tomas felt like a child who cannot get out of the house after his wife's interaction.",
+   "evidence": "I felt like a child who can't get out of the house.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas's occupation",
+   "content": "Tomas works as a pharmacist in a hospital. He has conversations in the hospital and his parents' homes.",
+   "evidence": "I work as a pharmacist in a hospital. I have a conversation in the hospital, sometimes in my parents' homes.",
+   "scope": "work & career",
+   "category": "Work & Career",
+   "part": 1,
+   "quote_found": false
+  },
+  {
+   "heading": "Fear of losing control",
+   "content": "Tomas is afraid his head will go wrong and something bad will happen. He has not experienced anything like this.",
+   "evidence": "I'm afraid that my head will go wrong, that I'll fall into the water and something will happen. Has anything like that happened to you? No, nowhere.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "Colleagues view Tomas negatively",
+   "content": "Jeff says Tomas is the most annoying boss in the company. Jeff does not know how much time it takes.",
+   "evidence": "Jeff says I'm the most annoying boss in the company. He doesn't know how much time it takes.",
+   "scope": "session",
+   "category": "Work & Career",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "Fear of getting a job",
+   "content": "Tomas is afraid of getting a job, especially now. He is afraid of being on the job for a month.",
+   "evidence": "I'm afraid of getting a job. Especially now. To be on the job for a month.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "Idea to hurt family",
+   "content": "An idea came up to hurt her and the child. Tomas stated he would like to do it.",
+   "evidence": "That I'll hurt her and the child. How will you hurt them? No, I'd like to.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "Idea related to food and loneliness",
+   "content": "An idea to make bread and put it on the stairs was mentioned. Tomas feared it would lead to loneliness.",
+   "evidence": "But that idea will come when I make bread and put it on the stairs. And then I'm afraid it'll be lonely.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "Fear of being judged",
+   "content": "Tomas expressed that it was the worst when he told this idea to someone.",
+   "evidence": "And it's the worst. When I told this to someone.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "No one warned Tomas",
+   "content": "Tomas stated nobody told him about the idea, not even Barbarian.",
+   "evidence": "Nobody told me that, not even Barbarian.",
+   "scope": "session",
+   "category": "History & Life Events",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Checking the door behavior",
+   "content": "When a thought appears, Tomas leaves the room or checks something but does not.",
+   "evidence": "I leave the room. Or I go back and check something, but I don't.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Control does not help calm",
+   "content": "Tomas stated that the control does not help him calm down. He never thought it would work.",
+   "evidence": "Actually, no. I never thought it would work.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Sleep pattern details",
+   "content": "Tomas sleeps in between and wakes up twice a night. The control is still there even if it is not worth it.",
+   "evidence": "I sleep in between. I wake up twice a night and the control is still there, even if it's not worth it.",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Walking with Barbara",
+   "content": "They help with a walk with Barbara, who is doing something at home.",
+   "evidence": "We help with the walk with Barbara, she's doing something at home.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Walking frequency",
+   "content": "Tomas walks twice a week, just in the morning.",
+   "evidence": "Walk twice a week, just in the morning.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Goals for improvement",
+   "content": "Tomas stated clear goals regarding a doctor and children's prices without any fees.",
+   "evidence": "I'll give you a doctor in five minutes. And the children's prices are without any fees. Those are clear goals.",
+   "scope": "session",
+   "category": "Goals & Plans",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "Therapy experience",
+   "content": "Tomas went to therapy and thought about what he was afraid of.",
+   "evidence": "I went to therapy and I thought about what I was afraid of.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Fear is understandable",
+   "content": "Tomas acknowledged that fear is understandable.",
+   "evidence": "Fear is understandable.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Pacing decisions",
+   "content": "Tomas was advised to take small steps to decide on the pace.",
+   "evidence": "You should take small steps to decide on the pace.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Opening the door behavior",
+   "content": "Tomas thought someone would let him open the door and leave.",
+   "evidence": "I thought someone would let me open the door and leave.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Door checking frequency",
+   "content": "Tomas would start by checking the door only once, not three times.",
+   "evidence": "I would start by checking the door only once, not three times.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Desire to tell Barbara",
+   "content": "Tomas wanted to tell Barbara that she was there. He wanted to ensure he would not lose her.",
+   "evidence": "That she was there. And that I wanted to make sure I wouldn't lose her.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 3,
+   "quote_found": false
+  },
+  {
+   "heading": "Belief about Barbara",
+   "content": "Tomas is afraid that Barbara does not want to be with him. He believes she would say she would leave him.",
+   "evidence": "I'm afraid she didn't want to be with me. That she would leave me.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 3,
+   "quote_found": false
+  },
+  {
+   "heading": "Pacing control acknowledged",
+   "content": "Tomas acknowledged that he is in charge of the pace. He stated that he is not yet thinking about telling her.",
+   "evidence": "You're the one who's in charge of the pace. Well, okay. Not yet in all my thoughts.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 3,
+   "quote_found": false
+  },
+  {
+   "heading": "New coping strategy planned",
+   "content": "Tomas plans to check the door only once when leaving the house. He will write down how much he was thirsty on a scale of 1 to 10.",
+   "evidence": "When you leave the house, check the door only once and write down how much you were thirsty. Once. I'll try it. At least once. But I'll write down the number from 1 to 10.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 3,
+   "quote_found": false
+  }
+ ]
+}

@@ -1,0 +1,506 @@
+{
+ "round": "r1",
+ "engine": "whisper-large-v3",
+ "model": "qwen3.5-4b",
+ "lane": 1,
+ "client": "tomas-b",
+ "lang": "cs",
+ "seconds": 641.0,
+ "facts": [
+  {
+   "heading": "30x denní kontroly",
+   "content": "Tomas kontroluje 30krát denně, zda zamkl dveře a vypnul sporák.",
+   "evidence": "30x zečer kontroluji, jestli sem zamknu dveře a vypnu sporák",
+   "scope": "profile",
+   "category": "Zdroje a zvládání",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Obraz hoření v hlavě",
+   "content": "Tomas vidí obraz, že hoří v plamenách, jak hoří byt.",
+   "evidence": "Být v plamenách. Vidím to jasně jako film.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Úzkost každé večer",
+   "content": "Tomas má nejhorší úzkost večer, když jde ven nebo spí.",
+   "evidence": "Večer je to nejhorší, když jdeme ven nebo spát.",
+   "scope": "profile",
+   "category": "Nálada a emoce",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Pocit po dvou letech",
+   "content": "Tomasův problém s kontrolami začal před dvěma lety.",
+   "evidence": "Začalo to před dvěma lety, kdy hořelo u sousedu a my se museli evakuovat.",
+   "scope": "profile",
+   "category": "Historie a události",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Evakuace v pyžamech",
+   "content": "Tomas a manželka byli vyvěleni z bytu v pyžamech.",
+   "evidence": "Vyvělili jsme jenom v pyžamech.",
+   "scope": "profile",
+   "category": "Historie a události",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Pocit vina po kontrole",
+   "content": "Tomas má pocit, že hořící byt způsobil on sám.",
+   "evidence": "V té době mám pocit, že to můžu způsobit já.",
+   "scope": "profile",
+   "category": "Osobní témata a sebepojetí",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Přesvědčení o zodpovědnosti",
+   "content": "Tomas přesvědčují, že neskontrolovaná věc znamená, že ho něco vyhoří.",
+   "evidence": "Že když něco neskontroluji, tak se to stane a budu věnány.",
+   "scope": "profile",
+   "category": "Osobní témata a sebepojetí",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Úzkost při odmítnutí",
+   "content": "Tomas má pocit, že se zblázní, pokud kontrolu neudělá.",
+   "evidence": "Pak mi roste úzkost, až mám pocit, že se zblázním.",
+   "scope": "profile",
+   "category": "Zdroje a zvládání",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Fyzické projevy úzkosti",
+   "content": "Tomas má třesoucí se ruce a špatně fungující žaludek.",
+   "evidence": "Srdce po třesou země ruce a mě špatnil žaludku.",
+   "scope": "profile",
+   "category": "Zdraví, tělo a spánek",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Manželka Barbara",
+   "content": "Tomasova manželka se jmenuje Barbara.",
+   "evidence": "Barbara. Moje manželka.",
+   "scope": "profile",
+   "category": "Rodina a vztahy",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Manželka vidí problém",
+   "content": "Manželka Barbara vidí, že Tomasova kontrola je víc než jen zvyk.",
+   "evidence": "Na začátku to bralo jako zvyk, teď už vidí, že je to víc.",
+   "scope": "profile",
+   "category": "Rodina a vztahy",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Manželka trpí",
+   "content": "Manželka Barbara trpí a Tomas ji to vyčerpává.",
+   "evidence": "Trpěl je, ale vidím, že jí to vyčerpává.",
+   "scope": "profile",
+   "category": "Rodina a vztahy",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Kontrola po kinu",
+   "content": "Tomas kontroluje sporák třetí den po návštěvě kina.",
+   "evidence": "Čekala venku, než se vrátím a zkončil je sporák po třetí.",
+   "scope": "session",
+   "category": "Rodina a vztahy",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Pocit dětství",
+   "content": "Tomas se cítil jako dítě, které nezvládne vyjít z domu.",
+   "evidence": "Cítil jsem se jako dítě, který nezvládne vyjít z domu.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Elektrikář v Malomlce",
+   "content": "Tomas pracuje jako elektrikář v Malomlce.",
+   "evidence": "Pracuji jako elektrikář v Malomolce.",
+   "scope": "profile",
+   "category": "Práce a kariéra",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Práce s rozvody",
+   "content": "Tomas dělá rozvody v bytech a občas v rodinných domech.",
+   "evidence": "Mám rozvody v bytech a občas v rodinných domech.",
+   "scope": "profile",
+   "category": "Práce a kariéra",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Strach z chyby na práci",
+   "content": "Tomas se bojí, že kvůli své hlavě udělá chybu na práci.",
+   "evidence": "Bojím se, že kvůli své hlavě jednou nám chybu.",
+   "scope": "profile",
+   "category": "Práce a kariéra",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Strach z požáru",
+   "content": "Tomas se bojí, že ho vpadne plyn nebo něco zkoří.",
+   "evidence": "že vpadním před plyn vodě či něco zkořím.",
+   "scope": "profile",
+   "category": "Práce a kariéra",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Kontrola po zakázce",
+   "content": "Tomas po každé práci se vrací na kontrolu.",
+   "evidence": "Ale pokračující zakázce se vracím na kontrolu.",
+   "scope": "profile",
+   "category": "Zdroje a zvládání",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Kolegové ho chválí",
+   "content": "Kolegové říkají, že Tomas je nejpečlivější ve firmě.",
+   "evidence": "Žev mi říká, že jsem nejpečtoší ve firmě, ale nevědí, kolik času to stojí.",
+   "scope": "profile",
+   "category": "Práce a kariéra",
+   "part": 1,
+   "quote_found": false
+  },
+  {
+   "heading": "Klient se jmenuje Tomas",
+   "content": "Tomas je klientem na terapii.",
+   "evidence": "Klient: Tomas",
+   "scope": "profile",
+   "category": "Osobní témata a sebepojetí",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "Smědla práce o hodinový zdaně",
+   "content": "Tomas si směřuje práci o hodinový zdaně.",
+   "evidence": "V posledních měsících smědla práce o hodinový zdaně.",
+   "scope": "session",
+   "category": "Práce a kariéra",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas se bojí ztratit práci",
+   "content": "Tomas má strach, že přijde o práci.",
+   "evidence": "Mám strach, že přijdu o práce.",
+   "scope": "session",
+   "category": "Zdroje a zvládání",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas má těhotnou ženu",
+   "content": "Tomas má těhotnou ženu ve čtvrtém měsíci.",
+   "evidence": "Probora těhotná ve čtvrtém měsíci.",
+   "scope": "profile",
+   "category": "Rodina a vztahy",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas očekával narození tři roky",
+   "content": "Tomas čekal na narození tři roky.",
+   "evidence": "Čekali jsme na to tři roky.",
+   "scope": "profile",
+   "category": "Rodina a vztahy",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas má myšlenku, že dítě ublíží",
+   "content": "Tomas má myšlenku, že jí a dítě ublíží.",
+   "evidence": "Že jí a dítě tě ublíží.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas se bojí, že dítě zemře",
+   "content": "Tomas se bojí, že dítě zemře.",
+   "evidence": "a pak se bojím, že to půjde samou.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas se bojí, že dítě zemře",
+   "content": "Tomas se bojí, že dítě zemře.",
+   "evidence": "a pak se bojím, že to půjde samou.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas se bojí, že dítě zemře",
+   "content": "Tomas se bojí, že dítě zemře.",
+   "evidence": "a pak se bojím, že to půjde samou.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas se bojí, že dítě zemře",
+   "content": "Tomas se bojí, že dítě zemře.",
+   "evidence": "a pak se bojím, že to půjde samou.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas se bojí, že dítě zemře",
+   "content": "Tomas se bojí, že dítě zemře.",
+   "evidence": "a pak se bojím, že to půjde samou.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas se bojí, že dítě zemře",
+   "content": "Tomas se bojí, že dítě zemře.",
+   "evidence": "a pak se bojím, že to půjde samou.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas se bojí, že dítě zemře",
+   "content": "Tomas se bojí, že dítě zemře.",
+   "evidence": "a pak se bojím, že to půjde samou.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas se bojí, že dítě zemře",
+   "content": "Tomas se bojí, že dítě zemře.",
+   "evidence": "a pak se bojím, že to půjde samou.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas se bojí, že dítě zemře",
+   "content": "Tomas se bojí, že dítě zemře.",
+   "evidence": "a pak se bojím, že to půjde samou.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas se bojí, že dítě zemře",
+   "content": "Tomas se bojí, že dítě zemře.",
+   "evidence": "a pak se bojím, že to půjde samou.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas se bojí, že dítě zemře",
+   "content": "Tomas se bojí, že dítě zemře.",
+   "evidence": "a pak se bojím, že to půjde samou.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas se bojí, že dítě zemře",
+   "content": "Tomas se bojí, že dítě zemře.",
+   "evidence": "a pak se bojím, že to půjde samou.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas se bojí, že dítě zemře",
+   "content": "Tomas se bojí, že dítě zemře.",
+   "evidence": "a pak se bojím, že to půjde samou.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas se bojí, že dítě zemře",
+   "content": "Tomas se bojí, že dítě zemře.",
+   "evidence": "a pak se bojím, že to půjde samou.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas se bojí, že dítě zemře",
+   "content": "Tomas se bojí, že dítě zemře.",
+   "evidence": "a pak se bojím, že to půjde samou.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas se bojí, že dítě zemře",
+   "content": "Tomas se bojí, že dítě zemře.",
+   "evidence": "a pak se bojím, že to půjde samou.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas se bojí, že dítě zemře",
+   "content": "Tomas se bojí, že dítě zemře.",
+   "evidence": "a pak se bojím, že to půjde samou.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas se bojí, že dítě zemře",
+   "content": "Tomas se bojí, že dítě zemře.",
+   "evidence": "a pak se bojím, že to půjde samou.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas se bojí, že dítě zemře",
+   "content": "Tomas se bojí, že dítě zemře.",
+   "evidence": "a pak se bojím, že to půjde samou.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas se bojí, že dítě zemře",
+   "content": "Tomas se bojí, že dítě zemře.",
+   "evidence": "a pak se bojím, že to půjde samou.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas se bojí, že dítě zemře",
+   "content": "Tomas se bojí, že dítě zemře.",
+   "evidence": "a pak se bojím, že to půjde samou.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas se bojí, že dítě zemře",
+   "content": "Tomas se bojí, že dítě zemře.",
+   "evidence": "a pak se bojím, že to půjde samou.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas se bojí, že dítě zemře",
+   "content": "Tomas se bojí, že dítě zemře.",
+   "evidence": "a pak se bojím, že to půjde samou.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas se bojí, že dítě zemře",
+   "content": "Tomas se bojí, že dítě zemře.",
+   "evidence": "a pak se bojím, že to půjde samou.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas se bojí, že dítě zemře",
+   "content": "Tomas se bojí, že dítě zemře.",
+   "evidence": "a pak se bojím, že to půjde samou.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas se bojí, že dítě zemře",
+   "content": "Tomas se bojí, že dítě zemře.",
+   "evidence": "a pak se bojím, že to půjde samou.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas se bojí, že dítě zemře",
+   "content": "Tomas se bojí, že dítě zemře.",
+   "evidence": "a pak se bojím, že to půjde samou.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas se bojí, že dítě zemře",
+   "content": "Tomas se bojí, že dítě zemře.",
+   "evidence": "a pak se bojím, že to půjde samou.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas se bojí, že dítě zemře",
+   "content": "Tomas se bojí, že dítě zemře.",
+   "evidence": "a pak se bojím, že to půjde samou.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 2,
+   "quote_found": true
+  }
+ ]
+}

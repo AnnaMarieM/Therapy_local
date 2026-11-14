@@ -62,6 +62,17 @@
     <string name="settings_value_seconds">%1$d s</string>
     <string name="settings_value_seconds_decimal">%1$.1f s</string>
     <string name="settings_value_decimal">%1$.2f</string>
+    <string name="settings_group_workflow">Processing workflow</string>
+    <string name="settings_workflow_intro">How a recording is turned into facts. The choice applies to sessions processed after it.</string>
+    <string name="settings_workflow_fast">Fast</string>
+    <string name="settings_workflow_fast_body">One model listens to each turn and reads the English. Keeps a transcript in the language spoken.</string>
+    <string name="settings_workflow_quality">Quality</string>
+    <string name="settings_workflow_quality_cs">Quality, Czech kept</string>
+    <string name="settings_workflow_quality_cs_body">Whisper writes the transcript in the language spoken, the larger model translates it to English and reads that.</string>
+    <string name="settings_workflow_quality_body">Whisper writes English from the audio and the larger model reads it. There is no transcript in the language spoken.</string>
+    <string name="settings_workflow_canary">Standard (Canary)</string>
+    <string name="settings_workflow_canary_body">The speech recogniser from before the two workflows, then translation to English.</string>
+    <string name="transcript_english_only_note">This transcript is in English only. The Quality workflow writes English straight from the audio, so there is no text in the language spoken.</string>
     <string name="settings_model_intro">The model that reads sessions. Suggested for this phone: %1$s.</string>
     <string name="settings_model_remove_unused">Remove the unused one (%1$s, %2$s)</string>
     <string name="settings_model_remove_title">Remove %1$s?</string>

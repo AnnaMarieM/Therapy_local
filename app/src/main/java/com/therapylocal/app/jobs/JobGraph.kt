@@ -6,7 +6,10 @@ import com.therapylocal.app.data.JobStatus
 /**
  * The job graph of a session, and the one place that adds its jobs to the queue:
  *
- *   transcribe(recording) -> roles(session) -> window(session) -> extract(session, 1..n) -> commit(session) -> cleanup(recording)
+ *   transcribe(recording) -> translate(session) -> roles(session) -> window(session) -> extract(session, 1..n) -> commit(session) -> cleanup(recording)
+ *
+ * [TRANSLATE] puts the transcript into English for every job after it (docs/AD/AD-17.md); it does nothing for an English client or in the native
+ * processing mode. A queue written before it existed has no translate job: those sessions are processed as before.
  *
  * [ROLES] guesses who is the therapist once the speakers are known. A queue written before it existed holds transcribe -> window without it: those
  * sessions are processed as before and get no role guess.
@@ -18,6 +21,7 @@ import com.therapylocal.app.data.JobStatus
  */
 object JobGraph {
     const val TRANSCRIBE = "transcribe"
+    const val TRANSLATE = "translate"
     const val ROLES = "roles"
     const val WINDOW = "window"
     const val EXTRACT = "extract"
@@ -30,10 +34,17 @@ object JobGraph {
      */
     const val SUMMARY = "summary"
 
+    /**
+     * Translates what is shown into the app language (docs/AD/AD-17.md): the facts and the summary of the session. Not part of the chain above, so
+     * a failed one never blocks the facts. Queued at the end of the commit and of the summary job, and for every session after an app language switch.
+     */
+    const val LOCALIZE = "localize"
+
     /** After a recording has stopped and every chunk is saved. Returns the window job. */
     fun enqueueRecording(queue: JobQueue, session: String, recording: Long): Long {
         val transcribe = queue.enqueue(TRANSCRIBE, session, recording)
-        val roles = queue.enqueue(ROLES, session, recording, dependsOn = listOf(transcribe))
+        val translate = queue.enqueue(TRANSLATE, session, recording, dependsOn = listOf(transcribe))
+        val roles = queue.enqueue(ROLES, session, recording, dependsOn = listOf(translate))
         return queue.enqueue(WINDOW, session, recording, dependsOn = listOf(roles))
     }
 
@@ -41,7 +52,13 @@ object JobGraph {
     fun enqueueSummary(queue: JobQueue, session: String, after: List<Long> = emptyList()): Long = queue.enqueue(SUMMARY, session, dependsOn = after)
 
     /** A session whose segments are already stored (the developer harness imports text transcripts): no audio, no cleanup. */
-    fun enqueueTranscript(queue: JobQueue, session: String): Long = queue.enqueue(WINDOW, session)
+    fun enqueueTranscript(queue: JobQueue, session: String): Long {
+        val translate = queue.enqueue(TRANSLATE, session)
+        return queue.enqueue(WINDOW, session, dependsOn = listOf(translate))
+    }
+
+    /** Queues the translation of what is shown for [session] (once: an unfinished one is reused). [after] are jobs that must finish first. */
+    fun enqueueLocalize(queue: JobQueue, session: String, after: List<Long> = emptyList()): Long = queue.enqueue(LOCALIZE, session, dependsOn = after)
 
     /**
      * At startup: a session's recording that no job refers to was cut off (process killed) before its jobs were queued. Any job counts, not

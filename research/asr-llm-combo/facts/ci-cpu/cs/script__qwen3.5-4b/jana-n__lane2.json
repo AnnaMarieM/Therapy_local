@@ -1,0 +1,416 @@
+{
+ "round": "r1",
+ "engine": "script",
+ "model": "qwen3.5-4b",
+ "lane": 2,
+ "client": "jana-n",
+ "lang": "cs",
+ "seconds": 541.7,
+ "facts": [
+  {
+   "heading": "Rozvod manželství",
+   "content": "Jana se rozvedla s manželem Radkem po patnácti letech manželství.",
+   "evidence": "Po patnácti letech manželství jsme se s manželem Radkem rozhodli pro rozvod.",
+   "scope": "profile",
+   "category": "Rodina a vztahy",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Rozvod oznámen v září",
+   "content": "Manžel Radk Jana oznámil rozvod v září po dovolené v Chorvatsku.",
+   "evidence": "v září mi řekl, že už to takhle dál nejde.",
+   "scope": "session",
+   "category": "Historie a události",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana se snažila ignorovat",
+   "content": "Jana se snažila ignorovat problémy s manželem a uklízela jako by se nic nedělo.",
+   "evidence": "Pak jsem šla uklidit nádobí, jako by se nic nedělo.",
+   "scope": "profile",
+   "category": "Osobní témata a sebepojetí",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana se cítí zlostně a prázdně",
+   "content": "Jana střídá pocity prázdna a zlosti několikrát denně.",
+   "evidence": "Prázdno. A pak zlost. Pak zase prázdno. Střídá se to několikrát denně.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana si myslí, že je slepá",
+   "content": "Jana si myslí, že si nevšimla vzdalování manžela a byla slepá.",
+   "evidence": "Že jsem to měla vidět. Že jsem slepá.",
+   "scope": "profile",
+   "category": "Osobní témata a sebepojetí",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana hledá chybu ve svém životě",
+   "content": "Jana se vrací v hlavě a hledá chybu, kterou udělala ve svém životě.",
+   "evidence": "Pořád se v hlavě vracím a hledám, kde jsem udělala chybu.",
+   "scope": "session",
+   "category": "Osobní témata a sebepojetí",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana si myslí, že byla moc unavená",
+   "content": "Jana si myslí, že byla v minulosti moc unavená a nezajímala se o manžela.",
+   "evidence": "Jednou si myslím, že jsem byla moc unavená a nezajímala jsem se o něj.",
+   "scope": "profile",
+   "category": "Osobní témata a sebepojetí",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana si myslí, že se starala moc",
+   "content": "Jana si myslí, že v minulosti o manžela starala moc.",
+   "evidence": "jindy zase, že jsem se starala moc.",
+   "scope": "profile",
+   "category": "Osobní témata a sebepojetí",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana se trápí kvůli dětem",
+   "content": "Jana se nejvíce trápí kvůli dvěma dětem, Aničce a Matějovi.",
+   "evidence": "A hlavně kvůli dětem.",
+   "scope": "profile",
+   "category": "Rodina a vztahy",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana nevím, jak říct dětem pravdu",
+   "content": "Jana nevím, jak říct dětem pravdu o rozvodu, ať už spolu nebo samostatně.",
+   "evidence": "nevím, jak jim to říct.",
+   "scope": "session",
+   "category": "Rodina a vztahy",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana ještě dětem neřekla pravdu",
+   "content": "Jana ještě dětem neřekla pravdu o rozvodu, ať už spolu nebo samostatně.",
+   "evidence": "Ještě jste jim to neřekla?",
+   "scope": "session",
+   "category": "Rodina a vztahy",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana lhala dětem o hádkách",
+   "content": "Jana lhala své dceři Aničce, že se s manželem nehádá.",
+   "evidence": "Řekla jsem, že ne.",
+   "scope": "session",
+   "category": "Rodina a vztahy",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana se cítila hrozně kvůli lži",
+   "content": "Jana se cítila hrozně, když jí dceři Aničce lhala o hádkách.",
+   "evidence": "Cítila jsem se hrozně.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana se bojí, že jí život ubližuje",
+   "content": "Jana se bojí, že jí rozvod ubližuje život dceři Aničce.",
+   "evidence": "Že jí ničím život.",
+   "scope": "session",
+   "category": "Osobní témata a sebepojetí",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana se bojí, že jí vezme domov",
+   "content": "Jana se bojí, že jí vezme domov dceři Aničce.",
+   "evidence": "Že jí vezmu domov.",
+   "scope": "session",
+   "category": "Osobní témata a sebepojetí",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana se bojí, že Matěj neuchopí pravdu",
+   "content": "Jana se bojí, že její syn Matěj je malý a nic nechápe.",
+   "evidence": "A Matěj je ještě malý, ten nic nechápe.",
+   "scope": "session",
+   "category": "Rodina a vztahy",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana si není jistá, že je pravda",
+   "content": "Jana si není jistá, že její tvrzení, že se to nezmění, je pravda.",
+   "evidence": "Jenže já nevím, jestli je to pravda.",
+   "scope": "session",
+   "category": "Osobní témata a sebepojetí",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana se bojí, že sama nezvládne",
+   "content": "Jana se bojí, že sama nezvládne situaci po rozvodu.",
+   "evidence": "Mám strach, že to sama nezvládnu.",
+   "scope": "session",
+   "category": "Osobní témata a sebepojetí",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana pracuje jako učitelka češtiny",
+   "content": "Jana pracuje jako učitelka češtiny na základní škole v Brně.",
+   "evidence": "Pracuji jako učitelka češtiny na základní škole v Brně.",
+   "scope": "profile",
+   "category": "Práce a kariéra",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana učí devítky a osmičky",
+   "content": "Jana učí devítky a osmičky na základní škole.",
+   "evidence": "Učím devítky a osmičky.",
+   "scope": "profile",
+   "category": "Práce a kariéra",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana se cítí jako by se jí život rozpadá",
+   "content": "Jana má pocit, že všichni vidí, že se jí život rozpadá.",
+   "evidence": "Mám pocit, že všichni vidí, že se mi rozpadá život.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana se rozplakala na chodbě",
+   "content": "Jana se jednou rozplakala na chodbě ve škole.",
+   "evidence": "protože jsem se jednou rozplakala na chodbě.",
+   "scope": "session",
+   "category": "Zdroje a zvládání",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Ředitelka Jana nechala odejít dřív",
+   "content": "Školní ředitelka Jana nechala Jana odejít dřív a dala jí hodinu volna.",
+   "evidence": "Že mě nechala odejít dřív. Dala mi hodinu volna.",
+   "scope": "session",
+   "category": "Zdroje a zvládání",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana se cítí horší doma",
+   "content": "Jana se po škole doma cítí horší než na škole.",
+   "evidence": "Jenže pak jsem seděla doma a bylo to horší.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana nespí po třetí",
+   "content": "Jana se každou noc budí ve tři hodiny ráno a přemýšlí o budoucnosti.",
+   "evidence": "Každou noc se budím ve tři hodiny ráno a přemýšlím, co bude dál.",
+   "scope": "profile",
+   "category": "Zdraví, tělo a spánek",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana se probudí v půl sedmé",
+   "content": "Jana se v půl sedmé vstává a už je unavená.",
+   "evidence": "Kolem páté usnu, a v půl sedmé vstávám. Jsem unavená už ráno.",
+   "scope": "profile",
+   "category": "Zdraví, tělo a spánek",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana zhubla čtyři kila",
+   "content": "Jana zhubla čtyři kila a kamarádka jí říká, že vypadá hrozně.",
+   "evidence": "Zhubla jsem čtyři kila. Kamarádka říká, že vypadám hrozně.",
+   "scope": "profile",
+   "category": "Zdraví, tělo a spánek",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana jímá málo",
+   "content": "Jana jímá málo a zhubne.",
+   "evidence": "Jím málo.",
+   "scope": "profile",
+   "category": "Zdraví, tělo a spánek",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana má sestru Alenu v Olomouci",
+   "content": "Jana má sestru Alenu, která jí zavolá skoro každý večer z Olomouce.",
+   "evidence": "Mám sestru Alenu v Olomouci. Zavolá mi skoro každý večer.",
+   "scope": "profile",
+   "category": "Rodina a vztahy",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana má kamarádku Evu z práce",
+   "content": "Jana má kamarádku Evu z práce, se kterou mluví jen o těžkém období.",
+   "evidence": "A kamarádku Evu z práce... Evě jen to, že mám těžké období.",
+   "scope": "profile",
+   "category": "Rodina a vztahy",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "Jana se obává, že selhala",
+   "content": "Jana se obává, že selhala a že není dobrý příklad pro děti.",
+   "evidence": "Že jsem selhala. Že žena, která nedokáže udržet manželství, není pro děti dobrý příklad.",
+   "scope": "profile",
+   "category": "Osobní témata a sebepojetí",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana se obává, že si myslí, že je sama",
+   "content": "Jana se obává, že si myslí, že je žena, která nedokáže udržet manželství.",
+   "evidence": "Že jsem selhala. Že žena, která nedokáže udržet manželství, není pro děti dobrý příklad.",
+   "scope": "profile",
+   "category": "Osobní témata a sebepojetí",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana se obává, že si myslí, že je zbytečná",
+   "content": "Jana se obává, že si myslí, že je zbytečná a že se to nedělá u nich.",
+   "evidence": "Že jsem selhala. Že žena, která nedokáže udržet manželství, není pro děti dobrý příklad.",
+   "scope": "profile",
+   "category": "Osobní témata a sebepojetí",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana se obává, že si myslí, že je zbytečná",
+   "content": "Jana se obává, že si myslí, že je zbytečná a že se to nedělá u nich.",
+   "evidence": "Že jsem selhala. Že žena, která nedokáže udržet manželství, není pro děti dobrý příklad.",
+   "scope": "profile",
+   "category": "Osobní témata a sebepojetí",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana se obává, že si myslí, že je zbytečná",
+   "content": "Jana se obává, že si myslí, že je zbytečná a že se to nedělá u nich.",
+   "evidence": "Že jsem selhala. Že žena, která nedokáže udržet manželství, není pro děti dobrý příklad.",
+   "scope": "profile",
+   "category": "Osobní témata a sebepojetí",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana se obává, že si myslí, že je zbytečná",
+   "content": "Jana se obává, že si myslí, že je zbytečná a že se to nedělá u nich.",
+   "evidence": "Že jsem selhala. Že žena, která nedokáže udržet manželství, není pro děti dobrý příklad.",
+   "scope": "profile",
+   "category": "Osobní témata a sebepojetí",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana se obává, že si myslí, že je zbytečná",
+   "content": "Jana se obává, že si myslí, že je zbytečná a že se to nedělá u nich.",
+   "evidence": "Že jsem selhala. Že žena, která nedokáže udržet manželství, není pro děti dobrý příklad.",
+   "scope": "profile",
+   "category": "Osobní témata a sebepojetí",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana se obává, že si myslí, že je zbytečná",
+   "content": "Jana se obává, že si myslí, že je zbytečná a že se to nedělá u nich.",
+   "evidence": "Že jsem selhala. Že žena, která nedokáže udržet manželství, není pro děti dobrý příklad.",
+   "scope": "profile",
+   "category": "Osobní témata a sebepojetí",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana se obává, že si myslí, že je zbytečná",
+   "content": "Jana se obává, že si myslí, že je zbytečná a že se to nedělá u nich.",
+   "evidence": "Že jsem selhala. Že žena, která nedokáže udržet manželství, není pro děti dobrý příklad.",
+   "scope": "profile",
+   "category": "Osobní témata a sebepojetí",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana se obává, že si myslí, že je zbytečná",
+   "content": "Jana se obává, že si myslí, že je zbytečná a že se to nedělá u nich.",
+   "evidence": "Že jsem selhala. Že žena, která nedokáže udržet manželství, není pro děti dobrý příklad.",
+   "scope": "profile",
+   "category": "Osobní témata a sebepojetí",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana se obává, že si myslí, že je zbytečná",
+   "content": "Jana se obává, že si myslí, že je zbytečná a že se to nedělá u nich.",
+   "evidence": "Že jsem selhala. Že žena, která nedokáže udržet manželství, není pro děti dobrý příklad.",
+   "scope": "profile",
+   "category": "Osobní témata a sebepojetí",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana se obává, že si myslí, že je zbytečná",
+   "content": "Jana se obává, že si myslí, že je zbytečná a že se to nedělá u nich.",
+   "evidence": "Že jsem selhala. Že žena, která nedokáže udržet manželství, není pro děti dobrý příklad.",
+   "scope": "profile",
+   "category": "Osobní témata a sebepojetí",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana se obává, že si myslí, že je zbytečná",
+   "content": "Jana se obává, že si myslí, že je zbytečná a že se to nedělá u nich.",
+   "evidence": "Že jsem selhala. Že žena, která nedokáže udržet manželství, není pro děti dobrý příklad.",
+   "scope": "profile",
+   "category": "Osobní témata a sebepojetí",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana se obává, že si myslí, že je zbytečná",
+   "content": "Jana se obává, že si myslí, že je zbytečná a že se to nedělá u nich.",
+   "evidence": "Že jsem selhala. Že žena, která nedokáže udržet manželství, není pro děti dobrý příklad.",
+   "scope": "profile",
+   "category": "Osobní témata a sebepojetí",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana se obává, že si myslí, že je zbytečná",
+   "content": "Jana se obává, že si myslí, že je zbytečná a že se to nedělá u nich.",
+   "evidence": "Že jsem selhala. Že žena, která nedokáže udržet manželství, není pro děti dobrý příklad.",
+   "scope": "profile",
+   "category": "Osobní témata a sebepojetí",
+   "part": 2,
+   "quote_found": true
+  }
+ ]
+}

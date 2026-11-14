@@ -40,8 +40,15 @@ class MemoryLlm(
     private val guard: () -> BackendGuard? = { Backends.guard(context) },
     private val gate: (String) -> String? = { name -> memoryGate(context, spec, name) },
     private val proxy: EngineProxy = EngineProxy(context, { host }, TAG, "memory_llm"),
+    /** Loads the audio encoder too (CPU), so [listen] works: the Fast workflow's turns are heard by Gemma (docs/AD/AD-22.md). It is proven and blocked separately from the text-only load. */
+    private val withAudio: Boolean = false,
 ) : Llm {
     override val model: String = spec.id
+
+    /** The model as [Backends.guard] keeps it: the audio build loads more, so it has its own record. */
+    private val guardModel: String = if (withAudio) "${spec.id}+audio" else spec.id
+
+    override val hearing: Boolean get() = withAudio
 
     var backend = "none"
         private set
@@ -61,18 +68,19 @@ class MemoryLlm(
      * killing the app here is skipped from then on. Only the text model is loaded. [respectBlocks] false (QA probes) tries a blocked backend anyway.
      */
     fun load(order: List<String>? = null, respectBlocks: Boolean = true) {
-        val preferred = order ?: Accelerators.order(spec.id, ModelRuntime.LITERT)
+        // The NPU build of the model (AD-09) was validated for text only: a load with the audio encoder tries the GPU, then the CPU.
+        val preferred = (order ?: Accelerators.order(spec.id, ModelRuntime.LITERT)).let { o -> if (withAudio) o.filter { it != "NPU" } else o }
         val fileMb = runCatching { val f = spec.file(context, spec.files.first()); f.length() shr 20 to f.exists() }.getOrNull()
         AppLog.i(
             TAG, "memory_llm_load_request", LogCtx.NONE, "model" to spec.id, "file_mb" to fileMb?.first, "file_exists" to fileMb?.second, "max_tokens" to maxTokens,
-            "order" to preferred.joinToString(","), "order_from" to if (order == null) "accelerators" else "caller",
+            "with_audio" to withAudio, "order" to preferred.joinToString(","), "order_from" to if (order == null) "accelerators" else "caller",
             "override" to BackendPolicy.override, "respect_blocks" to respectBlocks,
         )
         val loadId = BackendLadder.newLoadId()
         // A model the system kept killing even on the CPU cannot run here: fail the job for good (a retry would be killed again), unless a
         // person forces the load (debug override, QA probe).
         val judged = respectBlocks && !BackendPolicy.forcing()
-        if (judged && runCatching { guard()?.tooLarge(spec.id) }.getOrNull() == true) {
+        if (judged && runCatching { guard()?.tooLarge(guardModel) }.getOrNull() == true) {
             AppLog.w(TAG, "model_too_large_for_device", LogCtx.NONE, "model" to spec.id, "load_id" to loadId, "when" to "before_load")
             throw JobFailure.modelTooLarge()
         }
@@ -82,16 +90,16 @@ class MemoryLlm(
         val loaded = try {
             ladder().load(
                 loadId = loadId,
-                model = spec.id,
+                model = guardModel,
                 candidates = BackendPolicy.order(preferred),
                 respectBlocks = judged,
                 gate = gate,
-                open = { name -> proxy.open(EngineKind.LLM, spec.id, spec.id, name, loadId = loadId, maxTokens = maxTokens, textOnly = true) },
+                open = { name -> proxy.open(EngineKind.LLM, spec.id, guardModel, name, loadId = loadId, maxTokens = maxTokens, textOnly = !withAudio) },
                 close = { runCatching { proxy.closeNow(it.handle) } },
             )
         } catch (e: BackendLadder.NoBackend) {
             // Every backend failed, and the CPU was killed for memory again and again: say so, not "no backend".
-            if (judged && runCatching { guard()?.tooLarge(spec.id) }.getOrNull() == true) {
+            if (judged && runCatching { guard()?.tooLarge(guardModel) }.getOrNull() == true) {
                 AppLog.w(TAG, "model_too_large_for_device", LogCtx.NONE, "model" to spec.id, "load_id" to loadId, "when" to "after_ladder")
                 throw JobFailure.modelTooLarge()
             }
@@ -109,20 +117,23 @@ class MemoryLlm(
     }
 
     /** [schema] switches on constrained decoding for this call only (it looped on the large extraction schema, so callers use it for small schemas or as a last retry). */
-    override fun ask(system: String, user: String, schema: String?, maxOutputTokens: Int, temperature: Double, topK: Int): String {
+    override fun ask(system: String, user: String, schema: String?, maxOutputTokens: Int, temperature: Double, topK: Int): String =
+        call("ask", system, user, schema, maxOutputTokens, temperature, topK, null)
+
+    private fun call(op: String, system: String, user: String, schema: String?, maxOutputTokens: Int, temperature: Double, topK: Int, pcm: ShortArray?): String {
         val h = checkNotNull(handle) { "not loaded" }
         val t0 = System.nanoTime()
         try {
-            val reply = proxy.call<EngineReply.Text>(EngineOp.Ask(proxy.newTag("ask", null), h, system, user, schema, maxOutputTokens, temperature, topK))
+            val reply = proxy.call<EngineReply.Text>(EngineOp.Ask(proxy.newTag(op, null), h, system, user, schema, maxOutputTokens, temperature, topK, pcm))
             reply.perf?.let { PerfStats.call(spec.id, it) }
-            runCatching { guard()?.inferenceOk(spec.id, backend) }
+            runCatching { guard()?.inferenceOk(guardModel, backend) }
             return reply.text
         } catch (t: Throwable) {
             // Noted per device; failing on prompts again and again strikes the backend and marks this engine unhealthy, so the pool reloads
             // it on the next backend. Types and code locations only, never the message: an inference error can quote the prompt.
             // A host that died or could not be reached is not a bad prompt: the connection already struck what was at fault.
             val notThePrompt = t is EngineDied || t is EngineUnavailable || t is ReplyTooLarge
-            val r = if (notThePrompt) null else runCatching { guard()?.inferenceFailed(spec.id, backend, BackendLadder.name(t)) }.getOrNull()
+            val r = if (notThePrompt) null else runCatching { guard()?.inferenceFailed(guardModel, backend, BackendLadder.name(t)) }.getOrNull()
             // The host ended under this handle (a death, or an idle stop): the handle is gone, so the pool must reload.
             if (r != null || t is EngineDied) healthy = false
             // The connection's registry already settled this handle in the guard; the pool's close() must not settle it again (unloaded would reset strikes).
@@ -140,13 +151,19 @@ class MemoryLlm(
         }
     }
 
+    /** One call in which Gemma hears [pcm]: [system] and [user] are the instruction, the reply is text (docs/AD/AD-22.md). Failure handling is that of [ask]. */
+    override fun listen(system: String, user: String, pcm: ShortArray, maxOutputTokens: Int, temperature: Double, topK: Int): String {
+        check(withAudio) { "loaded without the audio encoder" }
+        return call("listen", system, user, null, maxOutputTokens, temperature, topK, pcm)
+    }
+
     override fun close() {
         val h = handle ?: return
         handle = null
         val t0 = System.nanoTime()
         val b = backend
         // The guard hears `unloaded` once the host acknowledged the close, not when it was only asked: a death in between is a death.
-        proxy.close(h) { acked -> if (acked) runCatching { guard()?.unloaded(spec.id, b) } }
+        proxy.close(h) { acked -> if (acked) runCatching { guard()?.unloaded(guardModel, b) } }
         AppLog.i(TAG, "memory_llm_unloaded", LogCtx.NONE, "model" to spec.id, "backend" to backend, "close_ms" to (System.nanoTime() - t0) / 1_000_000)
         runCatching {
             AppLog.logMemory(context, TAG, "memory_llm_after_unload", extra = arrayOf("backend" to backend, "model" to spec.id, "host_pss_kb" to proxy.statusIfBound()?.pssKb))

@@ -1,0 +1,344 @@
+{
+ "round": "r1",
+ "engine": "whisper-small-translate",
+ "model": "gemma4-e2b",
+ "lane": 4,
+ "client": "jana-n",
+ "lang": "cs",
+ "seconds": 210.0,
+ "facts": [
+  {
+   "heading": "Meeting for divorce",
+   "content": "Jana had a meeting with the manhole doctor for a divorce after 15 years.",
+   "evidence": "we had a meeting with the manhole doctor for a divorce",
+   "scope": "History & Life Events",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Authorities were in Croatia",
+   "content": "The authorities were still in Croatia during the events discussed.",
+   "evidence": "The authorities were still in Croatia",
+   "scope": "History & Life Events",
+   "category": "History & Life Events",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Ate and checked kitchen",
+   "content": "Jana ate in the kitchen and then went to check the kitchen.",
+   "evidence": "I ate in the kitchen, I couldn't eat anything, then I went to check the kitchen",
+   "scope": "Session",
+   "category": "Health, Body & Sleep",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Felt empty and angry",
+   "content": "Jana felt empty and angry multiple times a day.",
+   "evidence": "Empty, then angry, then again empty, three times a few times a day",
+   "scope": "Session",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Candle lighting reason",
+   "content": "Jana lit a candle because someone said they were happy living by themselves.",
+   "evidence": "He said that we were happy that we lived by ourselves",
+   "scope": "Session",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Feeling blind and confused",
+   "content": "Jana felt blind and confused about something.",
+   "evidence": "I had to see it, I was blind. I think I was very confused, I didn't like it.",
+   "scope": "Session",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": false
+  },
+  {
+   "heading": "Children are a source of trouble",
+   "content": "Jana feels she is in trouble mainly because of her children.",
+   "evidence": "Yes, mainly because of children.",
+   "scope": "Self-concept & Identity",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana has two children",
+   "content": "Jana has two children, one is C12 and the other is 8 years old.",
+   "evidence": "I have two children, one is C12 and the other is 8 years old.",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Wife is feeling better",
+   "content": "Jana's wife is feeling a little bit better.",
+   "evidence": "And she's already feeling a little bit better.",
+   "scope": "Session",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Wife was lying to Jana",
+   "content": "Jana felt terrible because her wife was lying to her and knew it.",
+   "evidence": "Because she was lying to me and she knew it.",
+   "scope": "Session",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana told wife about life",
+   "content": "Jana told her wife that she is living a different life and going to take her home.",
+   "evidence": "That she's living a different life. That she's going to take her home.",
+   "scope": "Session",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Fear of their slush",
+   "content": "Jana is afraid of their slush.",
+   "evidence": "but I am afraid of their slush.",
+   "scope": "Session",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana manages money issue",
+   "content": "Jana stated she solved the money issue.",
+   "evidence": "I'm glad I solved the money.",
+   "scope": "Session",
+   "category": "Work & Career",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana works as a teacher",
+   "content": "Jana works as a teacher at the basic school in Prna.",
+   "evidence": "I work as a teacher at the basic school in Prna.",
+   "scope": "Work & Career",
+   "category": "Work & Career",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana teaches grades 9 and 8",
+   "content": "Jana teaches grades 9 and 8.",
+   "evidence": "I teach 9 and 8.",
+   "scope": "Work & Career",
+   "category": "Work & Career",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Teaching in kindergarten",
+   "content": "Jana teaches in the 3rd grade with a little boy in kindergarten.",
+   "evidence": "I go to the 3rd grade with a little boy in the kindergarten.",
+   "scope": "session",
+   "category": "Work & Career",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Feeling like a loser",
+   "content": "Jana feels that everyone knows she is a loser.",
+   "evidence": "I feel that everyone knows that I'm a loser.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Teacher left a gift",
+   "content": "A teacher left Jana a tree in the house.",
+   "evidence": "She left me a tree in the house.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Feeling worse when alone",
+   "content": "Jana felt worse when she was alone in the house.",
+   "evidence": "I was sitting at home and it was worse.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Difficulty sleeping at night",
+   "content": "Jana has difficulty sleeping and wakes up at 3 am.",
+   "evidence": "Every night I wake up at 3 am and I go to sleep.",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Financial status concerns",
+   "content": "Jana stated she has no mortgage, salary, or anything.",
+   "evidence": "I don't have a mortgage, I don't have a salary, I don't have anything, I'm counting money",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Sleep schedule attempt",
+   "content": "Jana attempts a new sleep schedule of getting up at 7 am.",
+   "evidence": "I'll go to bed at 5 and I'll get up at 7. I'm already up in the morning.",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Body image concerns",
+   "content": "Jana stated her friend told her she is really fat.",
+   "evidence": "My friend tells me that I'm really fat.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Sister Alon contact",
+   "content": "Jana's sister Alon calls her almost every evening.",
+   "evidence": "My sister Alon is in Olmóce. She calls me almost every evening.",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "Friend Evus contact",
+   "content": "Jana's friend Evus says almost everything to Jana.",
+   "evidence": "My friend Evus works. Almost everything.",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "Fear of lying",
+   "content": "Jana is afraid that she is lying.",
+   "evidence": "That I'm lying.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Fear of women's choices",
+   "content": "Jana is afraid of a woman not keeping her husband for children.",
+   "evidence": "That a woman who can't keep her husband for good children.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Mother's influence on beliefs",
+   "content": "Jana's mother always said something that influenced her thoughts.",
+   "evidence": "My mother always said that",
+   "scope": "profile",
+   "category": "Self-concept & Identity",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Desire for pain/sadness",
+   "content": "Jana likes that it hurts and that she doesn't want to drink alone.",
+   "evidence": "What do you like? That it hurts, that she doesn't want to drink alone, only that she doesn't do it with us.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "Expressing feelings aloud",
+   "content": "Jana is crying and begging when she says certain things out loud.",
+   "evidence": "I'm crying and I'm begging you.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Sharing feelings aloud helps",
+   "content": "Jana says that sitting alone and saying things out loud helps a bit.",
+   "evidence": "I'm sitting here alone and saying it all out loud, but it helps a bit.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Doctor's advice on sleep",
+   "content": "The doctor suggested that sleep could be helped.",
+   "evidence": "Sleep. And the director who's telling you.",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Fear of being a thief",
+   "content": "Jana is afraid that she wouldn't be able to wake up for children in time.",
+   "evidence": "I'm afraid that I wouldn't be able to wake up for children in time,",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Fear of crying with Mr. Karim",
+   "content": "Jana is afraid of crying with Mr. Karim. Jana is also afraid of not being able to sleep.",
+   "evidence": "That I'll cry with Mr. Karim. That I won't be able to sleep.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 3,
+   "quote_found": false
+  },
+  {
+   "heading": "Worry about children's progress",
+   "content": "Jana is worried about being behind her children. Jana believes she should always be happy for them.",
+   "evidence": "That I'll be a little bit ahead of my children. You should always be happy for them.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 3,
+   "quote_found": false
+  },
+  {
+   "heading": "Feeling of happiness noted",
+   "content": "Jana stated that she did not feel affected by something. Jana noted that something might have helped.",
+   "evidence": "It didn't affect me. Not even your stuff. Maybe it helped.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 3,
+   "quote_found": false
+  },
+  {
+   "heading": "Desire to stay in session",
+   "content": "Jana expressed a desire to finish her day in the session. Jana stated she does not have to go out on a day.",
+   "evidence": "I want to finish my day here. I'm not alone, I don't have to go out on a day.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 3,
+   "quote_found": false
+  }
+ ]
+}

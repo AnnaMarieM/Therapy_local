@@ -2,6 +2,7 @@ package com.therapylocal.app.qaapi
 
 import android.content.Context
 import com.therapylocal.app.BuildConfig
+import com.therapylocal.app.config.ProcessingLanguageSetting
 import com.therapylocal.app.config.SummaryFormatSetting
 import com.therapylocal.app.data.MindStore
 import com.therapylocal.app.data.SegmentRow
@@ -139,7 +140,7 @@ class QaAppBackend(private val context: Context) : QaBackend {
         AppLog.i(TAG, "export", LogCtx.NONE, "clients" to clients.length(), "sessions" to sessions.length())
         // Re-importable with import_manifest: clients and sessions (segments, current speaker map). Not exported: audio, and the facts, summaries and
         // windows are derived (kept here for reading; an import queues the pipeline, which makes them again).
-        return JSONObject().put("format", "therapy-qa-manifest").put("format_version", 1).put("summary_format", SummaryFormatSetting.get(app)).put("clients", clients).put("sessions", sessions)
+        return JSONObject().put("format", "therapy-qa-manifest").put("format_version", 1).put("summary_format", SummaryFormatSetting.get(app)).put("processing_language", ProcessingLanguageSetting.get(app).key).put("clients", clients).put("sessions", sessions)
     }
 
     private fun requireIdle() {
@@ -153,12 +154,16 @@ class QaAppBackend(private val context: Context) : QaBackend {
         val e = QaEngines(app)
         return try {
             when (op) {
-                "transcribe" -> e.transcribe(file!!, QaArgs.optString(args, "language") ?: "en", args.optDouble("start_s", 0.0), if (args.has("dur_s")) args.optDouble("dur_s") else null, choice)
+                "transcribe" -> e.transcribe(
+                    file!!, QaArgs.optString(args, "language") ?: "en", args.optDouble("start_s", 0.0), if (args.has("dur_s")) args.optDouble("dur_s") else null, choice,
+                    QaArgs.optString(args, "engine") ?: "canary", args.optBoolean("translate", false), args.optInt("beam", 5).coerceIn(1, 8),
+                )
                 "diarize" -> e.diarize(file!!, args.optInt("speakers", 2), choice)
                 "embed" -> e.embed(args.optJSONArray("texts")?.let { t -> (0 until t.length()).map { t.optString(it) } } ?: listOf(args.getString("text")), args.optBoolean("query", false), args.optBoolean("vectors", false), choice)
                 "ask" -> e.ask(
                     args.optString("system", ""), args.getString("user"), args.opt("schema")?.takeIf { it != JSONObject.NULL }?.toString(),
                     args.optInt("max_tokens", 512).coerceIn(1, 4096), args.optDouble("temperature", 0.0), args.optInt("top_k", 1), choice,
+                    file, args.optDouble("start_s", 0.0), if (args.has("dur_s")) args.optDouble("dur_s") else null,
                 )
                 else -> throw QaException(QaCode.UNKNOWN_COMMAND, "unknown op")
             }
@@ -243,8 +248,12 @@ class QaAppBackend(private val context: Context) : QaBackend {
             if ((client != null && s.getString("client") != client) || (session != null && sid != session)) continue
             val current = store.currentSpeakerMap(sid)?.let { SpeakerMaps.decode(it.mapJson) }.orEmpty()
             val segs = s.getJSONArray("segments")
+            // The English working text of each segment when the pipeline translated it (AD-17), so a pivot run can be compared with a native one.
+            s.put("transcript_kind", store.transcriptKind(sid)).put("workflow", com.therapylocal.app.config.WorkflowSetting.get(app).key)
+            val english = store.segmentTranslations(sid, "en")
             for (k in 0 until segs.length()) {
                 val g = segs.getJSONObject(k)
+                english[g.getInt("idx")]?.let { g.put("text_en", it.text) }
                 g.put("role", if (g.isNull("speaker")) JSONObject.NULL else current[g.getString("speaker")]?.json ?: JSONObject.NULL)
             }
             s.put("speakerMaps", JSONArray(store.speakerMaps(sid).map {
@@ -264,7 +273,7 @@ class QaAppBackend(private val context: Context) : QaBackend {
             if ((client == null || f.getString("client") == client) && (session == null || f.getString("session") == session)) facts.put(f)
         }
         AppLog.i(TAG, "results", LogCtx.NONE, "sessions" to sessions.length(), "facts" to facts.length())
-        return JSONObject().put("embedModel", doc.get("embedModel")).put("summary_format", format).put("sessions", sessions).put("facts", facts).put("answers", doc.getJSONArray("answers"))
+        return JSONObject().put("embedModel", doc.get("embedModel")).put("summary_format", format).put("processing_language", ProcessingLanguageSetting.get(app).key).put("sessions", sessions).put("facts", facts).put("answers", doc.getJSONArray("answers"))
     }
 
     override fun swapRoles(session: String): JSONObject {

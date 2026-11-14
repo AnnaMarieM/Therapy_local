@@ -1,0 +1,374 @@
+{
+ "jana-n": [
+  {
+   "idx": 0,
+   "who": "therapist",
+   "cut": [
+    0.47,
+    5.05
+   ],
+   "script": "Dobrý den, paní Nováková, pojďte dál. S čím byste dnes chtěla začít?",
+   "heard": "Dobrý den paní Nováková, Petro. S čím byste dnes chtěla začít?",
+   "wer": 0.167,
+   "first_word_ok": true,
+   "last_word_ok": true
+  },
+  {
+   "idx": 15,
+   "who": "client",
+   "cut": [
+    61.18,
+    68.99
+   ],
+   "script": "Ne. Jednou si myslím, že jsem byla moc unavená a nezajímala jsem se o něj, jindy zase, že jsem se starala moc.",
+   "heard": "Ne. Jednou si myslím, že jsem byla moc unavená, nezajímala jsem se o něj, jindy zase, že jsem se starala moc.",
+   "wer": 0.045,
+   "first_word_ok": true,
+   "last_word_ok": true
+  },
+  {
+   "idx": 30,
+   "who": "therapist",
+   "cut": [
+    120.5,
+    122.13
+   ],
+   "script": "Co byste mu chtěla předat?",
+   "heard": "To byste můj tla přidat.",
+   "wer": 0.8,
+   "first_word_ok": false,
+   "last_word_ok": false
+  },
+  {
+   "idx": 46,
+   "who": "therapist",
+   "cut": [
+    186.33,
+    188.07
+   ],
+   "script": "Jak spíte?",
+   "heard": "Jak zpítá?",
+   "wer": 0.5,
+   "first_word_ok": true,
+   "last_word_ok": false
+  },
+  {
+   "idx": 61,
+   "who": "client",
+   "cut": [
+    248.56,
+    254.07
+   ],
+   "script": "Asi od mojí mámy. Ta vždycky říkala, že manželství se drží, ať je to jak chce.",
+   "heard": "Asi od mojí mámy. Tak vždycky říkal, že manželství se drží, ať je to, jak chce.",
+   "wer": 0.125,
+   "first_word_ok": true,
+   "last_word_ok": true
+  },
+  {
+   "idx": 76,
+   "who": "therapist",
+   "cut": [
+    312.91,
+    317.81
+   ],
+   "script": "Pojďme na to postupně. Co spánek, zkoušela jste něco?",
+   "heard": "Pěkně na to postupně. Co spánek? Zkoušel jste něco?",
+   "wer": 0.222,
+   "first_word_ok": false,
+   "last_word_ok": true
+  },
+  {
+   "idx": 91,
+   "who": "client",
+   "cut": [
+    381.65,
+    384.23
+   ],
+   "script": "Děkuji, uvidíme se příští týden.",
+   "heard": "Děkuji. Uvidíme se příští týden.",
+   "wer": 0.0,
+   "first_word_ok": true,
+   "last_word_ok": true
+  }
+ ],
+ "tomas-b": [
+  {
+   "idx": 0,
+   "who": "therapist",
+   "cut": [
+    1.29,
+    5.11
+   ],
+   "script": "Dobrý den, pane Bárto, pojďte dál. Jak se vám dnes daří?",
+   "heard": "Dobrý den, pane Bárto, pojďte dál. Jak se vám to zdaří?",
+   "wer": 0.182,
+   "first_word_ok": true,
+   "last_word_ok": false
+  },
+  {
+   "idx": 15,
+   "who": "client",
+   "cut": [
+    61.47,
+    65.98
+   ],
+   "script": "Začalo to před dvěma lety, kdy hořelo u sousedů a my se museli evakuovat.",
+   "heard": "Začalo to před dvěma lety, kdy jehořovou sousedou se musela evakuovat.",
+   "wer": 0.429,
+   "first_word_ok": true,
+   "last_word_ok": true
+  },
+  {
+   "idx": 30,
+   "who": "therapist",
+   "cut": [
+    124.13,
+    126.05
+   ],
+   "script": "Jak na to reaguje?",
+   "heard": "Jak na to reaguje?",
+   "wer": 0.0,
+   "first_word_ok": true,
+   "last_word_ok": true
+  },
+  {
+   "idx": 46,
+   "who": "therapist",
+   "cut": [
+    184.53,
+    186.65
+   ],
+   "script": "Co to s vámi dělá?",
+   "heard": "Co to s vámi dělá?",
+   "wer": 0.0,
+   "first_word_ok": true,
+   "last_word_ok": true
+  },
+  {
+   "idx": 61,
+   "who": "client",
+   "cut": [
+    250.13,
+    254.73
+   ],
+   "script": "To mi pomáhá. Přesto to chce čas, než tomu uvěřím.",
+   "heard": "Dobrá, přesto chce čas, než to uvěříš.",
+   "wer": 0.6,
+   "first_word_ok": false,
+   "last_word_ok": false
+  },
+  {
+   "idx": 76,
+   "who": "therapist",
+   "cut": [
+    316.81,
+    323.25
+   ],
+   "script": "Strach je pochopitelný. Šlo by to po malých krocích a vy byste o tempu rozhodoval.",
+   "heard": "Strach je pochopitelný. Šlo by si po malých krocích a vy byste o tempu rozhodoval.",
+   "wer": 0.067,
+   "first_word_ok": true,
+   "last_word_ok": true
+  },
+  {
+   "idx": 91,
+   "who": "client",
+   "cut": [
+    408.01,
+    410.47
+   ],
+   "script": "Děkuji, uvidíme se příští týden.",
+   "heard": "Děkuji. Uvidíme se příští týden.",
+   "wer": 0.0,
+   "first_word_ok": true,
+   "last_word_ok": true
+  }
+ ],
+ "daniel-r": [
+  {
+   "idx": 0,
+   "who": "therapist",
+   "cut": [
+    1.37,
+    7.02
+   ],
+   "script": "Hello Daniel, come in. Have a seat. Where would you like to start today?",
+   "heard": "hello Daniel come in have a seat where would you like to start today",
+   "wer": 0.0,
+   "first_word_ok": true,
+   "last_word_ok": true
+  },
+  {
+   "idx": 17,
+   "who": "client",
+   "cut": [
+    109.21,
+    117.35
+   ],
+   "script": "He's still himself, mostly. His hands shake, and he's slower, and he gets frustrated. He's seventy-three and he's always been the strong one.",
+   "heard": "Still himself, mostly. His hands shake. He's slower. He gets frustrated. He's having a dream and he's always being the strong one.",
+   "wer": 0.286,
+   "first_word_ok": false,
+   "last_word_ok": true
+  },
+  {
+   "idx": 35,
+   "who": "client",
+   "cut": [
+    214.87,
+    221.37
+   ],
+   "script": "My girlfriend booked it, to be honest. Claire. She said she was done watching me disappear.",
+   "heard": "If girlfriend booked her, to be honest, Claire, she said she was done watching me disappear.",
+   "wer": 0.125,
+   "first_word_ok": false,
+   "last_word_ok": true
+  },
+  {
+   "idx": 53,
+   "who": "client",
+   "cut": [
+    299.3,
+    307.47
+   ],
+   "script": "Peterson. He's all right as a person, but he sends emails at eleven at night and expects an answer before breakfast.",
+   "heard": "Peterson. He's alright as a person, but he sends emails at 11 at night and expects an answer before breakfast.",
+   "wer": 0.091,
+   "first_word_ok": true,
+   "last_word_ok": true
+  },
+  {
+   "idx": 70,
+   "who": "therapist",
+   "cut": [
+    375.63,
+    379.14
+   ],
+   "script": "Thank you for telling me. What are you afraid it means?",
+   "heard": "Thank you for telling me. What are you afraid of me?",
+   "wer": 0.182,
+   "first_word_ok": true,
+   "last_word_ok": false
+  },
+  {
+   "idx": 88,
+   "who": "therapist",
+   "cut": [
+    474.43,
+    478.9
+   ],
+   "script": "That sounds like something you could say to yourself as well.",
+   "heard": "That sounds like something you could say to yourself as well.",
+   "wer": 0.0,
+   "first_word_ok": true,
+   "last_word_ok": true
+  },
+  {
+   "idx": 105,
+   "who": "client",
+   "cut": [
+    549.96,
+    554.93
+   ],
+   "script": "Yes. I'll be here. I'll try to make it on time, the trains are awful.",
+   "heard": "Yeah, I'll be here. I'll try to make it on time. The trains are awful.",
+   "wer": 0.059,
+   "first_word_ok": false,
+   "last_word_ok": true
+  }
+ ],
+ "hannah-w": [
+  {
+   "idx": 0,
+   "who": "therapist",
+   "cut": [
+    0.61,
+    4.89
+   ],
+   "script": "Hello Hannah, come in and take a seat. What would you like to talk about today?",
+   "heard": "Hello Hannah, come and take a seat. What would you like to talk about today?",
+   "wer": 0.062,
+   "first_word_ok": true,
+   "last_word_ok": true
+  },
+  {
+   "idx": 18,
+   "who": "therapist",
+   "cut": [
+    106.25,
+    108.67
+   ],
+   "script": "How does he treat you?",
+   "heard": "how does he treat you",
+   "wer": 0.0,
+   "first_word_ok": true,
+   "last_word_ok": true
+  },
+  {
+   "idx": 36,
+   "who": "therapist",
+   "cut": [
+    200.09,
+    201.72
+   ],
+   "script": "What's on the list?",
+   "heard": "Lesson de lest.",
+   "wer": 1.0,
+   "first_word_ok": false,
+   "last_word_ok": false
+  },
+  {
+   "idx": 54,
+   "who": "therapist",
+   "cut": [
+    283.77,
+    287.09
+   ],
+   "script": "Do you have friends at school you can talk to?",
+   "heard": "Do you have friends that go and talk to you?",
+   "wer": 0.5,
+   "first_word_ok": true,
+   "last_word_ok": false
+  },
+  {
+   "idx": 72,
+   "who": "therapist",
+   "cut": [
+    382.39,
+    383.77
+   ],
+   "script": "And then?",
+   "heard": "and then",
+   "wer": 0.0,
+   "first_word_ok": true,
+   "last_word_ok": true
+  },
+  {
+   "idx": 90,
+   "who": "therapist",
+   "cut": [
+    471.65,
+    474.07
+   ],
+   "script": "That's all right. Take a moment.",
+   "heard": "that's where I take a moment",
+   "wer": 0.286,
+   "first_word_ok": true,
+   "last_word_ok": true
+  },
+  {
+   "idx": 107,
+   "who": "client",
+   "cut": [
+    565.72,
+    567.49
+   ],
+   "script": "Yes, please. Thank you.",
+   "heard": "Yes, please. Thank you.",
+   "wer": 0.0,
+   "first_word_ok": true,
+   "last_word_ok": true
+  }
+ ]
+}

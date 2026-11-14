@@ -100,6 +100,21 @@ object CategoryTaxonomy {
     fun canonicalFor(language: String): List<CanonicalCategory> =
         if (language == PromptLanguage.CS) CANONICAL_CS else CANONICAL_EN
 
+    /**
+     * The category [nameEn] as shown in [language] (AD-17: categories are stored in English and need no model call). The canonical categories
+     * are two parallel lists, so a name is mapped by its place in the English one, and the English default likewise. Any other name (a custom
+     * category the model suggested) is shown as it is.
+     */
+    fun display(nameEn: String, language: String): String {
+        if (language != PromptLanguage.CS) return nameEn
+        val at = CANONICAL_EN.indexOfFirst { it.name == nameEn }
+        return when {
+            at >= 0 -> CANONICAL_CS[at].name
+            nameEn == defaultCategory(PromptLanguage.EN) -> defaultCategory(PromptLanguage.CS)
+            else -> nameEn
+        }
+    }
+
     fun defaultCategory(language: String): String =
         if (language == PromptLanguage.CS) "Osobní témata" else "Personal topics"
 

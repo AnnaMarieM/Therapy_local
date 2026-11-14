@@ -145,6 +145,7 @@ case "$cmd" in
       backend_opt "$@"; n=$?
       if (( n > 0 )); then shift $n; continue; fi
       case "$1" in
+        --engine) extra+=",\"engine\":\"$2\"" ;; --beam) extra+=",\"beam\":$2" ;; --translate) extra+=",\"translate\":true"; shift; continue ;;
         --language) extra+=",\"language\":\"$2\"" ;; --start) extra+=",\"start_s\":$2" ;; --dur) extra+=",\"dur_s\":$2" ;; --speakers) extra+=",\"speakers\":$2" ;;
         *) die "unknown option $1" ;;
       esac; shift 2
@@ -161,7 +162,7 @@ case "$cmd" in
     done
     call embed "{\"text\":\"$(jesc "$text")\"$extra$BACKEND_JSON}" ;;
   ask)
-    [[ $# -ge 1 ]] || die "usage: ask <user text> [--system s] [--schema file.json] [--max-tokens n] [--backend b] [--force]"
+    [[ $# -ge 1 ]] || die "usage: ask <user text> [--system s] [--schema file.json] [--max-tokens n] [--audio wav [--start s] [--dur s]] [--backend b] [--force]"
     user=$1; shift; BACKEND_JSON=""; extra=""
     while [[ $# -gt 0 ]]; do
       backend_opt "$@"; n=$?
@@ -169,12 +170,15 @@ case "$cmd" in
       case "$1" in
         --system) extra+=",\"system\":\"$(jesc "$2")\"" ;; --max-tokens) extra+=",\"max_tokens\":$2" ;;
         --schema) [[ -f $2 ]] || die "no such file: $2"; extra+=",\"schema\":$(cat "$2")" ;;
+        --audio) phone=$(phone_audio "$2") || exit $?; extra+=",\"file\":\"$(jesc "$phone")\"" ;;
+        --start) extra+=",\"start_s\":$2" ;; --dur) extra+=",\"dur_s\":$2" ;;
+        --temperature) extra+=",\"temperature\":$2" ;; --top-k) extra+=",\"top_k\":$2" ;;
         *) die "unknown option $1" ;;
       esac; shift 2
     done
     call ask "{\"user\":\"$(jesc "$user")\"$extra$BACKEND_JSON}" ;;
   run_job)
-    [[ $# -ge 2 ]] || die "usage: run_job <transcribe|roles|window|summary> <session> [--backend b] [--force] [--timeout s]"
+    [[ $# -ge 2 ]] || die "usage: run_job <transcribe|translate|roles|window|summary|localize> <session> [--backend b] [--force] [--timeout s]"
     kind=$1; sess=$2; shift 2; BACKEND_JSON=""; total=600
     while [[ $# -gt 0 ]]; do
       backend_opt "$@"; n=$?

@@ -1,0 +1,425 @@
+{
+ "round": "r1",
+ "engine": "whisper-medium-translate",
+ "model": "qwen3.5-4b",
+ "lane": 3,
+ "client": "jana-n",
+ "lang": "cs",
+ "seconds": 549.2,
+ "facts": [
+  {
+   "heading": "Divorce not yet approved in Croatia",
+   "content": "Jana's divorce is not yet approved in Croatia; it was stopped in September.",
+   "evidence": "The government has not yet approved it in Croatia",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Husband Radek explains divorce reasons",
+   "content": "Jana's husband Radek explains they were always together and lived next to each other.",
+   "evidence": "Radek explained why. He says we were together, that we live next to each other.",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": false
+  },
+  {
+   "heading": "Jana feels blind to husband's behavior",
+   "content": "Jana believes she should have noticed her husband's behavior and was blind to it.",
+   "evidence": "That I should have seen it, that I was blind.",
+   "scope": "profile",
+   "category": "Self-concept & Identity",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana searches for mistakes in marriage",
+   "content": "Jana keeps thinking about her marriage and looking for mistakes she might have made.",
+   "evidence": "I keep thinking about it and I keep looking for mistakes.",
+   "scope": "profile",
+   "category": "Self-concept & Identity",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana admits she didn't find mistakes",
+   "content": "Jana admits she did not find any mistakes in her marriage.",
+   "evidence": "No.",
+   "scope": "session",
+   "category": "Self-concept & Identity",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana was too tired to notice mistakes",
+   "content": "Jana believes she was too tired and not interested in noticing mistakes in her marriage.",
+   "evidence": "I think I was too tired and I wasn't interested in them.",
+   "scope": "profile",
+   "category": "Self-concept & Identity",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana blames aging for missing signs",
+   "content": "Jana believes she got too old and that is why she missed signs.",
+   "evidence": "Only that I got too old.",
+   "scope": "profile",
+   "category": "Self-concept & Identity",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana has two children named Anšce and Matěj",
+   "content": "Jana has two children, Anšce and Matěj, who are 8 years old.",
+   "evidence": "I have two kids, Anšce and Matěj. They're 8 years old.",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana has not told children about divorce yet",
+   "content": "Jana has not yet told her children about the divorce.",
+   "evidence": "No.",
+   "scope": "session",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana postpones telling children about divorce",
+   "content": "Jana and her husband Radek keep postponing telling the children about the divorce.",
+   "evidence": "Radek wants us to tell them together, but we keep postponing it.",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana's daughter Anička suspects something is wrong",
+   "content": "Jana's daughter Anička is getting more suspicious about the situation.",
+   "evidence": "Anička is getting a bit more suspicious.",
+   "scope": "session",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana's daughter asked if parents were dating",
+   "content": "Jana's daughter Anička asked if her parents were dating last week.",
+   "evidence": "Last week she asked me if we were dating.",
+   "scope": "session",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana denied being dating with someone else",
+   "content": "Jana told her daughter she was not dating anyone else.",
+   "evidence": "I said no.",
+   "scope": "session",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana felt terrible after daughter's question",
+   "content": "Jana felt terrible after her daughter asked if they were dating.",
+   "evidence": "I felt terrible.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana believes daughter lied to her",
+   "content": "Jana believes her daughter lied to her about the divorce situation.",
+   "evidence": "Because she lied to me. And she knew it.",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana saw daughter's lie in her eyes",
+   "content": "Jana saw the lie in her daughter's eyes.",
+   "evidence": "I saw it in her eyes.",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana's daughter lied about parents' relationship",
+   "content": "Jana's daughter lied that her parents were destroying her life and taking her home.",
+   "evidence": "That I destroy her life. That I take her home.",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana fears telling truth will cause tears",
+   "content": "Jana is afraid of her children's tears if she tells the truth.",
+   "evidence": "I'd rather have it with me, but I'm afraid of their tears.",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana's son Matěj is still small",
+   "content": "Jana's son Matěj is still small and does not understand much.",
+   "evidence": "And Matěj is still small, he doesn't understand much.",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana feels like a real person due to mortgage",
+   "content": "Jana feels like a real person because she is living in a mortgage.",
+   "evidence": "Living in a mortgage, I'd rather feel like a real person, at least I feel.",
+   "scope": "profile",
+   "category": "Self-concept & Identity",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana works as a Czech teacher in Brno",
+   "content": "Jana works as a Czech teacher at a primary school in Brno.",
+   "evidence": "I work as a Czech teacher at a primary school in Brno.",
+   "scope": "profile",
+   "category": "Work & Career",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana teaches 8th and 9th grade",
+   "content": "Jana teaches 8th and 9th grade.",
+   "evidence": "I teach 9th and 8th grade.",
+   "scope": "profile",
+   "category": "Work & Career",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana walks around with a rabbit in hand",
+   "content": "Jana walks around with a rabbit in her hand.",
+   "evidence": "I walk around with a rabbit in my hand.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Principal knows about life falling apart",
+   "content": "Jana told the principal she cried on the court, and only she knows about her life falling apart.",
+   "evidence": "Only the principal.",
+   "scope": "session",
+   "category": "History & Life Events",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Principal gave Jana early leave",
+   "content": "The principal let Jana leave school an hour early after she explained she cried on the court.",
+   "evidence": "That she let me leave earlier, gave me an hour off.",
+   "scope": "session",
+   "category": "History & Life Events",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana sleeps poorly at work",
+   "content": "Jana sleeps badly at work, waking up at 3 am and thinking about what's next.",
+   "evidence": "Badly. Every night I wake up at 3 am and I think about what's next.",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "Jana feels alone at work",
+   "content": "Jana feels worse at work because she is alone and has nothing to do.",
+   "evidence": "Because I was alone at work, I had at least something to do.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana sleeps 5 hours a day",
+   "content": "Jana sleeps from around 5 pm to 6:30 am and is tired in the morning.",
+   "evidence": "I sleep around 5 and wake up at 6.30. I'm tired already in the morning.",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "Jana lost 4 kilos",
+   "content": "Jana moved a little and lost 4 kilos.",
+   "evidence": "I move a little. I lost 4 kilos.",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana has sister Alen in Olmouc",
+   "content": "Jana has a sister named Alen in Olmouc who calls her almost every evening.",
+   "evidence": "I have sister Alen in Olmouc. She calls me almost every evening.",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana has a friend from work",
+   "content": "Jana has a friend of Eva from work who she talks to.",
+   "evidence": "And a friend of Eva from work.",
+   "scope": "session",
+   "category": "Family & Relationships",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana feels she lied to Alen",
+   "content": "Jana is afraid her sister Alen thinks she lied to her because she can't keep a marriage.",
+   "evidence": "That I lied to her.",
+   "scope": "session",
+   "category": "Self-concept & Identity",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana fears being a bad example",
+   "content": "Jana is afraid her sister thinks a woman who can't keep a marriage is not a good example for children.",
+   "evidence": "That a woman who can't keep a marriage is not a good example for children.",
+   "scope": "session",
+   "category": "Self-concept & Identity",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana's mother said marriage is up to her",
+   "content": "Jana's mother always said that marriage is held and it's up to you.",
+   "evidence": "She always said that marriage is held and it's up to you.",
+   "scope": "profile",
+   "category": "History & Life Events",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana's mother was upset about her marriage",
+   "content": "Jana's mother was moaning when Jana told her about her marriage situation and hoped she had been good to her.",
+   "evidence": "She was moaning. Then she said that she hopes that I have been good to her.",
+   "scope": "session",
+   "category": "Family & Relationships",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "Jana's mother hasn't called much since then",
+   "content": "Jana's mother hasn't called Jana much since she expressed hope about her marriage.",
+   "evidence": "She hasn't called me much since then.",
+   "scope": "session",
+   "category": "Family & Relationships",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana feels sad",
+   "content": "Jana feels sad and would need her sister to hug her.",
+   "evidence": "Sad. I would need her to hug me.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "Jana hasn't told anyone about her feelings",
+   "content": "Jana hasn't told anyone about her feelings yet and thinks it's strange to say it all out loud in therapy.",
+   "evidence": "I haven't told anyone about this yet. It's strange to sit here and say it all out loud, but it helps a little.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "Jana drinks herbivore tea for sleep",
+   "content": "Jana has tried herbivore tea to help with sleep, as the doctor didn't give her pills.",
+   "evidence": "Herbivore tea, that's all. The doctor didn't give me any pills, but I don't want to.",
+   "scope": "session",
+   "category": "Addictions & Habits",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "Jana is afraid of addiction",
+   "content": "Jana is afraid she would become addicted to pills and wake up in time for her children.",
+   "evidence": "I'm afraid I wouldn't wake up in time for the children and I don't want to be addicted.",
+   "scope": "session",
+   "category": "Addictions & Habits",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana wants to be calm",
+   "content": "Jana wants to avoid panicking and crying.",
+   "evidence": "That I panic and cry, that I can't stay calm.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana fears being a coward",
+   "content": "Jana fears being a coward if it doesn't matter.",
+   "evidence": "That I'd be a coward?",
+   "scope": "session",
+   "category": "Self-concept & Identity",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana feels allowed to be scared",
+   "content": "Jana feels allowed to panic and cry.",
+   "evidence": "Or you could see that I'm so allowed.",
+   "scope": "session",
+   "category": "Self-concept & Identity",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana plans to write in a cup",
+   "content": "Jana plans to write in a small cup in the fridge.",
+   "evidence": "Try this with a small cup, put it in the fridge",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 3,
+   "quote_found": false
+  },
+  {
+   "heading": "Jana plans to write what wakes her",
+   "content": "Jana plans to write what will wake her up.",
+   "evidence": "let the paper write what will wake you up",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana plans to finish therapy today",
+   "content": "Jana plans to finish the session for today.",
+   "evidence": "Let's finish for today.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 3,
+   "quote_found": true
+  }
+ ]
+}

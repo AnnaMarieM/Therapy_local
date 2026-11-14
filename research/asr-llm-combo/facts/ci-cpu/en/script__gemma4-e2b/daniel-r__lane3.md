@@ -1,0 +1,173 @@
+# script + gemma4-e2b, daniel-r, lane 3 (43 facts, roles: None)
+
+1. **Exhausted since October**
+   Daniel has been completely burned out since October. He works as a project manager at a logistics company.
+   > I've been completely burned out since October.
+
+2. **Work workload increased**
+   Daniel ended up doing three people's jobs after losing a big client.
+   > I ended up doing three people's jobs.
+
+3. **Work bleeds into personal time**
+   Daniel answers messages at night and thinks about work even when not working.
+   > I'm at my desk by seven and I'm still answering messages at ten at night. Even when I'm not working I'm thinking about work.
+
+4. **Poor sleep quality**
+   Daniel's sleep is terrible, and he sleeps about four hours most nights.
+   > Most nights I sleep about four hours.
+
+5. **Wakes up at three AM**
+   Daniel wakes up at three in the morning and cannot fall back asleep.
+   > I wake up at three in the morning and can't fall back asleep.
+
+6. **Waking thoughts are work related**
+   When Daniel wakes up, his thoughts focus on shipping schedules, the client, or forgotten details.
+   > My head just starts. Shipping schedules, the client, whether I've forgotten something.
+
+7. **Dreading the nights**
+   Daniel has started dreading the nights because of the sleep pattern.
+   > I've started dreading the nights, if I'm honest.
+
+8. **Father diagnosed with Parkinson's**
+   Daniel's father was diagnosed with Parkinson's disease in the autumn.
+   > My father. He was diagnosed with Parkinson's disease in the autumn.
+
+9. **Father's current condition**
+   Daniel's father's hands shake, he is slower, and he gets frustrated.
+   > His hands shake, and he's slower, and he gets frustrated.
+
+10. **Daniel drives father**
+   Daniel is the one who drives his father to the hospital in Leeds.
+   > I'm the one who drives him to the hospital in Leeds.
+
+11. **Care responsibility is singular**
+   Daniel is solely responsible for his father's care as his sister lives in Toronto.
+   > all the care for our father falls on me.
+
+12. **Guilt about being tired**
+   Daniel feels guilty for being tired when his father is ill.
+   > I feel it's selfish to be tired when he's the one who's ill.
+
+13. **Avoids sharing feelings**
+   Daniel does not tell anyone about his feelings regarding his exhaustion.
+   > So I don't say anything to anyone.
+
+14. **Sister does not help**
+   Daniel's younger sister Hannah lives in Toronto and cannot provide care.
+   > She calls him every Sunday, and she's not the one who's neglecting him.
+
+15. **Hides true feelings**
+   Daniel tells his sister he is fine when asked how he is.
+   > She asks how I am and I say fine.
+
+16. **Wants to express distress**
+   Daniel wishes his sister would know that he is not fine.
+   > That I'm not fine.
+
+17. **GP visit results**
+   Daniel had blood tests that were all normal. The GP said it is stress and exhaustion.
+   > She did blood tests, and they were all normal. She said it's stress and exhaustion
+
+18. **Refused to talk to GP**
+   Daniel told his GP he had no time to talk about his stress and exhaustion.
+   > I said I hadn't got time.
+
+19. **Girlfriend booked therapy**
+   Daniel's girlfriend Claire booked a session for him. Claire said she was done watching him disappear.
+   > My girlfriend booked it, to be honest. Claire. She said she was done watching me disappear.
+
+20. **Claire is patient**
+   Claire is patient and makes Daniel tea without pushing him to talk. Claire is also starting to feel the effects.
+   > She's very patient. She makes me tea and doesn't push me to talk. But I can see it's wearing on her too.
+
+21. **Stopped running activity**
+   Daniel stopped running ten kilometres every Saturday morning about two months ago. He stopped because his legs felt like lead.
+   > I stopped about two months ago. My legs felt like lead, and then I just never went back.
+
+22. **Lost part of self**
+   Daniel feels like he has lost a part of himself since stopping running. He felt running was the one time a week nobody could reach him.
+   > Like I've lost a part of myself. It was the one time in the week nobody could reach me.
+
+23. **Difficulty saying yes**
+   Daniel avoids saying yes to social invitations because of work emails and potential needs from his Dad.
+   > The emails. If I'm away I'll come back to two hundred of them. And Dad might need something.
+
+24. **No time for rest**
+   Daniel cannot remember the last time he was properly off. He feels that rest has a price.
+   > I can't remember the last time I was properly off.
+
+25. **Boss sends late emails**
+   Daniel's boss Peterson sends emails at eleven at night and expects an answer before breakfast.
+   > He sends emails at eleven at night and expects an answer before breakfast.
+
+26. **Answers emails constantly**
+   Daniel answers every email from his boss, even when he is in bed. Claire dislikes this behavior.
+   > I answer it. Every time. Even if I'm in bed. Claire hates it.
+
+27. **Fear of job loss**
+   Daniel is afraid his boss might think he is not committed due to a restructuring in the spring.
+   > That he'd think I wasn't committed. There's a restructuring in the spring and I'm afraid they'll let me go.
+
+28. **Ambivalence about job loss**
+   Daniel thinks he might feel relieved if he is let go, but also horrible about being relieved because he has a mortgage.
+   > I think part of me would be relieved, and then I'd feel horrible about being relieved. I have a mortgage.
+
+29. **Mood is flat and irritable**
+   Daniel's moods apart from tiredness are flat and irritable. He snapped at a colleague last week over nothing.
+   > Flat, mostly. And irritable. I snapped at a colleague last week over nothing
+
+30. **Panic attack symptoms**
+   When Daniel snapped at a colleague, his heart was going and his hands were shaking. He briefly thought it was a heart attack.
+   > My heart was going and my hands were shaking. I thought for a second it was a heart attack, but it passed.
+
+31. **Frightening event on train**
+   Daniel had to get off and stand on the platform. This has happened a couple of times.
+   > Once on the train to Manchester. I just had to get off and stand on the platform.
+
+32. **Fear of losing control**
+   Daniel is afraid that he is losing it. He fears he will not be coping.
+   > That I'm losing it. That I'm going to end up like, I don't know. Not coping.
+
+33. **Coffee consumption habit**
+   Daniel drinks about six cups of coffee a day.
+   > I'm on about six cups a day.
+
+34. **Evening wine consumption**
+   Daniel has started having wine in the evenings to switch his head off. He drinks two to three glasses.
+   > And I've started having wine in the evenings to switch my head off. Two glasses, sometimes three.
+
+35. **Wine effect on sleep**
+   Daniel finds the wine uneasy and notes it does not help him sleep.
+   > Uneasy. It works for an hour and then I wake at three anyway. I know it's not helping.
+
+36. **Feeling about self-disclosure**
+   Daniel felt a bit of a relief after speaking about his feelings.
+   > Strange. A bit of a relief, actually. Like putting down a bag I didn't realise I was carrying.
+
+37. **Desire to sleep**
+   Daniel thinks that if he could sleep, he could probably cope with the rest.
+   > The nights, I think. If I could sleep I could probably cope with the rest.
+
+38. **Family influence on coping**
+   Daniel's grandfather never complained about anything. His father also does not complain.
+   > My grandfather worked in the mines in Yorkshire. He never complained about anything, not once. Dad's the same. You just get on with it.
+
+39. **Belief about being weak**
+   Daniel thinks his grandfather would think he was weak for being there.
+   > I keep thinking he would think I was weak for being here.
+
+40. **Self-talk about self**
+   Daniel wants to tell his grandfather he is not weak but very tired.
+   > That I'm not weak. I'm just very tired.
+
+41. **Belief about self-talk**
+   Daniel is unsure if he believes he can say this to himself.
+   > Maybe. I don't know if I believe it yet.
+
+42. **Proposed coping strategy**
+   Daniel is willing to try a small change to his routine.
+   > Yes. Half past nine, perhaps. I could make it a thing with Claire. Tea on the sofa.
+
+43. **Agreed to meet next week**  [quote NOT in text]
+   Daniel agreed to meet again next week. He mentioned the trains are awful.
+   > Same time next week? Yes. I'll be here. I'll try to make it on time, the trains are awful.

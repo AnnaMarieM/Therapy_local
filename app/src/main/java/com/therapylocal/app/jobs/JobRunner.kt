@@ -4,6 +4,7 @@ import com.therapylocal.app.data.Job
 import com.therapylocal.app.log.AppLog
 import com.therapylocal.app.log.LogCtx
 import com.therapylocal.app.perf.PerfStats
+import com.therapylocal.app.perf.StageLog
 
 /** Thrown by a handler that saw Stop: the job goes back to pending without counting an attempt. */
 class JobStopped : Exception()
@@ -51,6 +52,8 @@ class JobRunner(
     private val pool: ModelPool,
     /** All jobs of a session are done (for the performance history). */
     private val onSessionDone: (String) -> Unit = {},
+    /** The workflow key for the stage lines of the log. */
+    private val workflow: () -> String = { "" },
     private val canRun: (String) -> Boolean,
 ) {
     fun drain(): DrainResult {
@@ -84,6 +87,8 @@ class JobRunner(
             } finally {
                 PerfStats.jobEnded(job.sessionId, (System.nanoTime() - t0) / 1_000_000)
             }
+            // After a successful run only: a job that threw or was stopped did not finish its stage. Transcribe logs its own stages (diarize, listen).
+            StageLog.stageOf(job.kind)?.let { StageLog.done(it, workflow(), job.sessionId, (System.nanoTime() - t0) / 1_000_000, "job" to job.id, "job_kind" to job.kind) }
             queue.complete(job)
             if (queue.snapshot.value.sessions.firstOrNull { it.sessionId == job.sessionId }?.finished == true) onSessionDone(job.sessionId)
         } catch (_: JobStopped) {

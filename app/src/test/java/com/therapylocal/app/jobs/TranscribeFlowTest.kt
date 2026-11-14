@@ -13,6 +13,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Test
+import com.therapylocal.app.workflow.TurnListener
 import com.therapylocal.app.data.AudioHash
 import kotlin.coroutines.cancellation.CancellationException
 
@@ -29,8 +30,12 @@ class TranscribeFlowTest {
         override fun putChunk(c: ChunkRow) { rows = (rows.filter { it.idx != c.idx } + c).sortedBy { it.idx } }
         override fun turns(recordingId: Long) = turns
         override fun replaceTurns(recordingId: Long, turns: List<TurnRow>) { this.turns = turns }
-        override fun setTurnText(recordingId: Long, idx: Int, text: String) { turns = turns.map { if (it.idx == idx) it.copy(text = text) else it } }
-        override fun appendTranscript(session: String, segments: List<SegmentRow>, recordingId: Long?, audioSha: String?) { this.segments = segments; audioShas += audioSha }
+        override fun setTurnText(recordingId: Long, idx: Int, text: String, textEn: String?) { turns = turns.map { if (it.idx == idx) it.copy(text = text, textEn = textEn) else it } }
+        var kind = "spoken"
+        var english = emptyMap<Int, String>()
+        var englishBy: Pair<String, String>? = null
+        override fun appendTranscript(session: String, segments: List<SegmentRow>, recordingId: Long?, audioSha: String?, kind: String) { this.segments = segments; audioShas += audioSha; this.kind = kind }
+        override fun putEnglish(session: String, english: Map<Int, String>, model: String, promptVersion: String) { this.english = english; englishBy = model to promptVersion }
     }
 
     private class FakeDiarizer(val result: () -> List<DiarTurn>) : Diarizer {
@@ -242,5 +247,89 @@ class TranscribeFlowTest {
         assertEquals(TranscribeFlow.Outcome(false), out)
         assertEquals(listOf("kept"), store.segments.map { it.text })
         assertNull(out.skipped)
+    }
+
+    // ---- the Fast and Quality workflows (docs/AD/AD-22.md) ----
+
+    /** Gemma with its audio encoder: answers every turn in the two-line format, naming the second its audio starts at. */
+    private class HearingLlm(val replyFor: (Int) -> String = { "CZECH: ahoj $it\nENGLISH: hello $it" }) : Llm {
+        val heard = ArrayList<Int>()
+        override val model = "gemma-4-e2b"
+        override val hearing = true
+        override fun ask(system: String, user: String, schema: String?, maxOutputTokens: Int, temperature: Double, topK: Int) = error("text call")
+        override fun listen(system: String, user: String, pcm: ShortArray, maxOutputTokens: Int, temperature: Double, topK: Int): String {
+            heard += pcm.size
+            return replyFor(pcm.first().toInt())
+        }
+        override fun close() {}
+    }
+
+    private fun modeContext(llm: Llm?, diarizer: FakeDiarizer, listening: Boolean) =
+        JobContext(ModelPool({ llm ?: error("no llm") }, { error("no embed") }, { asr }, { "gemma-4-e2b" }, loadDiarizer = { diarizer }, listening = { listening }), JobQueue(FakeJobRepo()))
+
+    private fun modeFlow(store: Store, mode: TurnMode) =
+        TranscribeFlow(store, { listOf(0, 1) }, { _, idx -> chunk(idx) }, { true }, mode = { mode }, workflow = { mode.name })
+
+    private fun twoSpeakers() = FakeDiarizer { turns(Triple(0, 10, 0), Triple(10, 30, 1)) }
+
+    @Test
+    fun fastHearsEveryTurnThroughGemmaAndKeepsBothTexts() {
+        val store = Store(rows())
+        val llm = HearingLlm()
+        modeFlow(store, TurnMode.Listen).run(rid, "s", "cs", modeContext(llm, twoSpeakers(), listening = true))
+        assertEquals(2, llm.heard.size)
+        assertTrue("no speech recogniser is asked", asr.heard.isEmpty())
+        assertEquals(listOf("ahoj 0", "ahoj 10"), store.segments.map { it.text })
+        assertEquals(mapOf(1 to "hello 0", 2 to "hello 10"), store.english)
+        assertEquals("gemma-4-e2b" to TurnListener.VERSION, store.englishBy)
+        assertEquals("spoken", store.kind)
+    }
+
+    @Test
+    fun fastForAnEnglishClientStoresNoTranslation() {
+        val store = Store(rows())
+        modeFlow(store, TurnMode.Listen).run(rid, "s", "en", modeContext(HearingLlm { "plain $it" }, twoSpeakers(), listening = true))
+        assertEquals(listOf("plain 0", "plain 10"), store.segments.map { it.text })
+        assertTrue(store.english.isEmpty())
+    }
+
+    @Test
+    fun qualityStoresEnglishAsTheOnlyTextAndSaysSo() {
+        val store = Store(rows())
+        modeFlow(store, TurnMode.EnglishOnly).run(rid, "s", "cs", modeContext(null, twoSpeakers(), listening = false))
+        assertEquals(listOf("t0", "t10"), store.segments.map { it.text })
+        assertEquals(store.segments.associate { it.idx to it.text }, store.english)
+        assertEquals("whisper-large-v3-q8_0" to "whisper-translate", store.englishBy)
+        assertEquals("english_only", store.kind)
+    }
+
+    @Test
+    fun qualityForAnEnglishClientIsAnOrdinaryTranscript() {
+        val store = Store(rows())
+        modeFlow(store, TurnMode.EnglishOnly).run(rid, "s", "en", modeContext(null, twoSpeakers(), listening = false))
+        assertEquals("spoken", store.kind)
+        assertTrue(store.english.isEmpty())
+    }
+
+    @Test
+    fun aSingleVoiceIsStillWorkedPerTurnInFastAndQuality() {
+        val store = Store(rows())
+        val out = modeFlow(store, TurnMode.EnglishOnly).run(rid, "s", "cs", modeContext(null, FakeDiarizer { turns(Triple(0, 30, 0)) }, listening = false))
+        assertEquals(TranscribeFlow.Outcome(true), out)
+        assertTrue(store.segments.isNotEmpty())
+    }
+
+    @Test
+    fun withoutADiarizationFastAndQualityFailTheJobInsteadOfTakingTheChunkPath() {
+        for (m in listOf(TurnMode.Listen, TurnMode.EnglishOnly)) {
+            val store = Store(rows())
+            try {
+                modeFlow(store, m).run(rid, "s", "cs", modeContext(HearingLlm(), FakeDiarizer { error("boom") }, listening = true))
+                fail("should fail")
+            } catch (e: JobFailure) {
+                assertEquals("DIARIZE_FAILED", e.code)
+            }
+            assertTrue(store.segments.isEmpty())
+        }
     }
 }

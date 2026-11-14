@@ -22,6 +22,10 @@ Decisions that shape the architecture are recorded in [`docs/AD/`](docs/AD/), on
 - **Sections:** Context (the facts from the code that force the choice), Decision, Alternatives considered (and why rejected), Consequences (better, worse and accepted, still true), Verification, Delivery.
 - **Link it** from the index and from the short decision list in the relevant doc (for example D6 in [`docs/MEMORY.md`](docs/MEMORY.md#decisions) points to AD-01).
 
+## Research: `research/`
+
+Experiment results worth keeping live in [`research/`](research/), raw output first, then reading notes. Read [`research/asr-llm-combo/README.md`](research/asr-llm-combo/README.md) before choosing or changing the ASR engine or the LLM extraction setup: it has the measured WER per model, the raw transcripts and extracted facts, and the harness in `e2e/combo/` to rerun them. File new results there with `e2e/combo/archive.py`. Before repeating an experiment, read the logbook [`research/asr-llm-combo/log/2026-11-13-asr-llm-combo.md`](research/asr-llm-combo/log/2026-11-13-asr-llm-combo.md) (what was tried, what failed) and [`final-workflow/FINDINGS-2026-11-13.md`](research/asr-llm-combo/final-workflow/FINDINGS-2026-11-13.md) (which claims are verified and which are not).
+
 ## No AI attribution in commits or pull requests
 
 - **No `Co-Authored-By` trailer, no `Claude-Session` trailer, no "Generated with Claude Code" footer and no claude.ai session link** in a commit message, a PR title or a PR description. Not even when a tool or a default prompt suggests one.

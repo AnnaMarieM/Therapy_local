@@ -63,6 +63,17 @@
     <string name="settings_value_seconds">%1$d s</string>
     <string name="settings_value_seconds_decimal">%1$.1f s</string>
     <string name="settings_value_decimal">%1$.2f</string>
+    <string name="settings_group_workflow">Postup zpracování</string>
+    <string name="settings_workflow_intro">Jak se z nahrávky stanou fakta. Volba platí pro sezení zpracovaná po ní.</string>
+    <string name="settings_workflow_fast">Rychlý</string>
+    <string name="settings_workflow_fast_body">Jeden model poslouchá každou repliku a čte anglický text. Přepis v řeči sezení zůstává.</string>
+    <string name="settings_workflow_quality">Kvalitní</string>
+    <string name="settings_workflow_quality_cs">Kvalitní, český přepis</string>
+    <string name="settings_workflow_quality_cs_body">Whisper píše přepis v řeči sezení, větší model ho přeloží do angličtiny a čte ho.</string>
+    <string name="settings_workflow_quality_body">Whisper píše anglický text přímo ze zvuku a větší model ho čte. Přepis v řeči sezení neexistuje.</string>
+    <string name="settings_workflow_canary">Standardní (Canary)</string>
+    <string name="settings_workflow_canary_body">Rozpoznávač řeči z doby před oběma postupy, pak překlad do angličtiny.</string>
+    <string name="transcript_english_only_note">Tento přepis je jen anglicky. Kvalitní postup píše angličtinu přímo ze zvuku, takže text v řeči sezení neexistuje.</string>
     <string name="settings_model_intro">Model, který čte sezení. Doporučeno pro tento telefon: %1$s.</string>
     <string name="settings_model_remove_unused">Odebrat nepoužívaný (%1$s, %2$s)</string>
     <string name="settings_model_remove_title">Odebrat %1$s?</string>

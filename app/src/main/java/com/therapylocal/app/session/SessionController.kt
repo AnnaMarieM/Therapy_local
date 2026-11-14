@@ -74,7 +74,7 @@ object SessionController {
         if (store === s) return
         store = s
         val prefs = app.getSharedPreferences("settings", Context.MODE_PRIVATE)
-        liveCues = LiveCues(Engines.embedder(app), s) { prefs.liveCueSettings() }
+        liveCues = LiveCues(Engines.embedder(app), s, displayLanguage = { com.therapylocal.app.translate.DisplayLanguage.target(app) }) { prefs.liveCueSettings() }
         scope.launch { liveCues.cues.collect { _cues.value = it } }
     }
 

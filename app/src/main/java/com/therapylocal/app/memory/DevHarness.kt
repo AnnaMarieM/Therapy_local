@@ -23,7 +23,7 @@ import java.io.File
  *   {"resetProfiles": false, "stripLabels": false, "sessions": [{"file": "<client>_<n>.md", "date": "yyyy-MM-dd"}]}
  * Each becomes a session whose segments are the transcript's non-blank lines, queued from the window job on. out/DONE marks the end of the run.
  * A file ending in .wav (16 kHz mono, in in/) is a recorded session instead: it goes through the real chunker, transcribe and everything after.
- * Optional "settings" ({"language": "cs"}) are written to the app's settings first (the removed speech-engine settings are ignored), and
+ * Optional "settings" ({"language": "cs", "processing_language": "native"}) are written to the app's settings first (the removed speech-engine settings are ignored), and
  * "clientLanguages" ({"<client>": "cs"}, default "en") give the speech language of clients the harness creates, and
  * "queries" ([{"client": "...", "q": "..."}]) are answered after the run. Both transcripts and answers land in out/results.json ([DevResults]).
  * A leftover job.json is never read by the app itself, so it cannot reset clients or re-run old sessions.

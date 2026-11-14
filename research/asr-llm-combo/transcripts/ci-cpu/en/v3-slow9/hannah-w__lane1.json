@@ -1,0 +1,823 @@
+{
+ "engine": "v3-slow9",
+ "base": "whisper-large-v3",
+ "opts": {
+  "ffmpeg_filter": "atempo=0.9"
+ },
+ "client": "hannah-w",
+ "lang": "en",
+ "lane": 1,
+ "audio_s": 631.8,
+ "seconds": 400.6,
+ "rtf": 0.634,
+ "wer": 0.0744,
+ "cer": 0.0483,
+ "segments": [
+  {
+   "start": 1.23,
+   "end": 5.13,
+   "text": "Hello Hannah, come and take a seat. What would you like to talk about today?"
+  },
+  {
+   "start": 6.67,
+   "end": 15.33,
+   "text": "I'm not really sure where to start. I think I'm just anxious all the time and it's got worse in September."
+  },
+  {
+   "start": 15.75,
+   "end": 18.19,
+   "text": "What happened in September?"
+  },
+  {
+   "start": 19.53,
+   "end": 22.63,
+   "text": "It was my deputy head at my school"
+  },
+  {
+   "start": 22.79,
+   "end": 30.91,
+   "text": "I've taught here for 11 years and I have loved it and then they had asked me to step up and when our deputy left"
+  },
+  {
+   "start": 31.23,
+   "end": 34.47,
+   "text": "That sounds like recognition of your work."
+  },
+  {
+   "start": 34.47,
+   "end": 40.31,
+   "text": "That's what everyone says, but I keep thinking they picked the wrong person, and"
+  },
+  {
+   "start": 40.31,
+   "end": 44.99,
+   "text": "that sooner or later someone will notice I have no idea what I'm doing."
+  },
+  {
+   "start": 44.99,
+   "end": 49.27,
+   "text": "What does it look like when that dot arrives?"
+  },
+  {
+   "start": 49.27,
+   "end": 51.79,
+   "text": "Mostly Sunday evenings."
+  },
+  {
+   "start": 51.79,
+   "end": 59.75,
+   "text": "My chest goes tight and I start rehearsing Monday's staff meeting in my head."
+  },
+  {
+   "start": 59.75,
+   "end": 60.75,
+   "text": "What do you rehearse?"
+  },
+  {
+   "start": 60.75,
+   "end": 71.06,
+   "text": "Every possible question someone might ask and what I would say then what they would think of me if I got it wrong."
+  },
+  {
+   "start": 71.06,
+   "end": 74.06,
+   "text": "What do you imagine they would think?"
+  },
+  {
+   "start": 74.06,
+   "end": 84.06,
+   "text": "That I'm out of my depth. That they gave the job to a nice earful teacher who can't actually read."
+  },
+  {
+   "start": 84.06,
+   "end": 88.06,
+   "text": "Has anyone said anything that suggests that?"
+  },
+  {
+   "start": 88.06,
+   "end": 91.36,
+   "text": "no that's the strange thing"
+  },
+  {
+   "start": 91.36,
+   "end": 92.52,
+   "text": "nobody has"
+  },
+  {
+   "start": 92.52,
+   "end": 94.04,
+   "text": "it's all in my head"
+  },
+  {
+   "start": 94.04,
+   "end": 96.62,
+   "text": "it's so very real to you"
+  },
+  {
+   "start": 96.62,
+   "end": 97.08,
+   "text": "very"
+  },
+  {
+   "start": 97.08,
+   "end": 99.88,
+   "text": "last week I rewrote the same email"
+  },
+  {
+   "start": 99.88,
+   "end": 102.42,
+   "text": "three governors four times"
+  },
+  {
+   "start": 102.42,
+   "end": 104.02,
+   "text": "four times"
+  },
+  {
+   "start": 104.02,
+   "end": 105.98,
+   "text": "what was the email about"
+  },
+  {
+   "start": 105.98,
+   "end": 109.32,
+   "text": "change to the behavior policy"
+  },
+  {
+   "start": 109.32,
+   "end": 110.8,
+   "text": "it was two paragraphs"
+  },
+  {
+   "start": 110.8,
+   "end": 112.94,
+   "text": "I was afraid Mr."
+  },
+  {
+   "start": 113.48,
+   "end": 114.36,
+   "text": "Hargraves"
+  },
+  {
+   "start": 114.36,
+   "end": 115.9,
+   "text": "the chair of governors"
+  },
+  {
+   "start": 115.9,
+   "end": 117.94,
+   "text": "would think that I was stupid"
+  },
+  {
+   "start": 117.94,
+   "end": 120.5,
+   "text": "How does he treat you?"
+  },
+  {
+   "start": 121.68,
+   "end": 123.4,
+   "text": "He has been nothing but kind"
+  },
+  {
+   "start": 123.4,
+   "end": 126.02,
+   "text": "He told me in September he was delighted"
+  },
+  {
+   "start": 126.02,
+   "end": 128.46,
+   "text": "That makes it worse somehow"
+  },
+  {
+   "start": 128.46,
+   "end": 131.18,
+   "text": "Because I feel like I'm lying to him"
+  },
+  {
+   "start": 131.18,
+   "end": 133.12,
+   "text": "Lying to him about what?"
+  },
+  {
+   "start": 133.86,
+   "end": 135.06,
+   "text": "About being capable"
+  },
+  {
+   "start": 135.06,
+   "end": 136.8,
+   "text": "As if I'm pretending"
+  },
+  {
+   "start": 136.8,
+   "end": 139.16,
+   "text": "Pretending to be what?"
+  },
+  {
+   "start": 140.78,
+   "end": 143.58,
+   "text": "Somebody who knows what she's doing"
+  },
+  {
+   "start": 143.58,
+   "end": 145.52,
+   "text": "Most days I feel like a child"
+  },
+  {
+   "start": 145.52,
+   "end": 147.52,
+   "text": "Wearing her mother's coat"
+  },
+  {
+   "start": 147.52,
+   "end": 150.08,
+   "text": "That's a vivid image. Whose coat is that?"
+  },
+  {
+   "start": 151.22,
+   "end": 156.0,
+   "text": "My mum's, I suppose. She was a headteacher for 20 years."
+  },
+  {
+   "start": 156.32,
+   "end": 157.82,
+   "text": "Tell me about that."
+  },
+  {
+   "start": 159.14,
+   "end": 167.84,
+   "text": "She was brilliant. Everyone in the village still stops me to say what a wonderful head she was."
+  },
+  {
+   "start": 168.34,
+   "end": 173.6,
+   "text": "She retired six years ago and they have named a library after her."
+  },
+  {
+   "start": 173.6,
+   "end": 176.34,
+   "text": "Do you know anyone with a similar job?"
+  },
+  {
+   "start": 177.34,
+   "end": 179.98,
+   "text": "A deputy's job, but yes."
+  },
+  {
+   "start": 180.34,
+   "end": 182.9,
+   "text": "I can't help comparing."
+  },
+  {
+   "start": 183.44,
+   "end": 187.06,
+   "text": "Everything I do, I think, would she have done it better?"
+  },
+  {
+   "start": 187.78,
+   "end": 188.64,
+   "text": "Does she say that?"
+  },
+  {
+   "start": 189.48,
+   "end": 192.2,
+   "text": "Never. She is very supportive on the surface."
+  },
+  {
+   "start": 192.86,
+   "end": 197.26,
+   "text": "She says I've always worried too much and I should stop being silly."
+  },
+  {
+   "start": 197.86,
+   "end": 200.1,
+   "text": "How does it blend when she says that?"
+  },
+  {
+   "start": 200.1,
+   "end": 208.1,
+   "text": "It makes me feel like I'm making a fuss so I don't tell her how bad it is."
+  },
+  {
+   "start": 208.1,
+   "end": 210.1,
+   "text": "What does she not know?"
+  },
+  {
+   "start": 210.1,
+   "end": 214.1,
+   "text": "That I'm awake at 4 every morning."
+  },
+  {
+   "start": 214.1,
+   "end": 221.1,
+   "text": "I fall asleep fine then I'm awake at 4 going through the to-do list."
+  },
+  {
+   "start": 221.1,
+   "end": 224.1,
+   "text": "What else is on the list?"
+  },
+  {
+   "start": 224.1,
+   "end": 235.1,
+   "text": "Everything. Timetable changes, the offset prep, a parent complained, a child I'm worried about. It goes round and round."
+  },
+  {
+   "start": 236.1,
+   "end": 239.1,
+   "text": "How long have you been waking like that?"
+  },
+  {
+   "start": 240.1,
+   "end": 247.1,
+   "text": "Since about the second week of term. I drink a lot of coffee to get through a day which I know doesn't help."
+  },
+  {
+   "start": 247.1,
+   "end": 248.1,
+   "text": "How many cups?"
+  },
+  {
+   "start": 248.82,
+   "end": 250.12,
+   "text": "Five or six."
+  },
+  {
+   "start": 250.74,
+   "end": 255.04,
+   "text": "Then I can't sit still in the afternoons."
+  },
+  {
+   "start": 255.44,
+   "end": 258.56,
+   "text": "What do you notice in your body during those afternoons?"
+  },
+  {
+   "start": 259.34,
+   "end": 261.46,
+   "text": "My heart goes fast."
+  },
+  {
+   "start": 262.02,
+   "end": 264.1,
+   "text": "My hands are a bit shaky."
+  },
+  {
+   "start": 264.5,
+   "end": 270.3,
+   "text": "Last Thursday I had to leave a meeting to splash my face with water."
+  },
+  {
+   "start": 270.68,
+   "end": 271.46,
+   "text": "Did anyone notice?"
+  },
+  {
+   "start": 272.24,
+   "end": 273.18,
+   "text": "I don't think so."
+  },
+  {
+   "start": 273.26,
+   "end": 275.08,
+   "text": "I said I was fetching a document."
+  },
+  {
+   "start": 275.98,
+   "end": 278.46,
+   "text": "That sounds like a lot of effort to hide it."
+  },
+  {
+   "start": 279.22,
+   "end": 284.84,
+   "text": "It is. I am exhausted by the end of every day, just from pretending."
+  },
+  {
+   "start": 285.64,
+   "end": 287.24,
+   "text": "Who knows how you're feeling?"
+  },
+  {
+   "start": 289.1,
+   "end": 295.9,
+   "text": "My partner Ben knows a bit. He says I should just enjoy it."
+  },
+  {
+   "start": 296.34,
+   "end": 298.46,
+   "text": "How do you feel when he says that?"
+  },
+  {
+   "start": 298.46,
+   "end": 309.46,
+   "text": "Guilty and a bit alone. He means well. He's an engineer. He thinks if something's a problem, you fix it."
+  },
+  {
+   "start": 309.46,
+   "end": 311.46,
+   "text": "You can't just fix this."
+  },
+  {
+   "start": 311.46,
+   "end": 315.46,
+   "text": "No. I wish it were that simple."
+  },
+  {
+   "start": 315.46,
+   "end": 320.81,
+   "text": "Do you have friends at school you can talk to?"
+  },
+  {
+   "start": 320.81,
+   "end": 329.81,
+   "text": "Not anymore, not really. I used to eat lunch in the year four corridor with the others."
+  },
+  {
+   "start": 329.81,
+   "end": 333.17,
+   "text": "Now I'm their line manager and it's awkward."
+  },
+  {
+   "start": 333.85,
+   "end": 336.09,
+   "text": "Say it was some company along with the promotion."
+  },
+  {
+   "start": 336.53,
+   "end": 340.21,
+   "text": "Yes, I hadn't thought of it like that."
+  },
+  {
+   "start": 340.79,
+   "end": 341.93,
+   "text": "I miss them."
+  },
+  {
+   "start": 342.25,
+   "end": 344.51,
+   "text": "I miss my class too."
+  },
+  {
+   "start": 345.15,
+   "end": 346.31,
+   "text": "What do you miss most?"
+  },
+  {
+   "start": 347.15,
+   "end": 348.69,
+   "text": "The children mostly."
+  },
+  {
+   "start": 348.69,
+   "end": 354.99,
+   "text": "The daily bit where a child gets something for the first time."
+  },
+  {
+   "start": 355.73,
+   "end": 358.91,
+   "text": "No, my days are spreadsheets."
+  },
+  {
+   "start": 358.91,
+   "end": 361.29,
+   "text": "Did you want deeper emotion?"
+  },
+  {
+   "start": 362.29,
+   "end": 364.03,
+   "text": "I thought I did"
+  },
+  {
+   "start": 364.03,
+   "end": 366.19,
+   "text": "I said yes in the room"
+  },
+  {
+   "start": 366.19,
+   "end": 368.53,
+   "text": "Because I couldn't say no to her"
+  },
+  {
+   "start": 368.53,
+   "end": 370.43,
+   "text": "The hat"
+  },
+  {
+   "start": 370.43,
+   "end": 373.37,
+   "text": "Then I went home and cried"
+  },
+  {
+   "start": 373.37,
+   "end": 376.61,
+   "text": "What were the tears about?"
+  },
+  {
+   "start": 377.51,
+   "end": 378.49,
+   "text": "Fear I think"
+  },
+  {
+   "start": 378.49,
+   "end": 383.05,
+   "text": "And that I would never get to go back"
+  },
+  {
+   "start": 383.05,
+   "end": 384.79,
+   "text": "Would you want to go back?"
+  },
+  {
+   "start": 385.45,
+   "end": 386.63,
+   "text": "I don't know"
+  },
+  {
+   "start": 386.63,
+   "end": 389.47,
+   "text": "That sounds terrible, doesn't it?"
+  },
+  {
+   "start": 390.35,
+   "end": 394.53,
+   "text": "After everyone's been so supportive."
+  },
+  {
+   "start": 395.29,
+   "end": 396.69,
+   "text": "That sounds like an honest question."
+  },
+  {
+   "start": 398.19,
+   "end": 400.81,
+   "text": "Nobody has asked me that."
+  },
+  {
+   "start": 400.99,
+   "end": 403.05,
+   "text": "They just say, well done."
+  },
+  {
+   "start": 404.53,
+   "end": 407.23,
+   "text": "When was the last time you felt properly relaxed?"
+  },
+  {
+   "start": 407.95,
+   "end": 409.17,
+   "text": "These summer holidays."
+  },
+  {
+   "start": 409.63,
+   "end": 411.73,
+   "text": "We went walking in the lakes."
+  },
+  {
+   "start": 411.73,
+   "end": 416.11,
+   "text": "And I didn't think about school once for ten days."
+  },
+  {
+   "start": 416.63,
+   "end": 418.63,
+   "text": "What was different there?"
+  },
+  {
+   "start": 419.03,
+   "end": 424.79,
+   "text": "Nobody expected anything of me. I was just walking, Ben carried the sandwiches."
+  },
+  {
+   "start": 424.79,
+   "end": 426.79,
+   "text": "Uh, yeah?"
+  },
+  {
+   "start": 427.67,
+   "end": 433.75,
+   "text": "The week before term I was a wreck again. I couldn't eat on the Sunday."
+  },
+  {
+   "start": 434.55,
+   "end": 438.79,
+   "text": "Is there anything you already tried to tell, even let me?"
+  },
+  {
+   "start": 439.59,
+   "end": 445.99,
+   "text": "I started writing down what went well each evening. Small things, a chill laughing,"
+  },
+  {
+   "start": 445.99,
+   "end": 448.33,
+   "text": "a good email. How did that go?"
+  },
+  {
+   "start": 449.21,
+   "end": 450.19,
+   "text": "It held"
+  },
+  {
+   "start": 450.19,
+   "end": 452.19,
+   "text": "for about two weeks and then"
+  },
+  {
+   "start": 452.19,
+   "end": 454.17,
+   "text": "I stopped because I felt"
+  },
+  {
+   "start": 454.17,
+   "end": 456.13,
+   "text": "silly. Silly in what way?"
+  },
+  {
+   "start": 456.83,
+   "end": 458.11,
+   "text": "As if I were"
+  },
+  {
+   "start": 458.11,
+   "end": 460.25,
+   "text": "bragging to myself"
+  },
+  {
+   "start": 460.25,
+   "end": 461.37,
+   "text": "in a notebook."
+  },
+  {
+   "start": 462.41,
+   "end": 464.23,
+   "text": "Noticing what went"
+  },
+  {
+   "start": 464.23,
+   "end": 466.07,
+   "text": "well is not the same"
+  },
+  {
+   "start": 466.07,
+   "end": 469.59,
+   "text": "as bragging. Probably"
+  },
+  {
+   "start": 469.59,
+   "end": 470.43,
+   "text": "not."
+  },
+  {
+   "start": 470.87,
+   "end": 473.41,
+   "text": "It just felt that way."
+  },
+  {
+   "start": 474.23,
+   "end": 475.41,
+   "text": "It sounds worried"
+  },
+  {
+   "start": 475.41,
+   "end": 477.19,
+   "text": "back coming to"
+  },
+  {
+   "start": 477.19,
+   "end": 482.73,
+   "text": "Have you thought about whether there is something particular you would like from our work?"
+  },
+  {
+   "start": 484.49,
+   "end": 488.35,
+   "text": "I would like to do the job without feeling like a fraud."
+  },
+  {
+   "start": 489.35,
+   "end": 491.83,
+   "text": "What would that look like on a Tuesday?"
+  },
+  {
+   "start": 494.49,
+   "end": 499.35,
+   "text": "Walking into a meeting and not rehearsing at first."
+  },
+  {
+   "start": 500.09,
+   "end": 502.27,
+   "text": "Sending an email once."
+  },
+  {
+   "start": 502.91,
+   "end": 503.55,
+   "text": "And on Sunday?"
+  },
+  {
+   "start": 503.55,
+   "end": 510.79,
+   "text": "being able to sit on the sofa in the evening without my stomach in knots"
+  },
+  {
+   "start": 510.79,
+   "end": 516.89,
+   "text": "those are clear goals how do you feel now saying them out loud"
+  },
+  {
+   "start": 516.89,
+   "end": 531.89,
+   "text": "a lightful lighter a bit tearful actually that's all right take a moment sorry i didn't expect that"
+  },
+  {
+   "start": 531.89,
+   "end": 535.49,
+   "text": "There is nothing to apologize for. What's coming up?"
+  },
+  {
+   "start": 536.37,
+   "end": 540.77,
+   "text": "That's the first time I have told anyone how bad it is."
+  },
+  {
+   "start": 541.47,
+   "end": 546.51,
+   "text": "Not even Ben knows how about the 4am."
+  },
+  {
+   "start": 547.85,
+   "end": 550.47,
+   "text": "What would it be like to tell him?"
+  },
+  {
+   "start": 550.87,
+   "end": 559.85,
+   "text": "Scary. He would probably be hurt that I didn't say sooner."
+  },
+  {
+   "start": 559.85,
+   "end": 563.55,
+   "text": "Would it be a reason to keep it to yourself?"
+  },
+  {
+   "start": 563.87,
+   "end": 574.31,
+   "text": "I suppose not try this week."
+  },
+  {
+   "start": 575.11,
+   "end": 577.47,
+   "text": "What would help you do that?"
+  },
+  {
+   "start": 578.55,
+   "end": 587.71,
+   "text": "If I choose a quiet moment, not on a Sunday evening, then I'm too warmed up."
+  },
+  {
+   "start": 588.37,
+   "end": 590.21,
+   "text": "Saturday morning, perhaps?"
+  },
+  {
+   "start": 590.91,
+   "end": 594.39,
+   "text": "Yeah, over breakfast. He's always in a good mood then."
+  },
+  {
+   "start": 594.39,
+   "end": 602.49,
+   "text": "And one more small thing. Would you try the evening notebook again, just for a week? Even one line?"
+  },
+  {
+   "start": 603.57,
+   "end": 610.33,
+   "text": "I could. I will put it by the kettle so I don't forget."
+  },
+  {
+   "start": 612.3,
+   "end": 616.38,
+   "text": "We're nearly out of time. Is there anything you want to add?"
+  },
+  {
+   "start": 618.87,
+   "end": 624.81,
+   "text": "Only did I nearly cancel this morning. I'm glad I didn't."
+  },
+  {
+   "start": 624.81,
+   "end": 626.99,
+   "text": "and luck to you"
+  },
+  {
+   "start": 626.99,
+   "end": 628.51,
+   "text": "same time next week"
+  },
+  {
+   "start": 628.51,
+   "end": 630.45,
+   "text": "yes please thank you"
+  }
+ ],
+ "round": "r3a"
+}

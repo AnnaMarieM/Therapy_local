@@ -553,12 +553,13 @@ private fun FactLayer(f: FactItem, repo: ClientRepository, sheet: SheetState) {
         value = null // not the previous session's lines while these load
         value = current?.let { m -> withContext(Dispatchers.IO) { runCatching { repo.transcript(m.sessionId) }.getOrDefault(emptyList()) } }
     }
+    val factEnglishOnly by produceState(false, current?.sessionId) { value = current?.let { m -> withContext(Dispatchers.IO) { runCatching { repo.transcriptIsEnglishOnly(m.sessionId) }.getOrDefault(false) } } ?: false }
     val target = remember(current, lines) { current?.let { m -> lines?.let { FactJump.resolve(m, it) } } }
     // Tapping a line puts the highlight away; picking another mention brings its own.
     var dismissed by remember(current) { mutableStateOf(false) }
     val list = rememberLazyListState()
-    LaunchedEffect(target) {
-        val at = target?.let { FactJump.listIndex(it, lines.orEmpty(), FACT_HEADER_ITEMS) }
+    LaunchedEffect(target, factEnglishOnly) {
+        val at = target?.let { FactJump.listIndex(it, lines.orEmpty(), FACT_HEADER_ITEMS + if (factEnglishOnly) 1 else 0) }
         list.scrollToItem(at ?: 0)
     }
     LayerFrame(sheet, stringResource(R.string.profile_section_know), f.heading, list) {
@@ -574,6 +575,7 @@ private fun FactLayer(f: FactItem, repo: ClientRepository, sheet: SheetState) {
                 Label(stringResource(R.string.profile_no_passage), Modifier.padding(vertical = 8.dp))
             }
         }
+        if (factEnglishOnly) item { EnglishOnlyNote() }
         val l = lines
         when {
             mentions == null || (current != null && l == null) -> item { Label(stringResource(R.string.profile_finding), Modifier.padding(vertical = 16.dp)) }
@@ -593,7 +595,9 @@ private fun TranscriptLayer(t: Layer.Transcript, repo: ClientRepository, sheet: 
             runCatching { if (t.from != null && t.to != null) repo.transcript(t.sessionId, t.from, t.to) else repo.transcript(t.sessionId) }.getOrDefault(emptyList())
         }
     }
+    val englishOnly by produceState(false, t.sessionId) { value = withContext(Dispatchers.IO) { runCatching { repo.transcriptIsEnglishOnly(t.sessionId) }.getOrDefault(false) } }
     LayerFrame(sheet, localDate(t.date), t.title) {
+        if (englishOnly) item { EnglishOnlyNote() }
         val l = lines
         when {
             l == null -> item { Label(stringResource(R.string.profile_opening)) }
@@ -601,6 +605,12 @@ private fun TranscriptLayer(t: Layer.Transcript, repo: ClientRepository, sheet: 
             else -> items(l, key = { it.idx }) { line -> Line(line, line.idx == t.highlight) }
         }
     }
+}
+
+/** The Quality workflow keeps no text in the client's language: the screen says so instead of showing English as if it were the language spoken (AD-22). */
+@Composable
+private fun EnglishOnlyNote() {
+    Text(stringResource(R.string.transcript_english_only_note), style = Type.BodySmall, color = Palette.InkSoft, modifier = Modifier.padding(vertical = 8.dp))
 }
 
 @Composable

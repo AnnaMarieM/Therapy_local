@@ -1,0 +1,131 @@
+{
+ "round": "r3a-asr",
+ "lanes": 2,
+ "asr": [
+  {
+   "id": "v3-slow5",
+   "engine": "whisper-large-v3",
+   "opts": {
+    "ffmpeg_filter": "atempo=0.5"
+   }
+  },
+  {
+   "id": "v3-slow6",
+   "engine": "whisper-large-v3",
+   "opts": {
+    "ffmpeg_filter": "atempo=0.6"
+   }
+  },
+  {
+   "id": "v3-slow7",
+   "engine": "whisper-large-v3",
+   "opts": {
+    "ffmpeg_filter": "atempo=0.7"
+   }
+  },
+  {
+   "id": "v3-slow8",
+   "engine": "whisper-large-v3",
+   "opts": {
+    "ffmpeg_filter": "atempo=0.8"
+   }
+  },
+  {
+   "id": "v3-slow9",
+   "engine": "whisper-large-v3",
+   "opts": {
+    "ffmpeg_filter": "atempo=0.9"
+   }
+  },
+  {
+   "id": "v3-denoise",
+   "engine": "whisper-large-v3",
+   "opts": {
+    "ffmpeg_filter": "highpass=f=70,afftdn=nf=-30"
+   }
+  },
+  {
+   "id": "v3-beam10",
+   "engine": "whisper-large-v3",
+   "opts": {
+    "beam_size": 10,
+    "patience": 2.0
+   }
+  },
+  {
+   "id": "v3-slow8-beam5-prompt",
+   "engine": "whisper-large-v3",
+   "opts": {
+    "ffmpeg_filter": "atempo=0.8",
+    "beam_size": 5,
+    "initial_prompt": {
+     "cs": "Rozhovor v psychoterapii mezi terapeutem a klientem. Klient mluv\u00ed o rodin\u011b, pr\u00e1ci, sp\u00e1nku, \u00fazkosti a pocitech.",
+     "en": "A psychotherapy session between a therapist and a client. The client talks about family, work, sleep, anxiety and feelings."
+    }
+   }
+  },
+  {
+   "id": "turbo-slow5",
+   "engine": "whisper-large-v3-turbo",
+   "opts": {
+    "ffmpeg_filter": "atempo=0.5"
+   }
+  },
+  {
+   "id": "turbo-slow6",
+   "engine": "whisper-large-v3-turbo",
+   "opts": {
+    "ffmpeg_filter": "atempo=0.6"
+   }
+  },
+  {
+   "id": "turbo-slow7",
+   "engine": "whisper-large-v3-turbo",
+   "opts": {
+    "ffmpeg_filter": "atempo=0.7"
+   }
+  },
+  {
+   "id": "turbo-slow8",
+   "engine": "whisper-large-v3-turbo",
+   "opts": {
+    "ffmpeg_filter": "atempo=0.8"
+   }
+  },
+  {
+   "id": "turbo-slow9",
+   "engine": "whisper-large-v3-turbo",
+   "opts": {
+    "ffmpeg_filter": "atempo=0.9"
+   }
+  },
+  {
+   "id": "turbo-denoise",
+   "engine": "whisper-large-v3-turbo",
+   "opts": {
+    "ffmpeg_filter": "highpass=f=70,afftdn=nf=-30"
+   }
+  },
+  {
+   "id": "turbo-beam10",
+   "engine": "whisper-large-v3-turbo",
+   "opts": {
+    "beam_size": 10,
+    "patience": 2.0
+   }
+  },
+  {
+   "id": "turbo-slow8-beam5-prompt",
+   "engine": "whisper-large-v3-turbo",
+   "opts": {
+    "ffmpeg_filter": "atempo=0.8",
+    "beam_size": 5,
+    "initial_prompt": {
+     "cs": "Rozhovor v psychoterapii mezi terapeutem a klientem. Klient mluv\u00ed o rodin\u011b, pr\u00e1ci, sp\u00e1nku, \u00fazkosti a pocitech.",
+     "en": "A psychotherapy session between a therapist and a client. The client talks about family, work, sleep, anxiety and feelings."
+    }
+   }
+  }
+ ],
+ "llm": []
+}

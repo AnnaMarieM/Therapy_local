@@ -1,0 +1,533 @@
+{
+ "round": "r1",
+ "engine": "whisper-small-translate",
+ "model": "qwen3.5-4b",
+ "lane": 3,
+ "client": "tomas-b",
+ "lang": "cs",
+ "seconds": 487.6,
+ "facts": [
+  {
+   "heading": "Client name is Tomas",
+   "content": "The client's name is Tomas.",
+   "evidence": "Good morning, Mr. Bartop",
+   "scope": "profile",
+   "category": "Self-concept & Identity",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client name is Bartop",
+   "content": "The client's name is Bartop.",
+   "evidence": "Good morning, Mr. Bartop",
+   "scope": "profile",
+   "category": "Self-concept & Identity",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client has stomach ache",
+   "content": "The client has a stomach ache.",
+   "evidence": "I have a stomach ache",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client cannot do something",
+   "content": "The client cannot do something like this.",
+   "evidence": "I can't do it like this",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client going to clinic",
+   "content": "The client is going to the clinic.",
+   "evidence": "I'm going to the clinic",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client arriving at 1 pm",
+   "content": "The client will arrive at 1 pm.",
+   "evidence": "I'll be there by 1 pm",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client checks door repeatedly",
+   "content": "The client closes the door, goes to the kitchen, and checks windows.",
+   "evidence": "I close the door, go to the kitchen, go back and close the door",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client checks tables and windows",
+   "content": "The client checks the tables and every window in the kitchen.",
+   "evidence": "Then I check the tables, every window in the kitchen",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client cannot remember what happened",
+   "content": "The client cannot remember what happened after checking.",
+   "evidence": "I can't remember",
+   "scope": "session",
+   "category": "History & Life Events",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client had a fever",
+   "content": "The client had a fever a couple of days later.",
+   "evidence": "A couple of days later I had a fever",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client toilet was wet",
+   "content": "The client's toilet was wet.",
+   "evidence": "And the toilet was wet",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client ran away",
+   "content": "The client went out running.",
+   "evidence": "We went out in the running",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client feels like a dream",
+   "content": "The client felt like it was a dream.",
+   "evidence": "It was like a dream",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client feels free",
+   "content": "The client feels that they are free.",
+   "evidence": "I feel that I'm free",
+   "scope": "session",
+   "category": "Self-concept & Identity",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client runs away",
+   "content": "The client would rather run away.",
+   "evidence": "I rather run away",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client heart beating fast",
+   "content": "The client's heart is beating fast.",
+   "evidence": "My heart is beating fast",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client working at factory",
+   "content": "The client is working as a collector at the factory.",
+   "evidence": "I'm working as a collector at the factory",
+   "scope": "profile",
+   "category": "Work & Career",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client has daughter Barbara",
+   "content": "The client has a little girl named Barbara.",
+   "evidence": "Barbara, my little girl",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client came to cinema",
+   "content": "The client came to the cinema 40 minutes later.",
+   "evidence": "Yesterday we came to the cinema 40 minutes later",
+   "scope": "session",
+   "category": "History & Life Events",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client felt like a child",
+   "content": "The client felt like a child who can't go out of the house.",
+   "evidence": "I felt like a child who can't go out of the house",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client name is Tomas",
+   "content": "The client's name is Tomas.",
+   "evidence": "Client: Tomas",
+   "scope": "profile",
+   "category": "Self-concept & Identity",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "Works in office and at home",
+   "content": "Tomas works in the office and at home.",
+   "evidence": "I have a lot of work in the office and during the time I'm in the house.",
+   "scope": "session",
+   "category": "Work & Career",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Identifies as a peddler",
+   "content": "Tomas identifies himself as a peddler.",
+   "evidence": "I think I'm a peddler.",
+   "scope": "session",
+   "category": "Work & Career",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Boss praises Tomas's passion",
+   "content": "Tomas's boss says he is the most passionate about the company.",
+   "evidence": "The boss tells me I'm the most passionate about the company",
+   "scope": "session",
+   "category": "Work & Career",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Boss doesn't know time taken",
+   "content": "Tomas's boss doesn't know how much time it takes.",
+   "evidence": "but he doesn't know how much time it takes.",
+   "scope": "session",
+   "category": "Work & Career",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Works one hour in office",
+   "content": "Tomas works for one hour in the office.",
+   "evidence": "Last time I was busy with work an hour in the office.",
+   "scope": "session",
+   "category": "Work & Career",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Has a company that came to work",
+   "content": "Tomas has a company that came to work.",
+   "evidence": "I have a company that came to work.",
+   "scope": "session",
+   "category": "Work & Career",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Started work in fourth month",
+   "content": "Tomas started working in the fourth month.",
+   "evidence": "To work in the fourth month.",
+   "scope": "session",
+   "category": "Work & Career",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Feels sad about work success",
+   "content": "Tomas feels sad about his work success.",
+   "evidence": "I'm sad, really.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Waits for big time event",
+   "content": "Tomas was waiting for a big time event.",
+   "evidence": "We were waiting for that big time",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Thinks about woman and child together",
+   "content": "Tomas thinks about a woman and her child being together.",
+   "evidence": "That she and her child will be together.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Wants to be with woman and child",
+   "content": "Tomas would like to be with the woman and child.",
+   "evidence": "No, I would like to.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Thinks of cutting bread alone",
+   "content": "Tomas thinks of cutting bread alone.",
+   "evidence": "when I cut bread in the same way",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Afraid of being alone",
+   "content": "Tomas is afraid that he will be alone.",
+   "evidence": "and then I'm afraid that it will be alone.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Thinks of telling Barbara",
+   "content": "Tomas thinks of telling Barbara.",
+   "evidence": "or Barbara.",
+   "scope": "session",
+   "category": "Family & Relationships",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Thinks he is dangerous",
+   "content": "Tomas asks if he is dangerous.",
+   "evidence": "Do you think I'm dangerous?",
+   "scope": "session",
+   "category": "Self-concept & Identity",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Goes to room when thoughts appear",
+   "content": "Tomas goes back to his room when thoughts appear.",
+   "evidence": "I go back to my room.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Controls room to stop thoughts",
+   "content": "Tomas controls the room to stop thoughts.",
+   "evidence": "Or I go back to my room and control something, so that it stops.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Sleeps in bedroom",
+   "content": "Tomas sleeps in the bedroom.",
+   "evidence": "I sleep in the bedroom.",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Stays in bedroom twice a night",
+   "content": "Tomas stays in the bedroom two times a night.",
+   "evidence": "I stay there two times a night and control the room.",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Helps with delivery for barbershop",
+   "content": "Tomas helps with the delivery for the barbershop.",
+   "evidence": "I help with the delivery with the barbershop",
+   "scope": "session",
+   "category": "Work & Career",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Delivers twice a day",
+   "content": "Tomas delivers twice a day.",
+   "evidence": "The delivery twice a day.",
+   "scope": "session",
+   "category": "Work & Career",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Was in therapy in hospital",
+   "content": "Tomas was in therapy when he was in the hospital.",
+   "evidence": "I was in therapy when I was in the hospital.",
+   "scope": "profile",
+   "category": "History & Life Events",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Was afraid of something in hospital",
+   "content": "Tomas was afraid of something when in the hospital.",
+   "evidence": "I was afraid of something.",
+   "scope": "profile",
+   "category": "History & Life Events",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Client name is Tomas",
+   "content": "The client's name is Tomas.",
+   "evidence": "So, Vlad?",
+   "scope": "profile",
+   "category": "Self-concept & Identity",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Client plans to see next week",
+   "content": "Tomas plans to see the therapist next week.",
+   "evidence": "See you next week.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Client plans to try one thing",
+   "content": "Tomas plans to try one thing.",
+   "evidence": "Good, you try one thing.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Client plans to write down numbers",
+   "content": "Tomas plans to write down the number of one out of ten.",
+   "evidence": "And I'll write down the number of one out of ten.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Client plans to check only once",
+   "content": "Tomas plans to check only once when leaving the bit.",
+   "evidence": "check it only once",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Client plans to count in a row",
+   "content": "Tomas plans to write down how much he was in a row.",
+   "evidence": "write down how much you were in a row.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Client plans to teach Speaker 1",
+   "content": "Tomas plans to teach Speaker 1.",
+   "evidence": "I'll teach you.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Client plans to say something to barber",
+   "content": "Tomas plans to say something to the barber.",
+   "evidence": "Would you like to say something to him?",
+   "scope": "session",
+   "category": "Family & Relationships",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Client plans not to lose barber",
+   "content": "Tomas plans not to lose the barber.",
+   "evidence": "I would not lose him.",
+   "scope": "session",
+   "category": "Family & Relationships",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Client thinks she said something",
+   "content": "Tomas thinks she said something.",
+   "evidence": "She said a lot to me.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Client thinks Vlad found something",
+   "content": "Tomas thinks Vlad found something.",
+   "evidence": "That you were here and you found out something.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Client thinks it is okay",
+   "content": "Tomas thinks it is okay.",
+   "evidence": "It's okay.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Client thinks Vlad is afraid",
+   "content": "Tomas thinks Vlad is afraid.",
+   "evidence": "I'm afraid that you would not want to know.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Client thinks Vlad would not want to know",
+   "content": "Tomas thinks Vlad would not want to know.",
+   "evidence": "I'm afraid that you would not want to know.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 3,
+   "quote_found": true
+  }
+ ]
+}

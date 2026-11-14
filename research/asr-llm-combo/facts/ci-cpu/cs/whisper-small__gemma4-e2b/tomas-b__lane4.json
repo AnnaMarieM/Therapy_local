@@ -1,0 +1,200 @@
+{
+ "round": "r1",
+ "engine": "whisper-small",
+ "model": "gemma4-e2b",
+ "lane": 4,
+ "client": "tomas-b",
+ "lang": "cs",
+ "seconds": 191.3,
+ "facts": [
+  {
+   "heading": "Nevědomá úzkost",
+   "content": "Tomas cítil úzkost. Tomas se zbázmnil úzkosti.",
+   "evidence": "Tak mroste úzkost, až mám pocit, že se zbázním. Vrhu, radši je to udělho.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 1,
+   "quote_found": false
+  },
+  {
+   "heading": "Pocity při kontrole",
+   "content": "Tomas cítil srdce po 3 suzem. Tomas se bátil, že se něco skoří.",
+   "evidence": "Srdce po 3 suzem je rucele, měž patnil dělutku. Bojím se, že konec v jahle jednou nám chybdu, že vpadním připlejím vodit, če neco skoří.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 1,
+   "quote_found": false
+  },
+  {
+   "heading": "Problém s manželkou",
+   "content": "Tomas se řešil s manželkou o úzkosti. Manželka vidí, že to je víc.",
+   "evidence": "Kdy o tom vý? Barbuda. Moje manželka. To vělil, ale vidím, že jí to večerpával.",
+   "scope": "Rodina a vztahy",
+   "category": "Rodina a vztahy",
+   "part": 1,
+   "quote_found": false
+  },
+  {
+   "heading": "Zranění u suseda",
+   "content": "Tomas byl zraněn kůlem na chodinu. Sused mu to hodil celá.",
+   "evidence": "Prvnul mi avar, na chodinu byl kůl, a v nejakři čeval. Nírne byl zraně, ale susedom to je hodil celá.",
+   "scope": "Historie a události",
+   "category": "Historie a události",
+   "part": 1,
+   "quote_found": false
+  },
+  {
+   "heading": "Pocity při nezkontrolování",
+   "content": "Tomas měl pocit, že to působí na něj. Tomas se bojí, že se něco stane.",
+   "evidence": "Před té doby mám pocit, že to mluz působět já. Když něco neskontroli, jak se to stané, a bude měná.",
+   "scope": "session",
+   "category": "Osobní témata a sebepojetí",
+   "part": 1,
+   "quote_found": false
+  },
+  {
+   "heading": "Práce a čas",
+   "content": "Tomas pracuje v práci, kde je káčvalomomce. Jeho čelníček nevidí časový náklad.",
+   "evidence": "Pracujekolek, kde káčvalomomce. Vám razvory v BT jako přesvradněných domů. Čef mi říká, že jsem nejpečtojší ve firmě, ale nevidí, kolik času to stojí.",
+   "scope": "Práce a kariéra",
+   "category": "Práce a kariéra",
+   "part": 1,
+   "quote_found": false
+  },
+  {
+   "heading": "Práce a finanční stres",
+   "content": "Tomas pracoval v hodinu výzdeně. Tomas předal zakázky kolegovi.",
+   "evidence": "V pošletním rysící jsme jdela práce ve hodinu výzdeně. Už jsem pár zakážek předal kolegové, protože jsem to nestíhal.",
+   "scope": "session",
+   "category": "Práce a kariéra",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "Strach z přídělené práce",
+   "content": "Tomas má strach, když mu je příděl práce. Tomas se bojí, že se mu nic nebudě.",
+   "evidence": "Mám strah, když je přídil práce. Mám strah, když je přídil práce.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "Myšlenka o ubližení",
+   "content": "Tomas má myšlenku, že ho a dítětě uplíží. Tomas se bojí, že se mu nic nebudě.",
+   "evidence": "Že ji a dítětě tě uplíží. Ublížíte jak? Ne, že bych chtěl. To je hrazné, nikdy bych to neudlal.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "Zpracování strachu",
+   "content": "Tomas se bojí, že se mu nic nebudě. Tomas se bojí, že se mu nic nebudě.",
+   "evidence": "A, no, je to nejhorší, když jsem to v nikou neřekl ani parboře.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Zážitky s barborou",
+   "content": "Tomas pomáhá na procházky s barborou, když je něco do mnoho.",
+   "evidence": "Pomáhá vám něco? Pomáhá na procházky s barborou, bo když je právě něco do mnoho.",
+   "scope": "session",
+   "category": "Zdroje a zvládání",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "Zlepšování stavu",
+   "content": "Tomas chce, aby se jeho stav zlepšil rychle. Tomas chce, aby se jeho stav zlepšil rychle.",
+   "evidence": "Udejíš ve co za 5 minut. A češit se nadítě bez těch nešlené. To jsou věstné cíle.",
+   "scope": "session",
+   "category": "Zdroje a zvládání",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "Léčba strachu",
+   "content": "Tomas zkusil terapii, aby se vystal tomu, čeho se boí. Tomas přiznal, že z toho strach přišel.",
+   "evidence": "Zložel jsem terapy, když jsem se všlo, postupně vystalo je to, čeho se boí. Nysl jsem z toho strach.",
+   "scope": "session",
+   "category": "Zdroje a zvládání",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "Kroky k změně",
+   "content": "Tomas se snaží dělat malá kroky k rozhodování. Tomas chce, aby se jeho stav zlepšil rychle.",
+   "evidence": "Šlo by si po malých kroci, aby byste o tempu rozhodovalu. To je... uklidňující?",
+   "scope": "session",
+   "category": "Zdroje a zvládání",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "Kontrola jako pomáha",
+   "content": "Tomas kontroluje věci, aby se ukryl tuhle myšlenku. Tomas si nic neuvědomil.",
+   "evidence": "Takže kontrola vám pomáhá ukrytnit i tuhle? Vlastně nebo. Nikdy mě napadlo, že to spousoví si.",
+   "scope": "session",
+   "category": "Osobní témata a sebepojetí",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "Spánek a kontrola",
+   "content": "Tomas spí, ale nezervím. Tomas kontroluje věci.",
+   "evidence": "Spím, nezervím. Stávám roce dva krát a kontroli je spodáv.",
+   "scope": "session",
+   "category": "Zdraví, tělo a spánek",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "Zážitek z sezení",
+   "content": "Tomas vyjádřil, že to by mu dalo víc než čekal.",
+   "evidence": "Tohle by mě dalo víc než jsem čekl.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Navrhované cvičení",
+   "content": "Tomas byl povinen vyzkoušet jednu věc.",
+   "evidence": "zkuste jednu věc.",
+   "scope": "session",
+   "category": "Zdroje a zvládání",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Navrhované cvičení",
+   "content": "Tomas měl zkusit kontrolovat rváře jenom jednou a zavážet si, jak moc mu bylo úzko.",
+   "evidence": "skontrolojte rváře jenom jednou a zavěžte si, jak moc vám bylo úzko.",
+   "scope": "session",
+   "category": "Zdroje a zvládání",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Navrhované cvičení",
+   "content": "Tomas měl zkusit kontrolovat rváře jednou a spodně jednou.",
+   "evidence": "I jednou. Skusem to, a spodně jednou.",
+   "scope": "session",
+   "category": "Zdroje a zvládání",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Cíl sezení",
+   "content": "Tomas se domluvil, že pro dnešní sezení skončí.",
+   "evidence": "Třesně tak, pro dneši vtedy skončíme.",
+   "scope": "session",
+   "category": "Zdroje a zvládání",
+   "part": 3,
+   "quote_found": true
+  }
+ ]
+}

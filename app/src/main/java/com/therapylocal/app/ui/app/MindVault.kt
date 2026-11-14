@@ -151,7 +151,13 @@ private fun Main(viewModel: MainViewModel, openSessionRequest: Int, onDeveloper:
         Unit
     }
     // Keyed on the language: a switch no longer recreates the activity (#71), so this screen stays and asks again when it arrives.
-    LaunchedEffect(config.locales) { if (LocaleStore.takeReprocessOffer(ctx)) offerReprocess(false) }
+    LaunchedEffect(config.locales) {
+        if (LocaleStore.takeReprocessOffer(ctx)) {
+            // In the processing language "english" only what is shown needs translating into the new language (docs/AD/AD-17.md); nothing is extracted again.
+            withContext(Dispatchers.IO) { com.therapylocal.app.jobs.Reprocess.localizeAll(ctx) }
+            offerReprocess(false)
+        }
+    }
 
     // The client's name travels between the reel and the top of their page while that page comes and goes. Only when both ends are known
     // and in sight (the page's title can be scrolled away); otherwise the page just shifts in like any other.

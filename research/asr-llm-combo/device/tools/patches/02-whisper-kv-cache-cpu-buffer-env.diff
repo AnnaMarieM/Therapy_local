@@ -1,0 +1,11 @@
+--- a/src/whisper.cpp
++++ b/src/whisper.cpp
+@@ -987,7 +987,7 @@
+     cache.k = ggml_new_tensor_1d(ctx, wtype, n_elements);
+     cache.v = ggml_new_tensor_1d(ctx, wtype, n_elements);
+ 
+-    cache.buffer = ggml_backend_alloc_ctx_tensors(ctx, backend);
++    cache.buffer = getenv("WHISPER_KV_CPU") ? ggml_backend_alloc_ctx_tensors_from_buft(ctx, ggml_backend_cpu_buffer_type()) : ggml_backend_alloc_ctx_tensors(ctx, backend);
+     if (!cache.buffer) {
+         WHISPER_LOG_ERROR("%s: failed to allocate memory for the kv cache\n", __func__);
+         return false;

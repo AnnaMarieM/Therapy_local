@@ -1,0 +1,14 @@
+{
+ "client": "tomas-b",
+ "engine": "whisper large-v3 faster-whisper 1.2.1 CTranslate2 int8_float16",
+ "task": "translate",
+ "beam": 5,
+ "prompt": null,
+ "language": "cs",
+ "model_load_s": 23.3,
+ "listen_wall_s": 98.5,
+ "audio_in_pieces_s": 390.4,
+ "rtf": 0.252,
+ "n_pieces": 92,
+ "started": "2026-11-13 15:51:07"
+}

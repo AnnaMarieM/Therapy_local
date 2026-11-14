@@ -12,6 +12,7 @@ import com.therapylocal.app.embed.Embedder
 import com.therapylocal.app.engine.EngineDied
 import com.therapylocal.app.engine.EngineUnavailable
 import com.therapylocal.app.log.AppLog
+import com.therapylocal.app.translate.Display
 import com.therapylocal.app.log.LogCtx
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -42,9 +43,15 @@ class LiveCues(
     /** The client's facts nearest to a vector, all of them with their cosine (the database in production, a fake in tests). */
     private val nearest: suspend (client: String, vec: FloatArray) -> List<Pair<FactRow, Float>>,
     private val settings: () -> LiveCueSettings = { LiveCueSettings.DEFAULT },
+    /** How the shown facts read (AD-17: stored in English, shown in the app's language when translated); [Display.NONE] shows them as stored. */
+    private val display: suspend (List<FactRow>) -> Display = { Display.NONE },
 ) {
-    constructor(embedder: Embedder, store: MindStore, settings: () -> LiveCueSettings = { LiveCueSettings.DEFAULT }) :
-        this(embedder, { client, vec -> withContext(Dispatchers.IO) { store.nearestFacts(client, vec, Int.MAX_VALUE) } }, settings)
+    /** [displayLanguage] is the language the cues are shown in, or null when they need no translation. */
+    constructor(embedder: Embedder, store: MindStore, displayLanguage: () -> String? = { null }, settings: () -> LiveCueSettings = { LiveCueSettings.DEFAULT }) :
+        this(
+            embedder, { client, vec -> withContext(Dispatchers.IO) { store.nearestFacts(client, vec, Int.MAX_VALUE) } }, settings,
+            { facts -> withContext(Dispatchers.IO) { Display.of(displayLanguage(), facts.flatMap { listOf(it.heading, it.content) }, store::displayTranslations) } },
+        )
 
     private val scope = CoroutineScope(SupervisorJob() + com.therapylocal.app.jobs.ModelDispatchers.Compute)
     private val _cues = MutableStateFlow<List<Cue>>(emptyList())
@@ -201,7 +208,8 @@ class LiveCues(
             val top = now.sortedByDescending { it.second }.filter { it.second >= s.scoreFloor }.take(LiveCueConfig.TOP_K)
             // A stopped or restarted session must not publish a stale tick.
             if (gen == generation) {
-                _cues.value = top.map { (f, sm, _) -> Cue(f.id.toString(), f.content, f.heading, f.sessionId, f.segIdx, sm) }
+                val shown = display(top.map { it.first })
+                _cues.value = top.map { (f, sm, _) -> Cue(f.id.toString(), shown.text(f.content), shown.text(f.heading), f.sessionId, f.segIdx, sm) }
                 _error.value = null
                 _paused.value = false
             }

@@ -232,6 +232,10 @@ object Prompts {
     /** Who is the therapist: the transcript itself is the user message, so there is no user template. */
     const val ROLES_SYSTEM = "roles.system.txt"
 
+    /** The two translation prompts of docs/AD/AD-17.md; always the English files (they are written in English and take the language name as a placeholder). */
+    const val TRANSLATE_SYSTEM = "translate.system.txt"
+    const val LOCALIZE_SYSTEM = "localize.system.txt"
+
     /** The prompt file [name] for [language]: Czech ones are in the cs/ folder with the same names and placeholders. */
     fun named(name: String, language: String): String = if (language == PromptLanguage.CS) "${PromptLanguage.CS_DIR}/$name" else name
 

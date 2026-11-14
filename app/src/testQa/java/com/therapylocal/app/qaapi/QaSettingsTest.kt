@@ -22,6 +22,18 @@ class QaSettingsTest {
         }
     }
 
+    @Test fun theProcessingLanguageIsAnEnumOfTheAppsModesWithTheAppsDefault() {
+        var mode = com.therapylocal.app.config.ProcessingLanguage.DEFAULT
+        val s = QaSetting("processing_language", QaSettingType.ENUM, com.therapylocal.app.config.ProcessingLanguage.DEFAULT.key, "the pipeline's language",
+            values = com.therapylocal.app.config.ProcessingLanguage.entries.map { it.key }, read = { mode.key }, apply = { mode = com.therapylocal.app.config.ProcessingLanguage.of(it as String) })
+        assertEquals(listOf("english", "native"), s.values)
+        assertEquals("english", s.default)
+        val r = QaSettings.set(listOf(s), "processing_language", "native")
+        assertEquals("english", r.getString("old")); assertEquals("native", r.getString("new")); assertTrue(r.getBoolean("changed"))
+        assertTrue(bad { QaSettings.set(listOf(s), "processing_language", "czech") }.contains("english, native"))
+        assertEquals(com.therapylocal.app.config.ProcessingLanguage.Native, mode)
+    }
+
     private fun bad(block: () -> Unit): String {
         try { block() } catch (e: QaException) { assertEquals(QaCode.BAD_REQUEST, e.code); return e.message.orEmpty() }
         fail("expected bad_request"); return ""

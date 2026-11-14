@@ -1,0 +1,308 @@
+{
+ "round": "r1",
+ "engine": "whisper-small-translate",
+ "model": "qwen3.5-4b",
+ "lane": 3,
+ "client": "jana-n",
+ "lang": "cs",
+ "seconds": 423.9,
+ "facts": [
+  {
+   "heading": "12 and 8 year old children",
+   "content": "Jana has two children, one is 12 and the other is 8 years old.",
+   "evidence": "one is 12 and the other is 8 years old",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Teaches at basic school in Prna",
+   "content": "Jana works as a teacher at the basic school in Prna and teaches 9th and 8th grade.",
+   "evidence": "I work as a teacher at the basic school in Prna. I teach 9 and 8.",
+   "scope": "profile",
+   "category": "Work & Career",
+   "part": 1,
+   "quote_found": false
+  },
+  {
+   "heading": "Relationship lasted 15 years",
+   "content": "Jana was in a relationship for 15 years before discussing divorce.",
+   "evidence": "After 15 years of the relationship, we were dating, dating, and we were talking about divorce.",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Doctor said relationship would not work",
+   "content": "A doctor told Jana that her relationship would not work out.",
+   "evidence": "the doctor told me that it's not going to work out",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Eating three times a day",
+   "content": "Jana ate in the empty room three times a day while angry.",
+   "evidence": "I ate in the empty room, then in the anger, then in the empty room again, three times a day.",
+   "scope": "session",
+   "category": "Addictions & Habits",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Daughter asked to talk last week",
+   "content": "Jana's daughter asked her last week if she could talk to her.",
+   "evidence": "She asked me last week if I could talk to her.",
+   "scope": "session",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Daughter lied to Jana",
+   "content": "Jana believes her daughter lied to her and knew it.",
+   "evidence": "Because she lied to me and she knew it.",
+   "scope": "session",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana threatened to kill daughter",
+   "content": "Jana told her daughter she would kill her and take her home.",
+   "evidence": "That I will kill her. That I will take her home.",
+   "scope": "session",
+   "category": "Self-concept & Identity",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Fear of slush",
+   "content": "Jana is afraid of the slush (conflict) with her daughter.",
+   "evidence": "I'm afraid of their slush.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana feels terrible about daughter's request",
+   "content": "Jana felt terrible when her daughter asked to talk to her.",
+   "evidence": "I felt terrible.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana feels blind to mistakes",
+   "content": "Jana admits she was blind and made mistakes in the relationship.",
+   "evidence": "I had to see it, I was blind.",
+   "scope": "session",
+   "category": "Self-concept & Identity",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana feels old for her children's age",
+   "content": "Jana feels she is not in the right time mainly because of her children.",
+   "evidence": "Yes, mainly because of children.",
+   "scope": "session",
+   "category": "Self-concept & Identity",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana feels confused about the situation",
+   "content": "Jana thinks she was very confused and didn't like the situation.",
+   "evidence": "I think I was very confused, I didn't like it.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana studies at kindergarten in Krk",
+   "content": "Jana is studying at a kindergarten in Krk.",
+   "evidence": "I go to the kindergarten in Krk to study.",
+   "scope": "session",
+   "category": "Work & Career",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana feels like a loser",
+   "content": "Jana feels that everyone knows she is a loser.",
+   "evidence": "I feel that everyone knows that I'm a loser.",
+   "scope": "session",
+   "category": "Self-concept & Identity",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana cried in the morning",
+   "content": "Jana cried a lot in the morning at school.",
+   "evidence": "I told her that because I cried a lot in the morning.",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana stayed home after school",
+   "content": "Jana stayed at home after school because she was alone in the office.",
+   "evidence": "I was sitting at home and it was worse.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana sleeps badly",
+   "content": "Jana sleeps badly and wakes up at 3 am every night.",
+   "evidence": "Every night I wake up at 3 am",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana worries about money",
+   "content": "Jana worries about having no mortgage, no manhole, and no money.",
+   "evidence": "I don't have a mortgage, I don't have a manhole, I don't have money",
+   "scope": "session",
+   "category": "History & Life Events",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "Jana plans to go to the hospital",
+   "content": "Jana plans to go to the hospital and sleep there.",
+   "evidence": "I'm going to the wheel.",
+   "scope": "session",
+   "category": "History & Life Events",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana sleeps 5 to 7 hours",
+   "content": "Jana sleeps from 5 pm to 7:30 am.",
+   "evidence": "The wheel is going to go to bed at 5 and I'll get up at half past seven.",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana calls her sister Alon",
+   "content": "Jana calls her sister Alon every evening.",
+   "evidence": "I call every evening and my friend Evus works.",
+   "scope": "session",
+   "category": "Family & Relationships",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana calls her friend Evus",
+   "content": "Jana calls her friend Evus who works.",
+   "evidence": "I call every evening and my friend Evus works.",
+   "scope": "session",
+   "category": "Family & Relationships",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana feels she lied",
+   "content": "Jana feels she lied about her situation.",
+   "evidence": "That I lied.",
+   "scope": "session",
+   "category": "Self-concept & Identity",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana blames herself for her husband",
+   "content": "Jana believes she is a woman who cannot keep her husband for good children.",
+   "evidence": "That a woman who can't keep her husband for good children.",
+   "scope": "session",
+   "category": "Self-concept & Identity",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana's negative thoughts come from her mother",
+   "content": "Jana's negative thoughts about her husband come from her mother.",
+   "evidence": "I'm from my mother.",
+   "scope": "profile",
+   "category": "History & Life Events",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana's mother said a husband is held up",
+   "content": "Jana's mother said that a husband is held up and he wants it.",
+   "evidence": "She always said that a husband is held up, and he wants it.",
+   "scope": "profile",
+   "category": "History & Life Events",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana feels sad about her mother",
+   "content": "Jana feels sad that her mother doesn't want to see her.",
+   "evidence": "That it hurts, that she doesn't want to see me, even though she doesn't do it.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana cries and says goodbye to her mother",
+   "content": "Jana cries and says goodbye to her mother when she sees her.",
+   "evidence": "I cry and I say goodbye.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana plays the game of the horse",
+   "content": "Jana plays the game of the horse to cope.",
+   "evidence": "I play the game of the horse and that's all.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana wants to be a mother",
+   "content": "Jana fears she would not be able to wake up for children and would not want to be a thief.",
+   "evidence": "I'm afraid that I wouldn't be able to wake up for children and I wouldn't want to be a thief.",
+   "scope": "session",
+   "category": "Self-concept & Identity",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana eats pancakes",
+   "content": "Jana likes to eat pancakes and pay for them.",
+   "evidence": "I like to eat pancakes and pay for them.",
+   "scope": "session",
+   "category": "Addictions & Habits",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana will finish the day here",
+   "content": "Jana will finish the day here because she is not alone and does not have to go there.",
+   "evidence": "I'll finish the day here.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 3,
+   "quote_found": true
+  }
+ ]
+}

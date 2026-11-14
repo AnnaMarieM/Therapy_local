@@ -28,11 +28,20 @@ sealed class EngineOp {
     data class Ask(
         override val tag: CallTag, val handle: Int, val system: String, val user: String, val schema: String?,
         val maxOutputTokens: Int, val temperature: Double, val topK: Int,
+        /** 16 kHz PCM16 of a turn the model listens to together with [user] (Gemma 4 audio input, docs/AD/AD-22.md); null for a text call. At most 30 s. */
+        val pcm: ShortArray? = null,
     ) : EngineOp()
 
     data class EmbedText(override val tag: CallTag, val handle: Int, val text: String, val query: Boolean) : EngineOp()
     data class EmbedAudio(override val tag: CallTag, val handle: Int, val pcm: ShortArray, val role: String) : EngineOp()
-    data class Transcribe(override val tag: CallTag, val handle: Int, val pcm: ShortArray) : EngineOp()
+    /**
+     * Speech to text for one piece of audio. [language], [translate] and [beam] are for Whisper (docs/AD/AD-22.md): [translate] asks for English text
+     * whatever the language spoken (the Whisper translate task); [beam] 0 means the engine decides (Canary), 1 is greedy. Canary ignores all three.
+     */
+    data class Transcribe(
+        override val tag: CallTag, val handle: Int, val pcm: ShortArray,
+        val language: String? = null, val translate: Boolean = false, val beam: Int = 0,
+    ) : EngineOp()
 
     /** Speaker turns of a whole recording (16 kHz PCM16, up to an hour). [numSpeakersHint] > 0 fixes the speaker count, 0 clusters by threshold. */
     data class Diarize(override val tag: CallTag, val handle: Int, val pcm: ShortArray, val numSpeakersHint: Int) : EngineOp()

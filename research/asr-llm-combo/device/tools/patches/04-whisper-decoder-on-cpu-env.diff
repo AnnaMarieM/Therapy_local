@@ -1,0 +1,20 @@
+--- a/src/whisper.cpp
++++ b/src/whisper.cpp
+@@ -1733,6 +1733,8 @@
+             throw std::runtime_error(format("failed to find a compatible buffer type for tensor %s", ASR_TENSOR_NAMES.at(system).at(type)));
+         }
+ 
++        if (getenv("WHISPER_DECODER_CPU") && system == ASR_SYSTEM_DECODER) { buft = ggml_backend_cpu_buffer_type(); }
++
+         ggml_context * ctx = get_ctx(buft);
+         ggml_tensor * tensor = ggml_dup_tensor(ctx, meta);
+ 
+@@ -3632,7 +3634,7 @@
+ 
+     // decoder allocator
+     {
+-        bool ok = whisper_sched_graph_init(state->sched_decode, state->backends,
++        bool ok = whisper_sched_graph_init(state->sched_decode, getenv("WHISPER_DECODER_CPU") ? std::vector<ggml_backend_t>{state->backends.back()} : state->backends,
+                 [&]() {
+                     const auto & hparams = ctx->model.hparams;
+ 

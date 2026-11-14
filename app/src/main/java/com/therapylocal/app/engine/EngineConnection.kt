@@ -373,7 +373,7 @@ class EngineConnection(
             maxOf(tuning.askMinTimeoutMs, (op.maxOutputTokens / maxOf(tps * 0.25, 0.5) * 1000).toLong())
         }
         is EngineOp.EmbedText, is EngineOp.EmbedAudio -> tuning.embedTimeoutMs
-        is EngineOp.Transcribe -> tuning.transcribeTimeoutMs
+        is EngineOp.Transcribe -> if (op.beam > 0) tuning.whisperTimeoutMs else tuning.transcribeTimeoutMs
         is EngineOp.Diarize -> tuning.diarizeTimeoutMs
         is EngineOp.Close -> tuning.closeTimeoutMs
         else -> null

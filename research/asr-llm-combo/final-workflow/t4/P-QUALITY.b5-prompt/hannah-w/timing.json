@@ -1,0 +1,14 @@
+{
+ "client": "hannah-w",
+ "engine": "whisper large-v3 faster-whisper 1.2.1 CTranslate2 int8_float16",
+ "task": "transcribe",
+ "beam": 5,
+ "prompt": "A psychotherapy session between a therapist and a client. The client talks about family, work, sleep, anxiety and feelings.",
+ "language": "en",
+ "model_load_s": 19.0,
+ "listen_wall_s": 109.9,
+ "audio_in_pieces_s": 534.4,
+ "rtf": 0.206,
+ "n_pieces": 108,
+ "started": "2026-11-13 16:02:07"
+}

@@ -1,0 +1,416 @@
+{
+ "round": "r1",
+ "engine": "whisper-large-v3-turbo",
+ "model": "qwen3.5-4b",
+ "lane": 4,
+ "client": "tomas-b",
+ "lang": "cs",
+ "seconds": 623.1,
+ "facts": [
+  {
+   "heading": "Kontrola bezpečnosti v bytě",
+   "content": "Tomas večer kontroluje dveře, sporák a kování, což mu trvá hodinu.",
+   "evidence": "Předstkrát zvečer kontroluji, jestli jsem zamknul dveře a vypnu sporák.",
+   "scope": "profile",
+   "category": "Zdroje a zvládání",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Pocit ohrožení a strach",
+   "content": "Tomas vidí obraz bytu v plamenách a cítí, že to může způsobit sám.",
+   "evidence": "Chvíl se mi umaví, pak se mi do hlavy přijde obraz, že jsem to neudolal pořádně a musím znovu.",
+   "scope": "profile",
+   "category": "Nálada a emoce",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Vznik problému před dvěma lety",
+   "content": "Tomasův problém začal před dvěma lety, když hořela sousedka.",
+   "evidence": "Začalo to před dvěm lety, kdy hořelou sousedu a my se museli evakuovat.",
+   "scope": "profile",
+   "category": "Historie a události",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Sousedka vyhořela celá",
+   "content": "Sousedka, která hořela, byla celá vyhořelá, nikdo jiný nebyl zraněn.",
+   "evidence": "Někdo nebyl zraněn, ale sousedem to vyhořelo celá.",
+   "scope": "profile",
+   "category": "Historie a události",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas stál venku u hořícího okna",
+   "content": "Tomas stál venku v země a koukal, jak hoří okno sousedky.",
+   "evidence": "Stál jsem venku v země a koukal, jak hoří okno.",
+   "scope": "profile",
+   "category": "Historie a události",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Pocit viny po požáru",
+   "content": "Tomas má pocit, že hořící byt mohl způsobit sám a že by byl věnován.",
+   "evidence": "V té době mám pocit, že to můžu způsobit já.",
+   "scope": "profile",
+   "category": "Osobní témata a sebepojetí",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Strach z chyby v práci",
+   "content": "Tomas bojí se, že kvůli své hlavě jednou chybuje v práci a něco skoří.",
+   "evidence": "Bojím se, že kvůli své hlavě jednou nám chybu, že v patěm připojím voděč a něco skoří.",
+   "scope": "profile",
+   "category": "Práce a kariéra",
+   "part": 1,
+   "quote_found": false
+  },
+  {
+   "heading": "Kolegové ho považují za pětant",
+   "content": "Kolegové si myslí, že Tomas je pětant a nevědí, kolik času kontrola stojí.",
+   "evidence": "Myslí si, že jsem pětant.",
+   "scope": "profile",
+   "category": "Práce a kariéra",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Manželka Barbara vyčerpává",
+   "content": "Manželka Barbara vidí, že Tomasova kontrola ji vyčerpává, ale je trpělivá.",
+   "evidence": "Je trpělivá, ale vidím, že ji to vyčerpává.",
+   "scope": "profile",
+   "category": "Rodina a vztahy",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas čekal venku na manželku",
+   "content": "Tomas čekal venku, až se vrátí a zkontroluje sporáky po třetí.",
+   "evidence": "Čekala venku, až se vrátím a zkontroluji z poráků po třetí.",
+   "scope": "session",
+   "category": "Zdroje a zvládání",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas cítil se jako dítě",
+   "content": "Tomas cítil, že je jako dítě, které nezvládá vyjít z domu.",
+   "evidence": "Cítil jsem se jako dítě, který nezvládne vyjít z domu.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 1,
+   "quote_found": false
+  },
+  {
+   "heading": "Tomas pracuje jako elektrikář",
+   "content": "Tomas pracuje jako elektrikář, má rozvody v bytech a občas v rodinných domech.",
+   "evidence": "Pracuji jako elektrikář, mám moc. Já mám rozvody v bytech a občas v rodněných domách.",
+   "scope": "profile",
+   "category": "Práce a kariéra",
+   "part": 1,
+   "quote_found": false
+  },
+  {
+   "heading": "Tomas kontroluje zbytky po práci",
+   "content": "Tomas kontroluje zbytky, když se tam vrátí druhý den, jen se podívá.",
+   "evidence": "Ale pokaždý zákaz se vracíme kontrol, jen když se tam vrátím druhý den, jen se podívat.",
+   "scope": "profile",
+   "category": "Zdroje a zvládání",
+   "part": 1,
+   "quote_found": false
+  },
+  {
+   "heading": "Tomas má úzkost při odmítnutí",
+   "content": "Tomas zkusí kontrolu nechat, pak mu roste úzkost a má pocit, že se zblázní.",
+   "evidence": "Pak mi roste úzkost, až mám pocit, že se zblázním.",
+   "scope": "profile",
+   "category": "Zdroje a zvládání",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas má fyzické projevy úzkosti",
+   "content": "Tomasův úzkost se projevuje třesením rukou, srdce a špatným žaludkem.",
+   "evidence": "Srdce po třesou zemi ruce a jme špatný od žaludku.",
+   "scope": "profile",
+   "category": "Zdraví, tělo a spánek",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas se bojí být věnován",
+   "content": "Tomas se bojí, že když něco neskontroluje, stane se něco a bude věnován.",
+   "evidence": "Že když něco neskontroluji, jak se to stane a budu věná.",
+   "scope": "profile",
+   "category": "Osobní témata a sebepojetí",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas je nejpečlivější ve firmě",
+   "content": "Tomas říká, že ho kolegové říkají nejpečlivější ve firmě.",
+   "evidence": "Žeš mi říká, že jsem nejpečtovější ve firmě, ale nevědí, kolik času to stojí.",
+   "scope": "profile",
+   "category": "Práce a kariéra",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Ztráta práce v čtvrtém měsíci",
+   "content": "Tomas ztratil práci v čtvrtém měsíci po proboru děnotná.",
+   "evidence": "Probora děnotná, ve čtvrtém měsíce.",
+   "scope": "session",
+   "category": "Práce a kariéra",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas se bojí ublížit dítěti",
+   "content": "Tomas má myšlenku, že dítě ublíží, když krájí chleba.",
+   "evidence": "Že jí a dítě tě ublíží.",
+   "scope": "session",
+   "category": "Zdroje a zvládání",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas se bojí, že dítě ublíží",
+   "content": "Tomas se bojí, že dítě ublíží, když krájí chleba.",
+   "evidence": "když krájím chleba, dostajím úschodu.",
+   "scope": "session",
+   "category": "Zdroje a zvládání",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas se bojí, že by to udělal",
+   "content": "Tomas se bojí, že by dítě ublížil, když krájí chleba.",
+   "evidence": "Ne, že bych chtěl.",
+   "scope": "session",
+   "category": "Zdroje a zvládání",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas se bojí, že to udělal",
+   "content": "Tomas se bojí, že by dítě ublížil, když krájí chleba.",
+   "evidence": "To je hrozné, nikdy bych to neudal.",
+   "scope": "session",
+   "category": "Zdroje a zvládání",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas se bojí, že to udělal",
+   "content": "Tomas se bojí, že by dítě ublížil, když krájí chleba.",
+   "evidence": "Ale ta myšlenka přijde,",
+   "scope": "session",
+   "category": "Zdroje a zvládání",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas se bojí, že to udělal",
+   "content": "Tomas se bojí, že by dítě ublížil, když krájí chleba.",
+   "evidence": "když krájím chleba, dostajím úschodu.",
+   "scope": "session",
+   "category": "Zdroje a zvládání",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas se bojí, že to udělal",
+   "content": "Tomas se bojí, že by dítě ublížil, když krájí chleba.",
+   "evidence": "A pak se bojím, že to půjde samo.",
+   "scope": "session",
+   "category": "Zdroje a zvládání",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas se bojí, že to udělal",
+   "content": "Tomas se bojí, že by dítě ublížil, když krájí chleba.",
+   "evidence": "Takže je to myšlenka, která vás děsí?",
+   "scope": "session",
+   "category": "Zdroje a zvládání",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas se bojí, že to udělal",
+   "content": "Tomas se bojí, že by dítě ublížil, když krájí chleba.",
+   "evidence": "Ám, ne.",
+   "scope": "session",
+   "category": "Zdroje a zvládání",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas se bojí, že to udělal",
+   "content": "Tomas se bojí, že by dítě ublížil, když krájí chleba.",
+   "evidence": "Je to nejhorší,",
+   "scope": "session",
+   "category": "Zdroje a zvládání",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas se bojí, že to udělal",
+   "content": "Tomas se bojí, že by dítě ublížil, když krájí chleba.",
+   "evidence": "když jsem to někoho neřekl.",
+   "scope": "session",
+   "category": "Zdroje a zvládání",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas se bojí, že to udělal",
+   "content": "Tomas se bojí, že by dítě ublížil, když krájí chleba.",
+   "evidence": "Ani Barboře.",
+   "scope": "session",
+   "category": "Zdroje a zvládání",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas se bojí, že to udělal",
+   "content": "Tomas se bojí, že by dítě ublížil, když krájí chleba.",
+   "evidence": "Takové vtíravé myšlenky, jako u lidí s tímto typem potíží, jsou velmi časté.",
+   "scope": "session",
+   "category": "Zdroje a zvládání",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas se bojí, že to udělal",
+   "content": "Tomas se bojí, že by dítě ublížil, když krájí chleba.",
+   "evidence": "Hlavně, když se plíží velká změna.",
+   "scope": "session",
+   "category": "Zdroje a zvládání",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas se bojí, že to udělal",
+   "content": "Tomas se bojí, že by dítě ublížil, když krájí chleba.",
+   "evidence": "Jejich síla je právě v tom, jak vás děsí.",
+   "scope": "session",
+   "category": "Zdroje a zvládání",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas se bojí, že to udělal",
+   "content": "Tomas se bojí, že by dítě ublížil, když krájí chleba.",
+   "evidence": "To by pomáhá. Přesto chce čas, než v tom uvěří.",
+   "scope": "session",
+   "category": "Zdroje a zvládání",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas se bojí, že to udělal",
+   "content": "Tomas se bojí, že by dítě ublížil, když krájí chleba.",
+   "evidence": "Odejdu z místnosti. Nebo se vrátím a zkontroluji něco, aby to přestalo.",
+   "scope": "session",
+   "category": "Zdroje a zvládání",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas se bojí, že to udělal",
+   "content": "Tomas se bojí, že by dítě ublížil, když krájí chleba.",
+   "evidence": "Vlastně ano. Nikdy mě napadlo, že to spousobí si.",
+   "scope": "session",
+   "category": "Zdroje a zvládání",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas se bojí, že to udělal",
+   "content": "Tomas se bojí, že by dítě ublížil, když krájí chleba.",
+   "evidence": "Spím mezi dne. Stávám v noci dvakrát a kontrolu je z morák, když tam jeznam stojí.",
+   "scope": "session",
+   "category": "Zdroje a zvládání",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas se bojí, že to udělal",
+   "content": "Tomas se bojí, že by dítě ublížil, když krájí chleba.",
+   "evidence": "Pomáháme na procházky s Barborou, pokud ještě něco doma. To mě zaměstná.",
+   "scope": "session",
+   "category": "Zdroje a zvládání",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas se bojí, že to udělal",
+   "content": "Tomas se bojí, že by dítě ublížil, když krájí chleba.",
+   "evidence": "Procházky dvakrát dýdně, opravě něco.",
+   "scope": "session",
+   "category": "Zdroje a zvládání",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas se bojí, že to udělal",
+   "content": "Tomas se bojí, že by dítě ublížil, když krájí chleba.",
+   "evidence": "Odejít věců za pět minut a těšit se na dítě bez těch nečlenek.",
+   "scope": "session",
+   "category": "Zdroje a zvládání",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas se bojí, že to udělal",
+   "content": "Tomas se bojí, že by dítě ublížil, když krájí chleba.",
+   "evidence": "Zložil jsem o terapii, když jsem šlil postupně vystavovat tomu, čemu se bojí.",
+   "scope": "session",
+   "category": "Zdroje a zvládání",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas se bojí, že to udělal",
+   "content": "Tomas se bojí, že by dítě ublížil, když krájí chleba.",
+   "evidence": "Šlo by se po malých krocích a vy byste o tempu rozhodoval.",
+   "scope": "session",
+   "category": "Zdroje a zvládání",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas se bojí, že to udělal",
+   "content": "Tomas se bojí, že by dítě ublížil, když krájí chleba.",
+   "evidence": "Myslel jsem, že mě někdo do nutí nechal tuto vřené dveře a odejít.",
+   "scope": "session",
+   "category": "Zdroje a zvládání",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas se bojí, že to udělal",
+   "content": "Tomas se bojí, že by dítě ublížil, když krájí chleba.",
+   "evidence": "Začali bychom třeba jen tím, že zkontrolujete dveře jenom jednou, ne třikrát.",
+   "scope": "session",
+   "category": "Zdroje a zvládání",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Zkouší zkontrolovat dveře",
+   "content": "Tomas se pokouší zkontrolovat dveře jednou, když odchází z bytu.",
+   "evidence": "Když odcházíte z bytu, zkontrolujte dveře jenom jednou",
+   "scope": "session",
+   "category": "Zdroje a zvládání",
+   "part": 3,
+   "quote_found": true
+  }
+ ]
+}

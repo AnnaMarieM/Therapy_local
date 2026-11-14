@@ -1,0 +1,121 @@
+name: Bench combo (ASR x LLM, human recordings)
+
+# One round = e2e/combo/rounds/current.json (expanded by e2e/combo/plan.py). Push a changed spec and the round runs:
+#   asr: variant x recording x lane   ->   llm: (ASR variant | script = oracle) x model x lane   ->   report (report.md + review.html).
+# An llm item may take the transcripts of an earlier run ("asr_run": <run id>) instead of this run's, for LLM-only rounds.
+on:
+  push:
+    branches: [worktree-frolicking-foraging-aurora]
+    paths: [".github/workflows/bench-combo.yml", "e2e/combo/rounds/current.json"]
+  workflow_dispatch:
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      asr: ${{ steps.p.outputs.asr }}
+      llm: ${{ steps.p.outputs.llm }}
+      n_asr: ${{ steps.n.outputs.asr }}
+      n_llm: ${{ steps.n.outputs.llm }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: p
+        run: python3 e2e/combo/plan.py e2e/combo/rounds/current.json
+      - id: n
+        env:
+          ASR: ${{ steps.p.outputs.asr }}
+          LLM: ${{ steps.p.outputs.llm }}
+        run: |
+          echo "asr=$(printf '%s' "$ASR" | python3 -c 'import json,sys;print(len(json.load(sys.stdin)["include"]))')" >> "$GITHUB_OUTPUT"
+          echo "llm=$(printf '%s' "$LLM" | python3 -c 'import json,sys;print(len(json.load(sys.stdin)["include"]))')" >> "$GITHUB_OUTPUT"
+
+  asr:
+    name: asr ${{ matrix.id }} / ${{ matrix.client }} / lane ${{ matrix.lane }}
+    needs: plan
+    if: ${{ needs.plan.outputs.n_asr != '0' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.plan.outputs.asr) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
+      - run: python -m pip install -U numpy av faster-whisper sherpa-onnx
+      - name: ASR
+        env:
+          OPTS: ${{ matrix.opts }}
+        run: python e2e/combo/asr.py --id "${{ matrix.id }}" --engine "${{ matrix.engine }}" --opts "$OPTS" --client "${{ matrix.client }}" --lane ${{ matrix.lane }} --out out
+      - run: rm -f out/*.wav && rm -rf out/canary
+        if: always()
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: asr-${{ matrix.id }}-${{ matrix.client }}-${{ matrix.lane }}
+          path: out
+          retention-days: 30
+
+  llm:
+    name: llm ${{ matrix.asr }} + ${{ matrix.model }}${{ matrix.tag }} / lane ${{ matrix.lane }}
+    needs: [plan, asr]
+    if: ${{ !cancelled() && needs.plan.outputs.n_llm != '0' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.plan.outputs.llm) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install psutil
+      - uses: actions/download-artifact@v4
+        if: ${{ matrix.asr != 'script' }}
+        with:
+          path: asr
+          pattern: asr-${{ matrix.asr }}-*
+          merge-multiple: true
+          run-id: ${{ matrix.asr_run || github.run_id }}
+          github-token: ${{ github.token }}
+      - name: LLM
+        env:
+          OPTS: ${{ matrix.opts }}
+        run: python e2e/combo/llm.py --asr-dir asr --engine "${{ matrix.asr }}" --model "${{ matrix.model }}" --tag "${{ matrix.tag }}" --opts "$OPTS" --lane ${{ matrix.lane }} --out out
+      - run: rm -rf out/model out/llama*
+        if: always()
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: llm-${{ matrix.asr }}-${{ matrix.model }}${{ matrix.tag }}-${{ matrix.lane }}
+          path: out
+          retention-days: 30
+
+  report:
+    needs: [asr, llm]
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/download-artifact@v4
+        with:
+          path: asr
+          pattern: asr-*
+          merge-multiple: true
+      - uses: actions/download-artifact@v4
+        with:
+          path: llm
+          pattern: llm-*
+          merge-multiple: true
+      - run: python e2e/combo/report.py --asr asr --llm llm --out report | tee -a "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: combo-report
+          path: report
+          retention-days: 90

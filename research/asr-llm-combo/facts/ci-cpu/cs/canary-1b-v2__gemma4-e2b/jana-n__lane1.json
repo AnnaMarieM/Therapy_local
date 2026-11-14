@@ -1,0 +1,211 @@
+{
+ "round": "r1",
+ "engine": "canary-1b-v2",
+ "model": "gemma4-e2b",
+ "base_model": "gemma4-e2b",
+ "opts": {},
+ "lane": 1,
+ "client": "jana-n",
+ "lang": "cs",
+ "seconds": 189.9,
+ "facts": [
+  {
+   "heading": "Rozvod manželství",
+   "content": "Jana se rozhodla pro rozvod s manželem Radkem.",
+   "evidence": "Po 15 letech manželství jsme se s manželem Radkem rozhodli pro rozvod",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Změna v Chorvatsku",
+   "content": "V září Jana se Radke oznámil, že situace se změní.",
+   "evidence": "v září mi řekl, že už to takhle dál nejde",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Pocity po rozvodu",
+   "content": "Jana cítila zlost a prázdno po rozvodu.",
+   "evidence": "Pak zlost, pak zase prázdno",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Záměr o dětech",
+   "content": "Jana se zastavuje při rozhodování o sdělení o rozvodu dětem.",
+   "evidence": "Mám dvě děti, Aničce je dvanáct a Matěvi je osm let a nevím, jak jim to říct",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Reakce Aničky",
+   "content": "Anička se zeptala Jana, jestli se s tou hádá.",
+   "evidence": "Anička už něco tuší. Co vám to říkal?",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Lhaní o rozvodu",
+   "content": "Jana lhala o rozvodu a Anička to poznala.",
+   "evidence": "Protože jsem lhala a ona to poznala",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Strach z reakce",
+   "content": "Jana bojí se slz dětů při sdělení pravdy.",
+   "evidence": "bojím se jich slz",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Plán bydlení",
+   "content": "Jana se ptá na budoucí bydlení po rozvodu.",
+   "evidence": "Jak to bude vypadat s bydlením?",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Práce jako učitelka",
+   "content": "Jana pracuje jako učitelka češtiny na základní škole v Brně.",
+   "evidence": "Pracuji jako učitel češtiny na základní škole v Brně",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Problémy v práci",
+   "content": "Jana cítila, že se její život rozpadá kvůli problému v práci.",
+   "evidence": "když chodím s klíkem v krku, mám pocit, že všichni vidí, že se mi rozpadá život",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Reakce ředitelky",
+   "content": "Ředitelka Jana řekla, že jí nechala odejít dřív.",
+   "evidence": "Řekla jsem jí to, protože jsem se jednou rozplakala na chodbě. Byla hodná",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Spánek Jana",
+   "content": "Jana spí špatně.",
+   "evidence": "Jak spíte? Špatně",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Přemýšlení o budoucnosti",
+   "content": "Jana se budí každou noc a přemýšlí o tom, co bude dál.",
+   "evidence": "Každou noc se budím ve 3 hodiny ráno a přemýšlím, co bude dál. Co se říká, když se probudíte? Že nemám hypotéku, nemám manžela, nemám nic. Pak spočítám peníze, tak si představím, jak to řeknu dětem. Točí se to dokola. A pak?",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Spánek a únavná",
+   "content": "Jana je unavená ráno a má problém se spát.",
+   "evidence": "Kolem páté usnu a v půl sedmé vstávám. Jsem unavená už ráno.",
+   "scope": "session",
+   "category": "Zdraví, tělo a spánek",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Sociální kontakty",
+   "content": "Jana komunikuje se kamarádkou a sestrou.",
+   "evidence": "Kamarádka mi říká, že vypadám hrozně. Máte kolem sebe někoho, s kým můžete mluvit? Mám sestru Alanu v Omoce. Zavoláme skoro každý večer a kamarádku Evu z práce.",
+   "scope": "profile",
+   "category": "Rodina a vztahy",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "Těžká myšlenka o manželství",
+   "content": "Jana má těžkou myšlenku o manželství a vztahu k dětem.",
+   "evidence": "Že žena, která nedokáže udržet manželství, není pro děti dobrý příklad. To je těžká myšlenka. Odkud se bere? Asi od mého máma. Ta vždycky říkala, že manželství se drží a děte to, jak chce.",
+   "scope": "profile",
+   "category": "Osobní témata a sebepojetí",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "Reakce na diskuzi",
+   "content": "Jana se cítí smutná po sdělení o problémech.",
+   "evidence": "Smutno. Potřebovala bych, aby mě objela. Co byste jí řekla? Že to bolí, že nechci být sama, jenže u nás se to nedělá.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Příprava na spánek",
+   "content": "Jana zkoušela různé metody pro zlepšení spánku.",
+   "evidence": "Zkusíte jste něco malého třeba se dle postele nechat papírem napřát, co vás bude? Mohla bych. Aspoň to dostanu z hlavy.",
+   "scope": "session",
+   "category": "Zdroje a zvládání",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "Strach z závislosti",
+   "content": "Jana se bojí závislosti na lécích prostředcích.",
+   "evidence": "Bojím se, že bych se nemohla včas vzbudit pro děti a nechci být závislá.",
+   "scope": "session",
+   "category": "Závislosti a návyky",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Strach z paniky",
+   "content": "Jana se bojí, že se při stresu rozpláče.",
+   "evidence": "Čho se nejvíc bojíte? Že s panikařím rozpláčus, že nezvládnu zůstat klidná.",
+   "scope": "session",
+   "category": "Nálada a emoce",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Příprava na komunikaci",
+   "content": "Jana se zamýšlí nad tím, jak komunikovat s dětmi.",
+   "evidence": "Spánek. Zkoušela jste něco? Hedvábní klíče, to je všechno.",
+   "scope": "session",
+   "category": "Zdroje a zvládání",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Plán pro dnešek",
+   "content": "Jana se zamýšlí nad tím, co dělat pro dnešek.",
+   "evidence": "Co dnes a to je dneška? Že nejsem sama a že to nemusím zvládnout hned. Přesně tak. Pro dnešek to je skočeno.",
+   "scope": "session",
+   "category": "Zdroje a zvládání",
+   "part": 2,
+   "quote_found": true
+  }
+ ],
+ "lines": [
+  "Kdy je paní Lavá Petrela? S čím byste dnes chtěla začít? Kdy je, já ani nevím. Mám pocit, že mi někdo vytáhl koberec pod nohou. Co se stalo? Po 15 letech manželství jsme se s manželem Radkem rozhodli pro rozvod a já to pořád nemohu pochopit.",
+  "Řekněte mi víc. Ještě v létě jsme byli na dovolené v Chorvatsku a všechno vypadalo normálně. V září mi řekl, že už to takhle dál nejde. Jak jste to přijal? Jel jsem v kuchyni a nemohla jsem nic říct. Pak jsem šla uklidně na doby, jako by se nic nedělo.",
+  "A k sedlům něco vás? Prázdno, pak zlost, pak zase prázdno. Střídast to několikrát denně. Besvětl vám, René, proč? Říká, že jsme se vzdálili, že žijeme vedle sebe. Já si toho nevšimla, nebo jsem si všimla, nechtěla.",
+  "Co si o tom myslíte teď? Že jsem to měla vidět, že jsem slepá. Pořád se v hlavě vracím a hledám, kde jsem udělala chybu. Ono šlo stejně? Ne. Jednou si myslím, že jsem byla moc unavená a nezajímala jsem se o něj. Jindy zase, že jsem se starala moc.",
+  "Vypadá to, že se v tom hodně netrápíte. Ano, hlavně kvůli dětem. Vyjde mi o nich. Mám dvě děti, Aníčce je dvanáct a Matěvi je osm let a nevím, jak jim to říct. Ještě jste jim to neřekl? Ne, Radek chce, abychom to řekli společně, ale pořád to odkládáme.",
+  "Anička už něco tuší. Co vám to říkal? Minulý týden jsem je zeptala, jestli se s tou hádáme. Řekla jsem, že ne. Cítila jsem se hrozně. Proč? Hrozně. Protože jsem lhala a ona to poznala. Viděla jsem ji to na očích.",
+  "To se vám manilo hlavou. Že ji ničím život, že ji vezmu domů. Jak by se vám dařilo říct si pravdu? Nejraději bych to měla za sebou, ale bojím se jich slz. A Matěj ještě malý, ten moc nic nechápe. Co byste mu chtěla předat?",
+  "Máme oba rádě, že se to nezmění. Jenže já nevím, jestli je to pravda, když sama nevím, jak to bude vypadat. Jak to bude vypadat s bydlením? Byty na hypotéku. Redexa se odstěhuje k bratrově, alespoň zatím. Je zůstanou se mnou.",
+  "Jak se vám to hodilo? Mám strach, že to sama nezvládnu. Radať by vždycky řešil peníze. Co děláte v těch dnech? Pracuji jako učitel češtiny na základní škole v Brně. Učím devítky a osmičky. Jak se vám teď učí?",
+  "Protože když chodím s klíkem v krku, mám pocit, že všichni vidí, že se mi rozpadá život. Ví o tom někdo ve škole? Jen ředitelka. Řekla jsem jí to, protože jsem se jednou rozplakala na chodbě. Byla hodná. Co vám pomohlo?",
+  "Že mě nechala odejít dřív, dala mi hodinu volné. Jenže pak jsem seděla doma a bylo to horší. Horší? Proč? Protože jsem byla sama za hlavou. V práci jsem měla aspoň co dělat. Jak spíte? Špatně.",
+  "Každou noc se budím ve 3 hodiny ráno a přemýšlím, co bude dál. Co se říká, když se probudíte? Že nemám hypotéku, nemám manžela, nemám nic. Pak spočítám peníze, tak si představím, jak to řeknu dětem. Točí se to dokola. A pak?",
+  "Kolem páté usnu a v půl sedmé vstávám. Jsem unavená už ráno. Jíte? Hýbete se? Jím málo. Sůbla jsem čtyřekila. Kamarádka mi říká, že vypadám hrozně. Máte kolem sebe někoho, s kým můžete mluvit? Mám sestru Alanu v Omoce.",
+  "Zavoláme skoro každý večer a kamarádku Evu z práce. Co jí říkáte? Ale chci skoro všechno. Jen to, že mám těžké období. Nechci, aby se o mě něco myslela. Co jsem bála, že si myslím? Že jsem se lhala. Že žena, která nedokáže udržet manželství, není pro děti dobrý příklad.",
+  "To je těžká myšlenka. Odkud se bere? Asi od mého máma. Ta vždycky říkala, že manželství se drží a děte to, jak chce. Co řekla, když jsi jí to oznámila? Mlčela. Pak řekla, že doufá, že jsem to dobře zvážela.",
+  "Už se od té doby moc neozvala. Jak mám to? Smutno. Potřebovala bych, aby mě objela. Co byste jí řekla? Že to bolí, že nechci být sama, jenže u nás se to nedělá.",
+  "To se dělá, když to říkáte nahlas. Pláču, omlouvám se. Není mi za co. Vezměte si čas. Děkuji. Ještě jsem nikomu tohle neřekla.",
+  "Co s vámi dělá, že jste to tady řekla? Je zvláštní sedět tady a říkat to všechno nahlas, ale trochu to pomáhá. Co by vám teď mohlo pomoct nejvíc? Spat a vědět, jak to říct dítem.",
+  "Tak mě na to prostě. Co? Spánek. Zkoušela jste něco? Hedvábní klíče, to je všechno. Doktorka mi nabídla prášky, ale nechci. Proč nechcete? Bojím se, že bych se nemohla včas vzbudit pro děti a nechci být závislá.",
+  "To je rozumné. Zkusíte to vlastně něco malého třeba se dle postele nechat papírem napřát, co vás bude? Mohla bych. Aspoň to dostanu z hlavy. A játem. Čho se nejvíc bojíte? Že s panikařím rozpláčus, že nezvládnu zůstat klidná.",
+  "To jim by to nevadilo. Že bych plakala před dětmi? Vždyť to by pro ně bylo děsivé. Nebo by mohly vidět, že je smutek dovolený. To mně nenapadlo. Ani špecifické. Možná by jí to pomohlo.",
+  "Můžeme se příště podívat, jak to připravit. Co dnes a to je dneška? Že nejsem sama a že to nemusím zvládnout hned. Přesně tak. Pro dnešek to je skočeno. Děkuji. Uvidíme se příští týden."
+ ]
+}

@@ -1,0 +1,371 @@
+{
+ "round": "r1",
+ "engine": "whisper-large-v3-translate",
+ "model": "gemma4-e2b",
+ "lane": 4,
+ "client": "tomas-b",
+ "lang": "cs",
+ "seconds": 244.5,
+ "facts": [
+  {
+   "heading": "Checking door repeatedly",
+   "content": "Tomas checks if he has locked the door and turned on the switch 30 times a day. It takes him an hour before he leaves the house.",
+   "evidence": "30 times a day I check if I've locked the door and turned on the switch. It takes me an hour before I leave the house.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 1,
+   "quote_found": false
+  },
+  {
+   "heading": "Visualizing house in flames",
+   "content": "Tomas sees a picture of a house in flames clearly as a movie. This image occurs every day.",
+   "evidence": "A house in flames. I see it clearly as a movie. Every day.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": false
+  },
+  {
+   "heading": "Trigger for checking behavior",
+   "content": "The behavior started two years ago when the neighbor was burning and they had to evacuate.",
+   "evidence": "It started two years ago, when the neighbor was burning and we had to evacuate.",
+   "scope": "history & life events",
+   "category": "History & Life Events",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Feeling after evacuation",
+   "content": "Tomas felt that it was over after the evacuation incident. No one was hurt, but the neighbor burned the house.",
+   "evidence": "That it's over. No one was hurt, but the neighbour burned it all.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": false
+  },
+  {
+   "heading": "Belief about control and freedom",
+   "content": "Tomas has a feeling that if he doesn't control something, it will happen and he will be free.",
+   "evidence": "That if I don't control something, it will happen and I will be free.",
+   "scope": "profile",
+   "category": "Self-concept & Identity",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Attempting to stop the feeling",
+   "content": "Tomas tries to stop the feeling, but the tightness grows and he feels like he is going crazy.",
+   "evidence": "I try to stop it. Then the tightness grows and I feel like I'm going crazy.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": false
+  },
+  {
+   "heading": "Physical symptoms of tightness",
+   "content": "The tightness is related to his heart and stomach after his hand is crossed.",
+   "evidence": "Heart, after the hand is crossed, I have a bad stomach.",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Wife's reaction to tightness",
+   "content": "Tomas's wife, Barbara, is suffering, but Tomas knows it is draining her.",
+   "evidence": "She's suffering, but I know it's draining her.",
+   "scope": "family & relationships",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Wife's reaction during check",
+   "content": "When Tomas returned to check the room for the third time, Barbara did not say anything and just looked at him.",
+   "evidence": "She didn't say anything, just looked at me.",
+   "scope": "session",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Feeling like he cannot leave",
+   "content": "Tomas felt like a child who cannot get out of the house.",
+   "evidence": "I felt like a child who can't get out of the house.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Occupation and fear of error",
+   "content": "Tomas works as an electrician for a long time. He is afraid he will make a mistake because of his head.",
+   "evidence": "I work as a electrician for a long time. I'm afraid I'll make a mistake because of my head.",
+   "scope": "work & career",
+   "category": "Work & Career",
+   "part": 1,
+   "quote_found": false
+  },
+  {
+   "heading": "Returns to control room",
+   "content": "Tomas returns to the control room after every order. He goes back the next day to check.",
+   "evidence": "I return to the control room after every order. I just go back there the next day to check.",
+   "scope": "session",
+   "category": "Work & Career",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "Boss called Tomas stingy",
+   "content": "The boss told Tomas he is the most stingy in the company.",
+   "evidence": "The boss told me I'm the most stingy in the company.",
+   "scope": "session",
+   "category": "Work & Career",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Time taken for work",
+   "content": "It takes Tomas the last three days of work and work in an hour.",
+   "evidence": "The last three days of work and work in an hour.",
+   "scope": "session",
+   "category": "Work & Career",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Ordered orders from colleagues",
+   "content": "Tomas has already ordered a few orders from his colleagues.",
+   "evidence": "I've already ordered a few orders from my colleagues.",
+   "scope": "session",
+   "category": "Work & Career",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Work in fourth month",
+   "content": "This conversation is happening in the fourth month of Tomas's work.",
+   "evidence": "For my work in the fourth month.",
+   "scope": "session",
+   "category": "Work & Career",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas is happy about work",
+   "content": "Tomas stated he is happy about coming to work.",
+   "evidence": "I'm happy. Really.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Waited three years for job",
+   "content": "Tomas waited for three years to get his current position.",
+   "evidence": "We waited for three years.",
+   "scope": "profile",
+   "category": "History & Life Events",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Thought about hurting people",
+   "content": "Tomas had a thought about hurting her and her children.",
+   "evidence": "That I'll hurt her and her children.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Thought appears when cutting bread",
+   "content": "The thought about hurting people comes when he cuts bread on the same floor.",
+   "evidence": "But the thought comes when I cut bread on the same floor and then I'm afraid it will happen by itself.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Thought is not a proof",
+   "content": "Tomas stated he is not a proof that he would do something.",
+   "evidence": "I'm not a proof that you would do something.",
+   "scope": "session",
+   "category": "Self-concept & Identity",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Thought is common with change",
+   "content": "Annoying thoughts like this are common when a big change is approaching.",
+   "evidence": "Such annoying thoughts as with people with this type of problem are very common. Especially when a big change is approaching.",
+   "scope": "profile",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "Tomas leaves the room",
+   "content": "When the idea appears, Tomas leaves the room.",
+   "evidence": "I leave the room.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas checks to stop thought",
+   "content": "Tomas goes back and checks something to stop the thought.",
+   "evidence": "Or I go back and check something to stop it.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Control helps calm down",
+   "content": "Tomas asked if the control helps him calm down the thought.",
+   "evidence": "So the control helps you to calm down this one too?",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas sleeps twice nightly",
+   "content": "Tomas wakes up twice a night and checks the room.",
+   "evidence": "I wake up twice a night and check the room.",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Checking room when awake",
+   "content": "Tomas checks the room even if there is nothing standing there.",
+   "evidence": "Even if there is nothing standing there.",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Control helps walk with Barbara",
+   "content": "The control helps Tomas walk with Barbara.",
+   "evidence": "It helps me to walk with Barbara.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Walks with Barbara almost daily",
+   "content": "Tomas walks with Barbara almost every day.",
+   "evidence": "Walks twice a week. Well, almost every day.",
+   "scope": "session",
+   "category": "Family & Relationships",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "Wants to leave hospital quickly",
+   "content": "Tomas would like to leave the hospital in 5 minutes.",
+   "evidence": "To leave the hospital in 5 minutes and look forward to having a child without the",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Wants to decide pace",
+   "content": "Tomas wants to decide the pace regarding having a child.",
+   "evidence": "and you would decide the pace.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Wants to tell Barbara",
+   "content": "Tomas wants to tell Barbara that she was there.",
+   "evidence": "That she was there.",
+   "scope": "session",
+   "category": "Family & Relationships",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Wants to tell Barbara not to lose her",
+   "content": "Tomas wants to tell Barbara that he wouldn't lose her.",
+   "evidence": "and that I wanted to tell her that I wouldn't lose her.",
+   "scope": "session",
+   "category": "Family & Relationships",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Fear Barbara won't want him",
+   "content": "Tomas is afraid that Barbara wouldn't want to be with him.",
+   "evidence": "I'm afraid that she wouldn't want to be with me.",
+   "scope": "session",
+   "category": "Family & Relationships",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Belief about leaving",
+   "content": "Speaker 1 thinks she would leave Tomas.",
+   "evidence": "That she would leave me.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Suggestion to tell her",
+   "content": "Speaker 1 suggested telling someone something at least once.",
+   "evidence": "Then maybe you should tell her that at least once.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Suggestion about finding out",
+   "content": "Speaker 1 suggested telling someone that they were there and found out.",
+   "evidence": "What if you told her that you were there and that you found out?",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Tried door check habit",
+   "content": "Speaker 1 decided to try a new habit regarding checking the door.",
+   "evidence": "I'll try it. At least once.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Planned door check detail",
+   "content": "Speaker 1 plans to check the door when leaving the house and write down how narrow it was.",
+   "evidence": "When you leave the house, check the door just once and write down how narrow it was.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Planned door check number",
+   "content": "Speaker 1 plans to write a number from 1 to 10 regarding the door.",
+   "evidence": "And I'll write down the number from 1 to 10.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 3,
+   "quote_found": true
+  }
+ ]
+}

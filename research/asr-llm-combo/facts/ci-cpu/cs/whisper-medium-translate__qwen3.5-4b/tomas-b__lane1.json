@@ -1,0 +1,299 @@
+{
+ "round": "r1",
+ "engine": "whisper-medium-translate",
+ "model": "qwen3.5-4b",
+ "lane": 1,
+ "client": "tomas-b",
+ "lang": "cs",
+ "seconds": 353.4,
+ "facts": [
+  {
+   "heading": "Hasn't seen psychologist for long time",
+   "content": "Tomas has not visited a psychologist in a long time.",
+   "evidence": "I haven't been to the psychologist",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Wife says marriage is failing",
+   "content": "Tomas's wife says the marriage is not working anymore.",
+   "evidence": "She says it's not going to work like this anymore",
+   "scope": "session",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Locks door repeatedly daily",
+   "content": "Tomas locks his door every day, especially in the evening.",
+   "evidence": "Every day",
+   "scope": "session",
+   "category": "Addictions & Habits",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Fear of fire started two years ago",
+   "content": "Tomas's fear of fire began two years ago after a neighbor's fire.",
+   "evidence": "It started two years ago, when it was burning next door",
+   "scope": "profile",
+   "category": "History & Life Events",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Experiences fire flashbacks daily",
+   "content": "Tomas experiences vivid fire flashbacks every day.",
+   "evidence": "Being in flames. I see it clearly like a movie",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Feels like child trapped in house",
+   "content": "Tomas feels like a child who cannot get out of the house.",
+   "evidence": "I felt like a child who can't get out of the house",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Works as a doctor in hospital",
+   "content": "Tomas works as a doctor in a hospital.",
+   "evidence": "I work as a doctor in a hospital",
+   "scope": "profile",
+   "category": "Work & Career",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Wife reacted negatively to cinema visit",
+   "content": "Tomas's wife waited outside at the cinema and got mad when he returned.",
+   "evidence": "She waited outside until I came back and finally she came back",
+   "scope": "session",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Feels he must lock door to avoid trouble",
+   "content": "Tomas believes if he doesn't lock the door, he will be in trouble.",
+   "evidence": "That if something doesn't work out, it will happen and I will be in trouble",
+   "scope": "profile",
+   "category": "Self-concept & Identity",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Wife is suffering from his behavior",
+   "content": "Tomas's wife is suffering from his habit of locking the door.",
+   "evidence": "She's suffering, but I know she's getting used to it",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Feels like he is going crazy",
+   "content": "Tomas feels like he is going crazy when he tries to stop locking the door.",
+   "evidence": "Then you get tired and I feel like I'm going crazy",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Tried to leave door unlocked",
+   "content": "Tomas tried to leave the door unlocked but felt he had to do it.",
+   "evidence": "I try to leave it",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Feels he cannot turn off the alarm",
+   "content": "Tomas feels he cannot turn off the alarm properly.",
+   "evidence": "I can't turn it off",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Neighbor was burning down two years ago",
+   "content": "A neighbor's house was burning down two years ago.",
+   "evidence": "Nobody was hurt, but the neighbor was burning whole",
+   "scope": "profile",
+   "category": "History & Life Events",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Had to evacuate during neighbor's fire",
+   "content": "Tomas had to evacuate during the fire next door two years ago.",
+   "evidence": "when it was burning next door and we had to evacuate",
+   "scope": "profile",
+   "category": "History & Life Events",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Wife knows it is more than a habit",
+   "content": "Tomas's wife knows his behavior is more than just a habit.",
+   "evidence": "At first she took it as a habit, so she knows it's more",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Feels he cannot manage without locking door",
+   "content": "Tomas feels he cannot manage his life without locking the door.",
+   "evidence": "Since then I feel like I can manage it",
+   "scope": "session",
+   "category": "Self-concept & Identity",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Feels he will be in trouble if he doesn't lock door",
+   "content": "Tomas believes he will be in trouble if he doesn't lock the door.",
+   "evidence": "That if something doesn't work out, it will happen and I will be in trouble",
+   "scope": "profile",
+   "category": "Self-concept & Identity",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Has job in hospital and nursing home",
+   "content": "Tomas works in a hospital and sometimes in a nursing home.",
+   "evidence": "I have a job in the hospital, sometimes in a nursing home.",
+   "scope": "profile",
+   "category": "Work & Career",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Has contract to return to control room",
+   "content": "Tomas has a contract to return to the control room the next day.",
+   "evidence": "I have a contract to return to the control room.",
+   "scope": "profile",
+   "category": "Work & Career",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Colleague Jeff calls him annoying",
+   "content": "Jeff says Tomas is the most annoying guy in the company.",
+   "evidence": "Jeff says I'm the most annoying guy in the company.",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Has contract for fourth month",
+   "content": "Tomas will be back in the control room on the fourth month.",
+   "evidence": "I'm going to be there on the fourth month.",
+   "scope": "profile",
+   "category": "Work & Career",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Waits three years for return",
+   "content": "Tomas and others waited for his return for three years.",
+   "evidence": "We waited for it for three years.",
+   "scope": "profile",
+   "category": "History & Life Events",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Has idea to hurt wife and child",
+   "content": "Tomas has an idea that he would hurt his wife and child.",
+   "evidence": "That I'll hurt her and the child.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Has idea to hurt them while baking",
+   "content": "Tomas has the idea that he would hurt them when baking bread.",
+   "evidence": "when I bake bread on the same floor",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Hasn't told anyone about hurting idea",
+   "content": "Tomas hasn't told anyone about the idea, not even Barbarian.",
+   "evidence": "It's the worst thing, when I haven't told anyone, not even Barbarian.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Leaves room when thought appears",
+   "content": "Tomas leaves the room when the thought appears.",
+   "evidence": "I leave the room.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Checks bed twice a day",
+   "content": "Tomas wakes up twice a day and checks the bed every time.",
+   "evidence": "I wake up twice a day and check the bed every time.",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Walks with Barbara twice a week",
+   "content": "Tomas walks with Barbara twice a week when she is at home.",
+   "evidence": "We walk twice a week.",
+   "scope": "session",
+   "category": "Family & Relationships",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Checks door once instead of three times",
+   "content": "Tomas plans to start by checking the door once, not three times.",
+   "evidence": "I'd just start by checking the door once, not three times.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Pledge to check door and track thirst",
+   "content": "Tomas will check the door once when leaving and write down his thirst level from one to ten.",
+   "evidence": "When you leave the house, check the door just once and write down how much you were thirsty.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Agrees to rate thirst on scale one to ten",
+   "content": "Tomas will rate his thirst from one to ten.",
+   "evidence": "And I'll write down the number from one to ten.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 3,
+   "quote_found": true
+  }
+ ]
+}

@@ -1,0 +1,371 @@
+{
+ "round": "r1",
+ "engine": "whisper-large-v3-translate",
+ "model": "qwen3.5-4b",
+ "lane": 4,
+ "client": "jana-n",
+ "lang": "cs",
+ "seconds": 345.5,
+ "facts": [
+  {
+   "heading": "Divorced after 15 years",
+   "content": "Jana and her husband Radka divorced after 15 years of marriage.",
+   "evidence": "After 15 years of marriage, Radka and I decided to divorce.",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Husband announced divorce in September",
+   "content": "Jana's husband announced the divorce in September while they were in Croatia.",
+   "evidence": "And in September he told me that it's not possible anymore.",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Felt empty and angry initially",
+   "content": "Jana felt empty and then angry when her husband announced the divorce.",
+   "evidence": "Empty. Then anger. Then again emptiness.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Counted emptiness 30 times daily",
+   "content": "Jana reported feeling empty 30 times a day.",
+   "evidence": "30 times a day.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Husband claimed they pretended to live together",
+   "content": "Jana's husband claimed they pretended to live next to each other.",
+   "evidence": "He said we pretended to live next to each other.",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana blamed herself for blindness",
+   "content": "Jana believes she should have noticed signs of her husband's behavior earlier.",
+   "evidence": "That I should have seen it, that I'm blind.",
+   "scope": "profile",
+   "category": "Self-concept & Identity",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Has two children named Anička and Matěj",
+   "content": "Jana has two children: Anička is 12 and Matěj is 8 years old.",
+   "evidence": "Anička is 12 and Matěj is 8 years old.",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Postponed telling children about divorce",
+   "content": "Jana and her husband have been postponing telling their children about the divorce.",
+   "evidence": "we keep postponing it.",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Daughter asked if they were arguing",
+   "content": "Jana's daughter Anička asked if they were arguing with her father last week.",
+   "evidence": "Last week she asked me if we were arguing with dad.",
+   "scope": "session",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Lied to daughter about arguing",
+   "content": "Jana lied to her daughter, saying no when they were arguing.",
+   "evidence": "I said no.",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Felt terrible after lying to daughter",
+   "content": "Jana felt terrible after lying to her daughter about the divorce.",
+   "evidence": "I felt terrible.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Fears daughter will cry if told truth",
+   "content": "Jana is afraid of her daughter's tears if she tells her the truth.",
+   "evidence": "But I'm afraid of their tears.",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Daughter understands little about divorce",
+   "content": "Jana's son Matěj is still a kid and doesn't understand much about the divorce.",
+   "evidence": "And Matěj is still a kid, he doesn't understand much.",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Children will stay with Jana after divorce",
+   "content": "Jana's children will stay with her after the divorce.",
+   "evidence": "The children will stay with me.",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Jana works as a Czech teacher in Brno",
+   "content": "Jana works as a Czech teacher at a primary school in Brno.",
+   "evidence": "I work as a Czech teacher at a primary school in Brno.",
+   "scope": "profile",
+   "category": "Work & Career",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Teaches 8th and 9th graders",
+   "content": "Jana teaches 9th and 8th graders at her school.",
+   "evidence": "I teach 9th and 8th graders.",
+   "scope": "profile",
+   "category": "Work & Career",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Husband deals with money and is getting married",
+   "content": "Jana's husband has always dealt with money and is getting married to his brother.",
+   "evidence": "Radek is getting married to his brother, at least so far.",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Apartment is on the mortgage",
+   "content": "The family apartment is on the mortgage.",
+   "evidence": "The apartment is on the mortgage.",
+   "scope": "profile",
+   "category": "Work & Career",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Uses crutch in neck",
+   "content": "Jana studies with a crutch in her neck.",
+   "evidence": "I go to class with a crutch in my neck",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Sleeps until 3 a.m.",
+   "content": "Jana wakes up at 3 a.m. every night.",
+   "evidence": "Every night I wake up at 3 a.m.",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Sleeps until 5 a.m.",
+   "content": "Jana sleeps until 5 a.m. and gets up at 7:30 a.m.",
+   "evidence": "I sleep around 5 am and get up at 7.30 am",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Lost 4 kilos",
+   "content": "Jana has lost 4 kilos.",
+   "evidence": "I lost 4 kilos",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Has sister in Olomouc",
+   "content": "Jana has a sister in Olomouc who calls almost every evening.",
+   "evidence": "I have a sister in Olomouc, she calls me almost every evening",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Has friend Eva from work",
+   "content": "Jana has a friend named Eva from work who calls her.",
+   "evidence": "and my friend Eva from work",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Sister wants everything",
+   "content": "Jana's sister wants almost everything.",
+   "evidence": "She wants almost everything",
+   "scope": "session",
+   "category": "Family & Relationships",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Friend Eva wants hardship",
+   "content": "Jana's friend Eva wants her to have a hard time.",
+   "evidence": "Eva just wants me to have a hard time",
+   "scope": "session",
+   "category": "Family & Relationships",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Afraid of lying",
+   "content": "Jana is afraid that she lied.",
+   "evidence": "That I lied",
+   "scope": "session",
+   "category": "Self-concept & Identity",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Afraid of bad example",
+   "content": "Jana is afraid that a woman who can't keep a marriage is not a good example for children.",
+   "evidence": "That a woman who can't keep a marriage is not a good example for children",
+   "scope": "session",
+   "category": "Self-concept & Identity",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Mum said marriage is fixed",
+   "content": "Jana's mother always said that marriage is a thing and that it's what it is.",
+   "evidence": "She always said that marriage is a thing and that it's what it is",
+   "scope": "profile",
+   "category": "History & Life Events",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Mum was silent when introduced",
+   "content": "Jana's mother was silent when Jana introduced her.",
+   "evidence": "She was silent",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Mum hoped Jana was good",
+   "content": "Jana's mother said she hoped Jana had been good to her.",
+   "evidence": "she hopes I've been good to her",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Mum hasn't called much",
+   "content": "Jana's mother hasn't called much since then.",
+   "evidence": "She hasn't called me much since then",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Feels sad",
+   "content": "Jana feels sad.",
+   "evidence": "Sad",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Doesn't want to take sleeping powder",
+   "content": "Jana does not want to take sleeping powder offered by a doctor.",
+   "evidence": "Doctor offered me some powder, but I don't want to",
+   "scope": "session",
+   "category": "Addictions & Habits",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Afraid of not waking up",
+   "content": "Jana is afraid she wouldn't be able to wake up for her children in time.",
+   "evidence": "I'm afraid I wouldn't be able to wake up for my children in time",
+   "scope": "session",
+   "category": "Self-concept & Identity",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Afraid of being dependent",
+   "content": "Jana does not want to be dependent.",
+   "evidence": "and I don't want to be dependent",
+   "scope": "session",
+   "category": "Self-concept & Identity",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Fear of panic when with children",
+   "content": "Jana is afraid she will panic and cry when with children.",
+   "evidence": "That I'll panic and cry",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Fear of being unable to stay calm",
+   "content": "Jana is afraid she won't be able to stay calm when with children.",
+   "evidence": "That I won't be able to stay calm",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Concern about children seeing sadness",
+   "content": "Jana worries children might see that sadness is allowed.",
+   "evidence": "Or they could see that the sadness is allowed",
+   "scope": "session",
+   "category": "Family & Relationships",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Plan to not be alone today",
+   "content": "Jana plans to not be alone today so she doesn't have to manage everything right away.",
+   "evidence": "That I'm not alone and I don't have to manage it right away",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 3,
+   "quote_found": true
+  }
+ ]
+}

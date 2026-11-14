@@ -25,8 +25,9 @@ class SpeechSetupTest {
     }
 
     @Test
-    fun noOtherSpeechModelIsRegistered() {
+    fun theOnlySpeechModelsAreCanaryAndWhisperLargeV3ForTheQualityWorkflow() {
+        // AD-02 allowed Canary only; AD-22 adds Whisper large-v3 q8_0 for the Quality workflow. No other recogniser is registered.
         val speech = ModelRegistry.ALL.filter { it.id.startsWith("canary") || it.id.contains("whisper") || it.id.contains("parakeet") }
-        assertEquals(listOf("canary-1b-v2"), speech.map { it.id })
+        assertEquals(listOf("canary-1b-v2", "whisper-large-v3-q8_0"), speech.map { it.id })
     }
 }

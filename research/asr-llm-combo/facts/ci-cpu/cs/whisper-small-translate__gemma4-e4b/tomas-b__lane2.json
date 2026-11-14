@@ -1,0 +1,281 @@
+{
+ "round": "r1",
+ "engine": "whisper-small-translate",
+ "model": "gemma4-e4b",
+ "lane": 2,
+ "client": "tomas-b",
+ "lang": "cs",
+ "seconds": 320.8,
+ "facts": [
+  {
+   "heading": "Reports stomach ache",
+   "content": "Tomas stated he has a stomach ache.",
+   "evidence": "I have a stomach ache",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Clinic visit scheduled for 1 pm",
+   "content": "Tomas plans to go to the clinic to check something by 1 pm.",
+   "evidence": "I'll be there by 1 pm",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Experiences visual disturbances daily",
+   "content": "Tomas experiences visual disturbances every day.",
+   "evidence": "Every day",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Visual issues affect sleep",
+   "content": "Tomas's visual issues are worst when he goes to bed or in the morning.",
+   "evidence": "The worst thing is that we go to bed or sleep.",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Visual issues started two years ago",
+   "content": "Tomas's visual issues started two years ago.",
+   "evidence": "It started two years ago",
+   "scope": "profile",
+   "category": "Health, Body & Sleep",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Visual issues linked to neighbors",
+   "content": "Tomas first noticed the issue when neighbors were playing at night.",
+   "evidence": "When the neighbors were playing, I had to wake up.",
+   "scope": "profile",
+   "category": "Health, Body & Sleep",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Experienced fever after neighbors",
+   "content": "Tomas had a fever a couple of days after the neighbors were playing.",
+   "evidence": "A couple of days later, I had a fever.",
+   "scope": "profile",
+   "category": "Health, Body & Sleep",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Feels like he is in the way",
+   "content": "Tomas feels that he is in the way since a certain point.",
+   "evidence": "From that point I feel that I'm in the way.",
+   "scope": "profile",
+   "category": "Self-concept & Identity",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Feels controlled by external forces",
+   "content": "Tomas feels that if something doesn't control him, he stands still and does nothing.",
+   "evidence": "If something doesn't control me, I'll stand still and I'll do nothing.",
+   "scope": "profile",
+   "category": "Self-concept & Identity",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Coping mechanism is letting go",
+   "content": "When he doesn't want to do something, Tomas tries to let it go.",
+   "evidence": "I try to let it go.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Feels like he is growing up fast",
+   "content": "Tomas feels like he is crazy because he grows up really fast.",
+   "evidence": "I grow up really fast, so I feel like I'm crazy.",
+   "scope": "session",
+   "category": "Self-concept & Identity",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Mother is Barbara",
+   "content": "Tomas mentioned his mother's name is Barbara.",
+   "evidence": "Barbara, my mother.",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Recent cinema trip incident",
+   "content": "Tomas went to the cinema yesterday and felt a problem after waiting for a break.",
+   "evidence": "Yesterday we came to the cinema 40 minutes later.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Felt like a child at cinema",
+   "content": "Tomas felt like a child who cannot go out of the house at the cinema.",
+   "evidence": "I felt like a child who can't go out of the house.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Works as police detective",
+   "content": "Tomas works as a detective in the police station.",
+   "evidence": "I'm working as a detective in the police station.",
+   "scope": "profile",
+   "category": "Work & Career",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Has not gotten a job",
+   "content": "Tomas has never gotten a job.",
+   "evidence": "No, never.",
+   "scope": "profile",
+   "category": "Work & Career",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Feels passionate about company",
+   "content": "Jeff tells Tomas he is the most passionate about the company.",
+   "evidence": "Jeff tells me I'm the most passionate about the company,",
+   "scope": "profile",
+   "category": "Work & Career",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Limited time in office last week",
+   "content": "Last week Tomas was busy with work for one hour in the office.",
+   "evidence": "Last week I was busy with work an hour in the office.",
+   "scope": "session",
+   "category": "Work & Career",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Has work problems",
+   "content": "Tomas reports having a problem with work.",
+   "evidence": "I have a problem with the work.",
+   "scope": "session",
+   "category": "Work & Career",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Working for fourth month",
+   "content": "Tomas intends to work for the fourth month for the therapist.",
+   "evidence": "I'd like to do it for you, for the fourth month.",
+   "scope": "session",
+   "category": "Work & Career",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Waited three years for idea",
+   "content": "Tomas and others waited three years before coming up with another idea.",
+   "evidence": "We waited for three years and then came up with another idea.",
+   "scope": "profile",
+   "category": "History & Life Events",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Fear of hospital",
+   "content": "Tomas was afraid of something when he went to the hospital and was in therapy.",
+   "evidence": "I was afraid of something.",
+   "scope": "profile",
+   "category": "Health, Body & Sleep",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Controls room at night",
+   "content": "Tomas stays in the bedroom two times a night to control the room.",
+   "evidence": "I stay there two times a night and control the room.",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Bathroom routine twice daily",
+   "content": "Tomas goes to the bathroom two times a day.",
+   "evidence": "The bathroom is two times a day.",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Concerns about dangerous thoughts",
+   "content": "Tomas asks the therapist if he is dangerous.",
+   "evidence": "Do you think I'm dangerous?",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Fear of being rejected",
+   "content": "Tomas was afraid that the other person would not want to see him.",
+   "evidence": "I was afraid that you wouldn't want to see me.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Worry about losing connection",
+   "content": "Tomas wanted to make sure he would not lose the other person.",
+   "evidence": "And I wanted to make it so I wouldn't lose him.",
+   "scope": "session",
+   "category": "Family & Relationships",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Anticipation of being wrong",
+   "content": "Tomas anticipated that the other person would say he was wrong.",
+   "evidence": "You would say I was wrong.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Interest in barber's opinion",
+   "content": "Tomas was interested in what the other person said about the barber.",
+   "evidence": "You said something important about the barber.",
+   "scope": "session",
+   "category": "Family & Relationships",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Plan to try one thing",
+   "content": "Tomas stated he would try one thing suggested.",
+   "evidence": "One. I'll try the one.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 3,
+   "quote_found": true
+  }
+ ]
+}

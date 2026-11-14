@@ -1,0 +1,218 @@
+{
+ "round": "r1",
+ "engine": "whisper-small-translate",
+ "model": "qwen3.5-4b",
+ "lane": 2,
+ "client": "tomas-b",
+ "lang": "cs",
+ "seconds": 285.7,
+ "facts": [
+  {
+   "heading": "Client name is Tomas",
+   "content": "Tomas is the client's name.",
+   "evidence": "Good evening, Mr. Bartop",
+   "scope": "profile",
+   "category": "Self-concept & Identity",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client has stomach ache",
+   "content": "Tomas has a stomach ache and feels he cannot continue as is.",
+   "evidence": "I have a stomach ache, I can't do it like this.",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client plans to visit clinic",
+   "content": "Tomas plans to go to the clinic by 1 pm to check if he is closed.",
+   "evidence": "I'm going to the clinic to check if I'm closed.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client describes repetitive routine",
+   "content": "Tomas describes a routine of closing doors, checking counters, and drawers repeatedly.",
+   "evidence": "I close the door, go to the kitchen, go back and close the door.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client experiences recurring visions",
+   "content": "Tomas experiences a recurring vision that happens every day and lasts for a long time.",
+   "evidence": "Every day.",
+   "scope": "profile",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client feels unable to sleep",
+   "content": "Tomas feels unable to sleep at night and in the morning.",
+   "evidence": "The worst thing is that we go to bed or sleep.",
+   "scope": "profile",
+   "category": "Health, Body & Sleep",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client's condition started two years ago",
+   "content": "Tomas's condition started two years ago when neighbors were playing and he had to wake up.",
+   "evidence": "It started two years ago.",
+   "scope": "profile",
+   "category": "History & Life Events",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client had fever after waking up",
+   "content": "Tomas had a fever a couple of days after waking up from the disturbance.",
+   "evidence": "A couple of days later, I had a fever.",
+   "scope": "profile",
+   "category": "Health, Body & Sleep",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client feels like an obstacle",
+   "content": "Tomas feels that he is in the way and does not control himself.",
+   "evidence": "From that point I feel that I'm in the way.",
+   "scope": "profile",
+   "category": "Self-concept & Identity",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client feels paralyzed by responsibility",
+   "content": "Tomas feels he must stand still and do nothing if something does not control him.",
+   "evidence": "If something doesn't control me, I'll stand still and I'll do nothing.",
+   "scope": "profile",
+   "category": "Coping & Strengths",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client feels crazy due to rapid growth",
+   "content": "Tomas feels like he is crazy because he grew up really fast.",
+   "evidence": "I grow up really fast, so I feel like I'm crazy.",
+   "scope": "profile",
+   "category": "Self-concept & Identity",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client wants to run away",
+   "content": "Tomas would rather run away than face the situation.",
+   "evidence": "I'd rather run away.",
+   "scope": "profile",
+   "category": "Coping & Strengths",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client refers to mother Barbara",
+   "content": "Tomas refers to his mother as Barbara.",
+   "evidence": "Barbara, my mother.",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client feels like a child at work",
+   "content": "Tomas feels like a child who cannot go out of the house at work.",
+   "evidence": "I felt like a child who can't go out of the house.",
+   "scope": "session",
+   "category": "Self-concept & Identity",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client works as a detective",
+   "content": "Tomas works as a detective in the police station.",
+   "evidence": "I'm working as a detective in the police station.",
+   "scope": "profile",
+   "category": "Work & Career",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "No job ever obtained",
+   "content": "Tomas has never had a job.",
+   "evidence": "No, never.",
+   "scope": "profile",
+   "category": "Work & Career",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Works only one hour weekly",
+   "content": "Tomas spends only one hour in the office per week working.",
+   "evidence": "Last week I was busy with work an hour in the office.",
+   "scope": "session",
+   "category": "Work & Career",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Thinks about killing children",
+   "content": "Tomas has intrusive thoughts about killing a woman and her children.",
+   "evidence": "It's terrible, I would never kill them.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Hides thoughts from Barbara",
+   "content": "Tomas has not told Barbara about his intrusive thoughts.",
+   "evidence": "And it's the worst, when I didn't tell anyone, not even Barbara.",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Sleeps twice nightly",
+   "content": "Tomas stays in his bedroom twice a night to control the room.",
+   "evidence": "I stay there two times a night and control the room.",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Uses bathroom twice daily",
+   "content": "Tomas goes to the bathroom twice a day.",
+   "evidence": "The bathroom is two times a day.",
+   "scope": "session",
+   "category": "Addictions & Habits",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Uses controller to manage thoughts",
+   "content": "Tomas uses a controller to control his thoughts and feel safe.",
+   "evidence": "I go back to control something, so I can do it.",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Therapy started at hospital",
+   "content": "Tomas was in therapy when he went to the hospital.",
+   "evidence": "I was in therapy when I went to the hospital.",
+   "scope": "profile",
+   "category": "History & Life Events",
+   "part": 2,
+   "quote_found": true
+  }
+ ]
+}

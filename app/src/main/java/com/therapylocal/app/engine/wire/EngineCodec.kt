@@ -73,6 +73,7 @@ object EngineCodec {
                     b.putInt("maxOut", op.maxOutputTokens)
                     b.putDouble("temp", op.temperature)
                     b.putInt("topK", op.topK)
+                    if (op.pcm != null) putPcm(b, op.pcm)
                 }
                 is EngineOp.EmbedText -> {
                     b.putString(T, "embed_text")
@@ -89,6 +90,9 @@ object EngineCodec {
                 is EngineOp.Transcribe -> {
                     b.putString(T, "transcribe")
                     b.putInt("handle", op.handle)
+                    b.putString("tlang", op.language)
+                    b.putBoolean("ttranslate", op.translate)
+                    b.putInt("tbeam", op.beam)
                     putPcm(b, op.pcm)
                 }
                 is EngineOp.Diarize -> {
@@ -125,11 +129,11 @@ object EngineCodec {
             )
             "ask" -> EngineOp.Ask(
                 tag, b.getInt("handle"), getStr(b, "system"), getStr(b, "user"), if (has(b, "schema")) getStr(b, "schema") else null,
-                b.getInt("maxOut"), b.getDouble("temp"), b.getInt("topK"),
+                b.getInt("maxOut"), b.getDouble("temp"), b.getInt("topK"), if (b.containsKey("pcm")) getPcm(b) else null,
             )
             "embed_text" -> EngineOp.EmbedText(tag, b.getInt("handle"), getStr(b, "text"), b.getBoolean("query"))
             "embed_audio" -> EngineOp.EmbedAudio(tag, b.getInt("handle"), getPcm(b), b.getString("role").orEmpty())
-            "transcribe" -> EngineOp.Transcribe(tag, b.getInt("handle"), getPcm(b))
+            "transcribe" -> EngineOp.Transcribe(tag, b.getInt("handle"), getPcm(b), b.getString("tlang"), b.getBoolean("ttranslate"), b.getInt("tbeam"))
             "diarize" -> EngineOp.Diarize(tag, b.getInt("handle"), getPcm(b), b.getInt("speakers"))
             "close" -> EngineOp.Close(tag, b.getInt("handle"))
             "status" -> EngineOp.Status(tag)

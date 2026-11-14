@@ -133,7 +133,29 @@ object ModelRegistry {
         ),
     )
 
-    val ALL = listOf(GEMMA_E2B, GEMMA_E4B, EMBED, CANARY_1B_V2, DIARIZATION)
+    /**
+     * Whisper large-v3, ggml q8_0, for the Quality workflow (docs/AD/AD-22.md), run by whisper.cpp on the CPU in `:batch` (`libwhisper_jni.so`).
+     * Upstream (ggerganov/whisper.cpp) publishes large-v3 only as f16 and q5_0; this q8_0 was made with its `whisper-quantize` from the f16 file
+     * (3,095,033,483 bytes, sha256 64d182b440b98d5203c4f9bd541544d84c605196c4f7b845dfa11fb23594d1e2), see research/asr-llm-combo/device/README.md
+     * "Round 2". Size and checksum pin exactly what was measured. **There is no download address yet**: nobody hosts this file, so [WHISPER_Q8_URL]
+     * is empty and the file is put on a device by hand (`adb push` into the models folder) until it is hosted.
+     */
+    const val WHISPER_Q8_FILE = "ggml-large-v3-q8_0.bin"
+    const val WHISPER_Q8_URL = ""
+
+    val WHISPER_LARGE_V3_Q8 = ModelSpec(
+        id = "whisper-large-v3-q8_0", title = "Whisper large-v3 (q8_0, CPU)", subdir = "whisper-large-v3-q8_0",
+        files = listOf(ModelFile(WHISPER_Q8_FILE, WHISPER_Q8_URL, 1_656_538_283L, "24bc434f372355688ab9a623077a63e5361a1c41f4d8d648977e39f9b060f09e")),
+    )
+
+    /** The speech model a workflow needs: Canary for the control, Whisper large-v3 for Quality, none for Fast (Gemma hears the audio, AD-22). */
+    fun speechFor(workflow: com.therapylocal.app.config.Workflow): List<ModelSpec> = when (workflow) {
+        com.therapylocal.app.config.Workflow.Canary -> listOf(CANARY_1B_V2)
+        com.therapylocal.app.config.Workflow.Fast -> emptyList()
+        com.therapylocal.app.config.Workflow.Quality, com.therapylocal.app.config.Workflow.QualityCs -> listOf(WHISPER_LARGE_V3_Q8)
+    }
+
+    val ALL = listOf(GEMMA_E2B, GEMMA_E4B, EMBED, CANARY_1B_V2, DIARIZATION, WHISPER_LARGE_V3_Q8)
     fun byId(id: String): ModelSpec = ALL.first { it.id == id }
     fun find(id: String): ModelSpec? = ALL.firstOrNull { it.id == id.substringBefore('+') }
 

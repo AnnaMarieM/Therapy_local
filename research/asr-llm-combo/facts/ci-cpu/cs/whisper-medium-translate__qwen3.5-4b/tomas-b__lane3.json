@@ -1,0 +1,470 @@
+{
+ "round": "r1",
+ "engine": "whisper-medium-translate",
+ "model": "qwen3.5-4b",
+ "lane": 3,
+ "client": "tomas-b",
+ "lang": "cs",
+ "seconds": 485.1,
+ "facts": [
+  {
+   "heading": "Client name is Bart",
+   "content": "The client's name is Bart.",
+   "evidence": "Good morning, Mr. Bart",
+   "scope": "profile",
+   "category": "Self-concept & Identity",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client is nervous about session",
+   "content": "Bart is nervous about the session.",
+   "evidence": "I'm pretty nervous",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client hasn't seen a psychologist",
+   "content": "Bart has not been to a psychologist.",
+   "evidence": "I haven't been to the psychologist",
+   "scope": "profile",
+   "category": "Coping & Strengths",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Wife says marriage is not working",
+   "content": "Bart's wife says the marriage is not working.",
+   "evidence": "She says it's not going to work like this anymore",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Bart checks door for an hour",
+   "content": "Bart spends an hour checking the door and locking it.",
+   "evidence": "It takes me an hour before she gets out of bed",
+   "scope": "profile",
+   "category": "Addictions & Habits",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Bart checks door daily",
+   "content": "Bart checks the door every day.",
+   "evidence": "Every day",
+   "scope": "profile",
+   "category": "Addictions & Habits",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Bart checks door in evening",
+   "content": "Bart checks the door in the evening.",
+   "evidence": "In the evening is the worst",
+   "scope": "profile",
+   "category": "Addictions & Habits",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Bart checks door in morning",
+   "content": "Bart checks the door in the morning.",
+   "evidence": "And in the morning too",
+   "scope": "profile",
+   "category": "Addictions & Habits",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Bart checks door since 2024",
+   "content": "Bart has been checking the door since two years ago.",
+   "evidence": "It started two years ago",
+   "scope": "profile",
+   "category": "Addictions & Habits",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Fire incident caused by neighbor",
+   "content": "A fire started next door two years ago.",
+   "evidence": "when it was burning next door",
+   "scope": "profile",
+   "category": "History & Life Events",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Bart evacuated due to fire",
+   "content": "Bart had to evacuate due to the fire.",
+   "evidence": "and we had to evacuate",
+   "scope": "profile",
+   "category": "History & Life Events",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Fire warning sounded at night",
+   "content": "A fire warning rang at night.",
+   "evidence": "A warning was ringing",
+   "scope": "profile",
+   "category": "History & Life Events",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Smoke seen on corridor",
+   "content": "Bart saw smoke on the corridor.",
+   "evidence": "There was smoke on the corridor",
+   "scope": "profile",
+   "category": "History & Life Events",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Someone screamed during fire",
+   "content": "Someone was screaming during the fire.",
+   "evidence": "and someone was screaming",
+   "scope": "profile",
+   "category": "History & Life Events",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Bart was in pajamas during fire",
+   "content": "Bart was in pajamas when the fire happened.",
+   "evidence": "We were only in pajamas",
+   "scope": "profile",
+   "category": "History & Life Events",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Bart feels he can manage the fire",
+   "content": "Bart feels he can manage the fire.",
+   "evidence": "I have a feeling that I can manage it",
+   "scope": "profile",
+   "category": "Self-concept & Identity",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Bart fears consequences if he doesn't check",
+   "content": "Bart fears trouble if he doesn't check the door.",
+   "evidence": "If something doesn't work, it happens and I'll be in trouble",
+   "scope": "profile",
+   "category": "Self-concept & Identity",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Bart feels like a child during fire",
+   "content": "Bart felt like a child who couldn't get out of the house.",
+   "evidence": "I felt like a child who can't get out of the house",
+   "scope": "profile",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Bart works as a pharmacist",
+   "content": "Bart works as a pharmacist in a hospital.",
+   "evidence": "I work as a pharmacist in a hospital",
+   "scope": "profile",
+   "category": "Work & Career",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Bart visits parents' homes",
+   "content": "Bart sometimes visits his parents' homes.",
+   "evidence": "sometimes in my parents' homes",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Wife Barbara broke Bart's arm",
+   "content": "Bart's wife Barbara broke his arm.",
+   "evidence": "He's a man who broke my arm",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Wife Barbara broke Bart's neck",
+   "content": "Bart's wife Barbara broke his neck.",
+   "evidence": "and broke my neck",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Bart feels narrowness if he doesn't check",
+   "content": "Bart feels a sense of narrowness if he doesn't check the door.",
+   "evidence": "Then I grow a narrowness",
+   "scope": "profile",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Bart feels like he is going crazy",
+   "content": "Bart feels like he is going crazy if he doesn't check the door.",
+   "evidence": "and I feel like I'm going crazy",
+   "scope": "profile",
+   "category": "Mood & Emotions",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Bart prefers to check the door",
+   "content": "Bart prefers to check the door rather than leave it.",
+   "evidence": "I'd rather do it",
+   "scope": "profile",
+   "category": "Coping & Strengths",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Bart came to cinema 40 minutes later",
+   "content": "Bart came to the cinema 40 minutes later.",
+   "evidence": "We came to the cinema 40 minutes later",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Wife waited outside for Bart",
+   "content": "Bart's wife waited outside until he came back.",
+   "evidence": "She was waiting outside until I came back",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Wife said nothing to Bart",
+   "content": "Bart's wife said nothing to him.",
+   "evidence": "She said nothing",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Wife looked at Bart silently",
+   "content": "Bart's wife just looked at him.",
+   "evidence": "just looked at me",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Bart knows his wife is suffering",
+   "content": "Bart knows his wife is suffering.",
+   "evidence": "She's suffering, but I know she's suffering",
+   "scope": "profile",
+   "category": "Family & Relationships",
+   "part": 1,
+   "quote_found": true
+  },
+  {
+   "heading": "Client fears falling into water",
+   "content": "Tomas fears he might fall into water and something will happen.",
+   "evidence": "that I'll fall into the water and something will happen",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "No past incident of falling",
+   "content": "Tomas has never had an incident where he fell into water.",
+   "evidence": "No, nowhere",
+   "scope": "session",
+   "category": "History & Life Events",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Jeff calls him annoying boss",
+   "content": "Jeff says Tomas is the most annoying boss in the company.",
+   "evidence": "Jeff says I'm the most annoying boss in the company",
+   "scope": "session",
+   "category": "Family & Relationships",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas afraid of getting a job",
+   "content": "Tomas is afraid of getting a job, especially now.",
+   "evidence": "I'm afraid of getting a job. Especially now.",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": false
+  },
+  {
+   "heading": "Tomas worked one month",
+   "content": "Tomas worked in the office for one month.",
+   "evidence": "To be on the job for a month",
+   "scope": "session",
+   "category": "Work & Career",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Waiting three years for job",
+   "content": "Tomas and others have been waiting for this job for three years.",
+   "evidence": "We've been waiting for this for three years",
+   "scope": "profile",
+   "category": "History & Life Events",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas fears hurting child",
+   "content": "Tomas has an idea that he would hurt his child and the child.",
+   "evidence": "That I'll hurt her and the child",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas fears hurting mother",
+   "content": "Tomas has an idea that he would hurt his mother.",
+   "evidence": "I'd like to",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas fears being lonely",
+   "content": "Tomas is afraid it will be lonely.",
+   "evidence": "And then I'm afraid it'll be lonely",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas fears bread on stairs",
+   "content": "Tomas fears putting bread on the stairs will cause harm.",
+   "evidence": "when I make bread and put it on the stairs",
+   "scope": "session",
+   "category": "Mood & Emotions",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas apologizes repeatedly",
+   "content": "Tomas says sorry multiple times when discussing fears.",
+   "evidence": "I'm sorry",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas thinks he is dangerous",
+   "content": "Tomas thinks he is dangerous and that nobody told him that.",
+   "evidence": "You think you're dangerous?",
+   "scope": "session",
+   "category": "Self-concept & Identity",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas leaves room when thoughts appear",
+   "content": "Tomas leaves the room when the thought appears.",
+   "evidence": "I leave the room",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas checks door once",
+   "content": "Tomas checks the door only once, not three times.",
+   "evidence": "I would start by checking the door only once, not three times",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas sleeps twice a night",
+   "content": "Tomas wakes up twice a night and the control is still there.",
+   "evidence": "I wake up twice a night and the control is still there",
+   "scope": "session",
+   "category": "Health, Body & Sleep",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas walks twice a week",
+   "content": "Tomas walks twice a week, just in the morning.",
+   "evidence": "Walk twice a week, just in the morning",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas seeks doctor in five minutes",
+   "content": "Tomas plans to give a doctor in five minutes if things get better.",
+   "evidence": "I'll give you a doctor in five minutes",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas went to therapy",
+   "content": "Tomas went to therapy and thought about what he was afraid of.",
+   "evidence": "I went to therapy and I thought about what I was afraid of",
+   "scope": "profile",
+   "category": "History & Life Events",
+   "part": 2,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas plans to check door once",
+   "content": "Tomas will check the door only once when leaving the house.",
+   "evidence": "check the door only once",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas will track thirst level",
+   "content": "Tomas will write down his thirst level on a scale from 1 to 10.",
+   "evidence": "write down how much you were thirsty",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 3,
+   "quote_found": true
+  },
+  {
+   "heading": "Tomas will rate thirst 1 to 10",
+   "content": "Tomas plans to write the number from 1 to 10 to track his thirst.",
+   "evidence": "write down the number from 1 to 10",
+   "scope": "session",
+   "category": "Coping & Strengths",
+   "part": 3,
+   "quote_found": true
+  }
+ ]
+}

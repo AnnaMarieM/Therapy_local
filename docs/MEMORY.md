@@ -21,6 +21,8 @@ Everything lives in `mind.db` (SQLCipher, see [SECURITY.md](SECURITY.md)), opene
 | `extract_cache(session_id, idx, key, json)` | Extraction result per window, keyed by prompt version and model |
 | `review_cache(session_id, cand_key, verdict)` | The LLM's duplicate verdict per candidate |
 | `session_summaries(session_id, text, method, created_at, prov_*, stale)` | The session's summary and its provenance (AD-10 columns); stale when the transcript, the roles, the prompts or the model changed since ([AD-12](AD/AD-12.md)) |
+| `segment_translations(session_id, version, idx, lang, text, model, prompt_version)` | The English transcript, one row per segment of a transcript version ([AD-17](AD/AD-17.md)); same idx and times as `segments`; gone with the transcript |
+| `display_translations(session_id, source_sha, lang, text, model, prompt_version, created_at)` | What the screens show (fact headings and contents, summary sections) in the app language, found by the hash of the English text; gone with its session ([AD-17](AD/AD-17.md)) |
 | `jobs(id, kind, session_id, recording_id, ref, status, attempts, max_attempts, error_code, created_at, updated_at)` | The job queue. `error_code` is a short code, never raw error text |
 | `job_deps(job_id, depends_on)` | Job dependencies |
 
@@ -32,8 +34,10 @@ Deleting a client removes everything of it, jobs included. Deleting a session re
 All processing runs as jobs in `mind.db`, so it survives a crash or a lock (`jobs/`).
 
 ```
-transcribe(recording) -> window(session) -> extract(session, 1..n) -> commit(session) -> cleanup(recording)
+transcribe(recording) -> translate(session) -> roles(session) -> window(session) -> extract(session, 1..n) -> commit(session) -> cleanup(recording)
 ```
+
+`translate` ([AD-17](AD/AD-17.md)) puts the transcript into English for the jobs after it and does nothing for an English client or with the setting `processing_language` = `native`; `roles` ([AD-14](AD/AD-14.md)) is described in its record. `localize` (AD-17) is outside the chain: queued at the end of `commit` and `summary`, it translates what is shown into the app language.
 
 1. **transcribe** fills in the chunks that have no text yet, with Canary 1B v2, the only speech recogniser ([AD-02](AD/AD-02.md)). `SegmentBuilder` then builds the segments from the overlapping chunks, keeping their timestamps, and `appendTranscript` stores them as the next transcript version with the hash of the audio (the same content again writes nothing).
 2. **window** cuts the segments into windows (1000 tokens, 50 overlap, estimated at 1.4 tokens per word), embeds them with `DOC_PREFIX` and adds the rest of the graph. A window over the embedder's limit is embedded in halves and averaged.
@@ -61,6 +65,8 @@ Queue rules (`JobQueue`):
 - **D5. The CI emulator runs debug builds with an `x86_64` ABI added** (debug and androidTest only). The end-to-end tests use fake `Llm`, `Embed` and `Asr` ports and never load the LiteRT or sherpa native libraries.
 - **D6. Model inference runs in separate processes** (`:live` for live cues and search, `:batch` for the session pipeline). They are stateless model servers; the queue, vault, database, ladder and guard stay in the app process, so a model crash never closes the app. Full record: [AD-01](AD/AD-01.md).
 - **D7. One model per role: Canary 1B v2 is the only speech recogniser** (chosen for its Czech). Gemma 4 is text only and processes the transcribed chunks, and EmbeddingGemma 2 still embeds audio. Whisper, Parakeet and Gemma speech recognition are removed. Full record: [AD-02](AD/AD-02.md).
+- **D14. Canary stays the speech recogniser because of its Czech; Whisper is not added back.** On the real-voice corpus Canary beats Whisper small on both Czech sessions (Jana 23.5% against 35.1%, Tomáš 36.2% against 43.7%) and loses on English (about 3 to 5 points), which is tracked as a fix to the token leak and merged turns, not as a second engine. Full record: [AD-18](AD/AD-18.md).
+- **D13. All processing runs in English; only what is shown is translated** (the transcript is translated in by a `translate` job, facts and summaries are stored in English and translated out by a `localize` job, the setting `processing_language` keeps the old path). Full record: [AD-17](AD/AD-17.md) (draft, not decided).
 - **D9. Inputs are immutable and versioned; every derived item records what it came from.** The raw transcript is append-only by version and content hash, audio is referenced by hash while it is retained (7 days), the speaker map is append-only. Windows and facts carry transcript hash, speaker-map version, prompt version and model and a stored stale flag; a rebuild supersedes stale items in client and session order. One vault key and one database stay. Full record: [AD-10](AD/AD-10.md) (proposed).
 - **D10. No migrations and no compatibility code before the first release.** The schema is one create path; a database of another version is wiped. Full record: [AD-11](AD/AD-11.md) (proposed).
 - **D8. An engine host that crashes exits quietly** (native signal handler `_exit(100 + signal)`, Java crash `halt(13)`), so the system shows no "keeps stopping" dialog and writes no tombstone for a background host. Full record: [AD-04](AD/AD-04.md).
@@ -68,6 +74,8 @@ Queue rules (`JobQueue`):
 - **D11. The app writes one summary per session** (SOAP, short paragraphs, from the transcript with the confirmed roles), as a `summary` job on the same queue and model; it is stale after a roles swap and rebuilt. This reverses "writes no summaries" (accepted). Full record: [AD-12](AD/AD-12.md).
 - **D9. The NPU runs only on SoCs validated on our own hardware** (each recorded in the model catalogue, `ModelRegistry.BACKEND_BUILDS`); every other device uses the GPU, then the CPU. Full record: [AD-09](AD/AD-09.md).
 - **D13. Gemma E2B runs on the GPU with FLOAT32 activations, on every device** (`activationDataType = FLOAT32` for the GPU backend only; no device list). The default GPU precision fails the second output proof on the Pixel 8 and the Galaxy Tab S7; FLOAT32 passes on all three test devices with no speed cost. E4B is not covered until it is measured on the smaller devices. Full record, with the benchmarks: [AD-19](AD/AD-19.md).
+- **D14. The human-voice test recordings are synthetic (scripts written by Claude) and may be published**: repo, CI artifacts, cloud runners. Real recordings stay out. Full record: [AD-20](AD/AD-20.md).
+- **D15. On-device GPU and NPU inference uses the same model as the CPU**: phones and handhelds have unified memory, so the backend is chosen for speed, never to shrink the model. Full record: [AD-21](AD/AD-21.md).
 
 ## Live cues
 During a session `LiveCues` embeds the last seconds of audio directly (EmbeddingGemma audio, no transcript) and compares them with the client's fact embeddings. Scores are averaged over ticks per fact, and the top 10 above the floor are shown by heading. Audio stays in an in-memory ring of `LiveCueConfig.MAX_LOOKBACK_S` (327 s) and is never written. Settings are read at session start, from "Knobs for nerds" in the settings (`LiveCueSettings`, values clamped):

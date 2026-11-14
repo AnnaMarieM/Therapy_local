@@ -1,0 +1,187 @@
+{
+ "round": "r2b-llm",
+ "lanes": 4,
+ "asr": [
+  {
+   "id": "whisper-large-v3",
+   "engine": "whisper-large-v3",
+   "lanes": 1,
+   "opts": {}
+  }
+ ],
+ "llm": [
+  {
+   "asr": "whisper-large-v3",
+   "model": "gemma4-e4b",
+   "tag": "+roles",
+   "opts": {}
+  },
+  {
+   "asr": "whisper-large-v3",
+   "model": "gemma4-e4b",
+   "tag": "+roles+pivot",
+   "opts": {
+    "pivot": true
+   }
+  },
+  {
+   "asr": "whisper-large-v3",
+   "model": "gemma4-e4b",
+   "tag": "+roles+robust",
+   "opts": {
+    "prompt_dir": {
+     "cs": "e2e/combo/prompts/robust/cs",
+     "en": "e2e/combo/prompts/robust"
+    }
+   }
+  },
+  {
+   "asr": "whisper-large-v3",
+   "model": "gemma4-e4b",
+   "tag": "+roles+pivot+robust",
+   "opts": {
+    "pivot": true,
+    "prompt_dir": {
+     "cs": "e2e/combo/prompts/robust/cs",
+     "en": "e2e/combo/prompts/robust"
+    }
+   }
+  },
+  {
+   "asr": "whisper-large-v3",
+   "model": "gemma4-e2b",
+   "tag": "+roles",
+   "opts": {}
+  },
+  {
+   "asr": "whisper-large-v3",
+   "model": "gemma4-e2b",
+   "tag": "+roles+pivot",
+   "opts": {
+    "pivot": true
+   }
+  },
+  {
+   "asr": "whisper-large-v3",
+   "model": "gemma4-e2b",
+   "tag": "+roles+robust",
+   "opts": {
+    "prompt_dir": {
+     "cs": "e2e/combo/prompts/robust/cs",
+     "en": "e2e/combo/prompts/robust"
+    }
+   }
+  },
+  {
+   "asr": "whisper-large-v3",
+   "model": "gemma4-e2b",
+   "tag": "+roles+pivot+robust",
+   "opts": {
+    "pivot": true,
+    "prompt_dir": {
+     "cs": "e2e/combo/prompts/robust/cs",
+     "en": "e2e/combo/prompts/robust"
+    }
+   }
+  },
+  {
+   "asr": "script",
+   "model": "gemma4-e4b",
+   "tag": "+roles",
+   "opts": {}
+  },
+  {
+   "asr": "script",
+   "model": "gemma4-e4b",
+   "tag": "+roles+pivot",
+   "opts": {
+    "pivot": true
+   }
+  },
+  {
+   "asr": "script",
+   "model": "gemma4-e4b",
+   "tag": "+roles+robust",
+   "opts": {
+    "prompt_dir": {
+     "cs": "e2e/combo/prompts/robust/cs",
+     "en": "e2e/combo/prompts/robust"
+    }
+   }
+  },
+  {
+   "asr": "script",
+   "model": "gemma4-e4b",
+   "tag": "+roles+pivot+robust",
+   "opts": {
+    "pivot": true,
+    "prompt_dir": {
+     "cs": "e2e/combo/prompts/robust/cs",
+     "en": "e2e/combo/prompts/robust"
+    }
+   }
+  },
+  {
+   "asr": "script",
+   "model": "gemma4-e2b",
+   "tag": "+roles",
+   "opts": {}
+  },
+  {
+   "asr": "script",
+   "model": "gemma4-e2b",
+   "tag": "+roles+pivot",
+   "opts": {
+    "pivot": true
+   }
+  },
+  {
+   "asr": "script",
+   "model": "gemma4-e2b",
+   "tag": "+roles+robust",
+   "opts": {
+    "prompt_dir": {
+     "cs": "e2e/combo/prompts/robust/cs",
+     "en": "e2e/combo/prompts/robust"
+    }
+   }
+  },
+  {
+   "asr": "script",
+   "model": "gemma4-e2b",
+   "tag": "+roles+pivot+robust",
+   "opts": {
+    "pivot": true,
+    "prompt_dir": {
+     "cs": "e2e/combo/prompts/robust/cs",
+     "en": "e2e/combo/prompts/robust"
+    }
+   }
+  },
+  {
+   "asr": "whisper-large-v3",
+   "model": "gemma4-e4b",
+   "tag": "+roles+part250",
+   "opts": {
+    "part_words": 250
+   }
+  },
+  {
+   "asr": "whisper-large-v3",
+   "model": "gemma4-e4b",
+   "tag": "+roles+part800",
+   "opts": {
+    "part_words": 800,
+    "ctx": 12288
+   }
+  },
+  {
+   "asr": "whisper-large-v3",
+   "model": "gemma4-e4b",
+   "tag": "+roles+temp0",
+   "opts": {
+    "temperature": 0.0
+   }
+  }
+ ]
+}

@@ -1,0 +1,16 @@
+{"round": "r2a-asr", "lanes": 2,
+ "asr": [
+  {"id": "turbo-beam5", "engine": "whisper-large-v3-turbo", "opts": {"beam_size": 5}},
+  {"id": "turbo-prompt", "engine": "whisper-large-v3-turbo", "opts": {"initial_prompt": {"cs": "Rozhovor v psychoterapii mezi terapeutem a klientem. Klient mluví o rodině, práci, spánku, úzkosti a pocitech.", "en": "A psychotherapy session between a therapist and a client. The client talks about family, work, sleep, anxiety and feelings."}}},
+  {"id": "turbo-beam5-prompt", "engine": "whisper-large-v3-turbo", "opts": {"beam_size": 5, "initial_prompt": {"cs": "Rozhovor v psychoterapii mezi terapeutem a klientem. Klient mluví o rodině, práci, spánku, úzkosti a pocitech.", "en": "A psychotherapy session between a therapist and a client. The client talks about family, work, sleep, anxiety and feelings."}}},
+  {"id": "turbo-prevtext", "engine": "whisper-large-v3-turbo", "opts": {"condition_on_previous_text": true}},
+  {"id": "turbo-novad", "engine": "whisper-large-v3-turbo", "opts": {"vad": false}},
+  {"id": "turbo-loudnorm", "engine": "whisper-large-v3-turbo", "opts": {"ffmpeg_filter": "highpass=f=80,loudnorm=I=-18"}},
+  {"id": "v3-beam5", "engine": "whisper-large-v3", "opts": {"beam_size": 5}},
+  {"id": "v3-prompt", "engine": "whisper-large-v3", "opts": {"initial_prompt": {"cs": "Rozhovor v psychoterapii mezi terapeutem a klientem. Klient mluví o rodině, práci, spánku, úzkosti a pocitech.", "en": "A psychotherapy session between a therapist and a client. The client talks about family, work, sleep, anxiety and feelings."}}},
+  {"id": "v3-beam5-prompt", "engine": "whisper-large-v3", "opts": {"beam_size": 5, "initial_prompt": {"cs": "Rozhovor v psychoterapii mezi terapeutem a klientem. Klient mluví o rodině, práci, spánku, úzkosti a pocitech.", "en": "A psychotherapy session between a therapist and a client. The client talks about family, work, sleep, anxiety and feelings."}}},
+  {"id": "canary-chunk10", "engine": "canary-1b-v2", "lanes": 1, "opts": {"chunk_s": 10, "search_s": 4}},
+  {"id": "canary-chunk30", "engine": "canary-1b-v2", "lanes": 1, "opts": {"chunk_s": 30, "search_s": 8}},
+  {"id": "canary-loudnorm", "engine": "canary-1b-v2", "lanes": 1, "opts": {"ffmpeg_filter": "highpass=f=80,loudnorm=I=-18"}}
+ ],
+ "llm": []}

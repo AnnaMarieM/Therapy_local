@@ -26,7 +26,7 @@ data class ChunkRow(val recordingId: Long, val idx: Int, val startMs: Long, val 
 data class SegmentRow(val idx: Int, val startMs: Long, val endMs: Long, val text: String, val speaker: String? = null)
 
 /** One stretch of one speaker found by diarization, kept until it is transcribed; [text] is null until then. */
-data class TurnRow(val idx: Int, val startMs: Long, val endMs: Long, val speaker: String, val text: String? = null)
+data class TurnRow(val idx: Int, val startMs: Long, val endMs: Long, val speaker: String, val text: String? = null, val textEn: String? = null)
 
 /** One version of the speaker-to-role map of a session ([mapJson] as written by SpeakerMaps); [source] is "llm", "user" or "fallback". */
 data class SpeakerMapRow(val sessionId: String, val version: Int, val mapJson: String, val source: String, val confidence: Double, val evidenceJson: String, val createdAt: Long)
@@ -104,6 +104,12 @@ data class SummaryRow(
     val sessionId: String, val text: String, val provenance: Provenance, val method: String, val stale: Boolean, val createdAt: Long,
 )
 
+/** The translation of one segment of the current transcript into [lang] (AD-17), with what made it; the segment's idx and times are unchanged. */
+data class SegmentTranslation(val idx: Int, val text: String, val model: String, val promptVersion: String)
+
+/** A stored display translation ([MindStore.displayTranslation]): the text shown instead of the English one, and what made it. */
+data class DisplayTranslation(val text: String, val model: String, val promptVersion: String)
+
 data class SessionDelete(val promoted: Int, val deleted: Int)
 
 /**
@@ -150,7 +156,15 @@ class MindStore(context: Context, name: String, password: ByteArray) :
 
     private fun recreate(db: SQLiteDatabase) {
         val tables = query(db, "SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE 'android_%'") { it.getString(0) }
-        tables.forEach { db.execSQL("DROP TABLE IF EXISTS $it") }
+        // Children before parents: with foreign keys on, dropping a table whose parent is already gone fails ("no such table: main.clients"), and the
+        // failed upgrade rolls back, so the database would never open again. A table nothing else references is dropped first.
+        val remaining = tables.toMutableList()
+        while (remaining.isNotEmpty()) {
+            val referenced = remaining.flatMap { t -> query(db, "PRAGMA foreign_key_list($t)") { it.getString(2) } }.toSet()
+            val next = remaining.firstOrNull { it !in referenced } ?: remaining.first()
+            db.execSQL("DROP TABLE IF EXISTS $next")
+            remaining -= next
+        }
         onCreate(db)
     }
 
@@ -305,17 +319,18 @@ class MindStore(context: Context, name: String, password: ByteArray) :
         for (t in turns) db.insertOrThrow("diarization_turns", null, ContentValues().apply {
             put("recording_id", recordingId); put("idx", t.idx); put("start_ms", t.startMs); put("end_ms", t.endMs); put("speaker", t.speaker)
             if (t.text != null) put("text", t.text)
+            if (t.textEn != null) put("text_en", t.textEn)
         })
     }
 
     fun turns(recordingId: Long): List<TurnRow> =
-        query("SELECT idx, start_ms, end_ms, speaker, text FROM diarization_turns WHERE recording_id = ? ORDER BY idx", recordingId.toString()) {
-            TurnRow(it.getInt(0), it.getLong(1), it.getLong(2), it.getString(3), it.getStringOrNull(4))
+        query("SELECT idx, start_ms, end_ms, speaker, text, text_en FROM diarization_turns WHERE recording_id = ? ORDER BY idx", recordingId.toString()) {
+            TurnRow(it.getInt(0), it.getLong(1), it.getLong(2), it.getString(3), it.getStringOrNull(4), it.getStringOrNull(5))
         }
 
     /** Stores the transcription of one turn; false when there is no such turn. */
-    fun setTurnText(recordingId: Long, idx: Int, text: String): Boolean =
-        writableDatabase.update("diarization_turns", ContentValues().apply { put("text", text) }, "recording_id = ? AND idx = ?", arrayOf(recordingId.toString(), idx.toString())) > 0
+    fun setTurnText(recordingId: Long, idx: Int, text: String, textEn: String? = null): Boolean =
+        writableDatabase.update("diarization_turns", ContentValues().apply { put("text", text); if (textEn != null) put("text_en", textEn) }, "recording_id = ? AND idx = ?", arrayOf(recordingId.toString(), idx.toString())) > 0
 
     /** Appends the next version of the map of [session] (1 for the first) and returns it. Maps are never changed or deleted, so a swap keeps the history. */
     fun appendSpeakerMap(session: String, mapJson: String, source: String, confidence: Double, evidenceJson: String = "[]"): Int = tx { db ->
@@ -372,13 +387,13 @@ class MindStore(context: Context, name: String, password: ByteArray) :
      * Stores [segments] as the next transcript version of [session] and returns it; content equal to the current version, by hash, writes
      * nothing and returns the current one. Versions are never changed (AD-10). [audioSha] is [AudioHash.of] the audio the text came from.
      */
-    fun appendTranscript(session: String, segments: List<SegmentRow>, recordingId: Long? = null, audioSha: String? = null): TranscriptVersion = tx { db ->
+    fun appendTranscript(session: String, segments: List<SegmentRow>, recordingId: Long? = null, audioSha: String? = null, kind: String = KIND_SPOKEN): TranscriptVersion = tx { db ->
         val sha = TranscriptHash.of(segments)
         val head = currentTranscript(session)
         if (head?.sha256 == sha) return@tx head
         val v = TranscriptVersion(session, (head?.version ?: 0) + 1, sha, recordingId, audioSha, System.currentTimeMillis())
         db.insertOrThrow("transcripts", null, ContentValues().apply {
-            put("session_id", session); put("version", v.version); put("sha256", sha); put("created_at", v.createdAt)
+            put("session_id", session); put("version", v.version); put("sha256", sha); put("created_at", v.createdAt); put("kind", kind)
             if (recordingId != null) put("recording_id", recordingId)
             if (audioSha != null) put("audio_sha256", audioSha)
         })
@@ -390,6 +405,13 @@ class MindStore(context: Context, name: String, password: ByteArray) :
         }
         v
     }
+
+    /**
+     * What the text of the current transcript is: [KIND_SPOKEN] (in the language spoken) or [KIND_ENGLISH_ONLY] (the Quality workflow: Whisper wrote
+     * English from the audio, so there is no text in the client's language, docs/AD/AD-22.md). Spoken when there is no transcript.
+     */
+    fun transcriptKind(session: String): String =
+        query("SELECT kind FROM transcripts WHERE session_id = ? ORDER BY version DESC LIMIT 1", session) { it.getString(0) }.firstOrNull() ?: KIND_SPOKEN
 
     /** The latest transcript version, or null before the session was transcribed. */
     override fun currentTranscript(session: String): TranscriptVersion? =
@@ -573,6 +595,68 @@ class MindStore(context: Context, name: String, password: ByteArray) :
         return all.map { it.copy(role = FactSpeakers.roleOf(it.speaker, maps[it.sessionId])) }.filter { it.first || FactSpeakers.visible(it.role, includeTherapist) }
     }
 
+    // ---- translations (AD-17) ------------------------------------------------------------------------------------
+
+    /** Stores the translation of segment [idx] of the current transcript of [session] into [lang], replacing an earlier one. A session without a transcript stores nothing. */
+    fun putSegmentTranslation(session: String, idx: Int, lang: String, text: String, model: String, promptVersion: String) {
+        val version = currentTranscript(session)?.version ?: return
+        writableDatabase.insertWithOnConflict(
+            "segment_translations", null,
+            ContentValues().apply {
+                put("session_id", session); put("version", version); put("idx", idx); put("lang", lang); put("text", text); put("model", model); put("prompt_version", promptVersion)
+            },
+            SQLiteDatabase.CONFLICT_REPLACE,
+        )
+    }
+
+    /** The stored translations into [lang] of the current transcript version, by segment index. */
+    fun segmentTranslations(session: String, lang: String): Map<Int, SegmentTranslation> =
+        query(
+            "SELECT idx, text, model, prompt_version FROM segment_translations WHERE session_id = ? AND lang = ? AND version = (SELECT MAX(t.version) FROM transcripts t WHERE t.session_id = segment_translations.session_id)",
+            session, lang,
+        ) { SegmentTranslation(it.getInt(0), it.getString(1), it.getString(2), it.getString(3)) }.associateBy { it.idx }
+
+    /** The current segments with the text of each replaced by its translation into [lang] where there is one (the rest stays as spoken). Idx, times and speakers are unchanged. */
+    fun workingSegments(session: String, lang: String): List<SegmentRow> {
+        val translated = segmentTranslations(session, lang)
+        return segments(session).map { s -> translated[s.idx]?.let { s.copy(text = it.text) } ?: s }
+    }
+
+    /** Stores the text shown for the English text with hash [sourceSha] in [lang]; it belongs to [session], so deleting the session or its client deletes it too. */
+    fun putDisplayTranslation(session: String, sourceSha: String, lang: String, text: String, model: String, promptVersion: String) {
+        writableDatabase.insertWithOnConflict(
+            "display_translations", null,
+            ContentValues().apply {
+                put("session_id", session); put("source_sha", sourceSha); put("lang", lang); put("text", text); put("model", model); put("prompt_version", promptVersion)
+                put("created_at", System.currentTimeMillis())
+            },
+            SQLiteDatabase.CONFLICT_REPLACE,
+        )
+    }
+
+    /** Deletes the display translations into [lang] stored for [session] other than those of [keep] (texts that were replaced since: old facts, an old summary). */
+    fun pruneDisplayTranslations(session: String, lang: String, keep: Set<String>) {
+        val stale = query("SELECT source_sha FROM display_translations WHERE session_id = ? AND lang = ?", session, lang) { it.getString(0) }.filter { it !in keep }
+        for (sha in stale) writableDatabase.delete("display_translations", "session_id = ? AND lang = ? AND source_sha = ?", arrayOf(session, lang, sha))
+    }
+
+    /** The display translation of the text with hash [sourceSha] into [lang], from any session (a fact promoted to another session still finds it). */
+    fun displayTranslation(sourceSha: String, lang: String): DisplayTranslation? =
+        query("SELECT text, model, prompt_version FROM display_translations WHERE source_sha = ? AND lang = ? ORDER BY created_at DESC LIMIT 1", sourceSha, lang) {
+            DisplayTranslation(it.getString(0), it.getString(1), it.getString(2))
+        }.firstOrNull()
+
+    /** [displayTranslation] for many hashes at once (for lists): sha to translated text; hashes without one are missing. */
+    fun displayTranslations(shas: Collection<String>, lang: String): Map<String, String> {
+        val out = HashMap<String, String>()
+        for (chunk in shas.distinct().chunked(400)) {
+            val marks = chunk.joinToString(",") { "?" }
+            query("SELECT source_sha, text FROM display_translations WHERE lang = ? AND source_sha IN ($marks) ORDER BY created_at", lang, *chunk.toTypedArray()) { it.getString(0) to it.getString(1) }
+                .forEach { (sha, text) -> out[sha] = text } // oldest first, so the newest wins
+        }
+        return out
+    }
+
     // ---- caches ---------------------------------------------------------------------------------------------------
 
     /** The cached extraction of window [idx] as (key, json), whatever its key. */
@@ -682,7 +766,13 @@ class MindStore(context: Context, name: String, password: ByteArray) :
         const val NAME = "mind.db"
 
         /** Bumped whenever the schema changes; there are no migrations, a database of another version is wiped (AD-11). */
-        private const val VERSION = 7
+        private const val VERSION = 9
+
+        /** [transcriptKind]: the stored text is in the language spoken. */
+        const val KIND_SPOKEN = "spoken"
+
+        /** [transcriptKind]: the stored text is English written from the audio; the language spoken was never written down. */
+        const val KIND_ENGLISH_ONLY = "english_only"
 
         // Both cascade: deleting a recording or a session removes them.
         private const val DIARIZATION_TURNS_SQL = """CREATE TABLE diarization_turns(
@@ -692,6 +782,7 @@ class MindStore(context: Context, name: String, password: ByteArray) :
                  end_ms INTEGER NOT NULL,
                  speaker TEXT NOT NULL,
                  text TEXT,
+                 text_en TEXT,
                  PRIMARY KEY(recording_id, idx))"""
         private const val SPEAKER_MAPS_SQL = """CREATE TABLE speaker_maps(
                  session_id TEXT NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,
@@ -713,6 +804,30 @@ class MindStore(context: Context, name: String, password: ByteArray) :
                  method TEXT NOT NULL,
                  created_at INTEGER NOT NULL,
                  ${Provenance.COLUMNS})"""
+
+        // AD-17: the transcript translated to English, segment by segment, one row per transcript version and language; gone with its transcript.
+        private const val SEGMENT_TRANSLATIONS_SQL = """CREATE TABLE segment_translations(
+                 session_id TEXT NOT NULL,
+                 version INTEGER NOT NULL,
+                 idx INTEGER NOT NULL,
+                 lang TEXT NOT NULL,
+                 text TEXT NOT NULL,
+                 model TEXT NOT NULL,
+                 prompt_version TEXT NOT NULL,
+                 PRIMARY KEY(session_id, version, idx, lang),
+                 FOREIGN KEY(session_id, version) REFERENCES transcripts(session_id, version) ON DELETE CASCADE)"""
+
+        // AD-17: what is shown (facts, summary) translated from English into the app's language, found by the hash of the English text.
+        // Tied to a session so deleting a session or a client deletes the translations too.
+        private const val DISPLAY_TRANSLATIONS_SQL = """CREATE TABLE display_translations(
+                 session_id TEXT NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,
+                 source_sha TEXT NOT NULL,
+                 lang TEXT NOT NULL,
+                 text TEXT NOT NULL,
+                 model TEXT NOT NULL,
+                 prompt_version TEXT NOT NULL,
+                 created_at INTEGER NOT NULL,
+                 PRIMARY KEY(session_id, source_sha, lang))"""
 
         private const val FACT_COLUMNS =
             "SELECT f.id, f.client_id, f.session_id, f.heading, f.content, f.evidence, f.seg_idx, f.created_at, (SELECT COUNT(*) FROM mentions m WHERE m.fact_id = f.id), f.scope, f.category, f.speaker, f.seg_to, f.start_ms, f.end_ms"
@@ -750,6 +865,7 @@ class MindStore(context: Context, name: String, password: ByteArray) :
                  recording_id INTEGER,
                  audio_sha256 TEXT,
                  created_at INTEGER NOT NULL,
+                 kind TEXT NOT NULL DEFAULT 'spoken',
                  PRIMARY KEY(session_id, version))""",
             """CREATE TABLE segments(
                  session_id TEXT NOT NULL,
@@ -835,6 +951,8 @@ class MindStore(context: Context, name: String, password: ByteArray) :
             DIARIZATION_TURNS_SQL,
             SPEAKER_MAPS_SQL,
             SESSION_SUMMARIES_SQL,
+            SEGMENT_TRANSLATIONS_SQL,
+            DISPLAY_TRANSLATIONS_SQL,
         )
 
         @SuppressLint("StaticFieldLeak") // built from the application context only
