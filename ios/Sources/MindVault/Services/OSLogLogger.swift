@@ -7,14 +7,14 @@ struct OSLogLogger: AppLogger {
 
     func log(_ entry: LogEntry) {
         let message = LogRedaction.safe(entry.message)
-        logger.log(level: level(for: entry.level), "\(message, privacy: .private)")
+        logger.log(level: osLogType(for: entry.level), "\(message, privacy: .private)")
     }
 
-    private func level(for level: AppLogLevel) -> Logger.Level {
+    private func osLogType(for level: AppLogLevel) -> OSLogType {
         switch level {
         case .debug: return .debug
         case .info: return .info
-        case .warning: return .warning
+        case .warning: return .default
         case .error: return .error
         }
     }
