@@ -1,0 +1,108 @@
+name: ios-ci
+
+# iOS port CI (issue #121, lane ci): the ios/ branch is the integration branch for
+# the SwiftUI port. MindVaultCore tests run in the Linux swift:6.3 image; the app
+# target is generated with XcodeGen and built/tested on macOS runners.
+on:
+  push:
+    branches: [ios]
+  pull_request:
+    branches: [ios]
+
+concurrency:
+  group: ios-ci
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  # Pure-Swift core packages must build and test on Linux (CONTRACTS.md).
+  # TODO: when lanes B1/C1/D1 land ios/Packages/MindVaultASR, MindVaultLLM and
+  # MindVaultPerception, loop this step over every ios/Packages/* directory.
+  linux-core:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: MindVaultCore tests (swift:6.3)
+        run: >
+          docker run --rm -v "$GITHUB_WORKSPACE/ios:/work" -w /work swift:6.3
+          swift test --package-path Packages/MindVaultCore
+
+  # XcodeGen project, simulator Debug build, unit tests on an available iPhone
+  # simulator, and an unsigned Release device build packaged as an artifact.
+  macos-build:
+    runs-on: macos-15
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Toolchain versions
+        run: |
+          xcodebuild -version
+          swift --version
+          # Debug: which iPhone simulators exist on this runner (picked below).
+          xcrun simctl list devices available
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        run: xcodegen generate
+        working-directory: ios
+
+      - name: Build (iOS Simulator, Debug)
+        run: >
+          xcodebuild -project MindVault.xcodeproj -scheme MindVault
+          -configuration Debug -destination 'generic/platform=iOS Simulator'
+          CODE_SIGNING_ALLOWED=NO -derivedDataPath build/sim-dd build
+        working-directory: ios
+
+      - name: Pick an available iPhone simulator
+        run: |
+          SIM_NAME=$(xcrun simctl list devices available | awk '/-- iOS/ {ios=1; next} ios && /iPhone/ {sub(/^ +/, ""); sub(/ \(.*/, ""); print; exit}')
+          if [[ -z "$SIM_NAME" ]]; then
+            echo "::error::No available iPhone simulator found"; xcrun simctl list devices available; exit 1
+          fi
+          echo "Picked simulator: $SIM_NAME"
+          echo "SIM_NAME=$SIM_NAME" >> "$GITHUB_ENV"
+
+      - name: Unit tests (MindVaultTests)
+        run: >
+          xcodebuild test -project MindVault.xcodeproj -scheme MindVault
+          -destination "platform=iOS Simulator,name=$SIM_NAME"
+          CODE_SIGNING_ALLOWED=NO -only-testing:MindVaultTests
+        working-directory: ios
+
+      - name: Package simulator app
+        run: |
+          cd build/sim-dd/Build/Products/Debug-iphonesimulator
+          zip -qr "$GITHUB_WORKSPACE/ios/MnemoThera-ios-sim.zip" MindVault.app
+
+      - name: Build (iOS device, Release, unsigned)
+        run: >
+          xcodebuild -project MindVault.xcodeproj -scheme MindVault
+          -configuration Release -destination 'generic/platform=iOS'
+          CODE_SIGNING_ALLOWED=NO -derivedDataPath build/dd build
+        working-directory: ios
+
+      - name: Package unsigned IPA
+        run: |
+          mkdir -p Payload
+          cp build/dd/Build/Products/Release-iphoneos/MindVault.app Payload/
+          zip -qr MnemoThera-ios-unsigned.ipa Payload
+          ls -la MnemoThera-ios-unsigned.ipa MnemoThera-ios-sim.zip
+        working-directory: ios
+
+      - name: Upload unsigned IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: MnemoThera-ios-unsigned-ipa
+          path: ios/MnemoThera-ios-unsigned.ipa
+
+      - name: Upload simulator app zip
+        uses: actions/upload-artifact@v4
+        with:
+          name: MnemoThera-ios-sim
+          path: ios/MnemoThera-ios-sim.zip
