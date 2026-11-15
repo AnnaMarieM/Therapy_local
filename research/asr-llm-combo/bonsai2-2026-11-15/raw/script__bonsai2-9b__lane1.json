@@ -1,0 +1,2868 @@
+{
+ "engine": "script",
+ "model": "bonsai2-9b",
+ "base_model": "bonsai2-9b",
+ "opts": {},
+ "lane": 1,
+ "clients": {
+  "jana-n": {
+   "lang": "cs",
+   "seconds": 909.5,
+   "stages": {
+    "roles_s": 57.3,
+    "facts_s": 852.2
+   },
+   "raw_parts": [
+    "```json\n[\n  {\n    \"heading\": \"Rozvod po 15 letech\",\n    \"content\": \"Jana se rozhodla pro rozvod s manželem Radkem po patnácti letech manželství.\",\n    \"evidence\": \"Po patnácti letech manželství jsme se s manželem Radkem rozhodli pro rozvod.\",\n    \"scope\": \"profile\",\n    \"category\": \"Rodina a vztahy\"\n  },\n  {\n    \"heading\": \"Rozvod v září\",\n    \"content\": \"Jana se rozhodla pro rozvod v září.\",\n    \"evidence\": \"A v září mi řekl, že už to takhle dál nejde.\",\n    \"scope\": \"profile\",\n    \"category\": \"Rodina a vztahy\"\n  },\n  {\n    \"heading\": \"Dovolena v létě\",\n    \"content\": \"V létě Jana byla na dovolené v Chorvatsku.\",\n    \"evidence\": \"Ještě v létě jsme byli na dovolené v Chorvatsku.\",\n    \"scope\": \"profile\",\n    \"category\": \"Historie a události\"\n  },\n  {\n    \"heading\": \"Přítomnost v Chorvatsku\",\n    \"content\": \"V Chorvatsku všechno vypadalo normálně.\",\n    \"evidence\": \"všechno vypadalo normálně.\",\n    \"scope\": \"profile\",\n    \"category\": \"Historie a události\"\n  },\n  {\n    \"heading\": \"Reakce na rozhodnutí\",\n    \"content\": \"Jana se rozhodla pro rozvod a nemohla nic říct.\",\n    \"evidence\": \"Seděla jsem v kuchyni a nemohla jsem nic říct.\",\n    \"scope\": \"session\",\n    \"category\": \"Nálada a emoce\"\n  },\n  {\n    \"heading\": \"Poučení nádobí\",\n    \"content\": \"Jana uklidila nádobí, jako by se nic nedělo.\",\n    \"evidence\": \"Pak jsem šla uklidit nádobí, jako by se nic nedělo.\",\n    \"scope\": \"session\",\n    \"category\": \"Zdroje a zvládání\"\n  },\n  {\n    \"heading\": \"Vnitřní pocity\",\n    \"content\": \"Jana cítila prázdno a zlost.\",\n    \"evidence\": \"Prázdno. A pak zlost.\",\n    \"scope\": \"session\",\n    \"category\": \"Nálada a emoce\"\n  },\n  {\n    \"heading\": \"Střídání pociťí\",\n    \"content\": \"Střídání se prázdna a zlosti několikrát denně.\",\n    \"evidence\": \"Střídá se to několikrát denně.\",\n    \"scope\": \"session\",\n    \"category\": \"Nálada a emoce\"\n  },\n  {\n    \"heading\": \"Vysvětlení od Radka\",\n    \"content\": \"Radek řekl, že se vzdálili a žijí vedle sebe.\",\n    \"evidence\": \"Říká, že jsme se vzdálili. Že žijeme vedle sebe.\",\n    \"scope\": \"profile\",\n    \"category\": \"Rodina a vztahy\"\n  },\n  {\n    \"heading\": \"Jana si to nevšimla\",\n    \"content\": \"Jana si nechtěla všimnout, že žijí vedle sebe.\",\n    \"evidence\": \"Já si toho nevšimla, nebo jsem si nechtěla všimnout.\",\n    \"scope\": \"profile\",\n    \"category\": \"Osobní témata a sebepojetí\"\n  },\n  {\n    \"heading\": \"Vinnost a chyba\",\n    \"content\": \"Jana hledá v hlavě, kde udělala chybu.\",\n    \"evidence\": \"Pořád se v hlavě vracím a hledám, kde jsem udělala chybu.\",\n    \"scope\": \"session\",\n    \"category\": \"Osobní témata a sebepojetí\"\n  },\n  {\n    \"heading\": \"Nepotvrzená chyba\",\n    \"content\": \"Jana nevyjádřila, zda našla chybu.\",\n    \"evidence\": \"Ne.\",\n    \"scope\": \"session\",\n    \"category\": \"Osobní témata a sebepojetí\"\n  },\n  {\n    \"heading\": \"Unavenost a starost\",\n    \"content\": \"Jana myslí, že byla unavená a nezajímala se o něj, nebo se starala moc.\",\n    \"evidence\": \"Jednou si myslím, že jsem byla moc unavená a nezajímala jsem se o něj, jindy zase, že jsem se starala moc.\",\n    \"scope\": \"session\",\n    \"category\": \"Osobní témata a sebepojetí\"\n  },\n  {\n    \"heading\": \"Děti\",\n    \"content\": \"Jana má dvě děti, Aničku 12 let a Matěja 8 let.\",\n    \"evidence\": \"Mám dvě děti. Aničce je dvanáct a Matějovi osm let.\",\n    \"scope\": \"profile\",\n    \"category\": \"Rodina a vztahy\"\n  },\n  {\n    \"heading\": \"Neřekla dětem\",\n    \"content\": \"Jana ještě neřekla dětem o rozvodu.\",\n    \"evidence\": \"Ještě jste jim to neřekla?\",\n    \"scope\": \"session\",\n    \"category\": \"Rodina a vztahy\"\n  },\n  {\n    \"heading\": \"Společný rozvod\",\n    \"content\": \"Radek chce říct dětem o rozvodu společně, ale odkládají.\",\n    \"evidence\": \"Radek chce, abychom to řekli společně, ale pořád to odkládáme.\",\n    \"scope\": \"profile\",\n    \"category\": \"Rodina a vztahy\"\n  },\n  {\n    \"heading\": \"Anička tuší\",\n    \"content\": \"Anička už něco o rozvodu tuší.\",\n    \"evidence\": \"Anička už něco tuší.\",\n    \"scope\": \"profile\",\n    \"category\": \"Rodina a vztahy\"\n  },\n  {\n    \"heading\": \"Lhání Aničce\",\n    \"content\": \"Jana lhala Aničce, že se s tátou hádá.\",\n    \"evidence\": \"Řekla jsem, že ne.\",\n    \"scope\": \"session\",\n    \"category\": \"Rodina a vztahy\"\n  },\n  {\n    \"heading\": \"Anička poznala lhání\",\n    \"content\": \"Anička to poznala a Jana viděla jí to na očích.\",\n    \"evidence\": \"A ona to poznala, viděla jsem jí to na očích.\",\n    \"scope\": \"session\",\n    \"category\": \"Rodina a vztahy\"\n  },\n  {\n    \"heading\": \"Strach z ublížení\",\n    \"content\": \"Jana se honila hlavou, že jí ničím život.\",\n    \"evidence\": \"Že jí ničím život.\",\n    \"scope\": \"session\",\n    \"category\": \"Nálada a emoce\"\n  },\n  {\n    \"heading\": \"Strach z domova\",\n    \"content\": \"Jana se hýbala hlavou, že jí vezmu domov.\",\n    \"evidence\": \"Že jí vezmu domov.\",\n    \"scope\": \"session\",\n    \"category\": \"Nálada a emoce\"\n  },\n  {\n    \"heading\": \"Strach z říkání pravdy\",\n    \"content\": \"Jana by raději chtěla mít to za sebou.\",\n    \"evidence\": \"Nejraději bych to měla za sebou.\",\n    \"scope\": \"session\",\n    \"category\": \"Nálada a emoce\"\n  },\n  {\n    \"heading\": \"Boj o slzy dětí\",\n    \"content\": \"Jana se bojí jejich slez.\",\n    \"evidence\": \"Ale bojím se jejich slz.\",\n    \"scope\": \"session\",\n    \"category\": \"Nálada a emoce\"\n  },\n  {\n    \"heading\": \"Matěj nechápe\",\n    \"content\": \"Matěj je malý a nic nechápe.\",\n    \"evidence\": \"A Matěj je ještě",
+    "{\"heading\":\"Vztah s manželem\",\"content\":\"Jana nemá manžela.\",\"evidence\":\"nemám manžela\",\"scope\":\"profile\",\"category\":\"Rodina a vztahy\"}\n{\"heading\":\"Spánek\",\"content\":\"Jana se budí ve tři hodiny ráno a vstává v půl sedmé.\",\"evidence\":\"Každou noc se budím ve tři hodiny ráno... v půl sedmé vstávám.\",\"scope\":\"profile\",\"category\":\"Zdraví, tělo a spánek\"}\n{\"heading\":\"Zdravotní stav\",\"content\":\"Jana zhubla čtyři kila a kamarádku Evě říká, že vypadá hrozně.\",\"evidence\":\"Zhubla jsem čtyři kila. Kamarádka říká, že vypadám hrozně.\",\"scope\":\"profile\",\"category\":\"Zdraví, tělo a spánek\"}\n{\"heading\":\"Vztah s sestrou\",\"content\":\"Jana má sestru Alenu v Olomouci, která zavolá skoro každý večer.\",\"evidence\":\"Mám sestru Alenu v Olomouci. Zavolá mi skoro každý večer.\",\"scope\":\"profile\",\"category\":\"Rodina a vztahy\"}\n{\"heading\":\"Vztah s kamarádkou\",\"content\":\"Jana má kamarádku Evu z práce, kterou zavolá, když má těžké období.\",\"evidence\":\"Kamarádku Evu z práce... Evě jen to, že mám těžké období.\",\"scope\":\"profile\",\"category\":\"Rodina a vztahy\"}\n{\"heading\":\"Překonalé myšlenky\",\"content\":\"Jana se bojí, že je selhala a není dobrý příklad pro děti.\",\"evidence\":\"Že jsem selhala. Že žena, která nedokáže udržet manželství, není pro děti dobrý příklad.\",\"scope\":\"profile\",\"category\":\"Osobní témata a sebepojetí\"}\n{\"heading\":\"Nátlak na manželství\",\"content\":\"Jana má pocit, že manželství se drží ať je to jak chce.\",\"evidence\":\"Ta vždycky říkala, že manželství se drží, ať je to jak chce.\",\"scope\":\"profile\",\"category\":\"Historie a události\"}\n{\"heading\":\"Reakce matky\",\"content\":\"Jana máma mlčela, když jí Jana oznámila, že má problémy, a pak řekla, že doufá, že to zvážila.\",\"evidence\":\"Mlčela. Pak řekla, že doufá, že jsem to dobře zvážila.\",\"scope\":\"profile\",\"category\":\"Rodina a vztahy\"}\n{\"heading\":\"Emoce při hovoření\",\"content\":\"Jana pláče a omlouvá se, když říká nahlas, že to bolí.\",\"evidence\":\"Pláču. Omlouvám se.\",\"scope\":\"session\",\"category\":\"Nálada a emoce\"}\n{\"heading\":\"Boj o spánek\",\"content\":\"Jana chce spát a vědět, jak to říct dětem.\",\"evidence\":\"Spát. A vědět, jak to říct dětem.\",\"scope\":\"session\",\"category\":\"Zdroje a zvládání\"}\n{\"heading\":\"Závazky k lékám\",\"content\":\"Jana nechce prášky od doktorky, protože se bojí být závislá a nemoci včas vzbudit pro děti.\",\"evidence\":\"Bojím se, že bych se nemohla včas vzbudit pro děti. A nechci být závislá.\",\"scope\":\"profile\",\"category\":\"Zdraví, tělo a spánek\"}\n{\"heading\":\"Strach před dětmi\",\"content\":\"Jana se bojí, že zpanikařím a rozpláču se před dětmi.\",\"evidence\":\"Že zpanikařím a rozpláču se. Že nezvládnu zůstat klidná.\",\"scope\":\"session\",\"category\":\"Nálada a emoce\"}\n{\"heading\":\"Přijetí smutku\",\"content\":\"Jana si myslí, že by smutek před dětmi pomohl Ančce, která je citlivá.\",\"evidence\":\"Anička je citlivá, možná by jí to pomohlo.\",\"scope\":\"session\",\"category\":\"Zdroje a zvládání\"}\n{\"heading\":\"Cíl schůzky\",\"content\":\"Jana potřebuje, aby někdo objal a že to nemusí zvládnout hned.\",\"evidence\":\"Potřebovala bych, aby mě objala. Že nejsem sama a že to nemusím zvládnout hned.\",\"scope\":\"session\",\"category\":\"Zdroje a zvládání\"}"
+   ],
+   "n_parts": 2,
+   "facts": [
+    {
+     "heading": "Vztah s manželem",
+     "content": "Jana nemá manžela.",
+     "evidence": "nemám manžela",
+     "scope": "profile",
+     "category": "Rodina a vztahy",
+     "part": 2,
+     "quote_found": true
+    },
+    {
+     "heading": "Spánek",
+     "content": "Jana se budí ve tři hodiny ráno a vstává v půl sedmé.",
+     "evidence": "Každou noc se budím ve tři hodiny ráno... v půl sedmé vstávám.",
+     "scope": "profile",
+     "category": "Zdraví, tělo a spánek",
+     "part": 2,
+     "quote_found": false
+    },
+    {
+     "heading": "Zdravotní stav",
+     "content": "Jana zhubla čtyři kila a kamarádku Evě říká, že vypadá hrozně.",
+     "evidence": "Zhubla jsem čtyři kila. Kamarádka říká, že vypadám hrozně.",
+     "scope": "profile",
+     "category": "Zdraví, tělo a spánek",
+     "part": 2,
+     "quote_found": true
+    },
+    {
+     "heading": "Vztah s sestrou",
+     "content": "Jana má sestru Alenu v Olomouci, která zavolá skoro každý večer.",
+     "evidence": "Mám sestru Alenu v Olomouci. Zavolá mi skoro každý večer.",
+     "scope": "profile",
+     "category": "Rodina a vztahy",
+     "part": 2,
+     "quote_found": true
+    },
+    {
+     "heading": "Vztah s kamarádkou",
+     "content": "Jana má kamarádku Evu z práce, kterou zavolá, když má těžké období.",
+     "evidence": "Kamarádku Evu z práce... Evě jen to, že mám těžké období.",
+     "scope": "profile",
+     "category": "Rodina a vztahy",
+     "part": 2,
+     "quote_found": false
+    },
+    {
+     "heading": "Překonalé myšlenky",
+     "content": "Jana se bojí, že je selhala a není dobrý příklad pro děti.",
+     "evidence": "Že jsem selhala. Že žena, která nedokáže udržet manželství, není pro děti dobrý příklad.",
+     "scope": "profile",
+     "category": "Osobní témata a sebepojetí",
+     "part": 2,
+     "quote_found": true
+    },
+    {
+     "heading": "Nátlak na manželství",
+     "content": "Jana má pocit, že manželství se drží ať je to jak chce.",
+     "evidence": "Ta vždycky říkala, že manželství se drží, ať je to jak chce.",
+     "scope": "profile",
+     "category": "Historie a události",
+     "part": 2,
+     "quote_found": true
+    },
+    {
+     "heading": "Reakce matky",
+     "content": "Jana máma mlčela, když jí Jana oznámila, že má problémy, a pak řekla, že doufá, že to zvážila.",
+     "evidence": "Mlčela. Pak řekla, že doufá, že jsem to dobře zvážila.",
+     "scope": "profile",
+     "category": "Rodina a vztahy",
+     "part": 2,
+     "quote_found": true
+    },
+    {
+     "heading": "Emoce při hovoření",
+     "content": "Jana pláče a omlouvá se, když říká nahlas, že to bolí.",
+     "evidence": "Pláču. Omlouvám se.",
+     "scope": "session",
+     "category": "Nálada a emoce",
+     "part": 2,
+     "quote_found": true
+    },
+    {
+     "heading": "Boj o spánek",
+     "content": "Jana chce spát a vědět, jak to říct dětem.",
+     "evidence": "Spát. A vědět, jak to říct dětem.",
+     "scope": "session",
+     "category": "Zdroje a zvládání",
+     "part": 2,
+     "quote_found": true
+    },
+    {
+     "heading": "Závazky k lékám",
+     "content": "Jana nechce prášky od doktorky, protože se bojí být závislá a nemoci včas vzbudit pro děti.",
+     "evidence": "Bojím se, že bych se nemohla včas vzbudit pro děti. A nechci být závislá.",
+     "scope": "profile",
+     "category": "Zdraví, tělo a spánek",
+     "part": 2,
+     "quote_found": true
+    },
+    {
+     "heading": "Strach před dětmi",
+     "content": "Jana se bojí, že zpanikařím a rozpláču se před dětmi.",
+     "evidence": "Že zpanikařím a rozpláču se. Že nezvládnu zůstat klidná.",
+     "scope": "session",
+     "category": "Nálada a emoce",
+     "part": 2,
+     "quote_found": true
+    },
+    {
+     "heading": "Přijetí smutku",
+     "content": "Jana si myslí, že by smutek před dětmi pomohl Ančce, která je citlivá.",
+     "evidence": "Anička je citlivá, možná by jí to pomohlo.",
+     "scope": "session",
+     "category": "Zdroje a zvládání",
+     "part": 2,
+     "quote_found": true
+    },
+    {
+     "heading": "Cíl schůzky",
+     "content": "Jana potřebuje, aby někdo objal a že to nemusí zvládnout hned.",
+     "evidence": "Potřebovala bych, aby mě objala. Že nejsem sama a že to nemusím zvládnout hned.",
+     "scope": "session",
+     "category": "Zdroje a zvládání",
+     "part": 2,
+     "quote_found": false
+    }
+   ],
+   "turns": [
+    {
+     "who": "therapist",
+     "text": "Dobrý den, paní Nováková, pojďte dál. S čím byste dnes chtěla začít?"
+    },
+    {
+     "who": "client",
+     "text": "Dobrý den. Já ani nevím. Mám pocit, že mi někdo vytáhl koberec zpod nohou."
+    },
+    {
+     "who": "therapist",
+     "text": "Co se stalo?"
+    },
+    {
+     "who": "client",
+     "text": "Po patnácti letech manželství jsme se s manželem Radkem rozhodli pro rozvod. A já to pořád nemohu pochopit."
+    },
+    {
+     "who": "therapist",
+     "text": "Řekněte mi víc."
+    },
+    {
+     "who": "client",
+     "text": "Ještě v létě jsme byli na dovolené v Chorvatsku a všechno vypadalo normálně. A v září mi řekl, že už to takhle dál nejde."
+    },
+    {
+     "who": "therapist",
+     "text": "Jak jste to přijala?"
+    },
+    {
+     "who": "client",
+     "text": "Seděla jsem v kuchyni a nemohla jsem nic říct. Pak jsem šla uklidit nádobí, jako by se nic nedělo."
+    },
+    {
+     "who": "therapist",
+     "text": "A co se dělo uvnitř vás?"
+    },
+    {
+     "who": "client",
+     "text": "Prázdno. A pak zlost. Pak zase prázdno. Střídá se to několikrát denně."
+    },
+    {
+     "who": "therapist",
+     "text": "Vysvětlil vám Radek, proč?"
+    },
+    {
+     "who": "client",
+     "text": "Říká, že jsme se vzdálili. Že žijeme vedle sebe. Já si toho nevšimla, nebo jsem si nechtěla všimnout."
+    },
+    {
+     "who": "therapist",
+     "text": "Co si o tom myslíte teď?"
+    },
+    {
+     "who": "client",
+     "text": "Že jsem to měla vidět. Že jsem slepá. Pořád se v hlavě vracím a hledám, kde jsem udělala chybu."
+    },
+    {
+     "who": "therapist",
+     "text": "A našla jste ji?"
+    },
+    {
+     "who": "client",
+     "text": "Ne. Jednou si myslím, že jsem byla moc unavená a nezajímala jsem se o něj, jindy zase, že jsem se starala moc."
+    },
+    {
+     "who": "therapist",
+     "text": "Vypadá to, že se v tom hodně trápíte."
+    },
+    {
+     "who": "client",
+     "text": "Ano. A hlavně kvůli dětem."
+    },
+    {
+     "who": "therapist",
+     "text": "Povídejte mi o nich."
+    },
+    {
+     "who": "client",
+     "text": "Mám dvě děti. Aničce je dvanáct a Matějovi osm let. A nevím, jak jim to říct."
+    },
+    {
+     "who": "therapist",
+     "text": "Ještě jste jim to neřekla?"
+    },
+    {
+     "who": "client",
+     "text": "Ne. Radek chce, abychom to řekli společně, ale pořád to odkládáme. Anička už něco tuší."
+    },
+    {
+     "who": "therapist",
+     "text": "Co vám to říká?"
+    },
+    {
+     "who": "client",
+     "text": "Minulý týden se mě zeptala, jestli se s tátou hádáme. Řekla jsem, že ne. Cítila jsem se hrozně."
+    },
+    {
+     "who": "therapist",
+     "text": "Proč hrozně?"
+    },
+    {
+     "who": "client",
+     "text": "Protože jsem lhala. A ona to poznala, viděla jsem jí to na očích."
+    },
+    {
+     "who": "therapist",
+     "text": "Co se vám honilo hlavou?"
+    },
+    {
+     "who": "client",
+     "text": "Že jí ničím život. Že jí vezmu domov."
+    },
+    {
+     "who": "therapist",
+     "text": "Jak by se vám dařilo říct jí pravdu?"
+    },
+    {
+     "who": "client",
+     "text": "Nejraději bych to měla za sebou. Ale bojím se jejích slz. A Matěj je ještě malý, ten nic nechápe."
+    },
+    {
+     "who": "therapist",
+     "text": "Co byste mu chtěla předat?"
+    },
+    {
+     "who": "client",
+     "text": "Že ho máme oba rádi a že se to nezmění. Jenže já nevím, jestli je to pravda, když sama nevím, jak to bude vypadat."
+    },
+    {
+     "who": "therapist",
+     "text": "Jak to bude vypadat s bydlením?"
+    },
+    {
+     "who": "client",
+     "text": "Byt je na hypotéku. Radek se asi odstěhuje k bratrovi, aspoň zatím. Děti zůstanou se mnou."
+    },
+    {
+     "who": "therapist",
+     "text": "Jak se vám z toho dělá?"
+    },
+    {
+     "who": "client",
+     "text": "Mám strach, že to sama nezvládnu. Radek vždycky řešil peníze."
+    },
+    {
+     "who": "therapist",
+     "text": "Co děláte ve všedních dnech?"
+    },
+    {
+     "who": "client",
+     "text": "Pracuji jako učitelka češtiny na základní škole v Brně. Učím devítky a osmičky."
+    },
+    {
+     "who": "therapist",
+     "text": "Jak se vám teď učí?"
+    },
+    {
+     "who": "client",
+     "text": "Do třídy chodím s knedlíkem v krku. Mám pocit, že všichni vidí, že se mi rozpadá život."
+    },
+    {
+     "who": "therapist",
+     "text": "Víte o tom někdo ve škole?"
+    },
+    {
+     "who": "client",
+     "text": "Jen ředitelka. Řekla jsem jí to, protože jsem se jednou rozplakala na chodbě. Byla hodná."
+    },
+    {
+     "who": "therapist",
+     "text": "Co vám pomohlo?"
+    },
+    {
+     "who": "client",
+     "text": "Že mě nechala odejít dřív. Dala mi hodinu volna. Jenže pak jsem seděla doma a bylo to horší."
+    },
+    {
+     "who": "therapist",
+     "text": "Horší, proč?"
+    },
+    {
+     "who": "client",
+     "text": "Protože jsem byla sama s hlavou. V práci je aspoň co dělat."
+    },
+    {
+     "who": "therapist",
+     "text": "Jak spíte?"
+    },
+    {
+     "who": "client",
+     "text": "Špatně. Každou noc se budím ve tři hodiny ráno a přemýšlím, co bude dál."
+    },
+    {
+     "who": "therapist",
+     "text": "Co si říkáte, když se probudíte?"
+    },
+    {
+     "who": "client",
+     "text": "Že nemám hypotéku, nemám manžela, nemám nic. Pak spočítám peníze, pak si představím, jak to řeknu dětem. Točí se to dokola."
+    },
+    {
+     "who": "therapist",
+     "text": "A pak?"
+    },
+    {
+     "who": "client",
+     "text": "Kolem páté usnu, a v půl sedmé vstávám. Jsem unavená už ráno."
+    },
+    {
+     "who": "therapist",
+     "text": "Jíte, hýbete se?"
+    },
+    {
+     "who": "client",
+     "text": "Jím málo. Zhubla jsem čtyři kila. Kamarádka říká, že vypadám hrozně."
+    },
+    {
+     "who": "therapist",
+     "text": "Máte kolem sebe někoho, s kým můžete mluvit?"
+    },
+    {
+     "who": "client",
+     "text": "Mám sestru Alenu v Olomouci. Zavolá mi skoro každý večer. A kamarádku Evu z práce."
+    },
+    {
+     "who": "therapist",
+     "text": "Co jim říkáte?"
+    },
+    {
+     "who": "client",
+     "text": "Alence skoro všechno. Evě jen to, že mám těžké období. Nechci, aby si o mně něco myslela."
+    },
+    {
+     "who": "therapist",
+     "text": "Co byste se obávala, že si myslí?"
+    },
+    {
+     "who": "client",
+     "text": "Že jsem selhala. Že žena, která nedokáže udržet manželství, není pro děti dobrý příklad."
+    },
+    {
+     "who": "therapist",
+     "text": "To je těžká myšlenka. Odkud se bere?"
+    },
+    {
+     "who": "client",
+     "text": "Asi od mojí mámy. Ta vždycky říkala, že manželství se drží, ať je to jak chce."
+    },
+    {
+     "who": "therapist",
+     "text": "Co řekla, když jste jí to oznámila?"
+    },
+    {
+     "who": "client",
+     "text": "Mlčela. Pak řekla, že doufá, že jsem to dobře zvážila. Už se od té doby moc neozvala."
+    },
+    {
+     "who": "therapist",
+     "text": "Jak vám to je?"
+    },
+    {
+     "who": "client",
+     "text": "Smutno. Potřebovala bych, aby mě objala."
+    },
+    {
+     "who": "therapist",
+     "text": "Co byste jí chtěla říct?"
+    },
+    {
+     "who": "client",
+     "text": "Že to bolí. Že nechci být sama. Jenže u nás se to nedělá."
+    },
+    {
+     "who": "therapist",
+     "text": "Co se děje, když to říkáte nahlas?"
+    },
+    {
+     "who": "client",
+     "text": "Pláču. Omlouvám se."
+    },
+    {
+     "who": "therapist",
+     "text": "Není za co. Vezměte si čas."
+    },
+    {
+     "who": "client",
+     "text": "Děkuji. Ještě nikomu jsem to takhle neřekla."
+    },
+    {
+     "who": "therapist",
+     "text": "Co to s vámi dělá, že jste to řekla tady?"
+    },
+    {
+     "who": "client",
+     "text": "Je zvláštní sedět tady a říkat to všechno nahlas, ale trochu to pomáhá."
+    },
+    {
+     "who": "therapist",
+     "text": "Co by vám teď mohlo pomoct nejvíc?"
+    },
+    {
+     "who": "client",
+     "text": "Spát. A vědět, jak to říct dětem."
+    },
+    {
+     "who": "therapist",
+     "text": "Pojďme na to postupně. Co spánek, zkoušela jste něco?"
+    },
+    {
+     "who": "client",
+     "text": "Heřmánkový čaj, a to je všechno. Doktorka mi nabídla prášky, ale nechci."
+    },
+    {
+     "who": "therapist",
+     "text": "Proč nechcete?"
+    },
+    {
+     "who": "client",
+     "text": "Bojím se, že bych se nemohla včas vzbudit pro děti. A nechci být závislá."
+    },
+    {
+     "who": "therapist",
+     "text": "To je rozumné. Zkusíte tuhle noc něco malého, třeba si vedle postele nechat papír a napsat, co vás budí?"
+    },
+    {
+     "who": "client",
+     "text": "Mohla bych. Aspoň to dostanu z hlavy."
+    },
+    {
+     "who": "therapist",
+     "text": "A k dětem. Čeho se nejvíc bojíte?"
+    },
+    {
+     "who": "client",
+     "text": "Že zpanikařím a rozpláču se. Že nezvládnu zůstat klidná."
+    },
+    {
+     "who": "therapist",
+     "text": "Co kdyby to nevadilo?"
+    },
+    {
+     "who": "client",
+     "text": "Že bych plakala před dětmi? Vždyť by to bylo pro ně děsivé."
+    },
+    {
+     "who": "therapist",
+     "text": "Nebo by mohly vidět, že smutek je dovolený."
+    },
+    {
+     "who": "client",
+     "text": "To mě nenapadlo. Anička je citlivá, možná by jí to pomohlo."
+    },
+    {
+     "who": "therapist",
+     "text": "Můžeme se příště podívat, jak to připravit. Co si odnesete z dneška?"
+    },
+    {
+     "who": "client",
+     "text": "Že nejsem sama a že to nemusím zvládnout hned."
+    },
+    {
+     "who": "therapist",
+     "text": "Přesně tak. Pro dnešek tady skončíme."
+    },
+    {
+     "who": "client",
+     "text": "Děkuji, uvidíme se příští týden."
+    }
+   ],
+   "roles": {
+    "roles": "right",
+    "raw": "```json\n{\n  \"therapist\": \"S1\",\n  \"patient\": \"S0\",\n  \"confidence\": 1.0,\n  \"evidence\": [\n    \"Dobrý den, paní Nováková, pojďte dál.\",\n    \"Co se stalo?\",\n    \"Povídejte mi o nich.\"\n  ]\n}\n```"
+   }
+  },
+  "tomas-b": {
+   "lang": "cs",
+   "seconds": 736.7,
+   "stages": {
+    "roles_s": 60.4,
+    "facts_s": 676.3
+   },
+   "raw_parts": [
+    "```json\n[\n  {\"heading\":\"Úzkost při kontrole dveří\",\"content\":\"Tomas kontroluje dveře a sporák třicetkrát za večer.\",\"evidence\":\"Třicetkrát za večer kontroluji, jestli jsem zamkl dveře a vypnul sporák\",\"scope\":\"profile\",\"category\":\"Zdraví, tělo a spánek\"},\n  {\"heading\":\"Obsahuje obraz o plamenech\",\"content\":\"Tomas vidí obraz bytu v plamenech po kontrole.\",\"evidence\":\"Byt v plamenech. Vidím to jasně, jako film.\",\"scope\":\"profile\",\"category\":\"Nálada a emoce\"},\n  {\"heading\":\"Úzkost trvá každý den\",\"content\":\"Úzkost se objevuje každý den, nejhorší je večer a ráno.\",\"evidence\":\"Každý den. Večer je to nejhorší, když jdeme ven nebo spát. Ráno taky.\",\"scope\":\"profile\",\"category\":\"Nálada a emoce\"},\n  {\"heading\":\"Závod o příčině požáru\",\"content\":\"Tomas má pocit, že může způsobit požár u sousedů.\",\"evidence\":\"Od té doby mám pocit, že to můžu způsobit já.\",\"scope\":\"profile\",\"category\":\"Osobní témata a sebepojetí\"},\n  {\"heading\":\"Překona o logice\",\"content\":\"Tomas zná logiku, ale úzkost se nedá vypnout.\",\"evidence\":\"Přesto se to nedá vypnout.\",\"scope\":\"profile\",\"category\":\"Osobní témata a sebepojetí\"},\n  {\"heading\":\"Fyzické příznaky úzkosti\",\"content\":\"Úzkost se projevuje srdečním zátížím, potem a třesem rukou.\",\"evidence\":\"Srdce, pot. Třesou se mi ruce a je mi špatně od žaludku.\",\"scope\":\"profile\",\"category\":\"Zdraví, tělo a spánek\"},\n  {\"heading\":\"Manželka Barbora\",\"content\":\"Manželka Barbora ví o úzkosti a vyčerpává se.\",\"evidence\":\"Barbora. Moje manželka. Na začátku to brala jako zvyk, teď už vidí, že je to víc.\",\"scope\":\"profile\",\"category\":\"Rodina a vztahy\"},\n  {\"heading\":\"Reakce manželky na kino\",\"content\":\"Manželka čekala venku a podívala se na Tomasovo chování.\",\"evidence\":\"Čekala venku, než se vrátím a zkontroluji sporák potřetí. Neřekla nic, jen se na mě podívala.\",\"scope\":\"profile\",\"category\":\"Rodina a vztahy\"},\n  {\"heading\":\"Pocit hanby\",\"content\":\"Tomas cítil se jako dítě, které nezvládne vyjít z domu.\",\"evidence\":\"Hanba. Cítil jsem se jako dítě, které nezvládne vyjít z domu.\",\"scope\":\"profile\",\"category\":\"Nálada a emoce\"},\n  {\"heading\":\"Práce elektrikář v Olomouci\",\"content\":\"Tomas pracuje jako elektrikář v Olomouci na rozvodech.\",\"evidence\":\"Pracuji jako elektrikář v Olomouci. Dělám rozvody v bytech a občas v rodinných domech.\",\"scope\":\"profile\",\"category\":\"Práce a kariéra\"},\n  {\"heading\":\"Boj o chybu při práci\",\"content\":\"Tomas se bojí udělat chybu při připojení vodičů.\",\"evidence\":\"Bojím se, že kvůli své hlavě jednou udělám chybu. Že špatně připojím vodič a něco shoří.\",\"scope\":\"profile\",\"category\":\"Práce a kariéra\"},\n  {\"heading\":\"Kontrola po zakázkách\",\"content\":\"Tomas se vrací na místa zakázek, aby se podíval.\",\"evidence\":\"Někdy se tam vrátím druhý den, jen se podívat.\",\"scope\":\"profile\",\"category\":\"Závislosti a návyky\"},\n  {\"heading\":\"Kolegové vnímají pedantičnost\",\"content\":\"Kolegové myslí, že Tomas je pedant a nejpečlivější ve firmě.\",\"evidence\":\"Myslí si, že jsem pedant. Šéf mi říká, že jsem nejpečlivější ve firmě, ale nevidí, kolik času to stojí.\",\"scope\":\"profile\",\"category\":\"Práce a kariéra\"}\n]\n```",
+    "{\"heading\":\"Klient pracuje více hodin denně\",\"content\":\"Tomas dělá práci o hodinu více denně v posledních měsících.\",\"evidence\":\"V posledních měsících mi dělá práce o hodinu víc denně.\",\"scope\":\"profile\",\"category\":\"Práce a kariéra\"}\n{\"heading\":\"Strach z přerážení práce\",\"content\":\"Tomas má strach, že přijde o práci, zejména teď.\",\"evidence\":\"Mám strach, že přijdu o práci. Hlavně teď.\",\"scope\":\"profile\",\"category\":\"Nálada a emoce\"}\n{\"heading\":\"Barbora je těhotná\",\"content\":\"Barbora je těhotná ve čtvrtém měsíci.\",\"evidence\":\"Barbora je těhotná ve čtvrtém měsíci.\",\"scope\":\"profile\",\"category\":\"Rodina a vztahy\"}\n{\"heading\":\"Tomas byl šťastný z těhotnosti\",\"content\":\"Tomas byl šťastný, že čekal tři roky na dítě.\",\"evidence\":\"Byl jsem šťastný. Opravdu. Čekali jsme na to tři roky.\",\"scope\":\"profile\",\"category\":\"Rodina a vztahy\"}\n{\"heading\":\"Myšlenka ublížení dítěti\",\"content\":\"Tomas má myšlenku, že by ublížil Barbore a dítěti.\",\"evidence\":\"Že jí a dítěti ublížím.\",\"scope\":\"profile\",\"category\":\"Osobní témata a sebepojetí\"}\n{\"heading\":\"Myšlenka je nebezpečná\",\"content\":\"Tomas se bojí, že by myšlenka o ublížení vyšla sama.\",\"evidence\":\"Pak se bojím, že to půjde samo.\",\"scope\":\"profile\",\"category\":\"Osobní témata a sebepojetí\"}\n{\"heading\":\"Tomas neřekl myšlenku nikomu\",\"content\":\"Tomas nikdy o myšlenkách o ublížení nikomu neřekl ani Barbore.\",\"evidence\":\"Nikdy jsem o tom nikomu neřekl, ani Barboře.\",\"scope\":\"profile\",\"category\":\"Osobní témata a sebepojetí\"}\n{\"heading\":\"Klient se bojí být nebezpečný\",\"content\":\"Tomas se ptá, zda je nebezpečný.\",\"evidence\":\"Myslíte, že jsem nebezpečný?\",\"scope\":\"session\",\"category\":\"Osobní témata a sebepojetí\"}\n{\"heading\":\"Tomas kontroluje okolí\",\"content\":\"Tomas odejde z místnosti nebo zkontroluje okolí, aby myšlenka přestala.\",\"evidence\":\"Odejdu z místnosti. Nebo se vrátím a zkontroluji něco, aby to přestalo.\",\"scope\":\"session\",\"category\":\"Zdroje a zvládání\"}\n{\"heading\":\"Klient spí mizerně\",\"content\":\"Tomas spí mizerně a vstává dvakrát v noci.\",\"evidence\":\"Spím mizerně. Vstávám dvakrát v noci a kontroluji sporák.\",\"scope\":\"session\",\"category\":\"Zdraví, tělo a spánek\"}\n{\"heading\":\"Klient kontroluje sporák\",\"content\":\"Tomas kontroluje sporák, i když tam nic nestojí.\",\"evidence\":\"Vstávám dvakrát v noci a kontroluji sporák, i když tam nic nestojí.\",\"scope\":\"session\",\"category\":\"Zdraví, tělo a spánek\"}\n{\"heading\":\"Procházky s Barborou\",\"content\":\"Tomas chodí na procházky s Barborou nebo opravuje doma.\",\"evidence\":\"Pomáhá mi chodit na procházky s Barborou. Nebo když opravuji něco doma, to mě zaměstná.\",\"scope\":\"session\",\"category\":\"Zdroje a zvládání\"}\n{\"heading\":\"Částí procházky a opravy\",\"content\":\"Tomas chodí na procházky dvakrát týdně a opravuje, když je co.\",\"evidence\":\"Procházky dvakrát týdně, opravy když je co.\",\"scope\":\"session\",\"category\":\"Zdroje a zvládání\"}\n{\"heading\":\"Cíl zlepšení\",\"content\":\"Tomas chce odejít z bytu za pět minut a těšit se na dítě.\",\"evidence\":\"Odejít z bytu za pět minut. A těšit se na dítě bez těch myšlenek.\",\"scope\":\"session\",\"category\":\"Zdroje a zvládání\"}\n{\"heading\":\"Terapie jako vystavení\",\"content\":\"Tomas slyšel o terapii, kde se postupně vystavuje strachu.\",\"evidence\":\"Slyšel jsem o terapii, kde se člověk postupně vystavuje tomu, čeho se bojí.\",\"scope\":\"profile\",\"category\":\"Zdroje a zvládání\"}\n{\"heading\":\"Strach z donutlení\",\"content\":\"Tomas myslel, že by ho někdo donutil nechat dveře otevřené a odejít.\",\"evidence\":\"Myslel jsem, že mě někdo donutí nechat dveře otevřené a odejít.\",\"scope\":\"session\",\"category\":\"Osobní témata a sebepojetí\"}\n{\"heading\":\"Cíl terapie\",\"content\":\"Tomas by chtěl říct Barbore, že ji miluje a potřebuje se léčit.\",\"evidence\":\"Že ji miluju. A že se potřebuju léčit, aby ji neztratil.\",\"scope\":\"profile\",\"category\":\"Rodina a vztahy\"}\n{\"heading\":\"Boj o přijetí Barbory\",\"content\":\"Tomas se bojí, že by se Barbora nechtěla být s ním.\",\"evidence\":\"Zatím se bojím, že by se mnou nechtěla být.\",\"scope\":\"profile\",\"category\":\"Rodina a vztahy\"}",
+    "{\"heading\":\"Dveře při odcháze\",\"content\":\"Tomas se rozhodl zkontrolovat dveře při odcháze z bytu a zapísat si úzkość na škálě od jedné do deseti.\",\"evidence\":\"zkontrolujte dveře jednou a zapište si, jak moc vám bylo úzko\",\"scope\":\"profile\",\"category\":\"Zdroje a zvládání\"}\n{\"heading\":\"Plán na příští týden\",\"content\":\"Tomas se dohodl na schůzce příští týden.\",\"evidence\":\"uvidíme se příští týden\",\"scope\":\"session\",\"category\":\"Zdroje a zvládání\"}"
+   ],
+   "n_parts": 3,
+   "facts": [
+    {
+     "heading": "Kolegové vnímají pedantičnost",
+     "content": "Kolegové myslí, že Tomas je pedant a nejpečlivější ve firmě.",
+     "evidence": "Myslí si, že jsem pedant. Šéf mi říká, že jsem nejpečlivější ve firmě, ale nevidí, kolik času to stojí.",
+     "scope": "profile",
+     "category": "Práce a kariéra",
+     "part": 1,
+     "quote_found": true
+    },
+    {
+     "heading": "Klient pracuje více hodin denně",
+     "content": "Tomas dělá práci o hodinu více denně v posledních měsících.",
+     "evidence": "V posledních měsících mi dělá práce o hodinu víc denně.",
+     "scope": "profile",
+     "category": "Práce a kariéra",
+     "part": 2,
+     "quote_found": true
+    },
+    {
+     "heading": "Strach z přerážení práce",
+     "content": "Tomas má strach, že přijde o práci, zejména teď.",
+     "evidence": "Mám strach, že přijdu o práci. Hlavně teď.",
+     "scope": "profile",
+     "category": "Nálada a emoce",
+     "part": 2,
+     "quote_found": true
+    },
+    {
+     "heading": "Barbora je těhotná",
+     "content": "Barbora je těhotná ve čtvrtém měsíci.",
+     "evidence": "Barbora je těhotná ve čtvrtém měsíci.",
+     "scope": "profile",
+     "category": "Rodina a vztahy",
+     "part": 2,
+     "quote_found": true
+    },
+    {
+     "heading": "Tomas byl šťastný z těhotnosti",
+     "content": "Tomas byl šťastný, že čekal tři roky na dítě.",
+     "evidence": "Byl jsem šťastný. Opravdu. Čekali jsme na to tři roky.",
+     "scope": "profile",
+     "category": "Rodina a vztahy",
+     "part": 2,
+     "quote_found": true
+    },
+    {
+     "heading": "Myšlenka ublížení dítěti",
+     "content": "Tomas má myšlenku, že by ublížil Barbore a dítěti.",
+     "evidence": "Že jí a dítěti ublížím.",
+     "scope": "profile",
+     "category": "Osobní témata a sebepojetí",
+     "part": 2,
+     "quote_found": true
+    },
+    {
+     "heading": "Myšlenka je nebezpečná",
+     "content": "Tomas se bojí, že by myšlenka o ublížení vyšla sama.",
+     "evidence": "Pak se bojím, že to půjde samo.",
+     "scope": "profile",
+     "category": "Osobní témata a sebepojetí",
+     "part": 2,
+     "quote_found": true
+    },
+    {
+     "heading": "Tomas neřekl myšlenku nikomu",
+     "content": "Tomas nikdy o myšlenkách o ublížení nikomu neřekl ani Barbore.",
+     "evidence": "Nikdy jsem o tom nikomu neřekl, ani Barboře.",
+     "scope": "profile",
+     "category": "Osobní témata a sebepojetí",
+     "part": 2,
+     "quote_found": true
+    },
+    {
+     "heading": "Klient se bojí být nebezpečný",
+     "content": "Tomas se ptá, zda je nebezpečný.",
+     "evidence": "Myslíte, že jsem nebezpečný?",
+     "scope": "session",
+     "category": "Osobní témata a sebepojetí",
+     "part": 2,
+     "quote_found": true
+    },
+    {
+     "heading": "Tomas kontroluje okolí",
+     "content": "Tomas odejde z místnosti nebo zkontroluje okolí, aby myšlenka přestala.",
+     "evidence": "Odejdu z místnosti. Nebo se vrátím a zkontroluji něco, aby to přestalo.",
+     "scope": "session",
+     "category": "Zdroje a zvládání",
+     "part": 2,
+     "quote_found": true
+    },
+    {
+     "heading": "Klient spí mizerně",
+     "content": "Tomas spí mizerně a vstává dvakrát v noci.",
+     "evidence": "Spím mizerně. Vstávám dvakrát v noci a kontroluji sporák.",
+     "scope": "session",
+     "category": "Zdraví, tělo a spánek",
+     "part": 2,
+     "quote_found": true
+    },
+    {
+     "heading": "Klient kontroluje sporák",
+     "content": "Tomas kontroluje sporák, i když tam nic nestojí.",
+     "evidence": "Vstávám dvakrát v noci a kontroluji sporák, i když tam nic nestojí.",
+     "scope": "session",
+     "category": "Zdraví, tělo a spánek",
+     "part": 2,
+     "quote_found": true
+    },
+    {
+     "heading": "Procházky s Barborou",
+     "content": "Tomas chodí na procházky s Barborou nebo opravuje doma.",
+     "evidence": "Pomáhá mi chodit na procházky s Barborou. Nebo když opravuji něco doma, to mě zaměstná.",
+     "scope": "session",
+     "category": "Zdroje a zvládání",
+     "part": 2,
+     "quote_found": true
+    },
+    {
+     "heading": "Částí procházky a opravy",
+     "content": "Tomas chodí na procházky dvakrát týdně a opravuje, když je co.",
+     "evidence": "Procházky dvakrát týdně, opravy když je co.",
+     "scope": "session",
+     "category": "Zdroje a zvládání",
+     "part": 2,
+     "quote_found": true
+    },
+    {
+     "heading": "Cíl zlepšení",
+     "content": "Tomas chce odejít z bytu za pět minut a těšit se na dítě.",
+     "evidence": "Odejít z bytu za pět minut. A těšit se na dítě bez těch myšlenek.",
+     "scope": "session",
+     "category": "Zdroje a zvládání",
+     "part": 2,
+     "quote_found": true
+    },
+    {
+     "heading": "Terapie jako vystavení",
+     "content": "Tomas slyšel o terapii, kde se postupně vystavuje strachu.",
+     "evidence": "Slyšel jsem o terapii, kde se člověk postupně vystavuje tomu, čeho se bojí.",
+     "scope": "profile",
+     "category": "Zdroje a zvládání",
+     "part": 2,
+     "quote_found": true
+    },
+    {
+     "heading": "Strach z donutlení",
+     "content": "Tomas myslel, že by ho někdo donutil nechat dveře otevřené a odejít.",
+     "evidence": "Myslel jsem, že mě někdo donutí nechat dveře otevřené a odejít.",
+     "scope": "session",
+     "category": "Osobní témata a sebepojetí",
+     "part": 2,
+     "quote_found": true
+    },
+    {
+     "heading": "Cíl terapie",
+     "content": "Tomas by chtěl říct Barbore, že ji miluje a potřebuje se léčit.",
+     "evidence": "Že ji miluju. A že se potřebuju léčit, aby ji neztratil.",
+     "scope": "profile",
+     "category": "Rodina a vztahy",
+     "part": 2,
+     "quote_found": true
+    },
+    {
+     "heading": "Boj o přijetí Barbory",
+     "content": "Tomas se bojí, že by se Barbora nechtěla být s ním.",
+     "evidence": "Zatím se bojím, že by se mnou nechtěla být.",
+     "scope": "profile",
+     "category": "Rodina a vztahy",
+     "part": 2,
+     "quote_found": true
+    },
+    {
+     "heading": "Dveře při odcháze",
+     "content": "Tomas se rozhodl zkontrolovat dveře při odcháze z bytu a zapísat si úzkość na škálě od jedné do deseti.",
+     "evidence": "zkontrolujte dveře jednou a zapište si, jak moc vám bylo úzko",
+     "scope": "profile",
+     "category": "Zdroje a zvládání",
+     "part": 3,
+     "quote_found": true
+    },
+    {
+     "heading": "Plán na příští týden",
+     "content": "Tomas se dohodl na schůzce příští týden.",
+     "evidence": "uvidíme se příští týden",
+     "scope": "session",
+     "category": "Zdroje a zvládání",
+     "part": 3,
+     "quote_found": true
+    }
+   ],
+   "turns": [
+    {
+     "who": "therapist",
+     "text": "Dobrý den, pane Bárto, pojďte dál. Jak se vám dnes daří?"
+    },
+    {
+     "who": "client",
+     "text": "Dobrý den. Docela jsem nervózní, jestli mám být upřímný. Nikdy jsem u psychologa nebyl."
+    },
+    {
+     "who": "therapist",
+     "text": "To je naprosto v pořádku. Co vás sem přivádí?"
+    },
+    {
+     "who": "client",
+     "text": "Manželka. Říká, že už to takhle nejde. A já vlastně taky ne."
+    },
+    {
+     "who": "therapist",
+     "text": "Co nejde?"
+    },
+    {
+     "who": "client",
+     "text": "Třicetkrát za večer kontroluji, jestli jsem zamkl dveře a vypnul sporák, a trvá mi to hodinu, než odejdu z bytu."
+    },
+    {
+     "who": "therapist",
+     "text": "Hodinu. Jak to vypadá?"
+    },
+    {
+     "who": "client",
+     "text": "Zamknu dveře, odejdu k výtahu, vrátím se a zatáhnu za kliku. Pak zkontroluji sporák, každý knoflík zvlášť. Pak zase dveře."
+    },
+    {
+     "who": "therapist",
+     "text": "A když to uděláte, co se stane?"
+    },
+    {
+     "who": "client",
+     "text": "Chvíli se mi uleví. A pak mi do hlavy přijde obraz, že jsem to neudělal pořádně, a musím znovu."
+    },
+    {
+     "who": "therapist",
+     "text": "Co je to za obraz?"
+    },
+    {
+     "who": "client",
+     "text": "Byt v plamenech. Vidím to jasně, jako film."
+    },
+    {
+     "who": "therapist",
+     "text": "Jak často se vám to stává?"
+    },
+    {
+     "who": "client",
+     "text": "Každý den. Večer je to nejhorší, když jdeme ven nebo spát. Ráno taky."
+    },
+    {
+     "who": "therapist",
+     "text": "Jak dlouho už to trvá?"
+    },
+    {
+     "who": "client",
+     "text": "Začalo to před dvěma lety, kdy hořelo u sousedů a my se museli evakuovat."
+    },
+    {
+     "who": "therapist",
+     "text": "Řekněte mi o tom víc."
+    },
+    {
+     "who": "client",
+     "text": "Bylo to v noci. Probudil mě alarm. Na chodbě byl kouř a lidé křičeli. Vyběhli jsme jenom v pyžamech."
+    },
+    {
+     "who": "therapist",
+     "text": "Jak vám tehdy bylo?"
+    },
+    {
+     "who": "client",
+     "text": "Že tohle je konec. Nikdo nebyl zraněn, ale sousedům to vyhořelo celé. Stál jsem venku v zimě a koukal, jak hoří okna."
+    },
+    {
+     "who": "therapist",
+     "text": "A od té doby?"
+    },
+    {
+     "who": "client",
+     "text": "Od té doby mám pocit, že to můžu způsobit já. Že když něco nezkontroluji, tak se to stane a budu vinen."
+    },
+    {
+     "who": "therapist",
+     "text": "To je velká zodpovědnost."
+    },
+    {
+     "who": "client",
+     "text": "Já vím, že to nedává smysl. Znám tu logiku. Přesto se to nedá vypnout."
+    },
+    {
+     "who": "therapist",
+     "text": "Co děláte, když to nechcete dělat?"
+    },
+    {
+     "who": "client",
+     "text": "Zkusím to nechat. A pak mi roste úzkost, až mám pocit, že se zblázním. Radši to udělám."
+    },
+    {
+     "who": "therapist",
+     "text": "Čím se úzkost projevuje?"
+    },
+    {
+     "who": "client",
+     "text": "Srdce, pot. Třesou se mi ruce a je mi špatně od žaludku."
+    },
+    {
+     "who": "therapist",
+     "text": "Kdo o tom ví?"
+    },
+    {
+     "who": "client",
+     "text": "Barbora. Moje manželka. Na začátku to brala jako zvyk, teď už vidí, že je to víc."
+    },
+    {
+     "who": "therapist",
+     "text": "Jak na to reaguje?"
+    },
+    {
+     "who": "client",
+     "text": "Je trpělivá, ale vidím, že ji to vyčerpává. Včera jsme přišli na kino o čtyřicet minut později."
+    },
+    {
+     "who": "therapist",
+     "text": "Co se stalo?"
+    },
+    {
+     "who": "client",
+     "text": "Čekala venku, než se vrátím a zkontroluji sporák potřetí. Neřekla nic, jen se na mě podívala."
+    },
+    {
+     "who": "therapist",
+     "text": "Jak vám bylo?"
+    },
+    {
+     "who": "client",
+     "text": "Hanba. Cítil jsem se jako dítě, které nezvládne vyjít z domu."
+    },
+    {
+     "who": "therapist",
+     "text": "Co děláte za práci?"
+    },
+    {
+     "who": "client",
+     "text": "Pracuji jako elektrikář v Olomouci. Dělám rozvody v bytech a občas v rodinných domech."
+    },
+    {
+     "who": "therapist",
+     "text": "Jak to souvisí s kontrolováním?"
+    },
+    {
+     "who": "client",
+     "text": "Hodně. Bojím se, že kvůli své hlavě jednou udělám chybu. Že špatně připojím vodič a něco shoří."
+    },
+    {
+     "who": "therapist",
+     "text": "Stalo se vám něco takového?"
+    },
+    {
+     "who": "client",
+     "text": "Ne, nikdy. Ale po každé zakázce se vracím a kontroluji. Někdy se tam vrátím druhý den, jen se podívat."
+    },
+    {
+     "who": "therapist",
+     "text": "A kolegové?"
+    },
+    {
+     "who": "client",
+     "text": "Myslí si, že jsem pedant. Šéf mi říká, že jsem nejpečlivější ve firmě, ale nevidí, kolik času to stojí."
+    },
+    {
+     "who": "therapist",
+     "text": "Kolik času to stojí?"
+    },
+    {
+     "who": "client",
+     "text": "V posledních měsících mi dělá práce o hodinu víc denně. Už jsem pár zakázek předal kolegovi, protože jsem se nestíhal."
+    },
+    {
+     "who": "therapist",
+     "text": "Co to s vámi dělá?"
+    },
+    {
+     "who": "client",
+     "text": "Mám strach, že přijdu o práci. Hlavně teď."
+    },
+    {
+     "who": "therapist",
+     "text": "Proč zrovna teď?"
+    },
+    {
+     "who": "client",
+     "text": "Barbora je těhotná ve čtvrtém měsíci."
+    },
+    {
+     "who": "therapist",
+     "text": "Gratuluji. Jak jste to přijal?"
+    },
+    {
+     "who": "client",
+     "text": "Byl jsem šťastný. Opravdu. Čekali jsme na to tři roky. A hned potom přišla další myšlenka."
+    },
+    {
+     "who": "therapist",
+     "text": "Jaká?"
+    },
+    {
+     "who": "client",
+     "text": "Že jí a dítěti ublížím."
+    },
+    {
+     "who": "therapist",
+     "text": "Ublížíte jak?"
+    },
+    {
+     "who": "client",
+     "text": "Ne že bych chtěl. To je hrozné, nikdy bych to neudělal. Ale ta myšlenka přijde, třeba když krájím chleba nebo stojím u schodů. Pak se bojím, že to půjde samo."
+    },
+    {
+     "who": "therapist",
+     "text": "Takže je to myšlenka, která vás děsí."
+    },
+    {
+     "who": "client",
+     "text": "Ano. Je to nejhorší. Nikdy jsem o tom nikomu neřekl, ani Barboře."
+    },
+    {
+     "who": "therapist",
+     "text": "Děkuji, že jste mi to řekl. To je důležité."
+    },
+    {
+     "who": "client",
+     "text": "Myslíte, že jsem nebezpečný?"
+    },
+    {
+     "who": "therapist",
+     "text": "Takové vtíravé myšlenky jsou u lidí s tímto typem potíží velmi časté, hlavně když se blíží velká změna. Nejsou důkazem, že byste něco udělal. Jejich síla je právě v tom, jak vás děsí."
+    },
+    {
+     "who": "client",
+     "text": "To mi pomáhá. Přesto to chce čas, než tomu uvěřím."
+    },
+    {
+     "who": "therapist",
+     "text": "Rozumím. Co děláte, když se ta myšlenka objeví?"
+    },
+    {
+     "who": "client",
+     "text": "Odejdu z místnosti. Nebo se vrátím a zkontroluji něco, aby to přestalo."
+    },
+    {
+     "who": "therapist",
+     "text": "Takže kontrola vám pomáhá uklidnit i tuhle?"
+    },
+    {
+     "who": "client",
+     "text": "Vlastně ano. Nikdy mě nenapadlo, že to spolu souvisí."
+    },
+    {
+     "who": "therapist",
+     "text": "Jak spíte?"
+    },
+    {
+     "who": "client",
+     "text": "Spím mizerně. Vstávám dvakrát v noci a kontroluji sporák, i když tam nic nestojí."
+    },
+    {
+     "who": "therapist",
+     "text": "Pomáhá vám něco?"
+    },
+    {
+     "who": "client",
+     "text": "Pomáhá mi chodit na procházky s Barborou. Nebo když opravuji něco doma, to mě zaměstná."
+    },
+    {
+     "who": "therapist",
+     "text": "Jak často to děláte?"
+    },
+    {
+     "who": "client",
+     "text": "Procházky dvakrát týdně, opravy když je co."
+    },
+    {
+     "who": "therapist",
+     "text": "Co by pro vás znamenalo, kdyby se to zlepšilo?"
+    },
+    {
+     "who": "client",
+     "text": "Odejít z bytu za pět minut. A těšit se na dítě bez těch myšlenek."
+    },
+    {
+     "who": "therapist",
+     "text": "To jsou jasné cíle. Víte, že existuje léčba, která tomu pomáhá?"
+    },
+    {
+     "who": "client",
+     "text": "Slyšel jsem o terapii, kde se člověk postupně vystavuje tomu, čeho se bojí. Měl jsem z toho strach."
+    },
+    {
+     "who": "therapist",
+     "text": "Strach je pochopitelný. Šlo by to po malých krocích a vy byste o tempu rozhodoval."
+    },
+    {
+     "who": "client",
+     "text": "To je uklidňující. Myslel jsem, že mě někdo donutí nechat dveře otevřené a odejít."
+    },
+    {
+     "who": "therapist",
+     "text": "Tak to ne. Začali bychom třeba jen tím, že zkontrolujete dveře jednou, ne třikrát."
+    },
+    {
+     "who": "client",
+     "text": "To zní malé. Ale i to je pro mě velké."
+    },
+    {
+     "who": "therapist",
+     "text": "Velké kroky začínají malými. Řekl jste něco důležitého o Barboře. Co byste jí chtěl říct?"
+    },
+    {
+     "who": "client",
+     "text": "Že ji miluju. A že se potřebuju léčit, aby ji neztratil. Zatím se bojím, že by se mnou nechtěla být."
+    },
+    {
+     "who": "therapist",
+     "text": "Co si myslíte, že by řekla?"
+    },
+    {
+     "who": "client",
+     "text": "Asi by mě objala. Ona je taková."
+    },
+    {
+     "who": "therapist",
+     "text": "Pak možná stojí za to jí říct aspoň část. Co kdybyste jí řekl, že jste tu byl a co jste se dozvěděl?"
+    },
+    {
+     "who": "client",
+     "text": "To bych zvládl. O těch myšlenkách ještě ne."
+    },
+    {
+     "who": "therapist",
+     "text": "To je v pořádku. Tempo určujete vy."
+    },
+    {
+     "who": "client",
+     "text": "Děkuji. Tohle mi dalo víc, než jsem čekal."
+    },
+    {
+     "who": "therapist",
+     "text": "Do příště zkuste jednu věc: když odcházíte z bytu, zkontrolujte dveře jednou a zapište si, jak moc vám bylo úzko."
+    },
+    {
+     "who": "client",
+     "text": "Jednou. Zkusím to. Aspoň jednou, a zapíšu číslo od jedné do deseti."
+    },
+    {
+     "who": "therapist",
+     "text": "Přesně tak. Pro dnešek tady skončíme."
+    },
+    {
+     "who": "client",
+     "text": "Děkuji, uvidíme se příští týden."
+    }
+   ],
+   "roles": {
+    "roles": "right",
+    "raw": "```json\n{\n  \"therapist\": \"S1\",\n  \"patient\": \"S0\",\n  \"confidence\": 0.99,\n  \"evidence\": [\n    \"Dobrý den, pane Bárto, pojďte dál.\",\n    \"Co vás sem přivádí?\",\n    \"Co děláte, když to nechcete dělat?\"\n  ]\n}\n```"
+   }
+  },
+  "daniel-r": {
+   "lang": "en",
+   "seconds": 718.6,
+   "stages": {
+    "roles_s": 56.8,
+    "facts_s": 661.8
+   },
+   "raw_parts": [
+    "{\"heading\":\"Work burnout since October\",\"content\":\"Daniel has been completely burned out since October.\",\"evidence\":\"I've been completely burned out since October\",\"scope\":\"profile\",\"category\":\"Work & Career\"}\n{\"heading\":\"Lost big client October\",\"content\":\"Daniel's company lost a big client in October.\",\"evidence\":\"We lost a big client\",\"scope\":\"profile\",\"category\":\"Work & Career\"}\n{\"heading\":\"Team moved to rescue plan\",\"content\":\"Half the team was moved onto the rescue plan in October.\",\"evidence\":\"half the team got moved onto the rescue plan\",\"scope\":\"profile\",\"category\":\"Work & Career\"}\n{\"heading\":\"Doing three people's jobs\",\"content\":\"Daniel ended up doing three people's jobs after October.\",\"evidence\":\"so I ended up doing three people's jobs\",\"scope\":\"profile\",\"category\":\"Work & Career\"}\n{\"heading\":\"Arrives desk by seven\",\"content\":\"Daniel arrives at his desk by seven o'clock.\",\"evidence\":\"I'm at my desk by seven\",\"scope\":\"session\",\"category\":\"Work & Career\"}\n{\"heading\":\"Answers messages at ten\",\"content\":\"Daniel answers messages at ten o'clock at night.\",\"evidence\":\"I'm still answering messages at ten at night\",\"scope\":\"session\",\"category\":\"Work & Career\"}\n{\"heading\":\"Thinks about work constantly\",\"content\":\"Daniel thinks about work even when not working.\",\"evidence\":\"Even when I'm not working I'm thinking about work\",\"scope\":\"session\",\"category\":\"Work & Career\"}\n{\"heading\":\"Sleeps four hours most nights\",\"content\":\"Daniel sleeps about four hours most nights.\",\"evidence\":\"Most nights I sleep about four hours\",\"scope\":\"session\",\"category\":\"Health, Body & Sleep\"}\n{\"heading\":\"Wakes at three in morning\",\"content\":\"Daniel wakes up at three in the morning.\",\"evidence\":\"I wake up at three in the morning\",\"scope\":\"session\",\"category\":\"Health, Body & Sleep\"}\n{\"heading\":\"Can't fall back asleep\",\"content\":\"Daniel cannot fall back asleep after waking at three.\",\"evidence\":\"and can't fall back asleep\",\"scope\":\"session\",\"category\":\"Health, Body & Sleep\"}\n{\"heading\":\"Calculates remaining sleep\",\"content\":\"Daniel calculates how little sleep he will get when he wakes at three.\",\"evidence\":\"do the maths on how little sleep I'm going to get\",\"scope\":\"session\",\"category\":\"Health, Body & Sleep\"}\n{\"heading\":\"Dreads nights\",\"content\":\"Daniel has started dreading the nights.\",\"evidence\":\"I've started dreading the nights\",\"scope\":\"session\",\"category\":\"Health, Body & Sleep\"}\n{\"heading\":\"Father diagnosed Parkinson's autumn\",\"content\":\"Daniel's father was diagnosed with Parkinson's disease in the autumn.\",\"evidence\":\"He was diagnosed with Parkinson's disease in the autumn\",\"scope\":\"profile\",\"category\":\"Family & Relationships\"}\n{\"heading\":\"Father is seventy-three\",\"content\":\"Daniel's father is seventy-three years old.\",\"evidence\":\"He's seventy-three\",\"scope\":\"profile\",\"category\":\"Family & Relationships\"}\n{\"heading\":\"Father drives to hospital Leeds\",\"content\":\"Daniel drives his father to the hospital in Leeds.\",\"evidence\":\"I'm the one who drives him to the hospital in Leeds\",\"scope\":\"profile\",\"category\":\"Family & Relationships\"}\n{\"heading\":\"Neurology appointments weekly\",\"content\":\"Daniel attends neurology appointments every few weeks.\",\"evidence\":\"The neurology appointments are every few weeks\",\"scope\":\"profile\",\"category\":\"Family & Relationships\"}\n{\"heading\":\"Commuting hour each way\",\"content\":\"Daniel's commute to the hospital is an hour each way.\",\"evidence\":\"and it's an hour each way\",\"scope\":\"profile\",\"category\":\"Family & Relationships\"}\n{\"heading\":\"Sister lives in Toronto\",\"content\":\"Daniel's younger sister Hannah lives in Toronto.\",\"evidence\":\"My younger sister Hannah lives in Toronto\",\"scope\":\"profile\",\"category\":\"Family & Relationships\"}\n{\"heading\":\"Sister calls father Sundays\",\"content\":\"Daniel's sister calls their father every Sunday.\",\"evidence\":\"She calls him every Sunday\",\"scope\":\"profile\",\"category\":\"Family & Relationships\"}\n{\"heading\":\"Daniel feels guilty about care\",\"content\":\"Daniel feels guilty for not sharing his burden with his sister.\",\"evidence\":\"I feel it's selfish to be tired when he's the one who's ill\",\"scope\":\"profile\",\"category\":\"Family & Relationships\"}\n{\"heading\":\"Daniel lies in car park\",\"content\":\"Daniel sits in the car park for ten minutes before hospital visits.\",\"evidence\":\"some days I sit in the car park at the hospital for ten minutes\",\"scope\":\"session\",\"category\":\"Coping & Strengths\"}",
+    "{\"heading\":\"Boss sends late emails\",\"content\":\"Daniel's boss Peterson sends emails at eleven at night and expects answers before breakfast.\",\"evidence\":\"He sends emails at eleven at night and expects an answer before breakfast.\",\"scope\":\"profile\",\"category\":\"Work & Career\"}\n{\"heading\":\"Daniel answers emails while in bed\",\"content\":\"Daniel answers emails from his boss even when he is in bed.\",\"evidence\":\"I answer it. Every time. Even if I'm in bed.\",\"scope\":\"profile\",\"category\":\"Work & Career\"}\n{\"heading\":\"Claire is tired of Daniel\",\"content\":\"Daniel's girlfriend Claire is done watching him disappear and feels it is wearing on her.\",\"evidence\":\"She said she was done watching me disappear.\",\"scope\":\"profile\",\"category\":\"Family & Relationships\"}\n{\"heading\":\"Daniel says no to weekends\",\"content\":\"Daniel always says no to going away for the weekend with Claire.\",\"evidence\":\"because I always say no.\",\"scope\":\"profile\",\"category\":\"Family & Relationships\"}\n{\"heading\":\"Daniel stopped running two months ago\",\"content\":\"Daniel stopped running ten kilometres every Saturday morning about two months ago.\",\"evidence\":\"I stopped about two months ago.\",\"scope\":\"profile\",\"category\":\"Health, Body & Sleep\"}\n{\"heading\":\"Daniel feels he lost himself\",\"content\":\"Daniel feels like he has lost a part of himself by stopping running.\",\"evidence\":\"Like I've lost a part of myself.\",\"scope\":\"profile\",\"category\":\"Self-concept & Identity\"}\n{\"heading\":\"Daniel fears job loss in spring\",\"content\":\"Daniel is afraid his boss will let him go during the restructuring in the spring.\",\"evidence\":\"There's a restructuring in the spring and I'm afraid they'll let me go.\",\"scope\":\"profile\",\"category\":\"Work & Career\"}\n{\"heading\":\"Daniel has a mortgage\",\"content\":\"Daniel has a mortgage and feels he would feel horrible about being relieved if he lost his job.\",\"evidence\":\"I have a mortgage.\",\"scope\":\"profile\",\"category\":\"Work & Career\"}\n{\"heading\":\"Daniel's moods are flat and irritable\",\"content\":\"Daniel describes his moods as flat, mostly, and irritable.\",\"evidence\":\"Flat, mostly. And irritable.\",\"scope\":\"profile\",\"category\":\"Mood & Emotions\"}\n{\"heading\":\"Daniel snapped at a colleague\",\"content\":\"Daniel snapped at a colleague last week over nothing.\",\"evidence\":\"I snapped at a colleague last week over nothing.\",\"scope\":\"session\",\"category\":\"Mood & Emotions\"}\n{\"heading\":\"Daniel had heart attack symptoms\",\"content\":\"Daniel thought his heart attack symptoms passed after sitting in the toilets for ten minutes.\",\"evidence\":\"My heart was going and my hands were shaking. I thought for a second it was a heart attack, but it passed.\",\"scope\":\"session\",\"category\":\"Health, Body & Sleep\"}",
+    "{\"heading\":\"Event on train to Manchester\",\"content\":\"Daniel had an incident on the train to Manchester where he had to get off and stand on the platform.\",\"evidence\":\"Once on the train to Manchester. I just had to get off and stand on the platform.\",\"scope\":\"profile\",\"category\":\"History & Life Events\"}\n{\"heading\":\"Not told anyone about incident\",\"content\":\"Daniel has not told anyone about the incident on the train, not even Claire.\",\"evidence\":\"I haven't told anyone about it, not even Claire.\",\"scope\":\"profile\",\"category\":\"Family & Relationships\"}\n{\"heading\":\"Fear of losing control\",\"content\":\"Daniel fears he is losing it and will not cope.\",\"evidence\":\"That I'm losing it. That I'm going to end up like, I don't know. Not coping.\",\"scope\":\"profile\",\"category\":\"Mood & Emotions\"}\n{\"heading\":\"Coffee consumption high\",\"content\":\"Daniel drinks about six cups of coffee a day.\",\"evidence\":\"I'm on about six cups a day.\",\"scope\":\"session\",\"category\":\"Addictions & Habits\"}\n{\"heading\":\"Wine consumption in evenings\",\"content\":\"Daniel has started drinking wine in the evenings to switch off, two or three glasses.\",\"evidence\":\"I've started having wine in the evenings to switch my head off. Two glasses, sometimes three.\",\"scope\":\"session\",\"category\":\"Addictions & Habits\"}\n{\"heading\":\"Wine ineffective\",\"content\":\"Daniel finds wine ineffective as it only works for an hour before he wakes at three.\",\"evidence\":\"It works for an hour and then I wake at three anyway.\",\"scope\":\"session\",\"category\":\"Addictions & Habits\"}\n{\"heading\":\"Family history stoicism\",\"content\":\"Daniel's grandfather and father never complained about anything, they just got on with it.\",\"evidence\":\"He never complained about anything, not once. Dad's the same. You just get on with it.\",\"scope\":\"profile\",\"category\":\"Family & Relationships\"}\n{\"belief\":\"Daniel believes he would be seen as weak for being present in therapy.\",\"evidence\":\"I keep thinking he would think I was weak for being here.\",\"scope\":\"profile\",\"category\":\"Self-concept & Identity\"}\n{\"heading\":\"Goal to improve sleep\",\"content\":\"Daniel believes that if he could sleep he could cope with the rest.\",\"evidence\":\"The nights, I think. If I could sleep I could probably cope with the rest.\",\"scope\":\"session\",\"category\":\"Health, Body & Sleep\"}\n{\"heading\":\"Plan to reduce phone use\",\"content\":\"Daniel plans to try switching off his phone for twenty minutes at half past nine.\",\"evidence\":\"Half past nine, perhaps. I could make it a thing with Claire.\",\"scope\":\"session\",\"category\":\"Coping & Strengths\"}\n{\"heading\":\"Tea with Claire planned\",\"content\":\"Daniel plans to have tea on the sofa with Claire during the phone-free time.\",\"evidence\":\"Tea on the sofa.\",\"scope\":\"session\",\"category\":\"Coping & Strengths\"}\n{\"heading\":\"Intention to track sleep\",\"content\":\"Daniel intends to write down when he wakes up if he wakes up.\",\"evidence\":\"I'll write down when I wake up, if I wake up.\",\"scope\":\"session\",\"category\":\"Coping & Strengths\"}\n{\"heading\":\"Feeling lighter after session\",\"content\":\"Daniel feels tired but lighter after saying everything in the session.\",\"evidence\":\"Tired, but lighter.\",\"scope\":\"session\",\"category\":\"Mood & Emotions\"}",
+    "```json\n{\"heading\":\"Trains are awful\",\"content\":\"Daniel says the trains are awful.\",\"evidence\":\"the trains are awful\",\"scope\":\"session\",\"category\":\"Coping & Strengths\"}\n```"
+   ],
+   "n_parts": 4,
+   "facts": [
+    {
+     "heading": "Work burnout since October",
+     "content": "Daniel has been completely burned out since October.",
+     "evidence": "I've been completely burned out since October",
+     "scope": "profile",
+     "category": "Work & Career",
+     "part": 1,
+     "quote_found": true
+    },
+    {
+     "heading": "Lost big client October",
+     "content": "Daniel's company lost a big client in October.",
+     "evidence": "We lost a big client",
+     "scope": "profile",
+     "category": "Work & Career",
+     "part": 1,
+     "quote_found": true
+    },
+    {
+     "heading": "Team moved to rescue plan",
+     "content": "Half the team was moved onto the rescue plan in October.",
+     "evidence": "half the team got moved onto the rescue plan",
+     "scope": "profile",
+     "category": "Work & Career",
+     "part": 1,
+     "quote_found": true
+    },
+    {
+     "heading": "Doing three people's jobs",
+     "content": "Daniel ended up doing three people's jobs after October.",
+     "evidence": "so I ended up doing three people's jobs",
+     "scope": "profile",
+     "category": "Work & Career",
+     "part": 1,
+     "quote_found": true
+    },
+    {
+     "heading": "Arrives desk by seven",
+     "content": "Daniel arrives at his desk by seven o'clock.",
+     "evidence": "I'm at my desk by seven",
+     "scope": "session",
+     "category": "Work & Career",
+     "part": 1,
+     "quote_found": true
+    },
+    {
+     "heading": "Answers messages at ten",
+     "content": "Daniel answers messages at ten o'clock at night.",
+     "evidence": "I'm still answering messages at ten at night",
+     "scope": "session",
+     "category": "Work & Career",
+     "part": 1,
+     "quote_found": true
+    },
+    {
+     "heading": "Thinks about work constantly",
+     "content": "Daniel thinks about work even when not working.",
+     "evidence": "Even when I'm not working I'm thinking about work",
+     "scope": "session",
+     "category": "Work & Career",
+     "part": 1,
+     "quote_found": true
+    },
+    {
+     "heading": "Sleeps four hours most nights",
+     "content": "Daniel sleeps about four hours most nights.",
+     "evidence": "Most nights I sleep about four hours",
+     "scope": "session",
+     "category": "Health, Body & Sleep",
+     "part": 1,
+     "quote_found": true
+    },
+    {
+     "heading": "Wakes at three in morning",
+     "content": "Daniel wakes up at three in the morning.",
+     "evidence": "I wake up at three in the morning",
+     "scope": "session",
+     "category": "Health, Body & Sleep",
+     "part": 1,
+     "quote_found": true
+    },
+    {
+     "heading": "Can't fall back asleep",
+     "content": "Daniel cannot fall back asleep after waking at three.",
+     "evidence": "and can't fall back asleep",
+     "scope": "session",
+     "category": "Health, Body & Sleep",
+     "part": 1,
+     "quote_found": true
+    },
+    {
+     "heading": "Calculates remaining sleep",
+     "content": "Daniel calculates how little sleep he will get when he wakes at three.",
+     "evidence": "do the maths on how little sleep I'm going to get",
+     "scope": "session",
+     "category": "Health, Body & Sleep",
+     "part": 1,
+     "quote_found": true
+    },
+    {
+     "heading": "Dreads nights",
+     "content": "Daniel has started dreading the nights.",
+     "evidence": "I've started dreading the nights",
+     "scope": "session",
+     "category": "Health, Body & Sleep",
+     "part": 1,
+     "quote_found": true
+    },
+    {
+     "heading": "Father diagnosed Parkinson's autumn",
+     "content": "Daniel's father was diagnosed with Parkinson's disease in the autumn.",
+     "evidence": "He was diagnosed with Parkinson's disease in the autumn",
+     "scope": "profile",
+     "category": "Family & Relationships",
+     "part": 1,
+     "quote_found": true
+    },
+    {
+     "heading": "Father is seventy-three",
+     "content": "Daniel's father is seventy-three years old.",
+     "evidence": "He's seventy-three",
+     "scope": "profile",
+     "category": "Family & Relationships",
+     "part": 1,
+     "quote_found": true
+    },
+    {
+     "heading": "Father drives to hospital Leeds",
+     "content": "Daniel drives his father to the hospital in Leeds.",
+     "evidence": "I'm the one who drives him to the hospital in Leeds",
+     "scope": "profile",
+     "category": "Family & Relationships",
+     "part": 1,
+     "quote_found": true
+    },
+    {
+     "heading": "Neurology appointments weekly",
+     "content": "Daniel attends neurology appointments every few weeks.",
+     "evidence": "The neurology appointments are every few weeks",
+     "scope": "profile",
+     "category": "Family & Relationships",
+     "part": 1,
+     "quote_found": true
+    },
+    {
+     "heading": "Commuting hour each way",
+     "content": "Daniel's commute to the hospital is an hour each way.",
+     "evidence": "and it's an hour each way",
+     "scope": "profile",
+     "category": "Family & Relationships",
+     "part": 1,
+     "quote_found": true
+    },
+    {
+     "heading": "Sister lives in Toronto",
+     "content": "Daniel's younger sister Hannah lives in Toronto.",
+     "evidence": "My younger sister Hannah lives in Toronto",
+     "scope": "profile",
+     "category": "Family & Relationships",
+     "part": 1,
+     "quote_found": true
+    },
+    {
+     "heading": "Sister calls father Sundays",
+     "content": "Daniel's sister calls their father every Sunday.",
+     "evidence": "She calls him every Sunday",
+     "scope": "profile",
+     "category": "Family & Relationships",
+     "part": 1,
+     "quote_found": true
+    },
+    {
+     "heading": "Daniel feels guilty about care",
+     "content": "Daniel feels guilty for not sharing his burden with his sister.",
+     "evidence": "I feel it's selfish to be tired when he's the one who's ill",
+     "scope": "profile",
+     "category": "Family & Relationships",
+     "part": 1,
+     "quote_found": true
+    },
+    {
+     "heading": "Daniel lies in car park",
+     "content": "Daniel sits in the car park for ten minutes before hospital visits.",
+     "evidence": "some days I sit in the car park at the hospital for ten minutes",
+     "scope": "session",
+     "category": "Coping & Strengths",
+     "part": 1,
+     "quote_found": true
+    },
+    {
+     "heading": "Boss sends late emails",
+     "content": "Daniel's boss Peterson sends emails at eleven at night and expects answers before breakfast.",
+     "evidence": "He sends emails at eleven at night and expects an answer before breakfast.",
+     "scope": "profile",
+     "category": "Work & Career",
+     "part": 2,
+     "quote_found": true
+    },
+    {
+     "heading": "Daniel answers emails while in bed",
+     "content": "Daniel answers emails from his boss even when he is in bed.",
+     "evidence": "I answer it. Every time. Even if I'm in bed.",
+     "scope": "profile",
+     "category": "Work & Career",
+     "part": 2,
+     "quote_found": true
+    },
+    {
+     "heading": "Claire is tired of Daniel",
+     "content": "Daniel's girlfriend Claire is done watching him disappear and feels it is wearing on her.",
+     "evidence": "She said she was done watching me disappear.",
+     "scope": "profile",
+     "category": "Family & Relationships",
+     "part": 2,
+     "quote_found": true
+    },
+    {
+     "heading": "Daniel says no to weekends",
+     "content": "Daniel always says no to going away for the weekend with Claire.",
+     "evidence": "because I always say no.",
+     "scope": "profile",
+     "category": "Family & Relationships",
+     "part": 2,
+     "quote_found": true
+    },
+    {
+     "heading": "Daniel stopped running two months ago",
+     "content": "Daniel stopped running ten kilometres every Saturday morning about two months ago.",
+     "evidence": "I stopped about two months ago.",
+     "scope": "profile",
+     "category": "Health, Body & Sleep",
+     "part": 2,
+     "quote_found": true
+    },
+    {
+     "heading": "Daniel feels he lost himself",
+     "content": "Daniel feels like he has lost a part of himself by stopping running.",
+     "evidence": "Like I've lost a part of myself.",
+     "scope": "profile",
+     "category": "Self-concept & Identity",
+     "part": 2,
+     "quote_found": true
+    },
+    {
+     "heading": "Daniel fears job loss in spring",
+     "content": "Daniel is afraid his boss will let him go during the restructuring in the spring.",
+     "evidence": "There's a restructuring in the spring and I'm afraid they'll let me go.",
+     "scope": "profile",
+     "category": "Work & Career",
+     "part": 2,
+     "quote_found": true
+    },
+    {
+     "heading": "Daniel has a mortgage",
+     "content": "Daniel has a mortgage and feels he would feel horrible about being relieved if he lost his job.",
+     "evidence": "I have a mortgage.",
+     "scope": "profile",
+     "category": "Work & Career",
+     "part": 2,
+     "quote_found": true
+    },
+    {
+     "heading": "Daniel's moods are flat and irritable",
+     "content": "Daniel describes his moods as flat, mostly, and irritable.",
+     "evidence": "Flat, mostly. And irritable.",
+     "scope": "profile",
+     "category": "Mood & Emotions",
+     "part": 2,
+     "quote_found": true
+    },
+    {
+     "heading": "Daniel snapped at a colleague",
+     "content": "Daniel snapped at a colleague last week over nothing.",
+     "evidence": "I snapped at a colleague last week over nothing.",
+     "scope": "session",
+     "category": "Mood & Emotions",
+     "part": 2,
+     "quote_found": true
+    },
+    {
+     "heading": "Daniel had heart attack symptoms",
+     "content": "Daniel thought his heart attack symptoms passed after sitting in the toilets for ten minutes.",
+     "evidence": "My heart was going and my hands were shaking. I thought for a second it was a heart attack, but it passed.",
+     "scope": "session",
+     "category": "Health, Body & Sleep",
+     "part": 2,
+     "quote_found": true
+    },
+    {
+     "heading": "Event on train to Manchester",
+     "content": "Daniel had an incident on the train to Manchester where he had to get off and stand on the platform.",
+     "evidence": "Once on the train to Manchester. I just had to get off and stand on the platform.",
+     "scope": "profile",
+     "category": "History & Life Events",
+     "part": 3,
+     "quote_found": true
+    },
+    {
+     "heading": "Not told anyone about incident",
+     "content": "Daniel has not told anyone about the incident on the train, not even Claire.",
+     "evidence": "I haven't told anyone about it, not even Claire.",
+     "scope": "profile",
+     "category": "Family & Relationships",
+     "part": 3,
+     "quote_found": true
+    },
+    {
+     "heading": "Fear of losing control",
+     "content": "Daniel fears he is losing it and will not cope.",
+     "evidence": "That I'm losing it. That I'm going to end up like, I don't know. Not coping.",
+     "scope": "profile",
+     "category": "Mood & Emotions",
+     "part": 3,
+     "quote_found": true
+    },
+    {
+     "heading": "Coffee consumption high",
+     "content": "Daniel drinks about six cups of coffee a day.",
+     "evidence": "I'm on about six cups a day.",
+     "scope": "session",
+     "category": "Addictions & Habits",
+     "part": 3,
+     "quote_found": true
+    },
+    {
+     "heading": "Wine consumption in evenings",
+     "content": "Daniel has started drinking wine in the evenings to switch off, two or three glasses.",
+     "evidence": "I've started having wine in the evenings to switch my head off. Two glasses, sometimes three.",
+     "scope": "session",
+     "category": "Addictions & Habits",
+     "part": 3,
+     "quote_found": true
+    },
+    {
+     "heading": "Wine ineffective",
+     "content": "Daniel finds wine ineffective as it only works for an hour before he wakes at three.",
+     "evidence": "It works for an hour and then I wake at three anyway.",
+     "scope": "session",
+     "category": "Addictions & Habits",
+     "part": 3,
+     "quote_found": true
+    },
+    {
+     "heading": "Family history stoicism",
+     "content": "Daniel's grandfather and father never complained about anything, they just got on with it.",
+     "evidence": "He never complained about anything, not once. Dad's the same. You just get on with it.",
+     "scope": "profile",
+     "category": "Family & Relationships",
+     "part": 3,
+     "quote_found": true
+    },
+    {
+     "heading": "Goal to improve sleep",
+     "content": "Daniel believes that if he could sleep he could cope with the rest.",
+     "evidence": "The nights, I think. If I could sleep I could probably cope with the rest.",
+     "scope": "session",
+     "category": "Health, Body & Sleep",
+     "part": 3,
+     "quote_found": true
+    },
+    {
+     "heading": "Plan to reduce phone use",
+     "content": "Daniel plans to try switching off his phone for twenty minutes at half past nine.",
+     "evidence": "Half past nine, perhaps. I could make it a thing with Claire.",
+     "scope": "session",
+     "category": "Coping & Strengths",
+     "part": 3,
+     "quote_found": true
+    },
+    {
+     "heading": "Tea with Claire planned",
+     "content": "Daniel plans to have tea on the sofa with Claire during the phone-free time.",
+     "evidence": "Tea on the sofa.",
+     "scope": "session",
+     "category": "Coping & Strengths",
+     "part": 3,
+     "quote_found": true
+    },
+    {
+     "heading": "Intention to track sleep",
+     "content": "Daniel intends to write down when he wakes up if he wakes up.",
+     "evidence": "I'll write down when I wake up, if I wake up.",
+     "scope": "session",
+     "category": "Coping & Strengths",
+     "part": 3,
+     "quote_found": true
+    },
+    {
+     "heading": "Feeling lighter after session",
+     "content": "Daniel feels tired but lighter after saying everything in the session.",
+     "evidence": "Tired, but lighter.",
+     "scope": "session",
+     "category": "Mood & Emotions",
+     "part": 3,
+     "quote_found": true
+    },
+    {
+     "heading": "Trains are awful",
+     "content": "Daniel says the trains are awful.",
+     "evidence": "the trains are awful",
+     "scope": "session",
+     "category": "Coping & Strengths",
+     "part": 4,
+     "quote_found": true
+    }
+   ],
+   "turns": [
+    {
+     "who": "therapist",
+     "text": "Hello Daniel, come in. Have a seat. Where would you like to start today?"
+    },
+    {
+     "who": "client",
+     "text": "I don't really know. My GP suggested I come. She said I look exhausted, and she's right, I am."
+    },
+    {
+     "who": "therapist",
+     "text": "What does exhausted look like for you?"
+    },
+    {
+     "who": "client",
+     "text": "Like I'm running on fumes. I work as a project manager at a logistics company, and I've been completely burned out since October."
+    },
+    {
+     "who": "therapist",
+     "text": "Since October. Did something happen then?"
+    },
+    {
+     "who": "client",
+     "text": "Not one thing. We lost a big client, and half the team got moved onto the rescue plan, so I ended up doing three people's jobs. I just never came back up after that."
+    },
+    {
+     "who": "therapist",
+     "text": "What does a normal working day look like now?"
+    },
+    {
+     "who": "client",
+     "text": "I'm at my desk by seven and I'm still answering messages at ten at night. Even when I'm not working I'm thinking about work."
+    },
+    {
+     "who": "therapist",
+     "text": "That's a very long day. How is your sleep?"
+    },
+    {
+     "who": "client",
+     "text": "Terrible. Most nights I sleep about four hours. I wake up at three in the morning and can't fall back asleep."
+    },
+    {
+     "who": "therapist",
+     "text": "What happens when you wake at three?"
+    },
+    {
+     "who": "client",
+     "text": "My head just starts. Shipping schedules, the client, whether I've forgotten something. Then I look at the clock and do the maths on how little sleep I'm going to get, which makes it worse."
+    },
+    {
+     "who": "therapist",
+     "text": "And then?"
+    },
+    {
+     "who": "client",
+     "text": "Then I lie there until about five and get up and make tea. I've started dreading the nights, if I'm honest."
+    },
+    {
+     "who": "therapist",
+     "text": "That sounds draining. Is there anything else going on in your life besides work?"
+    },
+    {
+     "who": "client",
+     "text": "Yes. My father. He was diagnosed with Parkinson's disease in the autumn."
+    },
+    {
+     "who": "therapist",
+     "text": "That's a lot to carry alongside everything else. How is he?"
+    },
+    {
+     "who": "client",
+     "text": "He's still himself, mostly. His hands shake, and he's slower, and he gets frustrated. He's seventy-three and he's always been the strong one."
+    },
+    {
+     "who": "therapist",
+     "text": "And how are you involved in his care?"
+    },
+    {
+     "who": "client",
+     "text": "I'm the one who drives him to the hospital in Leeds. The neurology appointments are every few weeks, and it's an hour each way."
+    },
+    {
+     "who": "therapist",
+     "text": "Is there anybody who shares that with you?"
+    },
+    {
+     "who": "client",
+     "text": "Not really. My younger sister Hannah lives in Toronto, so all the care for our father falls on me."
+    },
+    {
+     "who": "therapist",
+     "text": "How do you feel about that?"
+    },
+    {
+     "who": "client",
+     "text": "Guilty for even saying it. She calls him every Sunday, and she's not the one who's neglecting him. It's just that I'm the one who's here."
+    },
+    {
+     "who": "therapist",
+     "text": "Can you say more about the guilt?"
+    },
+    {
+     "who": "client",
+     "text": "I feel it's selfish to be tired when he's the one who's ill. So I don't say anything to anyone."
+    },
+    {
+     "who": "therapist",
+     "text": "Not to Hannah either?"
+    },
+    {
+     "who": "client",
+     "text": "She asks how I am and I say fine. What would be the point? She can't do anything from Canada."
+    },
+    {
+     "who": "therapist",
+     "text": "What would you want her to know, if you said it?"
+    },
+    {
+     "who": "client",
+     "text": "That I'm not fine. That some days I sit in the car park at the hospital for ten minutes before I go in, because I can't face it."
+    },
+    {
+     "who": "therapist",
+     "text": "That's an important thing to notice. What happens in those ten minutes?"
+    },
+    {
+     "who": "client",
+     "text": "Nothing, really. I just breathe. I look at the other people going in. Everybody looks tired there."
+    },
+    {
+     "who": "therapist",
+     "text": "You mentioned your GP. What did she say?"
+    },
+    {
+     "who": "client",
+     "text": "She did blood tests, and they were all normal. She said it's stress and exhaustion, and asked if I'd thought about talking to someone. I said I hadn't got time."
+    },
+    {
+     "who": "therapist",
+     "text": "And yet you're here."
+    },
+    {
+     "who": "client",
+     "text": "My girlfriend booked it, to be honest. Claire. She said she was done watching me disappear."
+    },
+    {
+     "who": "therapist",
+     "text": "How is it with Claire?"
+    },
+    {
+     "who": "client",
+     "text": "She's very patient. She makes me tea and doesn't push me to talk. But I can see it's wearing on her too."
+    },
+    {
+     "who": "therapist",
+     "text": "In what way?"
+    },
+    {
+     "who": "client",
+     "text": "She stopped asking if I want to go away for the weekend, because I always say no. That's the thing I feel worst about, actually."
+    },
+    {
+     "who": "therapist",
+     "text": "What stops you saying yes?"
+    },
+    {
+     "who": "client",
+     "text": "The emails. If I'm away I'll come back to two hundred of them. And Dad might need something."
+    },
+    {
+     "who": "therapist",
+     "text": "So even rest has a price."
+    },
+    {
+     "who": "client",
+     "text": "Yes, exactly. I can't remember the last time I was properly off."
+    },
+    {
+     "who": "therapist",
+     "text": "What did you do for yourself before October?"
+    },
+    {
+     "who": "client",
+     "text": "I ran. Ten kilometres every Saturday morning. I'd done it for six years."
+    },
+    {
+     "who": "therapist",
+     "text": "And now?"
+    },
+    {
+     "who": "client",
+     "text": "I stopped about two months ago. My legs felt like lead, and then I just never went back."
+    },
+    {
+     "who": "therapist",
+     "text": "How do you feel about that?"
+    },
+    {
+     "who": "client",
+     "text": "Like I've lost a part of myself. It was the one time in the week nobody could reach me."
+    },
+    {
+     "who": "therapist",
+     "text": "What would it mean to get some of that back?"
+    },
+    {
+     "who": "client",
+     "text": "A lot, probably. I just can't picture where the time would come from."
+    },
+    {
+     "who": "therapist",
+     "text": "Let's leave that for a moment. What is your relationship with your boss like?"
+    },
+    {
+     "who": "client",
+     "text": "Peterson. He's all right as a person, but he sends emails at eleven at night and expects an answer before breakfast."
+    },
+    {
+     "who": "therapist",
+     "text": "What do you do when one arrives?"
+    },
+    {
+     "who": "client",
+     "text": "I answer it. Every time. Even if I'm in bed. Claire hates it."
+    },
+    {
+     "who": "therapist",
+     "text": "What are you afraid would happen if you didn't answer?"
+    },
+    {
+     "who": "client",
+     "text": "That he'd think I wasn't committed. There's a restructuring in the spring and I'm afraid they'll let me go."
+    },
+    {
+     "who": "therapist",
+     "text": "And if they did?"
+    },
+    {
+     "who": "client",
+     "text": "I don't know. I think part of me would be relieved, and then I'd feel horrible about being relieved. I have a mortgage."
+    },
+    {
+     "who": "therapist",
+     "text": "Both things can be true."
+    },
+    {
+     "who": "client",
+     "text": "I suppose so. I've never said that out loud."
+    },
+    {
+     "who": "therapist",
+     "text": "How are your moods apart from the tiredness?"
+    },
+    {
+     "who": "client",
+     "text": "Flat, mostly. And irritable. I snapped at a colleague last week over nothing and went and sat in the toilets for ten minutes."
+    },
+    {
+     "who": "therapist",
+     "text": "What was happening for you in those minutes?"
+    },
+    {
+     "who": "client",
+     "text": "My heart was going and my hands were shaking. I thought for a second it was a heart attack, but it passed."
+    },
+    {
+     "who": "therapist",
+     "text": "Has that happened before?"
+    },
+    {
+     "who": "client",
+     "text": "A couple of times. Once on the train to Manchester. I just had to get off and stand on the platform."
+    },
+    {
+     "who": "therapist",
+     "text": "That sounds frightening."
+    },
+    {
+     "who": "client",
+     "text": "It was. I haven't told anyone about it, not even Claire."
+    },
+    {
+     "who": "therapist",
+     "text": "Thank you for telling me. What are you afraid it means?"
+    },
+    {
+     "who": "client",
+     "text": "That I'm losing it. That I'm going to end up like, I don't know. Not coping."
+    },
+    {
+     "who": "therapist",
+     "text": "Have you noticed anything that makes it worse?"
+    },
+    {
+     "who": "client",
+     "text": "Coffee, probably. I'm on about six cups a day. And I've started having wine in the evenings to switch my head off. Two glasses, sometimes three."
+    },
+    {
+     "who": "therapist",
+     "text": "How do you feel about the wine?"
+    },
+    {
+     "who": "client",
+     "text": "Uneasy. It works for an hour and then I wake at three anyway. I know it's not helping."
+    },
+    {
+     "who": "therapist",
+     "text": "You are noticing that clearly. That is useful."
+    },
+    {
+     "who": "client",
+     "text": "It doesn't feel useful. It feels like I'm just listing everything that's wrong with me."
+    },
+    {
+     "who": "therapist",
+     "text": "I hear a person who has been holding a great deal on his own for a long time. What was it like to say it today?"
+    },
+    {
+     "who": "client",
+     "text": "Strange. A bit of a relief, actually. Like putting down a bag I didn't realise I was carrying."
+    },
+    {
+     "who": "therapist",
+     "text": "What do you carry that you'd like to put down first?"
+    },
+    {
+     "who": "client",
+     "text": "The nights, I think. If I could sleep I could probably cope with the rest."
+    },
+    {
+     "who": "therapist",
+     "text": "We can start there. Did anything about your family growing up shape how you handle this?"
+    },
+    {
+     "who": "client",
+     "text": "My grandfather worked in the mines in Yorkshire. He never complained about anything, not once. Dad's the same. You just get on with it."
+    },
+    {
+     "who": "therapist",
+     "text": "And you?"
+    },
+    {
+     "who": "client",
+     "text": "I'm the same. I keep thinking he would think I was weak for being here."
+    },
+    {
+     "who": "therapist",
+     "text": "What would you say to him if he were here?"
+    },
+    {
+     "who": "client",
+     "text": "That I'm not weak. I'm just very tired."
+    },
+    {
+     "who": "therapist",
+     "text": "That sounds like something you could say to yourself as well."
+    },
+    {
+     "who": "client",
+     "text": "Maybe. I don't know if I believe it yet."
+    },
+    {
+     "who": "therapist",
+     "text": "That's fine. You don't have to. Let's think about what we could do between now and next week. Would you be willing to try something small?"
+    },
+    {
+     "who": "client",
+     "text": "Depends how small. I haven't got much left."
+    },
+    {
+     "who": "therapist",
+     "text": "Very small. A fixed time in the evening when you switch off your phone, even for twenty minutes."
+    },
+    {
+     "who": "client",
+     "text": "Peterson would hate that."
+    },
+    {
+     "who": "therapist",
+     "text": "What would actually happen in twenty minutes?"
+    },
+    {
+     "who": "client",
+     "text": "Nothing, probably. He wouldn't even notice."
+    },
+    {
+     "who": "therapist",
+     "text": "Would you try it?"
+    },
+    {
+     "who": "client",
+     "text": "Yes. Half past nine, perhaps. I could make it a thing with Claire. Tea on the sofa."
+    },
+    {
+     "who": "therapist",
+     "text": "That sounds good. And a note of how the night goes?"
+    },
+    {
+     "who": "client",
+     "text": "I can do that. I'll write down when I wake up, if I wake up."
+    },
+    {
+     "who": "therapist",
+     "text": "We're nearly out of time. How are you feeling now?"
+    },
+    {
+     "who": "client",
+     "text": "Tired, but lighter. Is it normal to feel a bit shaky after saying all that?"
+    },
+    {
+     "who": "therapist",
+     "text": "Very normal. It takes energy to say it out loud."
+    },
+    {
+     "who": "client",
+     "text": "Right. Thank you. I think I needed to hear that."
+    },
+    {
+     "who": "therapist",
+     "text": "Same time next week?"
+    },
+    {
+     "who": "client",
+     "text": "Yes. I'll be here. I'll try to make it on time, the trains are awful."
+    }
+   ],
+   "roles": {
+    "roles": "right",
+    "raw": "```json\n{\n  \"therapist\": \"S1\",\n  \"patient\": \"S0\",\n  \"confidence\": 1.0,\n  \"evidence\": [\n    \"Hello Daniel, come in. Have a seat.\",\n    \"What does exhausted look like for you?\",\n    \"That sounds draining.\"\n  ]\n}\n```"
+   }
+  },
+  "hannah-w": {
+   "lang": "en",
+   "seconds": 741.4,
+   "stages": {
+    "roles_s": 58.6,
+    "facts_s": 682.8
+   },
+   "raw_parts": [
+    "{\"heading\":\"Anxiety since September\",\"content\":\"Hannah has been anxious all the time, and it has gotten worse since September.\",\"evidence\":\"I think I'm just anxious all the time, and it's got worse since September.\",\"scope\":\"profile\",\"category\":\"Mood & Emotions\"}\n{\"heading\":\"Promoted to deputy head\",\"content\":\"Hannah was made deputy head at her school in September.\",\"evidence\":\"I was made deputy head at my school.\",\"scope\":\"profile\",\"category\":\"Work & Career\"}\n{\"heading\":\"Teaching experience\",\"content\":\"Hannah has taught Year 4 for eleven years.\",\"evidence\":\"I've taught Year 4 for eleven years.\",\"scope\":\"profile\",\"category\":\"Work & Career\"}\n{\"heading\":\"Imagining staff meeting rehearsal\",\"content\":\"Hannah rehearses Monday's staff meeting in her head on Sunday evenings.\",\"evidence\":\"I start rehearsing Monday's staff meeting in my head.\",\"scope\":\"session\",\"category\":\"Coping & Strengths\"}\n{\"heading\":\"Rewrote email four times\",\"content\":\"Hannah rewrote the same email to the governors four times last week.\",\"evidence\":\"Last week I rewrote the same email to the governors four times.\",\"scope\":\"session\",\"category\":\"Coping & Strengths\"}\n{\"heading\":\"Email about behaviour policy\",\"content\":\"The email was about a change to the behaviour policy.\",\"evidence\":\"A change to the behaviour policy.\",\"scope\":\"session\",\"category\":\"Work & Career\"}\n{\"heading\":\"Feeling of being a child\",\"content\":\"Hannah feels like a child wearing her mother's coat most days.\",\"evidence\":\"Most days I feel like a child wearing her mother's coat.\",\"scope\":\"profile\",\"category\":\"Self-concept & Identity\"}\n{\"heading\":\"Mother's career history\",\"content\":\"Hannah's mother was a headteacher for twenty years.\",\"evidence\":\"She was a headteacher for twenty years.\",\"scope\":\"profile\",\"category\":\"Family & Relationships\"}\n{\"heading\":\"Mother's retirement and legacy\",\"content\":\"Hannah's mother retired six years ago and a library was named after her.\",\"evidence\":\"She retired six years ago and they've named a library after her.\",\"scope\":\"profile\",\"category\":\"Family & Relationships\"}\n{\"heading\":\"Comparing to mother's work\",\"content\":\"Hannah compares her work to her mother's, thinking her mother would have done it better.\",\"evidence\":\"Everything I do, I think, would she have done it better?\",\"scope\":\"profile\",\"category\":\"Self-concept & Identity\"}\n{\"heading\":\"Mother's feedback on Hannah\",\"content\":\"Hannah's mother told her she worries too much and should stop being silly.\",\"evidence\":\"She says I've always worried too much and I should stop being silly.\",\"scope\":\"profile\",\"category\":\"Family & Relationships\"}\n{\"heading\":\"Feeling of making a fuss\",\"content\":\"Hannah feels she is making a fuss when her mother says she worries too much.\",\"evidence\":\"It makes me feel I'm making a fuss.\",\"scope\":\"session\",\"category\":\"Mood & Emotions\"}",
+    "{\"heading\":\"Sleeps at 4am\",\"content\":\"Hannah is awake at four every morning.\",\"evidence\":\"I'm awake at four going through the to-do list.\",\"scope\":\"session\",\"category\":\"Health, Body & Sleep\"}\n{\"heading\":\"Wakes since second week of term\",\"content\":\"Hannah has been waking up at four since about the second week of term.\",\"evidence\":\"Since about the second week of term.\",\"scope\":\"profile\",\"category\":\"Health, Body & Sleep\"}\n{\"heading\":\"Drinks coffee to cope\",\"content\":\"Hannah drinks a lot of coffee to get through the day.\",\"evidence\":\"I drink a lot of coffee to get through the day.\",\"scope\":\"session\",\"category\":\"Addictions & Habits\"}\n{\"heading\":\"Drinks five or six cups\",\"content\":\"Hannah drinks five or six cups of coffee each day.\",\"evidence\":\"Five or six.\",\"scope\":\"session\",\"category\":\"Addictions & Habits\"}\n{\"heading\":\"Can't sit still in afternoons\",\"content\":\"Hannah can't sit still in the afternoons.\",\"evidence\":\"And then I can't sit still in the afternoons.\",\"scope\":\"session\",\"category\":\"Health, Body & Sleep\"}\n{\"heading\":\"Heart races and hands shake\",\"content\":\"Hannah's heart goes fast and her hands are shaky in the afternoons.\",\"evidence\":\"My heart goes fast. My hands are a bit shaky.\",\"scope\":\"session\",\"category\":\"Health, Body & Sleep\"}\n{\"heading\":\"Left meeting to splash water\",\"content\":\"Hannah left a meeting last Thursday to splash her face with water.\",\"evidence\":\"Last Thursday I had to leave a meeting to splash my face with water.\",\"scope\":\"session\",\"category\":\"Health, Body & Sleep\"}\n{\"heading\":\"Hides anxiety at work\",\"content\":\"Hannah hides her anxiety at work by saying she is fetching a document.\",\"evidence\":\"I said I was fetching a document.\",\"scope\":\"session\",\"category\":\"Coping & Strengths\"}\n{\"heading\":\"Feels exhausted by pretending\",\"content\":\"Hannah is exhausted by the end of every day just from pretending.\",\"evidence\":\"I'm exhausted by the end of every day just from pretending.\",\"scope\":\"session\",\"category\":\"Mood & Emotions\"}\n{\"heading\":\"Partner Ben knows how she feels\",\"content\":\"Hannah's partner Ben knows a bit about how she is feeling.\",\"evidence\":\"My partner Ben knows a bit.\",\"scope\":\"profile\",\"category\":\"Family & Relationships\"}\n{\"heading\":\"Partner suggests she enjoy it\",\"content\":\"Hannah's partner Ben says she should just enjoy it.\",\"evidence\":\"He says I should just enjoy it.\",\"scope\":\"session\",\"category\":\"Family & Relationships\"}\n{\"heading\":\"Partner is an engineer\",\"content\":\"Hannah's partner Ben is an engineer.\",\"evidence\":\"He's an engineer.\",\"scope\":\"profile\",\"category\":\"Family & Relationships\"}\n{\"heading\":\"Partner thinks problems can be fixed\",\"content\":\"Hannah's partner Ben thinks if something's a problem you fix it.\",\"evidence\":\"He thinks if something's a problem you fix it.\",\"scope\":\"profile\",\"category\":\"Family & Relationships\"}\n{\"heading\":\"Feels guilty and alone when partner says that\",\"content\":\"Hannah feels guilty and a bit alone when her partner says she should enjoy it.\",\"evidence\":\"Guilty, and a bit alone.\",\"scope\":\"session\",\"category\":\"Mood & Emotions\"}\n{\"heading\":\"Wishes problem was simple to fix\",\"content\":\"Hannah wishes the problem was simple to fix.\",\"evidence\":\"I wish it were that simple.\",\"scope\":\"session\",\"category\":\"Mood & Emotions\"}\n{\"heading\":\"Lost friends at school after promotion\",\"content\":\"Hannah lost her friends at school after getting a promotion.\",\"evidence\":\"So you've lost some company along with the promotion.\",\"scope\":\"profile\",\"category\":\"Family & Relationships\"}\n{\"heading\":\"Misses children and class\",\"content\":\"Hannah misses the children and her class.\",\"evidence\":\"I miss them. I miss my class too.\",\"scope\":\"profile\",\"category\":\"Family & Relationships\"}\n{\"heading\":\"Misses children most of all\",\"content\":\"Hannah misses the children most of all.\",\"evidence\":\"The children, honestly.\",\"scope\":\"session\",\"category\":\"Family & Relationships\"}\n{\"heading\":\"Days are now spreadsheets\",\"content\":\"Hannah's days are now spreadsheets.\",\"evidence\":\"Now my days are spreadsheets.\",\"scope\":\"session\",\"category\":\"Work & Career\"}\n{\"heading\":\"Promoted because couldn't say no\",\"content\":\"Hannah got the promotion because she couldn't say no to the head.\",\"evidence\":\"I said yes in the room because I couldn't say no to her. The head.\",\"scope\":\"profile\",\"category\":\"Work & Career\"}\n{\"heading\":\"Cried after promotion\",\"content\":\"Hannah cried after getting the promotion.\",\"evidence\":\"Then I went home and cried.\",\"scope\":\"session\",\"category\":\"Mood & Emotions\"}\n{\"heading\":\"Tears were about fear\",\"content\":\"Hannah's tears were about fear and the thought she'd never go back.\",\"evidence\":\"Fear, I think. And that I'd never get to go back.\",\"scope\":\"session\",\"category\":\"Mood & Emotions\"}\n{\"heading\":\"Doesn't know if she wants to go back\",\"content\":\"Hannah doesn't know if she would want to go back to her old role.\",\"evidence\":\"I don't know. That sounds terrible, doesn't it?\",\"scope\":\"session\",\"category\":\"Mood & Emotions\"}\n{\"heading\":\"Nobody asked her if she wanted to go back\",\"content\":\"Hannah hasn't been asked if she would want to go back.\",\"evidence\":\"Nobody has asked me that.\",\"scope\":\"session\",\"category\":\"Family & Relationships\"}\n{\"heading\":\"Last relaxed time was summer holidays\",\"content\":\"Hannah's last time feeling properly relaxed was during the summer holidays.\",\"evidence\":\"The summer holidays.\",\"scope\":\"profile\",\"category\":\"Mood & Emotions\"}\n{\"heading\":\"No expectations during holidays\",\"content\":\"Hannah had no expectations of herself during the summer holidays.\",\"evidence\":\"Nobody expected anything of me.\",\"scope\":\"profile\",\"category\":\"Mood & Emotions\"}\n{\"heading\":\"Week before term she was a wreck\",\"content\":\"Hannah was a wreck the week before term.\",\"evidence\":\"The week before term I was a wreck again.\",\"scope\":\"profile\",\"category\":\"Mood & Emotions\"}\n{\"heading\":\"Couldn't eat on Sunday before term\",\"content\":\"Hannah couldn't eat on the Sunday before term.\",\"evidence\":\"I couldn't eat on the Sunday.\",\"scope\":\"session\",\"category\":\"Health, Body & Sleep\"}",
+    "{\"heading\":\"Cancelling appointment\",\"content\":\"Hannah nearly cancelled her therapy appointment this morning.\",\"evidence\":\"I nearly cancelled this morning\",\"scope\":\"session\",\"category\":\"Coping & Strengths\"}\n{\"heading\":\"Feeling lighter\",\"content\":\"Hannah feels lighter after stating her goals out loud.\",\"evidence\":\"Lighter. A bit tearful, actually.\",\"scope\":\"session\",\"category\":\"Mood & Emotions\"}\n{\"heading\":\"Goals for Tuesday\",\"content\":\"Hannah wants to walk into meetings without rehearsing and send emails once.\",\"evidence\":\"Walking into a meeting and not rehearsing it first. Sending an email once.\",\"scope\":\"profile\",\"category\":\"Self-concept & Identity\"}\n{\"heading\":\"Goals for Sunday\",\"content\":\"Hannah wants to sit on the sofa without stomach knots.\",\"evidence\":\"Being able to sit on the sofa in the evening without my stomach in knots.\",\"scope\":\"profile\",\"category\":\"Health, Body & Sleep\"}\n{\"heading\":\"Confiding in Ben\",\"content\":\"Hannah plans to tell Ben about her struggles this week.\",\"evidence\":\"I might try this week.\",\"scope\":\"profile\",\"category\":\"Family & Relationships\"}\n{\"heading\":\"Preferred time to confide\",\"content\":\"Hannah prefers Saturday morning over breakfast to tell Ben.\",\"evidence\":\"Saturday morning, perhaps... Yes, over breakfast.\",\"scope\":\"profile\",\"category\":\"Coping & Strengths\"}\n{\"heading\":\"Evening notebook plan\",\"content\":\"Hannah will write in her evening notebook by the kettle.\",\"evidence\":\"I'll put it by the kettle so I don't forget.\",\"scope\":\"profile\",\"category\":\"Coping & Strengths\"}\n{\"heading\":\"Feeling silly about gratitude\",\"content\":\"Hannah stopped writing down good things because she felt silly.\",\"evidence\":\"I stopped, because I felt silly.\",\"scope\":\"profile\",\"category\":\"Self-concept & Identity\"}\n{\"heading\":\"Fear of hurting Ben\",\"content\":\"Hannah fears Ben would be hurt if she didn't tell him sooner.\",\"evidence\":\"He'd probably be hurt that I didn't say sooner.\",\"scope\":\"profile\",\"category\":\"Family & Relationships\"}\n{\"heading\":\"First disclosure\",\"content\":\"Hannah notes this is the first time she has told anyone how bad it is.\",\"evidence\":\"That it's the first time I've told anyone how bad it is.\",\"scope\":\"profile\",\"category\":\"Self-concept & Identity\"}\n{\"heading\":\"Sleep disturbance\",\"content\":\"Hannah experiences stomach knots in the evening on Sundays.\",\"evidence\":\"without my stomach in knots.\",\"scope\":\"session\",\"category\":\"Health, Body & Sleep\"}"
+   ],
+   "n_parts": 3,
+   "facts": [
+    {
+     "heading": "Anxiety since September",
+     "content": "Hannah has been anxious all the time, and it has gotten worse since September.",
+     "evidence": "I think I'm just anxious all the time, and it's got worse since September.",
+     "scope": "profile",
+     "category": "Mood & Emotions",
+     "part": 1,
+     "quote_found": true
+    },
+    {
+     "heading": "Promoted to deputy head",
+     "content": "Hannah was made deputy head at her school in September.",
+     "evidence": "I was made deputy head at my school.",
+     "scope": "profile",
+     "category": "Work & Career",
+     "part": 1,
+     "quote_found": true
+    },
+    {
+     "heading": "Teaching experience",
+     "content": "Hannah has taught Year 4 for eleven years.",
+     "evidence": "I've taught Year 4 for eleven years.",
+     "scope": "profile",
+     "category": "Work & Career",
+     "part": 1,
+     "quote_found": true
+    },
+    {
+     "heading": "Imagining staff meeting rehearsal",
+     "content": "Hannah rehearses Monday's staff meeting in her head on Sunday evenings.",
+     "evidence": "I start rehearsing Monday's staff meeting in my head.",
+     "scope": "session",
+     "category": "Coping & Strengths",
+     "part": 1,
+     "quote_found": true
+    },
+    {
+     "heading": "Rewrote email four times",
+     "content": "Hannah rewrote the same email to the governors four times last week.",
+     "evidence": "Last week I rewrote the same email to the governors four times.",
+     "scope": "session",
+     "category": "Coping & Strengths",
+     "part": 1,
+     "quote_found": true
+    },
+    {
+     "heading": "Email about behaviour policy",
+     "content": "The email was about a change to the behaviour policy.",
+     "evidence": "A change to the behaviour policy.",
+     "scope": "session",
+     "category": "Work & Career",
+     "part": 1,
+     "quote_found": true
+    },
+    {
+     "heading": "Feeling of being a child",
+     "content": "Hannah feels like a child wearing her mother's coat most days.",
+     "evidence": "Most days I feel like a child wearing her mother's coat.",
+     "scope": "profile",
+     "category": "Self-concept & Identity",
+     "part": 1,
+     "quote_found": true
+    },
+    {
+     "heading": "Mother's career history",
+     "content": "Hannah's mother was a headteacher for twenty years.",
+     "evidence": "She was a headteacher for twenty years.",
+     "scope": "profile",
+     "category": "Family & Relationships",
+     "part": 1,
+     "quote_found": true
+    },
+    {
+     "heading": "Mother's retirement and legacy",
+     "content": "Hannah's mother retired six years ago and a library was named after her.",
+     "evidence": "She retired six years ago and they've named a library after her.",
+     "scope": "profile",
+     "category": "Family & Relationships",
+     "part": 1,
+     "quote_found": true
+    },
+    {
+     "heading": "Comparing to mother's work",
+     "content": "Hannah compares her work to her mother's, thinking her mother would have done it better.",
+     "evidence": "Everything I do, I think, would she have done it better?",
+     "scope": "profile",
+     "category": "Self-concept & Identity",
+     "part": 1,
+     "quote_found": true
+    },
+    {
+     "heading": "Mother's feedback on Hannah",
+     "content": "Hannah's mother told her she worries too much and should stop being silly.",
+     "evidence": "She says I've always worried too much and I should stop being silly.",
+     "scope": "profile",
+     "category": "Family & Relationships",
+     "part": 1,
+     "quote_found": true
+    },
+    {
+     "heading": "Feeling of making a fuss",
+     "content": "Hannah feels she is making a fuss when her mother says she worries too much.",
+     "evidence": "It makes me feel I'm making a fuss.",
+     "scope": "session",
+     "category": "Mood & Emotions",
+     "part": 1,
+     "quote_found": true
+    },
+    {
+     "heading": "Sleeps at 4am",
+     "content": "Hannah is awake at four every morning.",
+     "evidence": "I'm awake at four going through the to-do list.",
+     "scope": "session",
+     "category": "Health, Body & Sleep",
+     "part": 2,
+     "quote_found": true
+    },
+    {
+     "heading": "Wakes since second week of term",
+     "content": "Hannah has been waking up at four since about the second week of term.",
+     "evidence": "Since about the second week of term.",
+     "scope": "profile",
+     "category": "Health, Body & Sleep",
+     "part": 2,
+     "quote_found": true
+    },
+    {
+     "heading": "Drinks coffee to cope",
+     "content": "Hannah drinks a lot of coffee to get through the day.",
+     "evidence": "I drink a lot of coffee to get through the day.",
+     "scope": "session",
+     "category": "Addictions & Habits",
+     "part": 2,
+     "quote_found": true
+    },
+    {
+     "heading": "Drinks five or six cups",
+     "content": "Hannah drinks five or six cups of coffee each day.",
+     "evidence": "Five or six.",
+     "scope": "session",
+     "category": "Addictions & Habits",
+     "part": 2,
+     "quote_found": true
+    },
+    {
+     "heading": "Can't sit still in afternoons",
+     "content": "Hannah can't sit still in the afternoons.",
+     "evidence": "And then I can't sit still in the afternoons.",
+     "scope": "session",
+     "category": "Health, Body & Sleep",
+     "part": 2,
+     "quote_found": true
+    },
+    {
+     "heading": "Heart races and hands shake",
+     "content": "Hannah's heart goes fast and her hands are shaky in the afternoons.",
+     "evidence": "My heart goes fast. My hands are a bit shaky.",
+     "scope": "session",
+     "category": "Health, Body & Sleep",
+     "part": 2,
+     "quote_found": true
+    },
+    {
+     "heading": "Left meeting to splash water",
+     "content": "Hannah left a meeting last Thursday to splash her face with water.",
+     "evidence": "Last Thursday I had to leave a meeting to splash my face with water.",
+     "scope": "session",
+     "category": "Health, Body & Sleep",
+     "part": 2,
+     "quote_found": true
+    },
+    {
+     "heading": "Hides anxiety at work",
+     "content": "Hannah hides her anxiety at work by saying she is fetching a document.",
+     "evidence": "I said I was fetching a document.",
+     "scope": "session",
+     "category": "Coping & Strengths",
+     "part": 2,
+     "quote_found": true
+    },
+    {
+     "heading": "Feels exhausted by pretending",
+     "content": "Hannah is exhausted by the end of every day just from pretending.",
+     "evidence": "I'm exhausted by the end of every day just from pretending.",
+     "scope": "session",
+     "category": "Mood & Emotions",
+     "part": 2,
+     "quote_found": true
+    },
+    {
+     "heading": "Partner Ben knows how she feels",
+     "content": "Hannah's partner Ben knows a bit about how she is feeling.",
+     "evidence": "My partner Ben knows a bit.",
+     "scope": "profile",
+     "category": "Family & Relationships",
+     "part": 2,
+     "quote_found": true
+    },
+    {
+     "heading": "Partner suggests she enjoy it",
+     "content": "Hannah's partner Ben says she should just enjoy it.",
+     "evidence": "He says I should just enjoy it.",
+     "scope": "session",
+     "category": "Family & Relationships",
+     "part": 2,
+     "quote_found": true
+    },
+    {
+     "heading": "Partner is an engineer",
+     "content": "Hannah's partner Ben is an engineer.",
+     "evidence": "He's an engineer.",
+     "scope": "profile",
+     "category": "Family & Relationships",
+     "part": 2,
+     "quote_found": true
+    },
+    {
+     "heading": "Partner thinks problems can be fixed",
+     "content": "Hannah's partner Ben thinks if something's a problem you fix it.",
+     "evidence": "He thinks if something's a problem you fix it.",
+     "scope": "profile",
+     "category": "Family & Relationships",
+     "part": 2,
+     "quote_found": true
+    },
+    {
+     "heading": "Feels guilty and alone when partner says that",
+     "content": "Hannah feels guilty and a bit alone when her partner says she should enjoy it.",
+     "evidence": "Guilty, and a bit alone.",
+     "scope": "session",
+     "category": "Mood & Emotions",
+     "part": 2,
+     "quote_found": true
+    },
+    {
+     "heading": "Wishes problem was simple to fix",
+     "content": "Hannah wishes the problem was simple to fix.",
+     "evidence": "I wish it were that simple.",
+     "scope": "session",
+     "category": "Mood & Emotions",
+     "part": 2,
+     "quote_found": true
+    },
+    {
+     "heading": "Lost friends at school after promotion",
+     "content": "Hannah lost her friends at school after getting a promotion.",
+     "evidence": "So you've lost some company along with the promotion.",
+     "scope": "profile",
+     "category": "Family & Relationships",
+     "part": 2,
+     "quote_found": true
+    },
+    {
+     "heading": "Misses children and class",
+     "content": "Hannah misses the children and her class.",
+     "evidence": "I miss them. I miss my class too.",
+     "scope": "profile",
+     "category": "Family & Relationships",
+     "part": 2,
+     "quote_found": true
+    },
+    {
+     "heading": "Misses children most of all",
+     "content": "Hannah misses the children most of all.",
+     "evidence": "The children, honestly.",
+     "scope": "session",
+     "category": "Family & Relationships",
+     "part": 2,
+     "quote_found": true
+    },
+    {
+     "heading": "Days are now spreadsheets",
+     "content": "Hannah's days are now spreadsheets.",
+     "evidence": "Now my days are spreadsheets.",
+     "scope": "session",
+     "category": "Work & Career",
+     "part": 2,
+     "quote_found": true
+    },
+    {
+     "heading": "Promoted because couldn't say no",
+     "content": "Hannah got the promotion because she couldn't say no to the head.",
+     "evidence": "I said yes in the room because I couldn't say no to her. The head.",
+     "scope": "profile",
+     "category": "Work & Career",
+     "part": 2,
+     "quote_found": true
+    },
+    {
+     "heading": "Cried after promotion",
+     "content": "Hannah cried after getting the promotion.",
+     "evidence": "Then I went home and cried.",
+     "scope": "session",
+     "category": "Mood & Emotions",
+     "part": 2,
+     "quote_found": true
+    },
+    {
+     "heading": "Tears were about fear",
+     "content": "Hannah's tears were about fear and the thought she'd never go back.",
+     "evidence": "Fear, I think. And that I'd never get to go back.",
+     "scope": "session",
+     "category": "Mood & Emotions",
+     "part": 2,
+     "quote_found": true
+    },
+    {
+     "heading": "Doesn't know if she wants to go back",
+     "content": "Hannah doesn't know if she would want to go back to her old role.",
+     "evidence": "I don't know. That sounds terrible, doesn't it?",
+     "scope": "session",
+     "category": "Mood & Emotions",
+     "part": 2,
+     "quote_found": true
+    },
+    {
+     "heading": "Nobody asked her if she wanted to go back",
+     "content": "Hannah hasn't been asked if she would want to go back.",
+     "evidence": "Nobody has asked me that.",
+     "scope": "session",
+     "category": "Family & Relationships",
+     "part": 2,
+     "quote_found": true
+    },
+    {
+     "heading": "Last relaxed time was summer holidays",
+     "content": "Hannah's last time feeling properly relaxed was during the summer holidays.",
+     "evidence": "The summer holidays.",
+     "scope": "profile",
+     "category": "Mood & Emotions",
+     "part": 2,
+     "quote_found": true
+    },
+    {
+     "heading": "No expectations during holidays",
+     "content": "Hannah had no expectations of herself during the summer holidays.",
+     "evidence": "Nobody expected anything of me.",
+     "scope": "profile",
+     "category": "Mood & Emotions",
+     "part": 2,
+     "quote_found": true
+    },
+    {
+     "heading": "Week before term she was a wreck",
+     "content": "Hannah was a wreck the week before term.",
+     "evidence": "The week before term I was a wreck again.",
+     "scope": "profile",
+     "category": "Mood & Emotions",
+     "part": 2,
+     "quote_found": true
+    },
+    {
+     "heading": "Couldn't eat on Sunday before term",
+     "content": "Hannah couldn't eat on the Sunday before term.",
+     "evidence": "I couldn't eat on the Sunday.",
+     "scope": "session",
+     "category": "Health, Body & Sleep",
+     "part": 2,
+     "quote_found": true
+    },
+    {
+     "heading": "Cancelling appointment",
+     "content": "Hannah nearly cancelled her therapy appointment this morning.",
+     "evidence": "I nearly cancelled this morning",
+     "scope": "session",
+     "category": "Coping & Strengths",
+     "part": 3,
+     "quote_found": true
+    },
+    {
+     "heading": "Feeling lighter",
+     "content": "Hannah feels lighter after stating her goals out loud.",
+     "evidence": "Lighter. A bit tearful, actually.",
+     "scope": "session",
+     "category": "Mood & Emotions",
+     "part": 3,
+     "quote_found": true
+    },
+    {
+     "heading": "Goals for Tuesday",
+     "content": "Hannah wants to walk into meetings without rehearsing and send emails once.",
+     "evidence": "Walking into a meeting and not rehearsing it first. Sending an email once.",
+     "scope": "profile",
+     "category": "Self-concept & Identity",
+     "part": 3,
+     "quote_found": true
+    },
+    {
+     "heading": "Goals for Sunday",
+     "content": "Hannah wants to sit on the sofa without stomach knots.",
+     "evidence": "Being able to sit on the sofa in the evening without my stomach in knots.",
+     "scope": "profile",
+     "category": "Health, Body & Sleep",
+     "part": 3,
+     "quote_found": true
+    },
+    {
+     "heading": "Confiding in Ben",
+     "content": "Hannah plans to tell Ben about her struggles this week.",
+     "evidence": "I might try this week.",
+     "scope": "profile",
+     "category": "Family & Relationships",
+     "part": 3,
+     "quote_found": true
+    },
+    {
+     "heading": "Preferred time to confide",
+     "content": "Hannah prefers Saturday morning over breakfast to tell Ben.",
+     "evidence": "Saturday morning, perhaps... Yes, over breakfast.",
+     "scope": "profile",
+     "category": "Coping & Strengths",
+     "part": 3,
+     "quote_found": false
+    },
+    {
+     "heading": "Evening notebook plan",
+     "content": "Hannah will write in her evening notebook by the kettle.",
+     "evidence": "I'll put it by the kettle so I don't forget.",
+     "scope": "profile",
+     "category": "Coping & Strengths",
+     "part": 3,
+     "quote_found": true
+    },
+    {
+     "heading": "Feeling silly about gratitude",
+     "content": "Hannah stopped writing down good things because she felt silly.",
+     "evidence": "I stopped, because I felt silly.",
+     "scope": "profile",
+     "category": "Self-concept & Identity",
+     "part": 3,
+     "quote_found": true
+    },
+    {
+     "heading": "Fear of hurting Ben",
+     "content": "Hannah fears Ben would be hurt if she didn't tell him sooner.",
+     "evidence": "He'd probably be hurt that I didn't say sooner.",
+     "scope": "profile",
+     "category": "Family & Relationships",
+     "part": 3,
+     "quote_found": true
+    },
+    {
+     "heading": "First disclosure",
+     "content": "Hannah notes this is the first time she has told anyone how bad it is.",
+     "evidence": "That it's the first time I've told anyone how bad it is.",
+     "scope": "profile",
+     "category": "Self-concept & Identity",
+     "part": 3,
+     "quote_found": true
+    },
+    {
+     "heading": "Sleep disturbance",
+     "content": "Hannah experiences stomach knots in the evening on Sundays.",
+     "evidence": "without my stomach in knots.",
+     "scope": "session",
+     "category": "Health, Body & Sleep",
+     "part": 3,
+     "quote_found": true
+    }
+   ],
+   "turns": [
+    {
+     "who": "therapist",
+     "text": "Hello Hannah, come in and take a seat. What would you like to talk about today?"
+    },
+    {
+     "who": "client",
+     "text": "I'm not really sure where to start. I think I'm just anxious all the time, and it's got worse since September."
+    },
+    {
+     "who": "therapist",
+     "text": "What happened in September?"
+    },
+    {
+     "who": "client",
+     "text": "I was made deputy head at my school. I've taught Year 4 for eleven years and I loved it, and then the head asked me to step up when our deputy left."
+    },
+    {
+     "who": "therapist",
+     "text": "That sounds like recognition of your work."
+    },
+    {
+     "who": "client",
+     "text": "That's what everyone says. But I keep thinking they picked the wrong person, and that sooner or later someone will notice I have no idea what I'm doing."
+    },
+    {
+     "who": "therapist",
+     "text": "What does it look like when that thought arrives?"
+    },
+    {
+     "who": "client",
+     "text": "Mostly Sunday evenings. My chest goes tight and I start rehearsing Monday's staff meeting in my head."
+    },
+    {
+     "who": "therapist",
+     "text": "What do you rehearse?"
+    },
+    {
+     "who": "client",
+     "text": "Every possible question someone might ask, and what I'd say. Then what they'd think of me if I got it wrong."
+    },
+    {
+     "who": "therapist",
+     "text": "And what do you imagine they would think?"
+    },
+    {
+     "who": "client",
+     "text": "That I'm out of my depth. That they gave the job to a nice Year 4 teacher who can't actually lead."
+    },
+    {
+     "who": "therapist",
+     "text": "Has anyone said anything that suggests that?"
+    },
+    {
+     "who": "client",
+     "text": "No. That's the strange thing. Nobody has. It's all in my head."
+    },
+    {
+     "who": "therapist",
+     "text": "It is still very real to you."
+    },
+    {
+     "who": "client",
+     "text": "Very. Last week I rewrote the same email to the governors four times."
+    },
+    {
+     "who": "therapist",
+     "text": "Four times. What was the email about?"
+    },
+    {
+     "who": "client",
+     "text": "A change to the behaviour policy. It was two paragraphs. I was afraid Mr Hargreaves, the chair of governors, would think I was stupid."
+    },
+    {
+     "who": "therapist",
+     "text": "How does he treat you?"
+    },
+    {
+     "who": "client",
+     "text": "He's been nothing but kind. He told me in September he was delighted. That makes it worse somehow, because I feel I'm lying to him."
+    },
+    {
+     "who": "therapist",
+     "text": "Lying to him about what?"
+    },
+    {
+     "who": "client",
+     "text": "About being capable. As if I'm pretending."
+    },
+    {
+     "who": "therapist",
+     "text": "Pretending to be what?"
+    },
+    {
+     "who": "client",
+     "text": "Somebody who knows what she's doing. Most days I feel like a child wearing her mother's coat."
+    },
+    {
+     "who": "therapist",
+     "text": "That's a vivid image. Whose coat is it?"
+    },
+    {
+     "who": "client",
+     "text": "My mum's, I suppose. She was a headteacher for twenty years."
+    },
+    {
+     "who": "therapist",
+     "text": "Tell me about that."
+    },
+    {
+     "who": "client",
+     "text": "She was brilliant. Everyone in the village still stops me to say what a wonderful head she was. She retired six years ago and they've named a library after her."
+    },
+    {
+     "who": "therapist",
+     "text": "And you're now in a similar job."
+    },
+    {
+     "who": "client",
+     "text": "A deputy's job. But yes. I can't help comparing. Everything I do, I think, would she have done it better?"
+    },
+    {
+     "who": "therapist",
+     "text": "Does she say that?"
+    },
+    {
+     "who": "client",
+     "text": "Never. She's very supportive on the surface. She says I've always worried too much and I should stop being silly."
+    },
+    {
+     "who": "therapist",
+     "text": "How does it land when she says that?"
+    },
+    {
+     "who": "client",
+     "text": "It makes me feel I'm making a fuss. So I don't tell her how bad it is."
+    },
+    {
+     "who": "therapist",
+     "text": "What does she not know?"
+    },
+    {
+     "who": "client",
+     "text": "That I'm awake at four every morning. I fall asleep fine, then I'm awake at four going through the to-do list."
+    },
+    {
+     "who": "therapist",
+     "text": "What's on the list?"
+    },
+    {
+     "who": "client",
+     "text": "Everything. Timetable changes, the Ofsted prep, a parent complaint, a child I'm worried about. It goes round and round."
+    },
+    {
+     "who": "therapist",
+     "text": "How long have you been waking like that?"
+    },
+    {
+     "who": "client",
+     "text": "Since about the second week of term. I drink a lot of coffee to get through the day, which I know doesn't help."
+    },
+    {
+     "who": "therapist",
+     "text": "How many cups?"
+    },
+    {
+     "who": "client",
+     "text": "Five or six. And then I can't sit still in the afternoons."
+    },
+    {
+     "who": "therapist",
+     "text": "What do you notice in your body during those afternoons?"
+    },
+    {
+     "who": "client",
+     "text": "My heart goes fast. My hands are a bit shaky. Last Thursday I had to leave a meeting to splash my face with water."
+    },
+    {
+     "who": "therapist",
+     "text": "Did anyone notice?"
+    },
+    {
+     "who": "client",
+     "text": "I don't think so. I said I was fetching a document."
+    },
+    {
+     "who": "therapist",
+     "text": "That sounds like a lot of effort to hide it."
+    },
+    {
+     "who": "client",
+     "text": "It is. I'm exhausted by the end of every day just from pretending."
+    },
+    {
+     "who": "therapist",
+     "text": "Who knows how you are feeling?"
+    },
+    {
+     "who": "client",
+     "text": "My partner Ben knows a bit. He says I should just enjoy it."
+    },
+    {
+     "who": "therapist",
+     "text": "How do you feel when he says that?"
+    },
+    {
+     "who": "client",
+     "text": "Guilty, and a bit alone. He means well. He's an engineer, he thinks if something's a problem you fix it."
+    },
+    {
+     "who": "therapist",
+     "text": "And you can't just fix this."
+    },
+    {
+     "who": "client",
+     "text": "No. I wish it were that simple."
+    },
+    {
+     "who": "therapist",
+     "text": "Do you have friends at school you can talk to?"
+    },
+    {
+     "who": "client",
+     "text": "Not any more, not really. I used to eat lunch in the Year 4 corridor with the others. Now I'm their line manager and it's awkward."
+    },
+    {
+     "who": "therapist",
+     "text": "So you've lost some company along with the promotion."
+    },
+    {
+     "who": "client",
+     "text": "Yes. I hadn't thought of it like that. I miss them. I miss my class too."
+    },
+    {
+     "who": "therapist",
+     "text": "What do you miss most?"
+    },
+    {
+     "who": "client",
+     "text": "The children, honestly. The daily bit where a child gets something for the first time. Now my days are spreadsheets."
+    },
+    {
+     "who": "therapist",
+     "text": "Did you want the promotion?"
+    },
+    {
+     "who": "client",
+     "text": "I thought I did. I said yes in the room because I couldn't say no to her. The head. Then I went home and cried."
+    },
+    {
+     "who": "therapist",
+     "text": "What were the tears about?"
+    },
+    {
+     "who": "client",
+     "text": "Fear, I think. And that I'd never get to go back."
+    },
+    {
+     "who": "therapist",
+     "text": "Would you want to go back?"
+    },
+    {
+     "who": "client",
+     "text": "I don't know. That sounds terrible, doesn't it? After everyone's been so supportive."
+    },
+    {
+     "who": "therapist",
+     "text": "It sounds like an honest question."
+    },
+    {
+     "who": "client",
+     "text": "Nobody has asked me that. They just say well done."
+    },
+    {
+     "who": "therapist",
+     "text": "When was the last time you felt properly relaxed?"
+    },
+    {
+     "who": "client",
+     "text": "The summer holidays. We went walking in the Lakes, and I didn't think about school once for ten days."
+    },
+    {
+     "who": "therapist",
+     "text": "What was different there?"
+    },
+    {
+     "who": "client",
+     "text": "Nobody expected anything of me. I was just walking. Ben carried the sandwiches."
+    },
+    {
+     "who": "therapist",
+     "text": "And then?"
+    },
+    {
+     "who": "client",
+     "text": "The week before term I was a wreck again. I couldn't eat on the Sunday."
+    },
+    {
+     "who": "therapist",
+     "text": "Is there anything you have already tried that helped, even a little?"
+    },
+    {
+     "who": "client",
+     "text": "I started writing down what went well each evening. Small things. A child laughing, a good email."
+    },
+    {
+     "who": "therapist",
+     "text": "How did that go?"
+    },
+    {
+     "who": "client",
+     "text": "It helped for about two weeks and then I stopped, because I felt silly."
+    },
+    {
+     "who": "therapist",
+     "text": "Silly in what way?"
+    },
+    {
+     "who": "client",
+     "text": "As if I were bragging to myself in a notebook."
+    },
+    {
+     "who": "therapist",
+     "text": "Noticing what went well is not the same as bragging."
+    },
+    {
+     "who": "client",
+     "text": "Probably not. It just felt that way."
+    },
+    {
+     "who": "therapist",
+     "text": "That sounds worth coming back to. Have you thought about whether there is something particular you'd like from our work?"
+    },
+    {
+     "who": "client",
+     "text": "I'd like to do the job without feeling like a fraud."
+    },
+    {
+     "who": "therapist",
+     "text": "What would that look like on a Tuesday?"
+    },
+    {
+     "who": "client",
+     "text": "Walking into a meeting and not rehearsing it first. Sending an email once."
+    },
+    {
+     "who": "therapist",
+     "text": "And on a Sunday?"
+    },
+    {
+     "who": "client",
+     "text": "Being able to sit on the sofa in the evening without my stomach in knots."
+    },
+    {
+     "who": "therapist",
+     "text": "Those are clear goals. How do you feel now, saying them out loud?"
+    },
+    {
+     "who": "client",
+     "text": "Lighter. A bit tearful, actually."
+    },
+    {
+     "who": "therapist",
+     "text": "That's all right. Take a moment."
+    },
+    {
+     "who": "client",
+     "text": "Sorry. I didn't expect that."
+    },
+    {
+     "who": "therapist",
+     "text": "There's nothing to apologise for. What's coming up?"
+    },
+    {
+     "who": "client",
+     "text": "That it's the first time I've told anyone how bad it is. Not even Ben knows about the four a.m."
+    },
+    {
+     "who": "therapist",
+     "text": "What would it be like to tell him?"
+    },
+    {
+     "who": "client",
+     "text": "Scary. He'd probably be hurt that I didn't say sooner."
+    },
+    {
+     "who": "therapist",
+     "text": "Would that be a reason to keep it to yourself?"
+    },
+    {
+     "who": "client",
+     "text": "I suppose not. I might try this week."
+    },
+    {
+     "who": "therapist",
+     "text": "What would help you do that?"
+    },
+    {
+     "who": "client",
+     "text": "If I choose a quiet moment. Not on a Sunday evening, then I'm too wound up."
+    },
+    {
+     "who": "therapist",
+     "text": "Saturday morning, perhaps?"
+    },
+    {
+     "who": "client",
+     "text": "Yes, over breakfast. He's always in a good mood then."
+    },
+    {
+     "who": "therapist",
+     "text": "And one more small thing. Would you try the evening notebook again, just for a week, even one line?"
+    },
+    {
+     "who": "client",
+     "text": "I could. I'll put it by the kettle so I don't forget."
+    },
+    {
+     "who": "therapist",
+     "text": "We're nearly out of time. Is there anything you want to add?"
+    },
+    {
+     "who": "client",
+     "text": "Only that I nearly cancelled this morning. I'm glad I didn't."
+    },
+    {
+     "who": "therapist",
+     "text": "I am glad too. Same time next week?"
+    },
+    {
+     "who": "client",
+     "text": "Yes, please. Thank you."
+    }
+   ],
+   "roles": {
+    "roles": "right",
+    "raw": "```json\n{\n  \"therapist\": \"S0\",\n  \"patient\": \"S1\",\n  \"confidence\": 1.0,\n  \"evidence\": [\n    \"Hello Hannah, come in and take a seat. What would you like to talk about today?\",\n    \"I'm not really sure where to start. I think I'm just anxious all the time, and it's got worse since September.\",\n    \"That sounds like recognition of your work.\"\n  ]\n}\n```"
+   }
+  }
+ }
+}
