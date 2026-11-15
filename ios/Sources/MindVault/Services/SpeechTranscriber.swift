@@ -98,7 +98,13 @@ final class OnDeviceSpeechTranscriber: SpeechTranscribing, SpeechAuthorizationPr
                 box.install(continuation)
                 let recognition = recognizer.recognitionTask(with: request) { result, error in
                     if let result, result.isFinal {
-                        box.resolve(.success(result.bestTranscription.formattedString))
+                        let segment = TranscriptSegment(
+                            chunkIndex: 0,
+                            startMs: 0,
+                            endMs: Int((durationSeconds * 1_000).rounded()),
+                            text: result.bestTranscription.formattedString
+                        )
+                        box.resolve(.success(segment))
                     } else if let error {
                         box.resolve(.failure(Self.recognitionError(error)))
                     }
@@ -409,12 +415,12 @@ final class OnDeviceLiveTranscriber: LiveSpeechTranscribing, @unchecked Sendable
 /// Thread-safe one-shot continuation for `SFSpeechRecognizer` callbacks.
 private final class RecognitionContinuation: @unchecked Sendable {
     private let lock = NSLock()
-    private var continuation: CheckedContinuation<String, Error>?
-    private var result: Result<String, Error>?
+    private var continuation: CheckedContinuation<TranscriptSegment, Error>?
+    private var result: Result<TranscriptSegment, Error>?
     private var task: SFSpeechRecognitionTask?
     private var request: SFSpeechAudioBufferRecognitionRequest?
 
-    func install(_ continuation: CheckedContinuation<String, Error>) {
+    func install(_ continuation: CheckedContinuation<TranscriptSegment, Error>) {
         lock.lock()
         if let result {
             lock.unlock()
@@ -436,7 +442,7 @@ private final class RecognitionContinuation: @unchecked Sendable {
         }
     }
 
-    func resolve(_ value: Result<String, Error>) {
+    func resolve(_ value: Result<TranscriptSegment, Error>) {
         lock.lock()
         guard result == nil else {
             lock.unlock()
