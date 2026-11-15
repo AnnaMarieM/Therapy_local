@@ -1,0 +1,41 @@
+disabled_rules:
+  - todo
+  - trailing_comma
+
+opt_in_rules:
+  - empty_count
+  - explicit_init
+  - first_where
+  - implicit_return
+  - sorted_first_last
+  - toggle_bool
+  - unneeded_parentheses_in_closure_argument
+  - vertical_parameter_alignment_on_call
+
+line_length:
+  warning: 140
+  error: 180
+  ignores_comments: true
+  ignores_urls: true
+
+file_length:
+  warning: 600
+  error: 900
+
+type_body_length:
+  warning: 400
+  error: 600
+
+function_body_length:
+  warning: 80
+  error: 120
+
+identifier_name:
+  min_length: 1
+  max_length: 60
+
+excluded:
+  - .build
+  - Packages/MindVaultCore/.build
+  - "**/*.generated.swift"
+  - "**/DerivedData"

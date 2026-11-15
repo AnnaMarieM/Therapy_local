@@ -1,0 +1,123 @@
+name: MindVault
+
+options:
+  bundleIdPrefix: com.therapylocal
+  deploymentTarget:
+    iOS: "18.0"
+  xcodeVersion: "26.6"
+  createIntermediateGroups: true
+  generateEmptyDirectories: true
+  groupSortPosition: top
+
+configs:
+  Debug: debug
+  Release: release
+
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    SWIFT_STRICT_CONCURRENCY: minimal
+    IPHONEOS_DEPLOYMENT_TARGET: "18.0"
+    TARGETED_DEVICE_FAMILY: "1"
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    DEVELOPMENT_TEAM: ""
+    CODE_SIGN_STYLE: Automatic
+    ENABLE_USER_SCRIPT_SANDBOXING: YES
+    GENERATE_INFOPLIST_FILE: NO
+    LOCALIZATION_PREFERS_STRING_CATALOGS: YES
+    SWIFT_EMIT_LOC_STRINGS: YES
+    CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED: YES
+    ENABLE_MODULE_VERIFIER: YES
+    ENABLE_PREVIEWS: YES
+    DEAD_CODE_STRIPPING: YES
+    ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS: YES
+    SUPPORTS_MACCATALYST: NO
+    SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD: NO
+    SWIFT_TREAT_WARNINGS_AS_ERRORS: NO
+  configs:
+    Debug:
+      SWIFT_ACTIVE_COMPILATION_CONDITIONS: "DEBUG $(inherited)"
+      ONLY_ACTIVE_ARCH: YES
+    Release:
+      SWIFT_COMPILATION_MODE: wholemodule
+      VALIDATE_PRODUCT: YES
+
+packages:
+  MindVaultCore:
+    path: Packages/MindVaultCore
+
+targets:
+  MindVault:
+    type: application
+    platform: iOS
+    deploymentTarget: "18.0"
+    sources:
+      - path: Sources/MindVault
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.therapylocal.app
+        PRODUCT_NAME: MindVault
+        INFOPLIST_FILE: Support/Info.plist
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        ENABLE_APP_INTENTS_METADATA_GENERATION: NO
+    dependencies:
+      - package: MindVaultCore
+        product: MindVaultCore
+
+  MindVaultTests:
+    type: bundle.unit-test
+    platform: iOS
+    deploymentTarget: "18.0"
+    sources:
+      - path: Tests/MindVaultTests
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.therapylocal.app.tests
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_HOST: $(BUILT_PRODUCTS_DIR)/MindVault.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/MindVault
+        BUNDLE_LOADER: $(TEST_HOST)
+    dependencies:
+      - target: MindVault
+      - package: MindVaultCore
+        product: MindVaultCore
+
+  MindVaultUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    deploymentTarget: "18.0"
+    sources:
+      - path: Tests/MindVaultUITests
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.therapylocal.app.uitests
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_TARGET_NAME: MindVault
+    dependencies:
+      - target: MindVault
+
+schemes:
+  MindVault:
+    build:
+      targets:
+        MindVault: all
+        MindVaultTests: [test]
+        MindVaultUITests: [test]
+    run:
+      config: Debug
+    test:
+      config: Debug
+      gatherCoverageData: true
+      targets:
+        - name: MindVaultTests
+          parallelizable: true
+          randomExecutionOrder: true
+        - name: MindVaultUITests
+          parallelizable: false
+    profile:
+      config: Release
+    analyze:
+      config: Debug
+    archive:
+      config: Release
