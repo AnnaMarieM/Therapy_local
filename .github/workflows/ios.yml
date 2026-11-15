@@ -79,6 +79,7 @@ jobs:
         run: |
           cd build/sim-dd/Build/Products/Debug-iphonesimulator
           zip -qr "$GITHUB_WORKSPACE/ios/MnemoThera-ios-sim.zip" MindVault.app
+        working-directory: ios
 
       - name: Build (iOS device, Release, unsigned)
         run: >
