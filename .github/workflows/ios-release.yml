@@ -3,17 +3,31 @@ name: iOS release
 # Rolling "ios-main" prerelease for the iOS port: MnemoThera-ios-unsigned.ipa (with .sha256) and MnemoThera-ios-sim.zip,
 # mirroring ci.yml job release-main (Therapy-main.apk). Drafted by lane E1 (issue 125, AD-23).
 #
-# DISABLED — nothing publishes before R1 (ios/KANBAN.md): a person must have run a session end to end on an
-# iPhone (whisper + Gemma + embeddings actually on the device) and Martin must accept the release. To enable at R1:
-# remove `if: false` from the release job below, and decide the trigger (workflow_dispatch for manual publishes;
-# add a push trigger on the integration branch if R1 wants it automatic).
+# GATED — nothing publishes before R1 (ios/KANBAN.md), by construction:
+#   1. The only trigger is workflow_dispatch, with `publish` defaulting to FALSE.
+#      A dispatch without the flag is a dry run: resolve the build, download the
+#      artifacts, verify names and hashes — publish nothing.
+#   2. The release job additionally requires the `ios` ref, so a dispatch from
+#      any other branch view cannot publish.
+#   3. A workflow_dispatch workflow only fires when the file exists on the
+#      DEFAULT branch: landing this file on `main` is step one of the R1
+#      runbook, and dispatching with `publish: true` after the parity
+#      checklist has passed (and Martin has accepted) is step two.
 #
-# The artifacts it downloads are produced by ios.yml under these fixed names; the .ipa sha256 is generated in this
-# job, so it covers exactly the published bytes. No Apple secrets exist; the job uses only GITHUB_TOKEN. Reading the
-# artifacts of another workflow run needs actions: read beside contents: write.
+# The artifacts it downloads are produced by ios.yml under the same fixed names
+# (kept in lockstep — a name drift here dies at the download step); the .ipa
+# sha256 is generated in this job, so it covers exactly the published bytes.
+# No Apple secrets exist; the job uses only GITHUB_TOKEN. Reading the artifacts
+# of another workflow run needs actions: read beside contents: write.
 
 on:
   workflow_dispatch:
+    inputs:
+      publish:
+        description: "Publish the release (false = dry run: resolve, download and verify only)"
+        type: boolean
+        required: false
+        default: false
 
 # A publish that has started is not cancelled by another one: the delete+create must not interleave
 concurrency:
@@ -25,12 +39,17 @@ permissions:
   actions: read # download the ios.yml artifacts of another run
 
 jobs:
-  release:
-    if: false # DISABLED until R1 (see the comment at the top)
+  verify:
+    # The dry run: everything a publish does except touching the release.
+    if: github.ref == 'refs/heads/ios'
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    outputs:
+      run_id: ${{ steps.resolve.outputs.run_id }}
+      build_sha: ${{ steps.resolve.outputs.build_sha }}
     steps:
       - name: Resolve the latest green ios.yml run
+        id: resolve
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
@@ -38,41 +57,81 @@ jobs:
           run_id="$(gh run list --workflow ios.yml --branch ios --status success --limit 1 --json databaseId --jq '.[0].databaseId')"
           if [[ -z "$run_id" ]]; then echo "No successful ios.yml run on the ios branch yet: nothing to publish" >&2; exit 1; fi
           build_sha="$(gh run view "$run_id" --json headSha --jq .headSha)"
-          echo "run_id=$run_id" >> "$GITHUB_ENV"
-          echo "build_sha=$build_sha" >> "$GITHUB_ENV"
+          echo "run_id=$run_id" >> "$GITHUB_OUTPUT"
+          echo "build_sha=$build_sha" >> "$GITHUB_OUTPUT"
+          echo "Will verify artifacts of ios.yml run $run_id (commit ${build_sha::7})"
 
       - uses: actions/download-artifact@v4
         with:
           name: MnemoThera-ios-unsigned.ipa
-          run-id: ${{ env.run_id }}
+          run-id: ${{ steps.resolve.outputs.run_id }}
           github-token: ${{ github.token }}
       - uses: actions/download-artifact@v4
         with:
           name: MnemoThera-ios-sim.zip
-          run-id: ${{ env.run_id }}
+          run-id: ${{ steps.resolve.outputs.run_id }}
+          github-token: ${{ github.token }}
+
+      - name: Verify the artifacts are what the release notes promise
+        run: |
+          set -euo pipefail
+          # download-artifact fails if the name is missing; these catch an
+          # artifact that exists but is empty or mis-packed.
+          test -s MnemoThera-ios-unsigned.ipa
+          test -s MnemoThera-ios-sim.zip
+          unzip -l MnemoThera-ios-unsigned.ipa | grep -q "Payload/MindVault.app/MindVault$"
+          sha256sum MnemoThera-ios-unsigned.ipa MnemoThera-ios-sim.zip
+
+  release:
+    needs: verify
+    if: inputs.publish == true && github.ref == 'refs/heads/ios'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: MnemoThera-ios-unsigned.ipa
+          run-id: ${{ needs.verify.outputs.run_id }}
+          github-token: ${{ github.token }}
+      - uses: actions/download-artifact@v4
+        with:
+          name: MnemoThera-ios-sim.zip
+          run-id: ${{ needs.verify.outputs.run_id }}
           github-token: ${{ github.token }}
 
       - name: Replace the "ios-main" release
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
+          build_sha: ${{ needs.verify.outputs.build_sha }}
+          run_id: ${{ needs.verify.outputs.run_id }}
         run: |
-          # The hash covers exactly what is published; the person verifies the download before signing it
+          set -euo pipefail
+          # The hash covers exactly what is published; the person verifies the
+          # download before signing it (macOS users: shasum -a 256 -c).
           sha256sum MnemoThera-ios-unsigned.ipa > MnemoThera-ios-unsigned.ipa.sha256
-          # Drop the previous release, its assets and its tag so only the newest build is kept
-          gh release delete ios-main --cleanup-tag --yes || true
-          notes="Unsigned build of the ios branch at commit ${build_sha} (${build_sha::7}) (ios.yml run ${run_id}).
+          # Drop the previous release, its assets and its tag so only the newest
+          # build is kept. `|| true` would hide an auth failure, so the presence
+          # checks are explicit; a leftover tag without a release is removed or
+          # `gh release create` would fail on every later run.
+          if gh release view ios-main >/dev/null 2>&1; then
+            gh release delete ios-main --cleanup-tag --yes
+          elif git ls-remote --tags origin refs/tags/ios-main | grep -q "refs/tags/ios-main$"; then
+            gh api -X DELETE "repos/$GH_REPO/git/refs/tags/ios-main"
+          fi
+          notes="Unsigned build of the ios branch at commit ${build_sha} (${build_sha:0:7}) (ios.yml run ${run_id}).
 
           - MnemoThera-ios-unsigned.ipa: unsigned device build for sideloading. It has no provisioning profile; it is signed with your own Apple ID when you install it:
-            - AltStore: run AltServer (macOS or Windows) on the same Wi-Fi network as the iPhone, install AltStore on the phone, then open the .ipa from it.
-            - Sideloadly (macOS or Windows): connect the iPhone by cable, drop the .ipa, enter the Apple ID, sign and install.
-            - A free Apple ID: the build is valid 7 days, then it must be re-signed; at most 3 sideloaded apps per Apple ID.
-            - Verify the download first: sha256sum -c MnemoThera-ios-unsigned.ipa.sha256
-          - MnemoThera-ios-sim.zip: the app for the iOS simulator on a Mac (unzip, then xcrun simctl install booted <app>).
+            - AltStore Classic 2.2+ (primary): install AltServer (macOS 1.7.3 / Windows 1.7.4 — on Windows use the web downloads of iTunes + iCloud, not the Microsoft Store ones), sign in with the Apple ID, install AltStore on the phone, then \"+\" → pick the .ipa. AltStore re-signs over Wi-Fi before the 7 days expire. The Apple ID must have been signed in on a device before (otherwise error -22411).
+            - Sideloadly (fallback): connect the iPhone by cable, drop the .ipa, enter the Apple ID, sign and install.
+            - A free Apple ID: the build is valid 7 days, then it must be re-signed; at most 3 sideloaded apps per Apple ID and 10 new App IDs per 7 days.
+            - The multi-GB models need the increased-memory-limit entitlement; only AltStore Classic 2.2+ carries it through re-signing (see issue #121 for the CI-side entitlement work).
+            - Verify the download first: sha256sum -c MnemoThera-ios-unsigned.ipa.sha256 (macOS: shasum -a 256 -c).
+          - MnemoThera-ios-sim.zip: the app for the iOS simulator on a Mac (unzip, then xcrun simctl install booted <app>). A UI smoke build — the on-device engines are verified at R1, not by this zip.
 
           Replaced on every publish. This release exists only after the R1 parity checklist has passed (ios/KANBAN.md): a person has run a session end to end on an iPhone."
           gh release create ios-main MnemoThera-ios-unsigned.ipa MnemoThera-ios-unsigned.ipa.sha256 MnemoThera-ios-sim.zip \
-            --target "$GITHUB_SHA" \
+            --target "$build_sha" \
             --prerelease \
             --title "Latest iOS build" \
             --notes "$notes"

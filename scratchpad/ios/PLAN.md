@@ -7,7 +7,7 @@ Working notes for AD-23 (draft, `docs/AD/AD-23.md`). Not a decision record — A
 ```text
 A1 baseline landed (1f70fa9)
       │
-      ├── A2  iOS CI green (issue #121)          ios.yml on macos-: XcodeGen generate,
+      ├── A2  iOS CI green (issue #121)          ios.yml on macos-15: XcodeGen generate,
       │                                          simulator + unsigned device build, unit tests;
       │                                          Linux job: every ios/Packages/* in swift:6.3
       │
@@ -16,9 +16,15 @@ A1 baseline landed (1f70fa9)
       ├── D1  MindVaultPerception (issue #124)   diarization (ONNX) + text embeddings
       │            (B1/C1/D1 in parallel, all on A1)
       │
-      └── B2/C2/D2  wire into app (issue #126)   replace SFSpeechRecognizer/NLEmbedding/
-                   │                             deterministic extraction per INTEGRATION.md
-                   │                             model download UI per ModelDownloadWorker semantics
+      └── B2/C2/D2  wire into app (issue #126)   replace the placeholder implementations
+                   │                             (SFSpeechRecognizer, NLEmbedding, the
+                   │                             deterministic fact-extraction placeholder)
+                   │                             with the engines per INTEGRATION.md; where
+                   │                             CONTRACTS.md pins the replaced behavior
+                   │                             (FactExtracting is deterministic, :119; one
+                   │                             embedding model, :118) the wiring lane
+                   │                             amends the contract first; model download
+                   │                             UI per ModelDownloadWorker semantics
                    │
                    └── R1  parity release (issue #127)  person-verified end-to-end session on an
                          iPhone → enable ios-release.yml → rolling ios-main
@@ -37,7 +43,7 @@ The Android app is the fidelity reference; the iOS app downloads its own files, 
 | Memory LLM | Gemma 4 E2B `litertlm` 2.59 GB / E4B 3.66 GB (`litert-community`) | llama.cpp, Metal, GGUF | `ggml-org/gemma-4-E2B-it-GGUF` Q4_0 2.84 GB, Q8_0 4.97 GB; E4B Q4_0 4.59 GB | 2.4-5 GB |
 | ASR (Quality) | Whisper large-v3 q8_0 1.66 GB (no host URL yet — `adb push` by hand) | whisper.cpp, Metal, ggml | `ggerganov/whisper.cpp`: large-v3 f16 3.10 GB, q5_0 1.08 GB, turbo q8_0 0.87 GB | 0.9-3.1 GB |
 | ASR (Canary) | Canary 1B v2 int8, sherpa-onnx, 1.41 GB (`fussraider/canary-1b-v2-sherpa-onnx-int8`) | — no iOS equivalent yet (Canary is ONNX; an iOS port would need onnxruntime, not planned in v1) | — | — |
-| Embedder (text+audio) | EmbeddingGemma 2 740M 485 MB (`litert-community`) | text: ONNX or NLEmbedding fallback (lane D1); **audio: no iOS equivalent** | HF ONNX variant, to be checked by D1 | ~0.5 GB |
+| Embedder (text+audio) | EmbeddingGemma 2 740M 485 MB (`litert-community`) | text v1: NLEmbedding 512-d (en) + hashing fallback (different vector space than Android's 768-d — never mixed in one index); EmbeddingGemma ONNX (166 MB q4) is a wiring follow-up; **audio: no iOS equivalent** | HF `onnx-community/embeddinggemma-2-ONNX` `onnx/model_q4.onnx`, verified by D1 research | 0.5 GB (later) |
 | Diarization | pyannote segmentation-3.0 (5.99 MB) + WeSpeaker ResNet34 (26.5 MB), ONNX | ONNX Runtime / sherpa-onnx — **same files as Android** | `csukuangfj/sherpa-onnx-pyannote-segmentation-3-0` + `k2-fsa/sherpa-onnx` release | 32 MB |
 
 Notes:
@@ -49,26 +55,45 @@ Notes:
 
 CI builds an unsigned `.ipa` on macOS runners (no signing identity needed). It does not run as-is; the person installing signs it with their own Apple ID.
 
-**AltStore (over Wi-Fi):**
-1. Install AltServer on macOS or Windows and sign in with the Apple ID.
-2. iPhone and computer on the same network; install AltStore on the iPhone via AltServer.
-3. In AltStore on the phone: `+` → pick `MnemoThera-ios-unsigned.ipa`; AltStore signs it with the Apple ID and installs.
+**AltStore Classic 2.2+ (primary — over Wi-Fi or cable):**
+1. Install AltServer (macOS 1.7.3 / Windows 1.7.4) on the computer and sign in with the Apple ID.
+   Windows: the web downloads of iTunes + iCloud from Apple's site, not the Microsoft Store versions.
+2. iPhone and computer on the same network (or cable); install AltStore on the iPhone via AltServer.
+   The Apple ID must have been signed in on a device before, or AltServer fails with error -22411.
+3. In AltStore on the phone: `+` → pick `MnemoThera-ios-unsigned.ipa`; AltStore strips the unsigned
+   placeholder signature and re-signs with the Apple ID, then installs.
 4. First launch: Settings → General → VPN & Device Management → trust the developer profile.
+5. AltStore re-signs over Wi-Fi in the background before the 7 days expire (AltServer running).
 
-**Sideloadly (by cable):**
-1. Connect the iPhone, open Sideloadly, drop the IPA.
-2. Enter the Apple ID, sign, install (same trust step on first launch).
+Why AltStore first: it is the only sideloader that carries the `increased-memory-limit` entitlement
+request through re-signing, which the multi-GB models need (free-account cap without it is near
+~3.4 GB; with it 6-8 GB). Depends on an A2 follow-up (issue #121): CI must ad-hoc-sign the IPA with
+an entitlements plist carrying the request before zipping — until that lands, installs work but
+large-model loading may hit the memory cap.
 
-**Verify before installing:** `sha256sum -c MnemoThera-ios-unsigned.ipa.sha256` (the file is attached to the release).
+**Sideloadly (fallback, by cable):** connect the iPhone, drop the IPA, enter the Apple ID, sign,
+install (same trust step). It does not preserve the entitlement request; fine for smoke installs.
 
-**Limits with a free Apple ID:** the signature is valid **7 days**, then the app must be re-signed (AltStore can resign over Wi-Fi; Sideloadly by cable); at most **3** sideloaded apps per Apple ID; entitlements that need a paid profile are not available (push notifications, iCloud, extended background modes).
+**Verify before installing:** the release carries `MnemoThera-ios-unsigned.ipa.sha256`.
+macOS: `shasum -a 256 -c MnemoThera-ios-unsigned.ipa.sha256`; Linux/Windows: `sha256sum -c …`.
+
+**Limits with a free Apple ID:** signature valid **7 days** (AltStore re-signs over Wi-Fi;
+Sideloadly by cable); at most **3** sideloaded apps per Apple ID; at most **10** new App IDs per
+7 days; entitlements that need a paid profile are not available (push notifications, iCloud,
+extended background modes).
 
 **Simulator:** `MnemoThera-ios-sim.zip` is for a Mac: unzip and `xcrun simctl install booted <app>`.
+It is a **UI smoke build** — the on-device engines (Metal whisper/llama) are verified at R1, not by
+this zip.
 
 **When an Apple Developer account arrives (what changes):**
 - TestFlight becomes the install path: `fastlane pilot upload` or `xcrun altool` with an **App Store Connect API key** (ASC key, not an Apple ID password); 90-day builds, up to 10k testers, no 7-day limit.
 - The build gets a real distribution provisioning profile; entitlements beyond the free profile become available (some background modes, push for processing notifications).
 - The unsigned rolling `ios-main` release can stay as the QA channel (fastest path, no TestFlight processing) or be retired; that is R1/Martin's call.
+
+**Open follow-ups (tracked on the cards, not here):**
+- AltStore `source.json` for in-app update notifications — fields must match Info.plist exactly (bundle id `com.therapylocal.app`, version, size in bytes) and `appPermissions` must list every entitlement + privacy usage description, or AltStore refuses to install (R1).
+- A paid Apple Developer account ($99/yr) is the eventual proper channel; ad-hoc distribution is the middle option — Martin's call, not v1.
 - The repo then holds an ASC key or a `.p12` — store it in GitHub Actions secrets only; AD-23 point 6 says no Apple secrets are committed.
 
 ## Risks
@@ -81,6 +106,11 @@ CI builds an unsigned `.ipa` on macOS runners (no signing identity needed). It d
 | Diarization accuracy | pyannote+WeSpeaker ONNX is the same model as Android, but the runtime (onnxruntime-swift vs sherpa-onnx Android) may differ in speed and memory; turns packing is new code | Lane D1: golden tests on turns packing and VectorMath; compare speaker maps against Android exports on the same recordings before R1 |
 | No Apple account = no device testing from CI | CI can build and test on simulators only; nothing in CI can run on a real iPhone, so R1's parity proof is manual by construction | R1 is explicitly person-verified; keep a device test checklist in the R1 card |
 | 7-day resign churn | A QA install that expired mid-review breaks a session | AltStore resign-over-Wi-Fi as the default path; re-sign before every device sitting |
+| Broken local Swift toolchain | The checked-in Linux toolchain lacks libxml2; local `swift test` fails confusingly | Always test through docker (`swift:6.3`) exactly as CI does; CI runs the container as the workspace user so `.build` never becomes root-owned |
+| Branch namespace | The branch `ios` occupies the `ios/*` ref namespace: no `ios/*` branch can exist | Lane branches are flat (`ios-asr-whisper`, not `ios/asr`) — `ios/KANBAN.md` |
+| Runner capacity | macOS arm64 queue warnings appear; 45-min timeout is comfortable at ~11 min but grows with the port | Watch job minutes; split jobs before they near the timeout |
+| Agent quota outages | Free-usage limits killed lane agents mid-task more than once | Lane state lives in worktrees + cards, not in the agent's head; relaunch from the card |
+| Artifact-contract drift | The release lane downloads artifacts by exact name; a rename on the CI side silently breaks the first publish | Names kept in lockstep (found in review); any change to either file diffs both in review |
 
 ## Draft: "iOS" section for `ios/README.md` (for whoever lands it — this file does not edit the README)
 
@@ -94,9 +124,11 @@ session end to end on an iPhone.
 
 When the rolling release is live, it mirrors the Android one (`Therapy-main.apk`):
 the prerelease `ios-main` on GitHub releases holds `MnemoThera-ios-unsigned.ipa`
-with its `.sha256` and `MnemoThera-ios-sim.zip`, replaced on every publish. The IPA
-is unsigned: sign it with your own Apple ID (AltStore or Sideloadly); a free Apple
-ID gives 7 days and at most 3 sideloaded apps. See `scratchpad/ios/PLAN.md` for the
-recipe.
+with its `.sha256` and `MnemoThera-ios-sim.zip` (a UI smoke build), replaced on
+every publish. The IPA is unsigned: sign it with your own Apple ID — AltStore
+Classic 2.2+ first (it carries the memory entitlement the models need),
+Sideloadly as fallback; a free Apple ID gives 7 days and at most 3 sideloaded
+apps. Verify the download with `shasum -a 256 -c` (macOS) or `sha256sum -c`.
+See `scratchpad/ios/PLAN.md` for the recipe.
 ```
 
