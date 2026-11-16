@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Deletes the per-pull-request iOS OTA releases (`ios-pr-<number>`, published by the sign-ota job of ios.yml), so no stale
+# Deletes the per-pull-request iOS device-build releases (`ios-pr-<number>`, published by the ios-publish job of ios.yml), so no stale
 # signed or unsigned device build stays downloadable.
 #   GH_TOKEN REPO [PR]
 # With PR: that pull request's release (it just closed). Without: a sweep that deletes every ios-pr-<number> release whose
