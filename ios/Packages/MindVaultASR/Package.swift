@@ -110,12 +110,12 @@ let package = Package(
 
         // Metal backend. Apple only; kept out of every product and referenced
         // only through platform-conditional dependencies. No `resources:` here:
-        // a resource of a C target lands in `<Package>_CGgmlMetal.bundle`, which
-        // the vendored loader cannot find (`#ifdef SWIFT_PACKAGE` /
-        // `SWIFTPM_MODULE_BUNDLE` are not defined for Clang targets, and
-        // `pathForResource:@"kernels/x"` does not resolve a path). The kernel
-        // *sources* are resources of the Swift target instead — see the header
-        // comment above.
+        // a resource of a C target lands in `<Package>_CGgmlMetal.bundle`, and
+        // the vendored loader cannot reach it — `SWIFTPM_MODULE_BUNDLE` is
+        // defined below to the bundle the class was loaded from (the app
+        // bundle) and `pathForResource:@"kernels/x"` does not resolve a path.
+        // The kernel *sources* are resources of the Swift target instead — see
+        // the header comment above.
         .target(
             name: "CGgmlMetal",
             dependencies: ["CWhisper", "CGgmlBase"],
@@ -129,6 +129,16 @@ let package = Package(
             ],
             publicHeadersPath: ".",
             cSettings: [
+                // SwiftPM defines SWIFT_PACKAGE for Clang targets as well
+                // (`-DSWIFT_PACKAGE=1`, verified with swift build -v) but only
+                // generates `resource_bundle_accessor.h` for Swift targets, so
+                // the vendored `#ifdef SWIFT_PACKAGE → SWIFTPM_MODULE_BUNDLE`
+                // spelling would not compile here. Spell it the way the
+                // vendored file's "NSBundle Path Hack" intends: the bundle the
+                // class was loaded from, which for a statically linked target is
+                // the app bundle — also where an app-supplied default.metallib
+                // sits.
+                .define("SWIFTPM_MODULE_BUNDLE", to: "[NSBundle bundleForClass:[GGMLMetalClass class]]", .when(platforms: [.macOS, .iOS])),
                 .headerSearchPath("."),
                 .headerSearchPath(".."),
                 .headerSearchPath("../../include"),
