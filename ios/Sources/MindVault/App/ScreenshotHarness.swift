@@ -45,6 +45,7 @@ enum ScreenshotHarness {
     /// The environment to run in when a screen was asked for, else nil (a normal launch
     /// uses `AppEnvironment.live()`). The vault screens get an empty vault, so their data
     /// is never fabricated; the rest get the fixture clients, sessions and facts.
+    @MainActor
     static func environment() -> AppEnvironment? {
         switch screen {
         case .none:
