@@ -164,3 +164,88 @@ jobs:
           path: ios/MnemoThera-ios-sim.zip
           if-no-files-found: error
           retention-days: 14
+
+  # App screenshots for Android/iOS parity (lane A2b, issue #133; feeds R1 #127).
+  # Builds the simulator app and walks the DEBUG-only -MVShot harness
+  # (ios/Sources/MindVault/App/ScreenshotHarness.swift) through every screen, one PNG
+  # each, on one iPhone. Additive: it does not gate the build. The Android half is
+  # scratchpad/parity/android-shots.sh, and the comparison is a vision pass over both
+  # sets (scratchpad/parity/README.md).
+  screenshots:
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        run: xcodegen generate
+        working-directory: ios
+
+      - name: Build (iOS Simulator, Debug)
+        run: >
+          xcodebuild -project MindVault.xcodeproj -scheme MindVault
+          -configuration Debug -destination 'generic/platform=iOS Simulator'
+          CODE_SIGNING_ALLOWED=NO -derivedDataPath build/sim-shots build
+        working-directory: ios
+
+      - name: Boot an iPhone simulator (create one if the runner has none)
+        run: |
+          set -euo pipefail
+          UDID=$(xcrun simctl list devices available -j | python3 -c "import json,sys; d=json.load(sys.stdin)['devices']; i=[x for r in d.values() for x in r if x.get('isAvailable') and x['name'].startswith('iPhone')]; print(i[0]['udid'] if i else '')")
+          if [[ -z "$UDID" ]]; then
+            RUNTIME=$(xcrun simctl list runtimes available -j | python3 -c "import json,sys; r=[x for x in json.load(sys.stdin)['runtimes'] if x.get('isAvailable') and x['identifier'].startswith('com.apple.CoreSimulator.SimRuntime.iOS')]; print(r[-1]['identifier'] if r else '')")
+            TYPE=$(xcrun simctl list devicetypes -j | python3 -c "import json,sys; t=[x for x in json.load(sys.stdin)['devicetypes'] if x['identifier'].startswith('com.apple.CoreSimulator.SimDeviceType.iPhone')]; print(t[-1]['identifier'] if t else '')")
+            if [[ -z "$RUNTIME" || -z "$TYPE" ]]; then
+              echo "::error::no iPhone runtime or device type to create a simulator from"
+              exit 1
+            fi
+            UDID=$(xcrun simctl create "MVShots-$GITHUB_RUN_ID" "$TYPE" "$RUNTIME")
+          fi
+          echo "Simulator: $(xcrun simctl list devices | grep "$UDID" | sed 's/^ *//')"
+          echo "SIM_UDID=$UDID" >> "$GITHUB_ENV"
+          # A fresh install: no old app, no old vault, an untouched keychain.
+          xcrun simctl shutdown "$UDID" 2>/dev/null || true
+          xcrun simctl erase "$UDID" || true
+          xcrun simctl boot "$UDID"
+          xcrun simctl bootstatus "$UDID" -b
+          # Same status bar in every shot, so parity compares the app, not the clock.
+          xcrun simctl status_bar "$UDID" override \
+            --time "9:41" --dataNetwork wifi --wifiMode active --wifiBars 3 \
+            --cellularMode active --cellularBars 4 --batteryState charged --batteryLevel 100
+
+      - name: Capture every screen
+        run: |
+          set -euo pipefail
+          APP=ios/build/sim-shots/Build/Products/Debug-iphonesimulator/MindVault.app
+          test -d "$APP" || { echo "::error::simulator app not found at $APP"; exit 1; }
+          xcrun simctl install "$SIM_UDID" "$APP"
+          mkdir -p ios/screenshots
+          # The screen list and what each one shows: ScreenshotHarness.Screen.
+          SCREENS=(setup unlock home-empty home add-client profile session summary settings)
+          for screen in "${SCREENS[@]}"; do
+            xcrun simctl terminate "$SIM_UDID" com.therapylocal.app 2>/dev/null || true
+            xcrun simctl launch "$SIM_UDID" com.therapylocal.app -MVShot "$screen"
+            sleep 5
+            xcrun simctl io "$SIM_UDID" screenshot "ios/screenshots/$screen.png"
+          done
+          # A zero-byte or plain-background PNG is a failed capture, not a screenshot.
+          for file in ios/screenshots/*.png; do
+            bytes=$(stat -f%z "$file")
+            echo "$file $bytes bytes"
+            if [[ "$bytes" -lt 12000 ]]; then
+              echo "::error::$file looks blank ($bytes bytes)"
+              exit 1
+            fi
+          done
+
+      - name: Upload screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-screenshots
+          path: ios/screenshots/*.png
+          if-no-files-found: warn
+          retention-days: 14
