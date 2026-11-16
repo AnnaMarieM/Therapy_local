@@ -102,10 +102,13 @@ public enum WhisperLog {
 /// `<dir>/kernels/<kind>.metal` on the device (its own from-source fallback,
 /// the same one `whisper-cli` uses when no metallib is installed).
 ///
-/// The variable is read once per process, when the Metal device initialises, so
-/// it is process-wide and set-once; `install()` runs before the first whisper
-/// init. A `default.metallib` shipped by the app bundle still wins: the loader
-/// tries the bundle before it looks at the variable.
+/// The variable is ggml's own hook, read from the process environment when it
+/// builds the Metal library (at Metal device init). It is process-wide state:
+/// set it before the first GPU init, and do not expect a later engine to
+/// re-read a changed value once the library is cached on the device.
+/// `install()` runs before the first whisper init. A `default.metallib` shipped
+/// by the app bundle still wins: the loader tries the bundle before it looks at
+/// the variable.
 public enum MetalKernels {
     public static let environmentVariable = "GGML_METAL_PATH_RESOURCES"
 
@@ -155,8 +158,9 @@ public enum MetalKernels {
     }
 
     /// Makes `GGML_METAL_PATH_RESOURCES` point at the bundled kernels. Call it
-    /// before the first whisper init in the process — ggml reads the variable
-    /// when the Metal device is created, and never again.
+    /// before the first GPU init in the process — ggml reads the variable from
+    /// the environment when it builds the Metal library, and keeps the compiled
+    /// library on the device afterwards — and never again.
     @discardableResult
     public static func install(environment: [String: String] = ProcessInfo.processInfo.environment) -> Install {
         if let existing = environment[environmentVariable], !existing.isEmpty {

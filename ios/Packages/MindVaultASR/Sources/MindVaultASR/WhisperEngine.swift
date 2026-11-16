@@ -120,10 +120,9 @@ public final class WhisperEngine: @unchecked Sendable {
         self.requestedUseGPU = useGPU
 
         if useGPU {
-            // ggml reads GGML_METAL_PATH_RESOURCES when the Metal device
-            // initialises: process-wide, set-once, and only effective before the
-            // first whisper init. Point it at the bundled kernel sources, then
-            // prove the backend starts.
+            // ggml reads GGML_METAL_PATH_RESOURCES when it builds the Metal
+            // library (process-wide state, first GPU init); point it at the
+            // bundled kernel sources, then prove the backend starts.
             let install = MetalKernels.install()
             WhisperLog.note("metal_kernels \(install)")
             let diagnosis = GPUDiagnostic.probe(requested: true)
