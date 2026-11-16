@@ -69,17 +69,17 @@ enum ScreenshotHarness {
         case .setup, .unlock, .homeEmpty, .home:
             break
         case .addClient:
-            home.showingAddClient = true
+            if !home.showingAddClient { home.showingAddClient = true }
         case .profile:
-            router.openProfile(Fixtures.georgeID)
+            if router.path.isEmpty { router.openProfile(Fixtures.georgeID) }
         case .session:
-            if let client = Fixtures.clients.first {
+            if router.sessionClient == nil, let client = Fixtures.clients.first {
                 router.startSession(client)
             }
         case .summary:
-            router.summarySession = Fixtures.sessions.first
+            if router.summarySession == nil { router.summarySession = Fixtures.sessions.first }
         case .settings:
-            router.showingSettings = true
+            if !router.showingSettings { router.showingSettings = true }
         }
     }
 
