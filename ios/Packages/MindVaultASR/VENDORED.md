@@ -22,11 +22,19 @@ including the three files that SwiftPM needs in their own directory
 `ggml-backend-dl.h` — moved, not edited, because a SwiftPM target owns exactly
 one directory).
 
-One file was **added** (ours, not upstream):
-`ggml/src/ggml-cpu/arm-repack-shim.cpp` — SwiftPM manifests have no arch
-conditions, so the shim includes `arch/arm/repack.cpp` only under upstream's
-own ARM macros; compiled unconditionally it redefined 27 repack kernels on
-x86_64 and the link failed. See the file header and `Package.swift` (CGgmlCpu).
+Two files were **added** (ours, not upstream), in `ggml/src/ggml-cpu/`:
+`repack-select.cpp` and `arm-repack-shim.cpp`. SwiftPM manifests have no
+arch conditions, so `repack-select.cpp` reproduces upstream CMake's arch
+branch: on ARM it textually includes `repack.cpp` as shipped plus
+`arch/arm/repack.cpp`; elsewhere it defines `GGML_CPU_GENERIC` (upstream's
+own no-arch-kernels fallback) and includes only `repack.cpp`, so every
+repack kernel is the generic implementation. Two CI link failures shaped
+it: the ARM file compiled unconditionally redefined all 27 repack kernels
+on x86_64 (run 43797191556), and selecting it away without the generic
+define left the 4x8/8x8 kernels undefined (run 43826845274). See the file
+headers and `Package.swift` (CGgmlCpu). An intermediate single-arch shim
+(`arm-repack-shim.cpp`, briefly at commit `15cf111`) fixed only the first
+failure and was removed in favour of `repack-select.cpp`.
 
 Upstream's CMake is not vendored; `Package.swift` restates the target set by
 hand (`CGgmlBase`, `CGgmlCpu`, `CGgmlMetal`, `CGgmlRegistry`, `CWhisperCore`,

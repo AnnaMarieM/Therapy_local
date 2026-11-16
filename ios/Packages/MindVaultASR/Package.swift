@@ -5,9 +5,9 @@ import PackageDescription
 //
 // Vendored whisper.cpp is compiled as C targets mirroring the upstream CMake layout:
 //   CGgmlBase    ggml core (tensor, alloc, backends, quants, threading)
-//   CGgmlCpu     ggml CPU backend (arch-selected: ARM kernels via our
-//                arm-repack-shim.cpp, generic + arch-fallback.h elsewhere;
-//                guarded code, no unsafeFlags)
+//   CGgmlCpu     ggml CPU backend (arch-selected through repack-select.cpp:
+//                ARM kernels on ARM, all-generic elsewhere; guarded code,
+//                no unsafeFlags)
 //   CGgmlMetal   ggml Metal backend — Apple only, behind a platform-conditional
 //                dependency, so Linux (`swift test`) never compiles it
 //   CGgmlRegistry ggml backend registry (registers CPU always, Metal on Apple)
@@ -89,21 +89,21 @@ let package = Package(
                 "ops.cpp", "ops.h", "binary-ops.cpp", "binary-ops.h",
                 "unary-ops.cpp", "unary-ops.h", "vec.cpp", "vec.h",
                 "quants.c", "quants.h", "traits.cpp", "traits.h",
-                "repack.cpp", "repack.h", "hbm.cpp", "hbm.h",
+                // repack.cpp is compiled THROUGH repack-select.cpp (ours): on ARM
+                // it compiles as upstream ships it plus arch/arm/repack.cpp; on
+                // every other arch with GGML_CPU_GENERIC, upstream's own
+                // no-arch-kernels fallback. Compiled naively the two sides
+                // collided on x86_64: the ARM file's scalar #else branches
+                // redefined all 27 repack kernels (linux-core run 43797191556),
+                // and selecting it away left the 4x8/8x8 kernels undefined
+                // (run 43826845274). See repack-select.cpp and VENDORED.md.
+                "repack.h", "hbm.cpp", "hbm.h",
                 "simd-mappings.h", "simd-gemm.h", "arch-fallback.h",
                 "amx/amx.cpp", "amx/amx.h", "amx/mmq.cpp", "amx/mmq.h",
                 "tiled/tiled.cpp", "tiled/tiled.h",
                 "tiled/tiled-kernel.cpp", "tiled/tiled-kernel.h",
                 "arch/arm/quants.c", "arch/arm/cpu-feats.cpp",
-                // The ARM repack kernels compile only on ARM, like upstream's
-                // CMake does: arm-repack-shim.cpp (ours, not vendored) includes
-                // arch/arm/repack.cpp under upstream's own arch condition.
-                // Compiled unconditionally, that file's scalar #else branches
-                // redefined all 27 repack kernels on x86_64 — on top of
-                // arch-fallback.h's x86 renames inside repack.cpp — and the
-                // linux-core link failed ("multiple definition"); see
-                // arm-repack-shim.cpp and VENDORED.md.
-                "arm-repack-shim.cpp",
+                "repack-select.cpp",
             ],
             publicHeadersPath: ".",
             cSettings: [
