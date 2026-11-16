@@ -91,8 +91,10 @@ struct SegmentMergeTests {
     @Test func timedWordsSpreadTimeEvenly() {
         let words = SegmentMerge.timedWords(TimedSegment(startMs: 1000, endMs: 3000, text: "a b c"), segmentIndex: 2)
         #expect(words.count == 3)
-        #expect(words[0].startMs == 1000 && words[0].endMs < words[1].startMs + 400)
-        #expect(words[2].endMs == 3000)
+        // 2000 ms over three words: 666.67 ms each, rounded to the ms — and
+        // contiguous, every word starting where the previous ended.
+        #expect(words.map(\.startMs) == [1000, 1667, 2333])
+        #expect(words.map(\.endMs) == [1667, 2333, 3000])
         #expect(words.allSatisfy { $0.segmentIndex == 2 })
         #expect(SegmentMerge.timedWords(TimedSegment(startMs: 0, endMs: 0, text: "  "), segmentIndex: 0).isEmpty)
     }
@@ -102,13 +104,18 @@ struct SegmentMergeTests {
         let second = chunk(["charlie", "delta", "echo", "foxtrot", "golf"], fromMs: 15_000)
         let result = SegmentMerge.merge(chunks: [first, second], overlapMs: 5000)
         let text = result.segments.map(\.text).joined(separator: " ")
-        // The repeated words survive exactly once in the merged timeline.
-        for w in ["charlie", "delta", "echo"] {
-            #expect(text.components(separatedBy: w).count - 1 == 1)
+        // The exact merge, not a shape: chunk 0 drops nothing (it is the base),
+        // the boundary drops the two tail words "delta echo" and the one head
+        // word "charlie" (the middle-point split of the three-word seam), and
+        // the merged timeline reads as one continuous take.
+        #expect(result.removedWords == [0, 3])
+        #expect(text == "alpha bravo charlie delta echo foxtrot golf")
+        #expect(result.segments.count == 2)
+        var lastStart = Int64.min
+        for segment in result.segments {
+            #expect(segment.startMs >= lastStart)
+            lastStart = segment.startMs
         }
-        #expect(text.contains("alpha") && text.contains("foxtrot") && text.contains("golf"))
-        #expect(result.removedWords.count == 2)
-        #expect(result.removedWords[0] + result.removedWords[1] >= 1)
     }
 
     @Test func disjointChunksKeptWhole() {
@@ -352,7 +359,10 @@ struct SegmentMergeTests {
 
     @Test func oneSubstitutionStillStitches() {
         let first = chunk(["the", "quick", "brown", "fox", "jumps", "over", "lazy", "dogs"], fromMs: 0)
-        // "dogs" heard as "dog" (one edit, 5+ chars → similar), rest identical.
+        // "dogs" heard as "dog": 4 letters each, below the 5-letter similar()
+        // floor, so that pair can never count as a match — the seam still
+        // stitches because the five equal words carry the score (2·5 − 1 = 9
+        // with the dogs/dog pair riding along as a mismatch, ≥ MIN_SCORE 6).
         let second = chunk(["brown", "fox", "jumps", "over", "lazy", "dog", "and", "rests"], fromMs: 15_000)
         let result = SegmentMerge.merge(chunks: [first, second], overlapMs: 5_000)
         let text = result.segments.map(\.text).joined(separator: " ")
@@ -373,7 +383,8 @@ struct SegmentMergeTests {
             #expect(text.components(separatedBy: w).count - 1 == 1, "\(w) must occur exactly once")
         }
         #expect(text.contains("alpha") && text.contains("juliet"))
-        #expect(result.removedWords.count == 3)
+        #expect(result.removedWords == [0, 0, 3])
+        #expect(text == "alpha bravo charlie delta echo foxtrot golf hotel india juliet")
     }
 
     @Test func singleWordSegmentsMerge() {
@@ -408,19 +419,30 @@ struct ModelRegistryTests {
 
     @Test func unhostedQualityPinMirrorsAndroid() {
         // Android keeps WHISPER_Q8_URL = "" for its own q8_0 quantisation: no URL,
-        // hand-installed. The iOS port must keep the same honesty.
+        // hand-installed. The iOS port must keep the same honesty — and the pin
+        // must be Android's ModelSpec.kt WHISPER_LARGE_V3_Q8 entry verbatim:
+        // same id, subdir, file name, size and sha256.
         let spec = ModelRegistry.whisperLargeV3Q8
-        #expect(spec.files[0].url == "")
-        #expect(spec.files[0].size == 1_656_538_283)
+        #expect(spec.id == "whisper-large-v3-q8_0")
+        #expect(spec.subdir == "whisper-large-v3-q8_0")
+        let file = spec.files[0]
+        #expect(file.name == "ggml-large-v3-q8_0.bin")
+        #expect(file.url == "")
+        #expect(file.size == 1_656_538_283)
+        #expect(file.sha256 == "24bc434f372355688ab9a623077a63e5361a1c41f4d8d648977e39f9b060f09e")
     }
 
     @Test func registryShape() {
-        #expect(ModelRegistry.all.count >= 2)
+        #expect(ModelRegistry.all.count == 2)
         #expect(Set(ModelRegistry.all.map(\.id)).count == ModelRegistry.all.count)
         #expect(ModelRegistry.byId("whisper-large-v3-turbo-q8_0") != nil)
+        #expect(ModelRegistry.byId("whisper-large-v3-q8_0") != nil)
         #expect(ModelRegistry.byId("nope") == nil)
+        // Exact totals per spec. (`totalBytes == sum(files)` is a tautology —
+        // totalBytes is computed as exactly that sum — so the pins live here.)
+        #expect(ModelRegistry.whisperLargeV3TurboQ8.totalBytes == 874_188_075)
+        #expect(ModelRegistry.whisperLargeV3Q8.totalBytes == 1_656_538_283)
         for spec in ModelRegistry.all {
-            #expect(spec.totalBytes == spec.files.reduce(0) { $0 + $1.size })
             #expect(!spec.subdir.isEmpty)
             for f in spec.files where !f.url.isEmpty {
                 #expect(f.url.hasPrefix("https://"))

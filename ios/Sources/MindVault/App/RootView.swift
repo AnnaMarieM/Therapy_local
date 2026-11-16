@@ -12,7 +12,7 @@ struct RootView: View {
         let home = HomeViewModel(repository: app.repository, notices: app.notices, clock: app.clock)
         #if DEBUG
         // CI screenshots (issue #133): open the requested screen before the first body.
-        ScreenshotHarness.configure(router: app.router, home: home)
+        ScreenshotHarness.configure(app: app, router: app.router, home: home)
         #endif
         _homeModel = StateObject(wrappedValue: home)
         _vault = ObservedObject(wrappedValue: app.vault)

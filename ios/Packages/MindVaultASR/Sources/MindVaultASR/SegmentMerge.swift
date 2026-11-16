@@ -237,12 +237,19 @@ public enum SegmentMerge {
         return Stitch(dropFromEnd: n - middle.0, dropFromStart: middle.1)
     }
 
-    /// Fold to lowercase alphanumerics, the same word normalization as the
-    /// Android stitch (`TextNormalization.words` folded). A loop, not
-    /// `filter`, so no Foundation `Predicate` overload is in the way.
+    /// Fold to lowercase letters and ASCII digits, the word normalization the
+    /// Android stitch applies to both sides (`TranscriptMerge.norm` folds with
+    /// `isLetterOrDigit`). The digit set is narrower on purpose — ASCII 0–9
+    /// only: ASR output digits are ASCII, and `Character.isNumber` also accepts
+    /// the Nl/No categories ("Ⅻ", "²") that a transcript never carries, while
+    /// Kotlin's fold keeps all Nd digits (so an Arabic-Indic "٣" survives on
+    /// Android, never on iOS). Irrelevant for real transcripts, simpler to
+    /// reason about. A loop, not `filter`, so no Foundation `Predicate`
+    /// overload is in the way.
     static func normalize(_ word: String) -> String {
         var out = String.UnicodeScalarView()
-        for scalar in word.lowercased().unicodeScalars where Character(scalar).isLetter || Character(scalar).isNumber {
+        for scalar in word.lowercased().unicodeScalars
+        where Character(scalar).isLetter || (48...57).contains(scalar.value) {
             out.append(scalar)
         }
         return String(out)

@@ -15,21 +15,30 @@ final class FactParserTests: XCTestCase {
 
     func testEvidenceMustBeVerbatim() {
         let fact = ParsedFact(
-            heading: "Sister",
-            content: "George saw his sister Maya at the market.",
-            evidence: "I saw my sister Maya at the market."
+            heading: "Runs again",
+            content: "Ana took up running again in May.",
+            evidence: "I took up running again in May."
         )
-        XCTAssertTrue(FactParser.evidenceHolds(fact, source: Fixtures.georgeTranscript))
-        let invented = ParsedFact(heading: "Sister", content: "George saw his sister.", evidence: "Maya was at the beach.")
-        XCTAssertFalse(FactParser.evidenceHolds(invented, source: Fixtures.georgeTranscript))
+        XCTAssertTrue(FactParser.evidenceHolds(fact, source: Fixtures.anaTranscript1))
+        let invented = ParsedFact(heading: "Runs again", content: "Ana started running.", evidence: "Ana runs on Sundays.")
+        XCTAssertFalse(FactParser.evidenceHolds(invented, source: Fixtures.anaTranscript1))
     }
 
     func testSegmentOfEvidence() {
+        // Tour data: every line sits in the one transcript window, so the
+        // evidence lands in chunk 0 wherever it is in the take.
         let segments = Fixtures.sessions[0].segments
-        XCTAssertEqual(
-            FactParser.segmentOf(evidence: "I want to call her again this weekend.", segments: segments),
-            1
-        )
+        XCTAssertEqual(FactParser.segmentOf(evidence: Fixtures.lines1[3], segments: segments), 0)
+        // The result is the segment's chunkIndex, not its position: the same
+        // quote in the middle of a two-window take maps to the second window.
+        let byChunk = [
+            TranscriptSegment(sessionID: nil, chunkIndex: 5, startMs: 0, endMs: 5_000, text: "Good to see you again."),
+            TranscriptSegment(sessionID: nil, chunkIndex: 6, startMs: 5_000, endMs: 10_000, text: "Busy, but better."),
+            TranscriptSegment(sessionID: nil, chunkIndex: 7, startMs: 10_000, endMs: 15_000, text: "It clears my head before work."),
+        ]
+        XCTAssertEqual(FactParser.segmentOf(evidence: "Busy, but better.", segments: byChunk), 6)
+        // Evidence must be verbatim: an invented line has no segment.
+        XCTAssertNil(FactParser.segmentOf(evidence: "Ana runs on Sundays.", segments: segments))
     }
 
     func testVerdictDecoding() {
@@ -49,28 +58,28 @@ final class SearchRankingTests: XCTestCase {
     }
 
     func testCuesRankFactsByEmbedding() {
-        let query = HashingEmbedding.embed("George wants to call Maya this weekend")
+        let query = HashingEmbedding.embed("Ana took up running again in May")
         let facts = Fixtures.facts.map { fact in
             var copy = fact
             copy.embedding = HashingEmbedding.embed(fact.text)
             return copy
         }
-        let cues = SearchRanking.cues(query: query, facts: facts, clientID: Fixtures.georgeID, limit: 2)
+        let cues = SearchRanking.cues(query: query, facts: facts, clientID: Fixtures.anaID, limit: 2)
         XCTAssertFalse(cues.isEmpty)
-        XCTAssertEqual(cues.first?.clientID, Fixtures.georgeID)
+        XCTAssertEqual(cues.first?.clientID, Fixtures.anaID)
         XCTAssertLessThanOrEqual(cues.count, 2)
     }
 
     func testSearchFindsChunkAndFact() {
         let results = SearchRanking.search(
-            query: "Maya market",
+            query: "running",
             chunks: Fixtures.chunks,
             facts: Fixtures.facts,
             sessions: Fixtures.sessions,
-            clientID: Fixtures.georgeID
+            clientID: Fixtures.anaID
         )
         XCTAssertTrue(results.contains { $0.chunkID != nil })
-        XCTAssertTrue(results.allSatisfy { $0.clientID == Fixtures.georgeID })
+        XCTAssertTrue(results.allSatisfy { $0.clientID == Fixtures.anaID })
     }
 }
 

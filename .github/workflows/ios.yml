@@ -223,8 +223,16 @@ jobs:
           test -d "$APP" || { echo "::error::simulator app not found at $APP"; exit 1; }
           xcrun simctl install "$SIM_UDID" "$APP"
           mkdir -p ios/screenshots
-          # The screen list and what each one shows: ScreenshotHarness.Screen.
-          SCREENS=(setup unlock home-empty home add-client profile session summary settings)
+          # The capture list is parsed out of ScreenshotHarness.Screen itself — one
+          # source of truth (review nit): a case added there is captured here without
+          # touching this job. The guard fails the job if the enum layout changes so
+          # the sed no longer matches, instead of silently capturing nothing.
+          SCREENS=($(sed -nE 's/^ +case [a-zA-Z]+ = "([^"]+)".*/\1/p' ios/Sources/MindVault/App/ScreenshotHarness.swift))
+          if [[ ${#SCREENS[@]} -lt 10 ]]; then
+            echo "::error::parsed ${#SCREENS[@]} screens from ScreenshotHarness.Screen — the enum layout changed; fix this parser"
+            exit 1
+          fi
+          echo "Capturing ${#SCREENS[@]} screens: ${SCREENS[*]}"
           for screen in "${SCREENS[@]}"; do
             xcrun simctl terminate "$SIM_UDID" com.therapylocal.app 2>/dev/null || true
             xcrun simctl launch "$SIM_UDID" com.therapylocal.app -MVShot "$screen"

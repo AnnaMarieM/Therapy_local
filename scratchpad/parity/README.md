@@ -8,28 +8,67 @@ over both PNG sets, one screen at a time, filed as a per-screen deviation report
 
 ## What is captured
 
-The same nine states on both apps, named identically, so the sets line up one to one:
+Every state the DEBUG iOS app can present deterministically (17), aligned with the Android
+screen tour (`app/src/androidTest/.../screens/ScreenList.kt`, AD-15) where the apps share a
+screen. The iOS list is the raw values of `ScreenshotHarness.Screen` and the CI job parses it
+from there, so this table and the captures cannot drift. Screens only one app has are still
+captured and reported as differences — that is the point of the pass.
 
-| screen | what it shows | iOS data | Android data |
+| screen | what it shows | iOS | Android |
 |---|---|---|---|
-| `setup` | first run: create the vault | empty vault | QA vault with no password yet (or the gate's first page) |
-| `unlock` | returning user: enter the passphrase | locked, empty vault | QA vault, password `12345678` |
-| `home-empty` | home with no clients | unlocked, no clients | fresh QA vault |
-| `home` | home with clients | fixture clients (George, Maya) | QA test clients |
-| `add-client` | the "New client" sheet | fixtures | QA test clients |
-| `profile` | one client: note, memory, sessions | fixture client George | first client in the vault |
-| `session` | the session page (idle) | fixture client George | first client, record screen |
-| `summary` | session review sheet | fixture session | Android's session review, if reachable |
-| `settings` | settings sheet | fixtures | QA build |
+| `setup` | first run: create the vault | ✓ gate, empty vault | `gate-create-password` |
+| `setup-filled` | both passphrase fields typed | ✓ gate + fields `12345678` | `gate-create-password-filled` |
+| `unlock` | returning user: enter the passphrase | ✓ gate, locked | `gate-unlock` |
+| `erase-vault` | "Erase everything?" dialog over the gate | ✓ (iOS-only: the dialog over the gate) | `gate-reset-password` is a full page instead |
+| `home-empty` | home with no clients | ✓ | `home-empty` |
+| `home` | home with clients | ✓ tour clients | `home` |
+| `add-client` | the "New client" sheet | ✓ | `add-client` |
+| `add-client-filled` | the sheet with a name typed | ✓ Dana / Lewis, like the Android tour | `add-client-filled` |
+| `notice` | a notice banner over the page | ✓ "Ana added" over home | `notice` |
+| `profile` | one client: facts, sessions | ✓ Ana | `profile` (+ `profile-sessions`) |
+| `profile-search` | a client's memory searched | ✓ query "running" | `profile-search` |
+| `profile-delete` | "Delete client?" dialog | ✓ (iOS-only state) | delete-confirm captured in `dialog-*` set |
+| `session` | the session page, ready to record | ✓ Ana, idle | (no idle twin; Android tours the recording states) |
+| `session-recording` | recording: clock 22:05, level 0.45, one cue | ✓ | `session-recording` |
+| `session-discard` | "Discard this recording?" dialog | ✓ (iOS-only state) | no discard dialog on the tour |
+| `summary` | the session review sheet | ✓ Ana's 2026-01-01 session | (no summary twin on the Android tour) |
+| `settings` | settings sheet | ✓ | `settings` (+ `settings-bottom`, `settings-technical`, …) |
 
-The names follow the Android screen tour (`app/src/androidTest/.../screens/ScreenList.kt`, AD-15)
-where the two apps have the same screen. A screen that one app does not have yet is still
-captured and reported as a difference — that is the point of the pass.
+### Captured on Android only (documented, no iOS twin yet)
+
+- **Gate flow pages:** `gate-language`, `gate-welcome-1..4`, `gate-permissions`,
+  `gate-speech-language` — the iOS gate is one screen (`setup`) where Android has a paged
+  first-run flow.
+- **State screens:** `gate-reset-password` (iOS shows the erase dialog over the gate instead),
+  `home-model-download` (no model-download state on iOS home yet), `home-two-pane` (wide-window
+  two-pane layout — the iOS home is a card list at all widths),
+  `home-recording` (the recording card on home), `session-recording-quiet` (no cue),
+  `session-paused` (the iOS paused phase exists but is not captured),
+  `profile-processing` (the processing status line), `profile-fact`, `profile-transcript`
+  (iOS shows facts and sessions on one page; Android tours them as separate scrolled screens),
+  `settings-bottom`, `settings-technical`, `settings-technical-cues`, `settings-change-password`.
+- **Dialogs:** `dialog-mobile-data`, `dialog-sign-out`, and the other `dialog-*` entries —
+  the iOS equivalents surface as in-screen dialogs (`erase-vault`, `profile-delete`,
+  `session-discard`), not as separate windows.
+
+### Known content differences inside shared screens
+
+- **Fact categories:** Android facts carry Health / Family / Work; the iOS taxonomy has nine
+  cases, and the fixtures map Health → coping, Family → relationship, Work → event. The tour
+  facts are the same four with the same headings, contents and evidence on both sides.
+- **Fact mentions:** the Android tour mentions the "Runs again" fact in Ana's second session
+  (`addMention`); the iOS `VaultDocument` has no mention slot yet, so the iOS fixtures carry
+  only the base fact.
+- **Home layout:** Android home is a client reel/carousel at every portrait size; the iOS home
+  is a card list (Martin's call pending on which IA wins — see the compare on #133).
+- **Date labels:** iOS renders `2026-01-15` (ISO), Android's tour composes `Jan 15` status
+  strings. Fixture instants are identical (Android `DAY_1` = 2026-01-01 00:00 UTC).
 
 ## iOS half (CI, no device needed)
 
 The `screenshots` job in [`.github/workflows/ios.yml`](../../.github/workflows/ios.yml) builds the
-simulator **Debug** app, boots one iPhone simulator, and for each screen runs
+simulator **Debug** app, boots one iPhone simulator, and for each screen (parsed out of
+`ScreenshotHarness.Screen`) runs
 
 ```
 xcrun simctl launch <udid> com.therapylocal.app -MVShot <screen>
@@ -38,18 +77,20 @@ xcrun simctl io <udid> screenshot <screen>.png
 ```
 
 `-MVShot` is read by a DEBUG-only harness
-([`ScreenshotHarness.swift`](../../ios/Sources/MindVault/App/ScreenshotHarness.swift)). A launch
-without the argument is untouched, and the harness is not compiled into Release.
+([`ScreenshotHarness.swift`](../../ios/Sources/MindVault/App/ScreenshotHarness.swift)); an unknown
+screen name fails the launch loudly with the valid names, so a job typo can never be silently
+screenshotted as the wrong screen. A launch without the argument is untouched, and the harness is
+not compiled into Release.
 
-- **Artifact:** the `ios-screenshots` artifact of the `ios-ci` run (~9 PNGs, 14-day retention).
+- **Artifact:** the `ios-screenshots` artifact of the `ios-ci` run (17 PNGs, 14-day retention).
   Download with `gh run download -R AnnaMarieM/Therapy_local -n ios-screenshots -D /tmp/opencode/ios-shots`.
-- **A fresh install can show** `setup` and `unlock` with no seeded data at all (the job erases the
-  simulator first). The deeper screens (`home`, `profile`, `session`, `summary`, `settings`) need
-  data; the harness serves them from the app's existing `MindVaultCore.Fixtures` (two clients, two
-  sessions, three facts) with an in-memory repository. That is a DEBUG seed arg, not invented data:
-  the same fixtures the previews and the Linux unit tests use, and no real vault is read.
-- The job also fixes the status bar (9:41, full battery, Wi-Fi) so shots differ by the app, not the
-  clock, and fails if a PNG is smaller than 12 kB (a blank or black capture, not a screenshot).
+- **A fresh install can show** `setup`, `setup-filled`, `unlock` and `erase-vault` with no seeded
+  data at all (the job erases the simulator first). The deeper screens need data; the harness
+  serves them from `MindVaultCore.Fixtures` — the tour data above (four clients, five sessions,
+  four facts), the same fixtures the Linux unit tests use — with an in-memory repository. That
+  is a DEBUG seed arg, not invented data, and no real vault is read.
+- The job also fixes the status bar (9:41, full battery, Wi-Fi) so shots differ by the app, not
+  the clock, and fails if a PNG is smaller than 12 kB (a blank or black capture, not a screenshot).
 
 ## Android half (needs the QA phone)
 

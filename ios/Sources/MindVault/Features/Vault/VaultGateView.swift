@@ -36,6 +36,13 @@ struct VaultGateView: View {
         }
         .task {
             vault.refresh()
+            #if DEBUG
+            ScreenshotHarness.seedVaultGate(
+                password: { password = $0 },
+                confirmation: { confirmation = $0 },
+                showErase: { showingEraseConfirm = true }
+            )
+            #endif
         }
         .overlay {
             if showingEraseConfirm {

@@ -52,6 +52,22 @@ struct SessionView: View {
             }
         }
         .accessibilityIdentifier("session.screen")
+        .task {
+            #if DEBUG
+            ScreenshotHarness.seedSession(
+                record: {
+                    coordinator.screenshotSeed(
+                        client: client,
+                        elapsed: 1_325,
+                        cues: ScreenshotHarness.recordingCue().map { [$0] } ?? [],
+                        transcript: ""
+                    )
+                    audio.screenshotSeedLevel(0.45)
+                },
+                showDiscard: { showingDiscardConfirm = true }
+            )
+            #endif
+        }
     }
 
     private var topBar: some View {
