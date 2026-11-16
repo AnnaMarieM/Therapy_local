@@ -9,9 +9,12 @@ struct RootView: View {
 
     init(app: AppEnvironment) {
         self.app = app
-        _homeModel = StateObject(
-            wrappedValue: HomeViewModel(repository: app.repository, notices: app.notices, clock: app.clock)
-        )
+        let home = HomeViewModel(repository: app.repository, notices: app.notices, clock: app.clock)
+        #if DEBUG
+        // CI screenshots (issue #133): open the requested screen before the first body.
+        ScreenshotHarness.configure(router: app.router, home: home)
+        #endif
+        _homeModel = StateObject(wrappedValue: home)
         _vault = ObservedObject(wrappedValue: app.vault)
         _router = ObservedObject(wrappedValue: app.router)
     }
