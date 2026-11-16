@@ -22,8 +22,9 @@ final class JSONValueTests: XCTestCase {
         XCTAssertNil(JSONValue.parse("\"unterminated"))
         XCTAssertNil(JSONValue.parse("{\"a\":1,}"))
         XCTAssertNil(JSONValue.parse("{a:1}"))
-        // Divergence from org.json (documented): org.json rejects a leading zero ("01"),
-        // this parser reads it as the number 1 — harmless for model output.
+        // org.json's JSONTokener.stringToValue falls through to Double.valueOf("01"),
+        // so it reads "01" as the number 1 too — no divergence here (the review checked
+        // the AOSP source; this parser agrees).
     }
 
     /// Duplicate keys keep the LAST value, like org.json's optString.
@@ -52,7 +53,9 @@ final class JSONValueTests: XCTestCase {
         XCTAssertEqual(JSONValue.null.asString, "")
         XCTAssertEqual(JSONValue.object([:]).asString, "")
         XCTAssertEqual(JSONValue.object(["k": .number(1)]).string("k"), "1")
-        XCTAssertEqual(JSONValue.object(["k": .string(" v ")]).string("k"), "v")
+        // org.json `optString` hands a string back verbatim (no trim); the Kotlin code
+        // trims at the call sites that want it (`category`, SpeakerMaps roles).
+        XCTAssertEqual(JSONValue.object(["k": .string(" v ")]).string("k"), " v ")
         XCTAssertEqual(JSONValue.object([:]).string("missing"), "")
     }
 

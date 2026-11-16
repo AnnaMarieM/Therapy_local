@@ -71,4 +71,53 @@ final class FactTests: XCTestCase {
             XCTAssertTrue(FactSchemas.EXTRACT_STRICT.contains(key), key)
         }
     }
+
+    // MARK: - Numbers: Java's `(int)` cast, never a Swift trap (review should #6)
+
+    func testIntOfSaturatesLikeJavasIntCastInsteadOfTrapping() {
+        // Kotlin's field is an Int (32 bit) read through org.json `optInt`, whose
+        // `Number.intValue()` is the JLS d2i conversion: NaN → 0, and a saturating
+        // clamp at the 32-bit bounds (NOT Swift's 64-bit Int, whose `Int(1e30)` traps).
+        XCTAssertEqual(Fact.intOf(.number(1e30)), Int(Int32.max))
+        XCTAssertEqual(Fact.intOf(.number(-1e30)), Int(Int32.min))
+        XCTAssertEqual(Fact.intOf(.number(.nan)), 0)
+        XCTAssertEqual(Fact.intOf(.number(.infinity)), Int(Int32.max))
+        XCTAssertEqual(Fact.intOf(.number(-.infinity)), Int(Int32.min))
+        XCTAssertEqual(Fact.intOf(.number(7)), 7)
+        XCTAssertEqual(Fact.intOf(.number(7.9)), 7)  // truncation toward zero
+        XCTAssertEqual(Fact.intOf(.number(-7.9)), -7)
+        XCTAssertEqual(Fact.intOf(.number(Double(Int32.max))), Int(Int32.max))
+        XCTAssertNil(Fact.intOf(nil))
+        XCTAssertNil(Fact.intOf(.bool(true)))
+    }
+
+    func testIntOfParsesNumericStringsLikeDoubleValueOf() {
+        // `JSON.toInteger(String)` is `(int) Double.parseDouble(s)`: doubles coerce.
+        XCTAssertEqual(Fact.intOf(.string("3")), 3)
+        XCTAssertEqual(Fact.intOf(.string("3.7")), 3)
+        XCTAssertEqual(Fact.intOf(.string(" 7 ")), 7)
+        XCTAssertEqual(Fact.intOf(.string("1e30")), Int(Int32.max))
+        XCTAssertNil(Fact.intOf(.string("seg")))
+        XCTAssertNil(Fact.intOf(.string("")))
+    }
+
+    func testFromJsonSurvivesAnAdversarialSegmentNumber() throws {
+        // This exact string used to trap in `Int(d)` and kill the app; Android clamps.
+        let fact = try XCTUnwrap(Fact.fromJsonString("{\"heading\":\"h\",\"content\":\"c\",\"evidence\":\"e\",\"seg\":1e30,\"segEnd\":-1e30}"))
+        XCTAssertEqual(fact.segIdx, Int(Int32.max))
+        XCTAssertEqual(fact.segEnd, Int(Int32.min))
+    }
+
+    // MARK: - Trimming: only where Android trims (review should #9)
+
+    func testFromJsonDoesNotTrimTextButTrimsTheCategory() throws {
+        // Facts.kt: heading/content/evidence/scope are `optString` (verbatim),
+        // `category` is `.trim()`, `scope` falls back when blank.
+        let fact = try XCTUnwrap(Fact.fromJsonString("{\"heading\":\"h\\n\",\"content\":\"c\\t\",\"evidence\":\"e \",\"scope\":\" \\n\",\"category\":\" coping\\n\"}"))
+        XCTAssertEqual(fact.heading, "h\n")
+        XCTAssertEqual(fact.content, "c\t")
+        XCTAssertEqual(fact.evidence, "e ")
+        XCTAssertEqual(fact.scope, Fact.SCOPE_PROFILE)  // ifBlank
+        XCTAssertEqual(fact.category, "coping")
+    }
 }

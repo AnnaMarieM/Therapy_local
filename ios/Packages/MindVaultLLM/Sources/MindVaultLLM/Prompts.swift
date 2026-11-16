@@ -25,8 +25,12 @@ public enum Prompts {
         language == PromptLanguage.CS ? "\(PromptLanguage.CS_DIR)/\(name)" : name
     }
 
-    /// Replaces every `{{KEY}}` with `vars[KEY]`, keys in sorted order (the Android
-    /// caller passes distinct keys, so the order cannot matter, only determinism).
+    /// Replaces every `{{KEY}}` with `vars[KEY]`, keys in sorted order. This is
+    /// Android's `fill` (a fold of `String.replace` over the map) with a deterministic
+    /// key order where Android uses the map's iteration order — and it is exactly as
+    /// order-DEPENDENT as the Android fold: a substituted value that itself contains
+    /// `{{…}}` gets re-replaced, so the result depends on which key runs first. The
+    /// app's callers pass plain literals, where order cannot matter.
     public static func fill(_ template: String, _ vars: [String: String]) -> String {
         vars.keys.sorted().reduce(template) { acc, key in
             acc.replacingOccurrences(of: "{{\(key)}}", with: vars[key] ?? "")

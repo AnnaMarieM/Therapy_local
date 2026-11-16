@@ -24,16 +24,25 @@ public enum PromptBudget {
     public static let MAX_CONTEXT = 16384
     static let STEP = 512
 
-    /// True when at least 1% of the letters are non-ASCII, which is the Kotlin rule
+    /// True when at least 1% of the letters are non-ASCII, the Kotlin rule
     /// (`other * 100 >= letters`) that flags Czech and every other accented language.
-    /// Counted over Unicode scalars, which agrees with Kotlin's chars for the BMP
-    /// scripts the transcripts use.
+    /// Counted over UTF-16 units like Kotlin's chars, with Kotlin's `Char.isLetter()`
+    /// (= general category Lu/Ll/Lt/Lm/Lo, NOT the wider Unicode Alphabetic property —
+    /// a Roman numeral Ⅻ (Nl) or an astral ideograph's surrogate halves are not
+    /// letters to Kotlin; Unicode Alphabetic would count them).
     static func accented(_ text: String) -> Bool {
         var letters = 0
         var other = 0
-        for c in text.unicodeScalars where c.properties.isAlphabetic {
-            letters += 1
-            if c.value > 127 { other += 1 }
+        for u in text.utf16 {
+            // A surrogate code unit is not a letter in UTF-16 (Kotlin sees two
+            // non-letter chars for one astral scalar); nil scalar → skip.
+            guard let scalar = Unicode.Scalar(u) else { continue }
+            switch scalar.properties.generalCategory {
+            case .uppercaseLetter, .lowercaseLetter, .titlecaseLetter, .modifierLetter, .otherLetter:
+                letters += 1
+                if u > 127 { other += 1 }
+            default: break
+            }
         }
         return letters > 0 && other * 100 >= letters
     }

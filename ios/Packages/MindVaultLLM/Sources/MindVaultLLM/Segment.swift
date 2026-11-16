@@ -40,11 +40,13 @@ public enum SpeakerMaps {
     }
 
     /// Empty for malformed JSON; a role name that is not known counts as `other`.
+    /// Kotlin `trim()` (code points ≤ 0x20) — a trailing `"\n"` in `map_json` must
+    /// not turn a role into `other` (Android: `o.optString(k).trim().lowercase()`).
     public static func decode(_ json: String) -> [String: Role] {
         guard let v = JSONValue.parse(json), case .object(let o) = v else { return [:] }
         var out: [String: Role] = [:]
         for key in o.keys.sorted() {
-            let name = (o[key]?.asString ?? "").trimmingCharacters(in: .whitespaces).lowercased()
+            let name = TextUtil.ktTrim(o[key]?.asString ?? "").lowercased()
             out[key] = Role(rawValue: name) ?? .other
         }
         return out

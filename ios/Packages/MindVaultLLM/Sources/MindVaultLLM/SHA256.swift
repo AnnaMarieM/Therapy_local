@@ -1,10 +1,18 @@
 import Foundation
 
-/// Pure SHA-256 over bytes, for the prompt version hash (`Prompts.hash`) and no other use.
-/// Same algorithm as the MindVaultCore implementation, kept self-contained so this
+/// Pure SHA-256 over bytes, for the prompt version hash (`Prompts.hash`) and no other
+/// use. Same algorithm as the MindVaultCore implementation, kept self-contained so this
 /// package has no dependency on it.
-public enum SHA256 {
-    public static func hash(_ data: Data) -> Data {
+///
+/// Internal on purpose: MindVaultCore owns the public `SHA256` contract
+/// (`ios/CONTRACTS.md` shared-contracts rule) — a second public type with the same
+/// name makes `SHA256.hash(...)` ambiguous for every app file that imports both
+/// packages (reproduced by the reviewer in a 3-target scratch package; the ASR lane
+/// made the same fix, `MindVaultASR/Sources/MindVaultASR/SHA256.swift`). This
+/// implementation stays one-shot and byte-exact with core's; if a consumer needs the
+/// contract, it goes through MindVaultCore.
+enum SHA256 {
+    static func hash(_ data: Data) -> Data {
         var message = [UInt8](data)
         let bitLength = UInt64(message.count) * 8
         message.append(0x80)
@@ -87,12 +95,12 @@ public enum SHA256 {
     }
 
     /// Lowercase hex of the hash of the UTF-8 bytes of `text`.
-    public static func hex(_ text: String) -> String {
+    static func hex(_ text: String) -> String {
         hash(Data(text.utf8)).map { String(format: "%02x", $0) }.joined()
     }
 
     /// Lowercase hex of the hash of the bytes.
-    public static func hex(_ data: Data) -> String {
+    static func hex(_ data: Data) -> String {
         hash(data).map { String(format: "%02x", $0) }.joined()
     }
 

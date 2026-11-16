@@ -50,7 +50,11 @@ public enum JSONValue: Equatable, Sendable {
         switch self {
         case .number(let d): return d
         case .string(let s):
-            let t = s.trimmingCharacters(in: .whitespaces)
+            // Kotlin trim() (code points ≤ 0x20), not CharacterSet.whitespaces, which
+            // would also strip an NBSP where Kotlin keeps it. (Android's own
+            // `JSON.toDouble(String)` does not trim at all — the trim stays because
+            // model output pads numbers, and no caller reads asDouble today.)
+            let t = TextUtil.ktTrim(s)
             return Double(t)
         default: return nil
         }
@@ -66,9 +70,13 @@ public enum JSONValue: Equatable, Sendable {
         return nil
     }
 
-    /// org.json `optString(key)` on an object member, trimmed.
+    /// org.json `optString(key)` on an object member — NOT trimmed. Android's
+    /// `JSON.toString` hands the string back as-is; the trims the ported code applies
+    /// live at the call sites that have them (Kotlin `trim()` = `TextUtil.ktTrim`:
+    /// code points ≤ 0x20, so `\n\r\t\u000B\u000C` and the C0 controls too, while an
+    /// NBSP U+00A0 survives — `CharacterSet.whitespaces` would have eaten the NBSP).
     public func string(_ key: String) -> String {
-        (self[key]?.asString ?? "").trimmingCharacters(in: .whitespaces)
+        self[key]?.asString ?? ""
     }
 
     // MARK: - Writing

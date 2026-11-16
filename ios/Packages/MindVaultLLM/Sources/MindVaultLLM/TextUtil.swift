@@ -6,13 +6,46 @@ import Foundation
 /// Kotlin counts characters as UTF-16 code units (`String.length`), trims
 /// characters with code point <= 0x20 (`String.trim`), and splits on the regex
 /// `\s+` (ASCII whitespace only). Internal to the package; tests use `@testable`.
-enum TextUtil {
+/// Only the two helpers the engine target (`MindVaultLLMLlama`) needs are public —
+/// `ktTrim` for the rejected-template message, `isIncompleteUTF8Tail` for the token
+/// streamer — because that target is a separate module.
+public enum TextUtil {
     /// Kotlin `String.trim()`: drops leading/trailing characters whose code point is <= 0x20.
-    static func ktTrim(_ s: String) -> String {
+    public static func ktTrim(_ s: String) -> String {
         var scalars = Array(s.unicodeScalars)
         while let first = scalars.first, first.value <= 0x20 { scalars.removeFirst() }
         while let last = scalars.last, last.value <= 0x20 { scalars.removeLast() }
         return String(String.UnicodeScalarView(scalars))
+    }
+
+    /// Whether `bytes` ends in an INCOMPLETE multi-byte UTF-8 sequence — a lead byte
+    /// that is still missing some of its continuation bytes — so more bytes could
+    /// still turn the whole buffer into valid UTF-8 (worth holding back, as a streamed
+    /// token piece can split a character). False when the tail is already provably
+    /// invalid or plainly complete: then a failed decode will never be fixed by the
+    /// next piece and the buffer can flush lossily instead of stalling the stream.
+    ///
+    /// The lead is found by walking BACK over the trailing continuation bytes — the
+    /// last byte alone is not the lead when the buffer is cut mid-character
+    /// (`[0xE2, 0x82]` ends in a continuation byte and is still incomplete).
+    public static func isIncompleteUTF8Tail(_ bytes: [UInt8]) -> Bool {
+        var i = bytes.count - 1
+        var trailing = 0
+        while i >= 0, 0x80...0xBF ~= bytes[i] {
+            trailing += 1
+            i -= 1
+        }
+        guard i >= 0 else { return false }  // only continuation bytes: nothing can lead them
+        // Only the lead byte of a well-formed multi-byte sequence can be completed.
+        // (0xC0/0xC1 and 0xF5-0xFF never start valid UTF-8, so they are "invalid".)
+        let needed: Int
+        switch bytes[i] {
+        case 0xC2...0xDF: needed = 1
+        case 0xE0...0xEF: needed = 2
+        case 0xF0...0xF4: needed = 3
+        default: return false
+        }
+        return trailing < needed
     }
 
     /// Kotlin `String.isBlank()`: true when there is no character that is not whitespace.
@@ -20,12 +53,17 @@ enum TextUtil {
         s.unicodeScalars.allSatisfy(isWhitespaceScalar)
     }
 
-    /// Kotlin `Char.isWhitespace` (approximated with the Unicode whitespace property,
-    /// which agrees on everything the ported code feeds it: spaces, tabs, newlines).
+    /// Kotlin `Char.isWhitespace()` — on the JVM/Android that is
+    /// `java.lang.Character.isWhitespace`: the Zs separators EXCEPT the non-breaking
+    /// ones (NBSP U+00A0, figure space U+2007, narrow NBSP U+202F), plus tab, LF, VT,
+    /// FF, CR and the four C0 separators U+001C…U+001F. (Swift's
+    /// `scalar.properties.isWhitespace` is the Unicode White_Space property, which
+    /// treats NBSP as whitespace — Kotlin does not, so `" \u{00A0}"` is not blank.)
     static func isWhitespaceScalar(_ c: Unicode.Scalar) -> Bool {
         switch c.value {
-        case 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x20: return true
-        default: return c.properties.isWhitespace
+        case 0x09...0x0D, 0x1C...0x1F: return true
+        case 0x00A0, 0x2007, 0x202F: return false
+        default: return c.properties.generalCategory == .spaceSeparator
         }
     }
 

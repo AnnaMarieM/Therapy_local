@@ -46,8 +46,12 @@ public struct Fact: Equatable, Sendable {
 
     /// Reads what `toJson` wrote; missing fields fall back as Android's `Fact.fromJson` does.
     public static func fromJson(_ o: JSONValue) -> Fact {
-        let scopeRaw = (o.string("scope"))
-        let scope = scopeRaw.isEmpty ? SCOPE_PROFILE : scopeRaw
+        // Trims only where Android trims (Facts.kt `Fact.fromJson`): heading/content/
+        // evidence/scope keep their text (org.json `optString` does not trim), scope
+        // falls back to the profile scope when blank (Kotlin `ifBlank`), and
+        // `category` is trimmed with Kotlin `trim()` semantics.
+        let scopeRaw = o.string("scope")
+        let scope = TextUtil.isBlank(scopeRaw) ? SCOPE_PROFILE : scopeRaw
         let seg = intOf(o["seg"]) ?? 0
         let segEnd = intOf(o["segEnd"]) ?? seg
         return Fact(
@@ -56,7 +60,7 @@ public struct Fact: Equatable, Sendable {
             evidence: o.string("evidence"),
             segIdx: seg,
             scope: scope,
-            category: o.string("category"),
+            category: TextUtil.ktTrim(o.string("category")),
             segEnd: segEnd
         )
     }
@@ -68,9 +72,28 @@ public struct Fact: Equatable, Sendable {
 
     static func intOf(_ v: JSONValue?) -> Int? {
         guard let v else { return nil }
-        if case .number(let d) = v { return Int(d) }
-        if case .string(let s) = v { return Int(s.trimmingCharacters(in: .whitespaces)) }
+        if case .number(let d) = v { return javaInt(d) }
+        if case .string(let s) = v {
+            // Android's `JSON.toInteger(String)` is `(int) Double.parseDouble(string)`:
+            // doubles coerce (so "3.7" and "1e30" behave like the number forms), and a
+            // string parseDouble rejects (modern libcore tolerates padding whitespace,
+            // which ktTrim matches) returns nil for the caller's fallback.
+            guard let d = Double(TextUtil.ktTrim(s)) else { return nil }
+            return javaInt(d)
+        }
         return nil
+    }
+
+    /// Java's `(int)` double cast (JLS 5.1.3 — the d2i instruction behind
+    /// `Number.intValue()`), which is what Android's org.json `JSON.toInteger`
+    /// produces for a Double: NaN → 0, and a saturating clamp at the 32-bit bounds.
+    /// A plain Swift `Int(d)` would trap on 1e30; Android reads `{"seg":1e30}` as
+    /// `Integer.MAX_VALUE` and carries on.
+    static func javaInt(_ d: Double) -> Int {
+        if d.isNaN { return 0 }
+        if d >= Double(Int32.max) { return Int(Int32.max) }
+        if d <= Double(Int32.min) { return Int(Int32.min) }
+        return Int(d)
     }
 }
 
