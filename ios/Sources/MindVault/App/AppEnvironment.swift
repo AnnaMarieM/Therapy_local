@@ -127,13 +127,26 @@ final class AppEnvironment: ObservableObject {
     }
 
     static func preview() -> AppEnvironment {
+        makePreview(vaultState: .unlocked, seeded: true)
+    }
+
+    #if DEBUG
+    /// DEBUG-only: a deterministic environment for the CI screenshot harness (issue #133),
+    /// with a chosen vault state and, optionally, no fixture data. Never called on a normal
+    /// launch and never compiled into Release.
+    static func screenshot(vaultState: VaultController.State, seeded: Bool) -> AppEnvironment {
+        makePreview(vaultState: vaultState, seeded: seeded)
+    }
+    #endif
+
+    private static func makePreview(vaultState: VaultController.State, seeded: Bool) -> AppEnvironment {
         let logger = NoopLogger()
         let clock = SystemClock()
         let paths = VaultPaths.preview()
         let keyBox = VaultKeyBox()
         try? keyBox.set(Data(repeating: 7, count: 32))
-        let repository = InMemoryVaultRepository(document: Fixtures.document)
-        let vault = VaultController.previewUnlocked()
+        let repository = InMemoryVaultRepository(document: seeded ? Fixtures.document : VaultDocument())
+        let vault = VaultController.preview(state: vaultState)
         let notices = NoticeCenter()
         let router = AppRouter()
         let audio = AudioCaptureService(logger: logger)

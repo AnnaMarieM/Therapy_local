@@ -174,17 +174,25 @@ final class VaultController: ObservableObject {
     }
 
     static func previewUnlocked() -> VaultController {
+        preview(state: .unlocked)
+    }
+
+    /// A controller over in-memory key stores, in the given state (used by previews and the
+    /// DEBUG screenshot harness). `refresh()` still guards on `.checking`, so the state holds.
+    static func preview(state: State) -> VaultController {
         let keyBox = VaultKeyBox()
         try? keyBox.set(Data(repeating: 7, count: 32))
+        // A locked vault needs a stored credential to have been set up; a first run has none.
+        let credentialData: Data? = (state == .unlocked || state == .locked) ? Data(repeating: 1, count: 1) : nil
         return VaultController(
             paths: .preview(),
             keyBox: keyBox,
             dekStore: InMemoryVaultKeyStore(data: Data(repeating: 7, count: 32)),
-            credentialStore: InMemoryVaultKeyStore(data: Data()),
+            credentialStore: InMemoryVaultKeyStore(data: credentialData),
             authenticator: LocalAuthenticator(),
             clock: SystemClock(),
             logger: NoopLogger(),
-            initialState: .unlocked
+            initialState: state
         )
     }
 }
