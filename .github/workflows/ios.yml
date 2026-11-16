@@ -19,18 +19,39 @@ permissions:
   contents: read
 
 jobs:
-  # Pure-Swift core packages must build and test on Linux (CONTRACTS.md).
-  # TODO: when lanes B1/C1/D1 land ios/Packages/MindVaultASR, MindVaultLLM and
-  # MindVaultPerception, loop this step over every ios/Packages/* directory.
+  # Pure-Swift packages must build and test on Linux (CONTRACTS.md). The loop
+  # covers every ios/Packages/* on the checked-out ref, so a package is
+  # compiled and tested the moment it merges — no hardcoded list to forget
+  # (review: the old hardcoded MindVaultCore step let package PRs go green
+  # while their package was compiled nowhere). A package that cannot run on
+  # Linux belongs behind a platform guard in its own manifest, not in a skip
+  # list here — there is no skip list on purpose.
   linux-core:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
-      - name: MindVaultCore tests (swift:6.3)
-        run: >
-          docker run --rm -v "$GITHUB_WORKSPACE/ios:/work" -w /work swift:6.3
-          swift test --package-path Packages/MindVaultCore
+      - name: Package tests (swift:6.3, every ios/Packages/*)
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          pkgs=(ios/Packages/*/)
+          if [[ ${#pkgs[@]} -eq 0 ]]; then
+            echo "::error::No packages found under ios/Packages"; exit 1
+          fi
+          status=0
+          for dir in "${pkgs[@]}"; do
+            name=$(basename "$dir")
+            echo "::group::$name (swift:6.3 on Linux)"
+            if ! docker run --rm -v "$GITHUB_WORKSPACE/ios:/work" -w /work \
+                 -u "$(id -u):$(id -g)" -e HOME=/tmp swift:6.3 \
+                 swift test --package-path "Packages/$name"; then
+              echo "::error::$name failed Linux tests"
+              status=1
+            fi
+            echo "::endgroup::"
+          done
+          exit $status
 
   # XcodeGen project, simulator Debug build, unit tests on an available iPhone
   # simulator, and an unsigned Release device build packaged as an artifact.
@@ -44,6 +65,7 @@ jobs:
         run: |
           xcodebuild -version
           swift --version
+          xcodegen --version 2>/dev/null || true
           # Debug: which iPhone simulators exist on this runner (picked below).
           xcrun simctl list devices available
 
@@ -61,26 +83,46 @@ jobs:
           CODE_SIGNING_ALLOWED=NO -derivedDataPath build/sim-dd build
         working-directory: ios
 
-      - name: Pick an available iPhone simulator
+      - name: Pick an available iPhone simulator (by UDID, unambiguous)
         run: |
-          SIM_NAME=$(xcrun simctl list devices available | awk '/-- iOS/ {ios=1; next} ios && /iPhone/ {sub(/^ +/, ""); sub(/ \(.*/, ""); print; exit}')
-          if [[ -z "$SIM_NAME" ]]; then
-            echo "::error::No available iPhone simulator found"; xcrun simctl list devices available; exit 1
-          fi
-          echo "Picked simulator: $SIM_NAME"
-          echo "SIM_NAME=$SIM_NAME" >> "$GITHUB_ENV"
+          set -euo pipefail
+          SIM_UDID=$(xcrun simctl list devices available -j | python3 -c '
+            import json, sys
+            devices = json.load(sys.stdin)["devices"]
+            iphones = [d for runtimes in devices.values() for d in runtimes
+                       if d.get("isAvailable") and d["name"].startswith("iPhone")]
+            # Prefer a booted device (reuse it), else a shut-down one.
+            booted = [d for d in iphones if d["state"] == "Booted"]
+            pick = booted or [d for d in iphones if d["state"] == "Shutdown"] or iphones
+            if not pick:
+                sys.exit("no available iPhone simulator on this runner")
+            print(pick[0]["udid"])
+          ')
+          echo "Picked simulator UDID: $SIM_UDID"
+          echo "SIM_UDID=$SIM_UDID" >> "$GITHUB_ENV"
 
       - name: Unit tests (MindVaultTests)
         run: >
           xcodebuild test -project MindVault.xcodeproj -scheme MindVault
-          -destination "platform=iOS Simulator,name=$SIM_NAME"
-          CODE_SIGNING_ALLOWED=NO -only-testing:MindVaultTests
+          -destination "platform=iOS Simulator,id=$SIM_UDID"
+          CODE_SIGNING_ALLOWED=NO -derivedDataPath build/sim-dd
+          -resultBundlePath build/TestResults.xcresult
+          -only-testing:MindVaultTests
         working-directory: ios
+
+      - name: Upload test results (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: MnemoThera-ios-test-results
+          path: ios/build/TestResults.xcresult
+          if-no-files-found: ignore
 
       - name: Package simulator app
         run: |
           cd build/sim-dd/Build/Products/Debug-iphonesimulator
-          zip -qr "$GITHUB_WORKSPACE/ios/MnemoThera-ios-sim.zip" MindVault.app
+          # ditto preserves symlinks (a dynamic framework needs them); zip -r dereferences.
+          ditto -c -k --sequesterRsrc --keepParent MindVault.app "$GITHUB_WORKSPACE/ios/MnemoThera-ios-sim.zip"
         working-directory: ios
 
       - name: Build (iOS device, Release, unsigned)
@@ -92,20 +134,33 @@ jobs:
 
       - name: Package unsigned IPA
         run: |
+          set -euo pipefail
+          rm -rf Payload
           mkdir -p Payload
           cp -R build/dd/Build/Products/Release-iphoneos/MindVault.app Payload/
-          zip -qr MnemoThera-ios-unsigned.ipa Payload
+          # A failed build can leave an empty .app: fail loudly before packaging.
+          test -f Payload/MindVault.app/MindVault
+          # ditto preserves symlinks; a zip -r dereference breaks the first dynamic framework.
+          ditto -c -k --sequesterRsrc --keepParent Payload MnemoThera-ios-unsigned.ipa
           ls -la MnemoThera-ios-unsigned.ipa MnemoThera-ios-sim.zip
         working-directory: ios
 
       - name: Upload unsigned IPA
         uses: actions/upload-artifact@v4
         with:
-          name: MnemoThera-ios-unsigned-ipa
+          # Artifact names = the names ios-release.yml downloads by; the files
+          # inside carry the names it publishes as release assets. Keep the
+          # two in lockstep (review: silent name drift breaks the first
+          # release run at the download step).
+          name: MnemoThera-ios-unsigned.ipa
           path: ios/MnemoThera-ios-unsigned.ipa
+          if-no-files-found: error
+          retention-days: 14
 
       - name: Upload simulator app zip
         uses: actions/upload-artifact@v4
         with:
-          name: MnemoThera-ios-sim
+          name: MnemoThera-ios-sim.zip
           path: ios/MnemoThera-ios-sim.zip
+          if-no-files-found: error
+          retention-days: 14
