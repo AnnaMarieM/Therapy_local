@@ -26,8 +26,9 @@ How the iOS app (`ios/Sources`) calls this package. Written for the wiring lane
    `let needed = PromptBudget.required(system, user, maxOutputTokens)` then
    `let context = PromptBudget.contextFor(needed, floor)` (`MAX_CONTEXT` 16384, step 512).
    The engine context is created once with that budget — `LlamaRunner` does not re-check
-   prompt sizes (LiteRT parity: a too-small context truncates the reply at the context
-   edge instead of erroring).
+   prompt sizes. An over-long **prompt** does not truncate: `llama_decode` returns -1 and
+   `ask` throws `LlamaError.decodeFailed(-1)` (b11960 has no trimming). Only an over-long
+   **reply** stops cleanly at the context edge (LiteRT parity).
 3. Open once per session: `LlamaRunner().open(modelPath: options:onPhase:)` with
    `OpenOptions(context: threads: batchSize: gpuLayers: prove:)` — defaults 512 batch,
    `gpuLayers 99` (all layers on Metal; `0` = CPU only), `prove: true`. `onPhase` reports
@@ -67,10 +68,20 @@ up on the next call mirrors the Android dev-override behaviour. Prompt names are
 **Not shipped here:** `translate.system.txt` and `localize.system.txt` (AD-17) —
 translation stays app-side (`Prompts.TRANSLATE_SYSTEM`).
 
-The chat template is the engine's business: `LlamaRunner` applies the GGUF's
-`tokenizer.chat_template` (built-in "gemma" fallback) to `[system?, user]` — the app
-never templates, it only hands the two strings (the Android
-`ConversationConfig(systemInstruction:)` + `sendMessage` split).
+The chat template is the engine's business: at `open` the runner reads the GGUF's
+`tokenizer.chat_template` and probes it through `llama_chat_apply_template` —
+b11960 does not interpret Jinja, it fingerprints 54 known formats and returns -1
+for anything else. A template llama.cpp fingerprints is applied by llama.cpp (the
+built-in `"gemma"` name is the fallback when the GGUF carries none). A template
+llama.cpp rejects gets the Swift Gemma-4 builder (`Gemma4ChatTemplate`, markers
+verified against the model's own template; the pinned Gemma-4 GGUFs are exactly
+this case — their Jinja template matches none of llama.cpp's 76 fingerprint
+literals, so without the builder every `open(prove: true)` throws
+`templatingFailed`). An unknown template that is also not Gemma-4 retries the
+built-in `"gemma"` name once, then throws `templatingFailed(code, firstLine)` —
+the rejected template names itself in the error. The app never templates, it only
+hands the two strings (the Android `ConversationConfig(systemInstruction:)` +
+`sendMessage` split).
 
 ## Grammar (constrained decoding)
 
@@ -115,6 +126,11 @@ that imports both packages must qualify (`MindVaultLLM.ModelSpec` vs
 which case this file and the ASR `INTEGRATION.md` both say so. Renaming is the
 integrator's call, not this lane's.
 
+The same collision class, one level deeper: this package's `Segment` duplicates core's
+`TranscriptSegment` (`ios/CONTRACTS.md` shared contracts), and `SpeakerMaps`/`Role`
+repeat Android's data types too. Moving them to `MindVaultCore` is the integrator's
+decision — deliberately NOT done in this PR (the review asks for it as a note only).
+
 ## Platform notes
 
 - The engine target `MindVaultLLMLlama` and the `llama` binary target are compiled only
@@ -122,7 +138,13 @@ integrator's call, not this lane's.
   `PromptBudget`, `ModelRegistry`, …) in the `swift:6.3` image. **The macOS/iOS compile
   of the engine side has not been exercised in this lane** (no Apple machine here);
   the wiring lane's first CI run must compile it for iOS before anything else.
+- **The pinned xcframework has no simulator slice**: only `ios-arm64` (device,
+  minOS 16.4) and `macos-arm64_x86_64` (13.3) — no `ios-arm64-simulator`. Any simulator
+  build of a target depending on `MindVaultLLMLlama` fails at link; device-only.
 - The runner serializes all work on one private queue; `onToken` fires on that queue, so
   the app hops back to the main actor for UI. Calls are synchronous and throwing.
+  Dropping the runner without `close()` is safe too: `deinit` frees the model and
+  context directly (no queue sync — the last reference can be released on the runner's
+  own queue, where a sync would deadlock).
 - Errors carry no reply text (`LlamaError`) — an inference error can quote the prompt,
   and prompts hold client material (the Android rule).

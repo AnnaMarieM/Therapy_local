@@ -1,5 +1,6 @@
 import Foundation
 import llama
+import MindVaultLLM
 
 /// The native half of the memory LLM on iOS: Gemma 4 via llama.cpp (the pinned
 /// `llama` binary target, Metal on device), the counterpart of the LiteRT-LM runner on
@@ -25,9 +26,15 @@ public final class LlamaRunner: @unchecked Sendable {
     /// Android's `MemoryLlm` logs max_tokens).
     public private(set) var contextTokens = 0
 
-    /// The chat template from the model metadata ("tokenizer.chat_template"), or the
-    /// built-in "gemma" one when the GGUF does not carry it.
+    /// The raw template from the model metadata ("tokenizer.chat_template"), or the
+    /// built-in "gemma" name when the GGUF does not carry it. The strategy below
+    /// decides who renders it.
     private var chatTemplate = "gemma"
+
+    /// How prompts are rendered for the loaded model: through llama.cpp when it
+    /// fingerprints the template, through the Swift Gemma-4 builder when it does not
+    /// (the pinned GGUF's template — see `ChatTemplatePlan.plan`).
+    private var templateStrategy: ChatTemplatePlan = .llamaApply("gemma")
 
     /// Set by `stop()` from any thread, checked between decode calls (so a long prefill
     /// is still cut at batch granularity, LLAMA_BATCH of `batchSize` tokens).
@@ -80,6 +87,7 @@ public final class LlamaRunner: @unchecked Sendable {
             model = m
             vocab = llama_model_get_vocab(m)
             chatTemplate = Self.builtinTemplate(m) ?? "gemma"
+            templateStrategy = ChatTemplatePlan.plan(rawTemplate: chatTemplate) { Self.probeLlamaTemplate($0) }
 
             do {
                 onPhase?("context")
@@ -95,10 +103,15 @@ public final class LlamaRunner: @unchecked Sendable {
                 contextTokens = Int(llama_n_ctx(c))
 
                 if options.prove {
+                    // The proofs go through the SAME prompt rendering ask uses, so a
+                    // template problem fails here, inside open, like Android's ladder.
+                    let templater: (String, String) throws -> String = { [strategy = templateStrategy] system, user in
+                        try Self.templated(system: system, user: user, strategy: strategy)
+                    }
                     onPhase?("test")
-                    try LlamaProof.proveOutput(m, c, vocab!)
+                    try LlamaProof.proveOutput(m, c, vocab!, templater)
                     onPhase?("test2")
-                    try LlamaProof.proveFacts(m, c, vocab!)
+                    try LlamaProof.proveFacts(m, c, vocab!, templater)
                 }
             } catch {
                 // One that fails on the way is closed here (the Android open does the same);
@@ -154,9 +167,10 @@ public final class LlamaRunner: @unchecked Sendable {
     /// shape on Android). Streams every sampled piece through `onToken` (nil = collect
     /// only) and returns the full reply.
     ///
-    /// Like LiteRT's `maxNumTokens`, a context that is too small cuts the reply short:
-    /// generation stops cleanly at the context edge (the caller's `PromptBudget`
-    /// estimate exists to prevent this).
+    /// A context that is too small does not trim a long prompt: `llama_decode` returns
+    /// -1 and `ask` throws `decodeFailed(-1)`. Only the reply stops cleanly at the
+    /// context edge (LiteRT's `maxNumTokens` parity; the caller's `PromptBudget`
+    /// estimate exists to prevent both).
     @discardableResult
     public func ask(system: String, user: String, options: AskOptions, onToken: ((String) -> Void)? = nil) throws -> (String, AskStats) {
         try queue.sync {
@@ -168,7 +182,7 @@ public final class LlamaRunner: @unchecked Sendable {
             // conversation object instead).
             llama_memory_clear(llama_get_memory(c), true)
 
-            let prompt = try Self.templated(system: system, user: user, template: chatTemplate)
+            let prompt = try Self.templated(system: system, user: user, strategy: templateStrategy)
             let promptTokens = try Self.tokenize(prompt, vocab: v, addSpecial: true, parseSpecial: true)
 
             let (text, outputTokens) = try Self.generate(model: m, ctx: c, vocab: v, promptTokens: promptTokens, options: options, onToken: onToken, stopFlag: stopFlag)
@@ -197,6 +211,21 @@ public final class LlamaRunner: @unchecked Sendable {
             vocab = nil
             contextTokens = 0
         }
+    }
+
+    deinit {
+        // Free WITHOUT queue.sync: the last reference can be released on the runner's
+        // own queue (e.g. from an `onToken` closure), where `queue.sync` would deadlock
+        // (the review's should #7). Nothing else can be in flight here — every method
+        // holds `self` until its queue block returns — so the pointers are exclusively
+        // ours and freeing them from the releasing thread is safe. `close()` stays
+        // idempotent for the caller side; after it ran, these are already nil.
+        llama_free(ctx)
+        ctx = nil
+        llama_model_free(model)
+        model = nil
+        vocab = nil
+        contextTokens = 0
     }
 
     // MARK: - Generation core (internal, shared with the proofs)
@@ -234,10 +263,15 @@ public final class LlamaRunner: @unchecked Sendable {
 
         while nProcessed < nCtx, outputTokens < budget {
             if stopFlag.isRequested { break }
-            // Sample from the logits of the last decoded token.
+            // Sample from the logits of the last decoded token. b11960's
+            // `llama_sampler_sample` ACCEPTS the token itself (shorthand for
+            // apply + accept, llama.h:1647-1652; llama-sampler.cpp:961) — no explicit
+            // `llama_sampler_accept` here. A second accept would make a grammar
+            // consume each piece twice and throw from an extern "C" entry point
+            // (llama-grammar.cpp:1599) → std::terminate. Do not re-add it when
+            // bumping the pin unless that revision's sample() stops accepting.
             let id = llama_sampler_sample(chain, c, -1)
             if llama_vocab_is_eog(v, id) { break }
-            llama_sampler_accept(chain, id)
             outputTokens += 1
             streamer.push(id, vocab: v)
 
@@ -264,7 +298,16 @@ public final class LlamaRunner: @unchecked Sendable {
         let chain = llama_sampler_chain_init(llama_sampler_chain_default_params())
         guard let chain else { throw LlamaError.contextFailed("llama_sampler_chain_init") }
         if let g = options.grammar {
-            llama_sampler_chain_add(chain, llama_sampler_init_grammar(v, g, "root"))
+            // "Returns NULL if parsing of grammar_str fails" (llama.h:1529-1531). A
+            // malformed GBNF is caller input; a NULL sampler pushed into the chain
+            // would SIGSEGV in llama_sampler_chain_apply (b11960 dereferences the
+            // entry's ptr, and its NULL guard checks only the iface), so this is a
+            // typed error instead.
+            guard let grammar = llama_sampler_init_grammar(v, g, "root") else {
+                llama_sampler_chain_free(chain)
+                throw LlamaError.grammarInvalid
+            }
+            llama_sampler_chain_add(chain, grammar)
         }
         llama_sampler_chain_add(chain, llama_sampler_init_top_k(Int32(options.topK)))
         llama_sampler_chain_add(chain, llama_sampler_init_top_p(Float(options.topP), 1))
@@ -275,50 +318,92 @@ public final class LlamaRunner: @unchecked Sendable {
 
     // MARK: - Prompt
 
-    /// The model's chat template applied to `[system?, user]`: the same split as the
-    /// Android `ConversationConfig(systemInstruction = system)` + `sendMessage(user)`.
-    /// `llama_chat_apply_template` accepts the built-in template names; Gemma's own
-    /// template (from the GGUF metadata) is preferred, the built-in "gemma" is the
-    /// fallback (it folds the system message into the user turn, as Gemma has no system
-    /// role — the same semantics LiteRT applies).
-    static func templated(system: String, user: String, template: String) throws -> String {
+    /// Renders `[system, user]` for one ask or proof, per the plan chosen at open:
+    /// llama.cpp applies a template it fingerprints (the existing behaviour for every
+    /// supported template), the Swift builder renders the Gemma-4 turn format when
+    /// llama.cpp rejected the model's own template.
+    static func templated(system: String, user: String, strategy: ChatTemplatePlan) throws -> String {
+        switch strategy {
+        case .gemma4Swift:
+            return Gemma4ChatTemplate.prompt(system: system, user: user)
+        case .llamaApply(let template):
+            if let applied = applyLlamaChatTemplate(system: system, user: user, template: template) {
+                return applied
+            }
+            // A template llama.cpp does not recognise (it fingerprints 54 known formats
+            // and returns -1 for anything else, llama.cpp:524-529) gets ONE retry with
+            // the built-in "gemma" name — then throws, naming the rejected template's
+            // first line in the error.
+            if let applied = applyLlamaChatTemplate(system: system, user: user, template: "gemma") {
+                return applied
+            }
+            throw LlamaError.templatingFailed(-1, Self.firstLine(template))
+        }
+    }
+
+    /// b11960's `llama_chat_apply_template` does not interpret Jinja: it fingerprints
+    /// the 54 known template names/literal sets (`llama-chat.cpp:89`) and returns -1
+    /// for anything else (`llama.cpp:524-529`). The probe applies a trivial system+user
+    /// pair to learn whether llama.cpp can drive `template` at all — the model is not
+    /// touched, so the plan can be decided right after load. (Empirically verified
+    /// against libllama built from the pinned commit: the pinned GGUF's template and a
+    /// custom template both probe -1, built-in "gemma"/"chatml" both apply.)
+    static func probeLlamaTemplate(_ template: String) -> Bool {
+        applyLlamaChatTemplate(system: "probe", user: "probe", template: template, cap: 256) != nil
+    }
+
+    /// One `llama_chat_apply_template` call with its size retries; nil when llama.cpp
+    /// rejects the template (`n < 0` — no buffer size fixes that).
+    private static func applyLlamaChatTemplate(system: String, user: String, template: String, cap: Int? = nil) -> String? {
         // `llama_chat_message` keeps raw pointers that `llama_chat_apply_template` reads
         // after the array is built, so every string — the fixed roles too — needs storage
         // that outlives the whole call (an implicit String conversion is valid for one
         // call only).
-        try template.withCString { tmpl -> String in
-            try system.withCString { sys -> String in
-                try user.withCString { usr -> String in
-                    try "system".withCString { roleSys -> String in
-                        try "user".withCString { roleUsr -> String in
+        var result: String?
+        template.withCString { tmpl -> Void in
+            system.withCString { sys -> Void in
+                user.withCString { usr -> Void in
+                    "system".withCString { roleSys -> Void in
+                        "user".withCString { roleUsr -> Void in
                             var chat: [llama_chat_message] = [
                                 llama_chat_message(role: roleSys, content: sys),
                                 llama_chat_message(role: roleUsr, content: usr),
                             ]
                             // The docs recommend 2x the characters of all messages; the system
-                            // template can double it again, so 4x and a floor. The API takes an
-                            // Int32 length, so the cap is clamped — an oversized prompt fails
-                            // later at the context edge, not here with a crash.
-                            let cap = min(4 * (system.utf8.count + user.utf8.count) + 512, Int(Int32.max))
-                            var buf = [CChar](repeating: 0, count: cap)
-                            let n = llama_chat_apply_template(tmpl, &chat, chat.count, true, &buf, Int32(cap))
-                            guard n >= 0 else { throw LlamaError.templatingFailed(n) }
-                            // n may exceed the buffer (the caller should re-apply): the loop above
-                            // sized 4x, so a second pass covers the rare template that still needs
-                            // more.
-                            if n > cap - 1 {
-                                let cap2 = Int(n) + 64
-                                var buf2 = [CChar](repeating: 0, count: cap2)
-                                let n2 = llama_chat_apply_template(tmpl, &chat, chat.count, true, &buf2, Int32(cap2))
-                                guard n2 >= 0, n2 <= cap2 - 1 else { throw LlamaError.templatingFailed(n2) }
-                                return Self.cString(buf2)
+                            // template can double it again, so 4x and a floor. The probe uses a
+                            // small fixed buffer — b11960 answers the FULL required length even
+                            // when the buffer is short (and strncpy-truncates without a NUL),
+                            // so the sign of `n` and the size bookkeeping stay correct.
+                            let firstCap = cap ?? min(4 * (system.utf8.count + user.utf8.count) + 512, Int(Int32.max))
+                            var buf = [CChar](repeating: 0, count: firstCap)
+                            let n = llama_chat_apply_template(tmpl, &chat, chat.count, true, &buf, Int32(firstCap))
+                            guard n >= 0 else { return }  // template unknown to llama.cpp
+                            guard n < Int32.max - 1 else { return }
+                            if Int(n) <= firstCap - 1 {
+                                result = Self.cString(buf)
+                                return
                             }
-                            return Self.cString(buf)
+                            // n may exceed the buffer (the caller should re-apply): a second
+                            // pass at the exact size the call asked for.
+                            let cap2 = Int(n) + 1
+                            var buf2 = [CChar](repeating: 0, count: cap2)
+                            let n2 = llama_chat_apply_template(tmpl, &chat, chat.count, true, &buf2, Int32(cap2))
+                            guard n2 >= 0, Int(n2) <= cap2 - 1 else { return }
+                            result = Self.cString(buf2)
                         }
                     }
                 }
             }
         }
+        return result
+    }
+
+    /// The first line of a rejected template, for the error that names the culprit
+    /// (the review's should #4); whitespace-trimmed, capped for the log.
+    static func firstLine(_ template: String) -> String {
+        let line = template.split(separator: "\n", omittingEmptySubsequences: false).first.map(String.init) ?? template
+        let trimmed = TextUtil.ktTrim(line)
+        return trimmed.count > 80 ? String(trimmed.prefix(80)) : trimmed
     }
 
     /// A NUL-terminated `[CChar]` buffer as a Swift string (`String(cString:)` is
@@ -328,12 +413,23 @@ public final class LlamaRunner: @unchecked Sendable {
     }
 
     /// "tokenizer.chat_template" out of the GGUF metadata, nil when absent or empty.
+    /// b11960 answers via `snprintf`, which reports the REQUIRED length while writing
+    /// only `buf_size - 1` characters (`llama-model.cpp:3710-3720`) — an 8 KiB default
+    /// buffer would silently truncate the pinned 18,569-byte template, so the buffer
+    /// is grown to the returned length and read again.
     static func builtinTemplate(_ m: OpaquePointer) -> String? {
-        var buf = [CChar](repeating: 0, count: 8192)
-        let n = llama_model_meta_val_str(m, "tokenizer.chat_template", &buf, buf.count)
-        guard n > 0 else { return nil }
-        let s = Self.cString(buf)
-        return s.isEmpty ? nil : s
+        var cap = 8192
+        for _ in 0..<3 {
+            var buf = [CChar](repeating: 0, count: cap)
+            let n = llama_model_meta_val_str(m, "tokenizer.chat_template", &buf, buf.count)
+            guard n > 0 else { return nil }
+            if Int(n) <= cap - 1 {
+                let s = Self.cString(buf)
+                return s.isEmpty ? nil : s
+            }
+            cap = Int(n) + 1
+        }
+        return nil
     }
 
     // MARK: - Tokenize
@@ -369,7 +465,9 @@ public final class LlamaRunner: @unchecked Sendable {
 }
 
 /// Streams sampled tokens as text: a piece can split a multi-byte UTF-8 character, so
-/// bytes are held until they decode cleanly (the final flush decodes lossily).
+/// bytes are held until they decode cleanly (the final flush decodes lossily). A tail
+/// that can never complete (one bad byte) flushes lossily right away, so a single
+/// broken piece cannot silence every later `onToken` callback.
 struct TokenStreamer {
     private let sink: ((String) -> Void)?
     private var pending: [UInt8] = []
@@ -380,13 +478,31 @@ struct TokenStreamer {
     }
 
     mutating func push(_ token: llama_token, vocab v: OpaquePointer) {
-        var buf = [CChar](repeating: 0, count: 256)
-        let n = llama_token_to_piece(v, token, &buf, 256, 0, false)
+        // b11960 answers -needed when the piece does not fit the buffer — retry once
+        // with the size it asked for instead of silently dropping the token from the
+        // stream (the review's nit; the final `text` was unaffected, `onToken` was not).
+        var cap = 256
+        var buf = [CChar](repeating: 0, count: cap)
+        var n = llama_token_to_piece(v, token, &buf, Int32(cap), 0, false)
+        if n < 0 {
+            cap = Int(-n)
+            buf = [CChar](repeating: 0, count: cap)
+            n = llama_token_to_piece(v, token, &buf, Int32(cap), 0, false)
+        }
         guard n > 0 else { return }
-        let bytes = buf.prefix(Int(n)).map { UInt8(bitPattern: $0) }
+        push(Array(buf.prefix(Int(n)).map { UInt8(bitPattern: $0) }))
+    }
+
+    /// The byte-level half (no llama types): appends a piece, emits when the pending
+    /// bytes decode cleanly, and flushes lossily when the tail is provably invalid
+    /// instead of holding the stream hostage on one bad byte. Testable without llama.
+    mutating func push(_ bytes: [UInt8]) {
         pending.append(contentsOf: bytes)
         if let s = String(bytes: pending, encoding: .utf8) {
             emit(s)
+            pending.removeAll()
+        } else if !TextUtil.isIncompleteUTF8Tail(pending) {
+            emit(String(decoding: pending, as: UTF8.self))
             pending.removeAll()
         }
     }
@@ -434,7 +550,13 @@ public enum LlamaError: Error {
     case alreadyOpen
     case loadFailed(String)
     case contextFailed(String)
-    case templatingFailed(Int32)
+    /// `llama_chat_apply_template` rejected the template: llama.cpp's return code, and
+    /// the first line of the template it rejected (built-in fallback included) so a
+    /// log names the culprit.
+    case templatingFailed(Int32, String)
+    /// `llama_sampler_init_grammar` returned NULL — `AskOptions.grammar` does not
+    /// parse as GBNF (`llama.h:1529-1531`).
+    case grammarInvalid
     case tokenizationFailed
     case decodeFailed(Int32)
     /// `LlmProof` rejected the model's answer (the reason string of the check).
