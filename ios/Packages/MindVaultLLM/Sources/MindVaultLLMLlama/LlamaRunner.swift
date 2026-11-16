@@ -109,9 +109,9 @@ public final class LlamaRunner: @unchecked Sendable {
                         try Self.templated(system: system, user: user, strategy: strategy)
                     }
                     onPhase?("test")
-                    try LlamaProof.proveOutput(m, c, vocab!, templater)
+                    try LlamaProof.proveOutput(m, c, vocab!, templater: templater)
                     onPhase?("test2")
-                    try LlamaProof.proveFacts(m, c, vocab!, templater)
+                    try LlamaProof.proveFacts(m, c, vocab!, templater: templater)
                 }
             } catch {
                 // One that fails on the way is closed here (the Android open does the same);
@@ -302,9 +302,11 @@ public final class LlamaRunner: @unchecked Sendable {
             // malformed GBNF is caller input; a NULL sampler pushed into the chain
             // would SIGSEGV in llama_sampler_chain_apply (b11960 dereferences the
             // entry's ptr, and its NULL guard checks only the iface), so this is a
-            // typed error instead.
+            // typed error instead. b11960 has no `llama_sampler_chain_free`; the
+            // chain is released with `llama_sampler_free` (it takes ownership of the
+            // samplers added to it — llama.h:1455).
             guard let grammar = llama_sampler_init_grammar(v, g, "root") else {
-                llama_sampler_chain_free(chain)
+                llama_sampler_free(chain)
                 throw LlamaError.grammarInvalid
             }
             llama_sampler_chain_add(chain, grammar)
