@@ -148,10 +148,10 @@ jobs:
       - name: Upload unsigned IPA
         uses: actions/upload-artifact@v4
         with:
-          # Artifact names = the names ios-release.yml downloads by; the files
-          # inside carry the names it publishes as release assets. Keep the
-          # two in lockstep (review: silent name drift breaks the first
-          # release run at the download step).
+          # The artifact name is what sign-ota (below) downloads by; the file
+          # inside carries the name sign-ota publishes as a release asset.
+          # Keep the two in lockstep (review: silent name drift breaks the
+          # first release run at the download step).
           name: MnemoThera-ios-unsigned.ipa
           path: ios/MnemoThera-ios-unsigned.ipa
           if-no-files-found: error
@@ -164,6 +164,457 @@ jobs:
           path: ios/MnemoThera-ios-sim.zip
           if-no-files-found: error
           retention-days: 14
+
+      # The OTA lane below is pull-request-only: its release `ios-pr-<N>` is per-pull-request and a
+      # push to ios carries no PR number (a post-merge push lane is deliberately not built yet). The
+      # job then shows as "skipped", which reads as green for branch protection.
+      - name: Why there is no OTA release on push
+        if: always() && github.event_name == 'push'
+        run: |
+          echo "::notice::No OTA release on push — sign-ota publishes per-pull-request (ios-pr-<N>) and runs on pull_request events only."
+
+  # Over-the-air install lane for a pull request (report "iOS installable without developer account").
+  # It always publishes the unsigned device IPA as the per-PR release `ios-pr-<N>` — that IPA is the
+  # interim delivery (on-device signer). Once the signing secrets exist it also re-signs the app with
+  # a free-account development profile: throwaway keychain, Apple codesign, NO --entitlements (the app
+  # has zero, and feeding any would break free-profile validation), profile embedded, bundle id and
+  # team asserted against the profile before anything is published — then adds the signed IPA, the OTA
+  # manifest and a QR to the same release. Secrets absent is a normal state, not a failure: the job
+  # stays green and the pull request comment (ota-comment below) carries the state of play. Fork pull
+  # requests skip the lane: their token cannot write releases.
+  sign-ota:
+    needs: macos-build
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: macos-15
+    timeout-minutes: 20
+    permissions:
+      contents: write
+      pull-requests: read
+    concurrency:
+      group: sign-ota-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    outputs:
+      signed: ${{ steps.secrets.outputs.present }}
+      p12: ${{ steps.secrets.outputs.p12 }}
+      profile: ${{ steps.secrets.outputs.profile }}
+      bundle_id: ${{ steps.facts.outputs.bundle_id }}
+      bundle_version: ${{ steps.sign.outputs.bundle_version }}
+      title: ${{ steps.sign.outputs.title }}
+      team: ${{ steps.facts.outputs.team }}
+      profile_name: ${{ steps.facts.outputs.profile_name }}
+      profile_expires: ${{ steps.facts.outputs.expires_human }}
+      profile_days_left: ${{ steps.facts.outputs.days_left }}
+      profile_devices: ${{ steps.facts.outputs.devices }}
+    steps:
+      - uses: actions/checkout@v4
+
+      # The secrets context is not readable in a job-level `if`, so the presence test lives in a step
+      # via env indirection and every later step keys off its output.
+      - name: Are the signing secrets set?
+        id: secrets
+        env:
+          HAS_P12: ${{ secrets.IOS_P12_BASE64 != '' }}
+          HAS_PROFILE: ${{ secrets.IOS_MOBILEPROVISION_BASE64 != '' }}
+        run: |
+          set -euo pipefail
+          present=false
+          if [[ "$HAS_P12" == true && "$HAS_PROFILE" == true ]]; then present=true; fi
+          {
+            echo "present=$present"
+            echo "p12=$HAS_P12"
+            echo "profile=$HAS_PROFILE"
+          } >> "$GITHUB_OUTPUT"
+          if [[ "$present" != true ]]; then
+            echo "::notice::No signing credentials (IOS_P12_BASE64 / IOS_MOBILEPROVISION_BASE64): the OTA lane stays dormant and the release carries only the unsigned IPA. The pull request comment has the state of play."
+          fi
+
+      - name: Download the unsigned IPA
+        uses: actions/download-artifact@v4
+        with:
+          name: MnemoThera-ios-unsigned.ipa
+
+      - name: Decode the secrets and read the provisioning profile
+        id: facts
+        if: steps.secrets.outputs.present == 'true'
+        env:
+          IOS_P12_BASE64: ${{ secrets.IOS_P12_BASE64 }}
+          IOS_MOBILEPROVISION_BASE64: ${{ secrets.IOS_MOBILEPROVISION_BASE64 }}
+        run: |
+          set -euo pipefail
+          mkdir ios_sign
+          base64 --decode <<<"$IOS_P12_BASE64" > ios_sign/cert.p12
+          base64 --decode <<<"$IOS_MOBILEPROVISION_BASE64" > ios_sign/profile.mobileprovision
+          security cms -D -i ios_sign/profile.mobileprovision > ios_sign/profile.plist
+          PB=/usr/libexec/PlistBuddy
+          TEAM=$("$PB" -c 'Print :TeamIdentifier:0' ios_sign/profile.plist)
+          BID=$("$PB" -c 'Print :Entitlements:application-identifier' ios_sign/profile.plist)
+          BID=${BID#"$TEAM".}
+          PNAME=$("$PB" -c 'Print :Name' ios_sign/profile.plist)
+          EXPIRES=$("$PB" -c 'Print :ExpirationDate' ios_sign/profile.plist)
+          NOW=$(date +%s)
+          EXP_EPOCH=$(date -j -f '%Y-%m-%dT%H:%M:%SZ' "$EXPIRES" +%s 2>/dev/null) \
+            || EXP_EPOCH=$(date -j -f '%Y-%m-%d' "${EXPIRES%%T*}" +%s)
+          # An expired profile produces an IPA that installs and never launches: fail before publishing.
+          if (( EXP_EPOCH <= NOW )); then
+            echo "::error::The provisioning profile expired $EXPIRES — it cannot produce an installable build. Renew the credentials and update the secrets."
+            exit 1
+          fi
+          DAYS_LEFT=$(((EXP_EPOCH - NOW) / 86400))
+          if (( DAYS_LEFT < 2 )); then
+            echo "::warning::The profile expires in ${DAYS_LEFT} day(s) — renew before builds stop installing."
+          fi
+          # A development profile without devices signs fine and installs on nothing.
+          DEVICES=$("$PB" -c 'Print :ProvisionedDevices' ios_sign/profile.plist 2>/dev/null | grep -c . || true)
+          if [[ -z "$DEVICES" || "$DEVICES" -lt 1 ]]; then
+            echo "::error::The provisioning profile lists no devices — a development profile must carry the UDID it was minted for."
+            exit 1
+          fi
+          EXPIRES_HUMAN=$(date -r "$EXP_EPOCH" '+%Y-%m-%d %H:%M UTC')
+          echo "Signing with profile \"$PNAME\": team $TEAM, expires $EXPIRES_HUMAN ($DAYS_LEFT d left), $DEVICES device(s)"
+          {
+            echo "team=$TEAM"
+            echo "bundle_id=$BID"
+            echo "profile_name=$PNAME"
+            echo "expires_human=$EXPIRES_HUMAN"
+            echo "days_left=$DAYS_LEFT"
+            echo "devices=$DEVICES"
+          } >> "$GITHUB_OUTPUT"
+          echo "TEAM=$TEAM" >> "$GITHUB_ENV"
+          echo "BUNDLE_ID=$BID" >> "$GITHUB_ENV"
+
+      - name: Throwaway keychain, import the certificate
+        if: steps.secrets.outputs.present == 'true'
+        env:
+          IOS_P12_PASSWORD: ${{ secrets.IOS_P12_PASSWORD }}
+          IOS_KEYCHAIN_PASSWORD: ${{ secrets.IOS_KEYCHAIN_PASSWORD }}
+        run: |
+          set -euo pipefail
+          KC="$RUNNER_TEMP/ios-ota-$GITHUB_RUN_ID.keychain"
+          echo "KEYCHAIN=$KC" >> "$GITHUB_ENV"
+          security create-keychain -p "$IOS_KEYCHAIN_PASSWORD" "$KC"
+          security set-keychain-settings -lut 21600 "$KC"
+          security unlock-keychain -p "$IOS_KEYCHAIN_PASSWORD" "$KC"
+          # Some p12 exports trip the runner's stricter TLS defaults; re-export with
+          # legacy-compatible encryption (AltLoad's fallback) and import again.
+          if ! security import ios_sign/cert.p12 -k "$KC" -P "$IOS_P12_PASSWORD" -T /usr/bin/codesign 2>ios_sign/import.err; then
+            echo "::warning::security import rejected the p12 as-is — re-exporting with legacy-compatible encryption"
+            cat ios_sign/import.err
+            openssl pkcs12 -in ios_sign/cert.p12 -passin "pass:$IOS_P12_PASSWORD" -nodes -out ios_sign/combined.pem
+            openssl pkcs12 -export -in ios_sign/combined.pem -out ios_sign/recert.p12 -passout "pass:$IOS_P12_PASSWORD"
+            rm -f ios_sign/combined.pem ios_sign/cert.p12
+            mv ios_sign/recert.p12 ios_sign/cert.p12
+            security import ios_sign/cert.p12 -k "$KC" -P "$IOS_P12_PASSWORD" -T /usr/bin/codesign
+          fi
+          rm -f ios_sign/import.err
+          security set-key-partition-list -S apple-tool:,apple: -k "$IOS_KEYCHAIN_PASSWORD" "$KC" >/dev/null
+          IDENTS=$(security find-identity -v -p codesigning "$KC")
+          echo "$IDENTS"
+          IDENTITY=$(awk '/"Apple Development"/ {print $2; exit}' <<<"$IDENTS")
+          if [[ -z "$IDENTITY" ]]; then
+            echo "::error::No \"Apple Development\" codesigning identity in the p12"
+            exit 1
+          fi
+          # The certificate's team (its OU) must be the profile's team, or codesign "succeeds" into a dead build.
+          if ! grep -q "($TEAM)" <<<"$IDENTS"; then
+            echo "::error::The certificate's team does not match the profile's team ($TEAM)"
+            exit 1
+          fi
+          echo "IDENTITY=$IDENTITY" >> "$GITHUB_ENV"
+
+      - name: Unpack, embed the profile, re-sign, verify
+        id: sign
+        if: steps.secrets.outputs.present == 'true'
+        run: |
+          set -euo pipefail
+          rm -rf unpack
+          mkdir unpack
+          ditto -x -k MnemoThera-ios-unsigned.ipa unpack
+          APP=unpack/Payload/MindVault.app
+          test -d "$APP"
+          cp ios_sign/profile.mobileprovision "$APP/embedded.mobileprovision"
+          # Nested code is signed before its parent. No --entitlements: the app has zero, and feeding
+          # any would break free-profile validation.
+          find "$APP" \( -name '*.framework' -o -name '*.dylib' \) -print0 | \
+            while IFS= read -r -d '' f; do /usr/bin/codesign -f -s "$IDENTITY" "$f"; done
+          /usr/bin/codesign -f -s "$IDENTITY" "$APP"
+          /usr/bin/codesign --verify --deep --verbose=2 "$APP"
+          SIGNED_TEAM=$(/usr/bin/codesign -dvv "$APP" 2>&1 | sed -n 's/^TeamIdentifier=//p' | head -1)
+          if [[ "$SIGNED_TEAM" != "$TEAM" ]]; then
+            echo "::error::The signed binary carries team '$SIGNED_TEAM', the profile expects '$TEAM'"
+            exit 1
+          fi
+          PB=/usr/libexec/PlistBuddy
+          APP_BID=$("$PB" -c 'Print :CFBundleIdentifier' "$APP/Info.plist")
+          if [[ "$APP_BID" != "$BUNDLE_ID" ]]; then
+            echo "::error::The app's bundle id ($APP_BID) does not match the profile's ($BUNDLE_ID)"
+            exit 1
+          fi
+          BVER=$("$PB" -c 'Print :CFBundleShortVersionString' "$APP/Info.plist")
+          TITLE=$("$PB" -c 'Print :CFBundleName' "$APP/Info.plist" 2>/dev/null || "$PB" -c 'Print :CFBundleDisplayName' "$APP/Info.plist")
+          {
+            echo "bundle_version=$BVER"
+            echo "title=$TITLE"
+          } >> "$GITHUB_OUTPUT"
+          # ditto keeps the symlinks (a zip -r dereference breaks the first dynamic framework)
+          ditto -c -k --sequesterRsrc --keepParent unpack/Payload MnemoThera-ios-signed.ipa
+
+      - name: OTA manifest and install-page QR
+        if: steps.secrets.outputs.present == 'true'
+        env:
+          PR: ${{ github.event.pull_request.number }}
+          OWNER: ${{ github.repository_owner }}
+        run: |
+          set -euo pipefail
+          REPO_NAME=${GITHUB_REPOSITORY#*/}
+          PAGES_BASE="https://$(printf '%s' "$OWNER" | tr '[:upper:]' '[:lower:]').github.io/$REPO_NAME"
+          IPA_URL="https://github.com/$GITHUB_REPOSITORY/releases/download/ios-pr-$PR/MnemoThera-ios-signed.ipa"
+          {
+            echo "PAGES_BASE=$PAGES_BASE"
+            echo "MANIFEST_URL=$PAGES_BASE/manifests/pr-$PR.xml"
+            echo "INSTALL_URL=$PAGES_BASE/install.html#pr-$PR"
+          } >> "$GITHUB_ENV"
+          # The manifest points at the per-tag release asset: never /releases/latest/ (404s with per-tag
+          # names) and never a query string (the phone refuses manifest URLs that carry one).
+          python3 - <<'EOF'
+          import os, xml.sax.saxutils as sax
+          t = open("install/templates/manifest.xml", encoding="utf-8").read()
+          for key in ("IPA_URL", "BUNDLE_ID", "BUNDLE_VERSION", "TITLE"):
+              t = t.replace("@" + key + "@", sax.escape(os.environ[key]))
+          open("ios_sign/manifest.xml", "w", encoding="utf-8").write(t)
+          EOF
+          python3 -m venv ios_sign/qrvenv
+          ios_sign/qrvenv/bin/pip install --quiet "qrcode[pil]"
+          ios_sign/qrvenv/bin/python - <<'EOF'
+          import os, qrcode
+          q = qrcode.QRCode(border=4, box_size=8)
+          q.add_data(os.environ["INSTALL_URL"])
+          q.make(fit=True)
+          q.make_image().save("MnemoThera-ios-install-qr.png")
+          EOF
+
+      - name: Replace the pull request's iOS release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          SIGNED: ${{ steps.secrets.outputs.present }}
+        run: |
+          set -euo pipefail
+          # A run that ends after the pull request closed must not bring its release back (the cleanup has already run).
+          state="$(gh pr view "$PR" --json state -q .state)"
+          if [[ "$state" != OPEN ]]; then echo "#$PR is $state: nothing published"; exit 0; fi
+          # Idempotent publish, delete first: the workflow-level concurrency may cancel a run between these
+          # two steps; that leaves no release at all, and the next run deletes a nothing and recreates it whole.
+          gh release delete "ios-pr-$PR" --cleanup-tag --yes 2>/dev/null || true
+          if [[ "$SIGNED" == true ]]; then
+            notes="Device build of pull request #${PR} at commit ${HEAD_SHA::7}, signed with a free-account development profile.
+
+          - MnemoThera-ios-signed.ipa: the signed build the OTA link on the pull request serves.
+          - MnemoThera-ios-unsigned.ipa: unsigned, for an on-device signer (SideStore).
+          - manifest.xml: backup copy of the OTA manifest (the live one is served from GitHub Pages).
+          - MnemoThera-ios-install-qr.png: QR of the install page.
+
+          Profile \"$PROFILE_NAME\" expires $PROFILE_EXPIRES ($PROFILE_DAYS_LEFT d left) — installs work only while it is younger than 7 days. Replaced on every push to the pull request and deleted when it closes. Check the pull request's CI before trusting it."
+            gh release create "ios-pr-$PR" \
+              MnemoThera-ios-signed.ipa \
+              MnemoThera-ios-unsigned.ipa \
+              ios_sign/manifest.xml \
+              MnemoThera-ios-install-qr.png \
+              --target "$HEAD_SHA" \
+              --prerelease \
+              --title "PR #${PR} (iOS OTA): ${PR_TITLE}" \
+              --notes "$notes"
+          else
+            notes="Unsigned device build of pull request #${PR} at commit ${HEAD_SHA::7}. The OTA signing lane is dormant (no signing credentials yet); this IPA is the interim delivery — download it on the phone and install it with an on-device signer, see the pull request comment.
+
+          Replaced on every push to the pull request and deleted when it closes. Check the pull request's CI before trusting it."
+            gh release create "ios-pr-$PR" \
+              MnemoThera-ios-unsigned.ipa \
+              --target "$HEAD_SHA" \
+              --prerelease \
+              --title "PR #${PR} (iOS, unsigned): ${PR_TITLE}" \
+              --notes "$notes"
+          fi
+
+      - name: Hand the manifest to the Pages job
+        if: steps.secrets.outputs.present == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-ota-pages-manifest
+          path: ios_sign/manifest.xml
+          if-no-files-found: error
+          retention-days: 1
+
+  # Deploys the install page and the per-PR OTA manifests to GitHub Pages (stable content type,
+  # anonymous HTTPS — the phone fetches the manifest and the IPA outside Safari). A Pages deploy
+  # replaces the WHOLE site, so every deploy re-ships the manifests of every still-open iOS pull
+  # request, fetched from their releases. continue-on-error: a Pages gap must not fail the lane —
+  # the release and the comment still go out, and the comment says exactly what failed and the
+  # manual fix (Settings → Pages → Source: GitHub Actions, doable from the phone's browser).
+  pages-publish:
+    needs: sign-ota
+    if: always() && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: github-pages
+    continue-on-error: true
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+      pull-requests: read
+    concurrency:
+      group: pages-publish-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    outputs:
+      ok: ${{ steps.probe.outputs.ok }}
+      reason: ${{ steps.probe.outputs.reason }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        if: needs.sign-ota.outputs.signed == 'true'
+        with:
+          name: ios-ota-pages-manifest
+      - name: Assemble the site (install page + every open iOS PR's manifest)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+          SIGNED: ${{ needs.sign-ota.outputs.signed }}
+        run: |
+          set -euo pipefail
+          mkdir -p pages/manifests fetched
+          if [[ "$SIGNED" == true ]]; then
+            cp manifest.xml "pages/manifests/pr-$PR.xml"
+          fi
+          for tag in $(gh release list --limit 200 --json tagName -q '.[].tagName' | grep -E '^ios-pr-[0-9]+$' || true); do
+            n=${tag#ios-pr-}
+            if [[ "$n" == "$PR" ]]; then continue; fi
+            state="$(gh pr view "$n" --json state -q .state 2>/dev/null || echo UNKNOWN)"
+            if [[ "$state" != OPEN ]]; then continue; fi
+            if gh release download "$tag" --pattern manifest.xml --dir fetched --clobber >/dev/null 2>&1 && [[ -f fetched/manifest.xml ]]; then
+              cp fetched/manifest.xml "pages/manifests/pr-$n.xml"
+              echo "re-shipping pr-$n's manifest"
+              rm -f fetched/manifest.xml
+            fi
+          done
+          cp install/install.html pages/install.html
+          find pages -type f | sort
+      - name: Enable Pages for the repository if it is off
+        id: enable
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          if gh api "repos/$GH_REPO/pages" >/dev/null 2>&1; then
+            echo "Pages is already enabled"
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "Pages is off — trying to create it (build_type=workflow)"
+          # The GITHUB_TOKEN cannot hold the administration permission this endpoint asks for, so this
+          # is expected to fail; the failure is contained and the comment carries the manual fix.
+          if gh api -X POST "repos/$GH_REPO/pages" -f build_type=workflow >created.json 2>create.err; then
+            cat created.json
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::Could not enable Pages via the API: $(tr -d '\n' <create.err | head -c 200). Enable it by hand: Settings → Pages → Build and deployment → Source: GitHub Actions."
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/upload-pages-artifact@v3
+        if: steps.enable.outputs.enabled == 'true'
+        with:
+          path: pages
+      - uses: actions/deploy-pages@v4
+        if: steps.enable.outputs.enabled == 'true'
+      - name: Probe the deployed URLs
+        id: probe
+        if: steps.enable.outputs.enabled == 'true'
+        env:
+          PR: ${{ github.event.pull_request.number }}
+          SIGNED: ${{ needs.sign-ota.outputs.signed }}
+          OWNER: ${{ github.repository_owner }}
+        run: |
+          set -euo pipefail
+          BASE="https://$(printf '%s' "$OWNER" | tr '[:upper:]' '[:lower:]').github.io/${GITHUB_REPOSITORY#*/}"
+          ok=false
+          for _ in 1 2 3 4 5 6; do
+            if curl -fsS -o /dev/null --max-time 15 "$BASE/install.html"; then ok=true; break; fi
+            sleep 10
+          done
+          if [[ "$ok" != true ]]; then
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+            echo "reason=deployed, but the install page is not reachable yet" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "ok=true" >> "$GITHUB_OUTPUT"
+          reason=""
+          if [[ "$SIGNED" == true ]]; then
+            ct="$(curl -fsSI --max-time 15 "$BASE/manifests/pr-$PR.xml" | tr -d '\r' | sed -n 's/^[Cc]ontent-[Tt]ype: *//p' | head -1 || true)"
+            echo "manifest content-type: ${ct:-<none>}"
+            if [[ "$ct" != *xml* ]]; then
+              echo "::warning::The manifest is served as '${ct:-none}', not XML — the phone may refuse it"
+              reason="manifest content-type is '${ct:-none}', not XML"
+            fi
+          fi
+          echo "reason=$reason" >> "$GITHUB_OUTPUT"
+
+  # One sticky comment per pull request that says how to get the build onto the phone: the one-tap OTA
+  # path once signing is live, the unsigned-IPA-plus-on-device-signer interim while it is not, or what
+  # failed. Runs for every outcome (success, failure, skipped build) so each run answers on the PR.
+  ota-comment:
+    needs: [sign-ota, pages-publish]
+    if: always() && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: write
+    concurrency:
+      group: ota-comment-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    steps:
+      - uses: actions/checkout@v4
+      - name: Post or update the OTA comment
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          SIGNED: ${{ needs.sign-ota.outputs.signed }}
+          SIGN_RESULT: ${{ needs.sign-ota.result }}
+          SECRET_P12: ${{ needs.sign-ota.outputs.p12 }}
+          SECRET_PROFILE: ${{ needs.sign-ota.outputs.profile }}
+          PAGES_OK: ${{ needs.pages-publish.outputs.ok }}
+          PAGES_REASON: ${{ needs.pages-publish.outputs.reason }}
+          BUNDLE_ID: ${{ needs.sign-ota.outputs.bundle_id }}
+          BUNDLE_VERSION: ${{ needs.sign-ota.outputs.bundle_version }}
+          APP_TITLE: ${{ needs.sign-ota.outputs.title }}
+          TEAM: ${{ needs.sign-ota.outputs.team }}
+          PROFILE_NAME: ${{ needs.sign-ota.outputs.profile_name }}
+          PROFILE_EXPIRES: ${{ needs.sign-ota.outputs.profile_expires }}
+          PROFILE_DAYS_LEFT: ${{ needs.sign-ota.outputs.profile_days_left }}
+          PROFILE_DEVICES: ${{ needs.sign-ota.outputs.profile_devices }}
+        run: |
+          set -euo pipefail
+          # A closed pull request gets no new comment (its release is being deleted by pr-ios-ota-cleanup.yml).
+          state="$(gh pr view "$PR" --json state -q .state)"
+          if [[ "$state" != OPEN ]]; then echo "#$PR is $state: no comment"; exit 0; fi
+          python3 scripts/ios-ota-comment.py --out comment.md
+          # Sticky, in place: the single comment carrying the marker is updated, not re-posted (the AD-15 pattern).
+          existing="$(gh api --paginate "repos/$GH_REPO/issues/$PR/comments?per_page=100" \
+            --jq '.[] | select(.user.login == "github-actions[bot]") | select(.body | startswith("<!-- ios-ota")) | .id' | head -1)"
+          if [[ -n "$existing" ]]; then
+            gh api -X PATCH "repos/$GH_REPO/issues/comments/$existing" -F "body=@comment.md" --jq .html_url
+          else
+            gh api -X POST "repos/$GH_REPO/issues/$PR/comments" -F "body=@comment.md" --jq .html_url
+          fi
 
   # App screenshots for Android/iOS parity (lane A2b, issue #133; feeds R1 #127).
   # Builds the simulator app and walks the DEBUG-only -MVShot harness
