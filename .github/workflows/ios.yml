@@ -10,7 +10,9 @@ on:
     branches: [ios]
 
 concurrency:
-  group: ios-ci
+  # Per-ref so a push to ios and package-lane PR runs don't cancel each other;
+  # a new push to ios still cancels the previous push run (fast iteration).
+  group: ios-ci-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
@@ -91,7 +93,7 @@ jobs:
       - name: Package unsigned IPA
         run: |
           mkdir -p Payload
-          cp build/dd/Build/Products/Release-iphoneos/MindVault.app Payload/
+          cp -R build/dd/Build/Products/Release-iphoneos/MindVault.app Payload/
           zip -qr MnemoThera-ios-unsigned.ipa Payload
           ls -la MnemoThera-ios-unsigned.ipa MnemoThera-ios-sim.zip
         working-directory: ios
