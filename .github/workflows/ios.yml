@@ -148,10 +148,10 @@ jobs:
       - name: Upload unsigned IPA
         uses: actions/upload-artifact@v4
         with:
-          # Artifact names = the names ios-release.yml downloads by; the files
-          # inside carry the names it publishes as release assets. Keep the
-          # two in lockstep (review: silent name drift breaks the first
-          # release run at the download step).
+          # The artifact name is what ios-publish (below) downloads by; the file
+          # inside carries the name ios-publish publishes as a release asset.
+          # Keep the two in lockstep (review: silent name drift breaks the
+          # first release run at the download step).
           name: MnemoThera-ios-unsigned.ipa
           path: ios/MnemoThera-ios-unsigned.ipa
           if-no-files-found: error
@@ -163,4 +163,378 @@ jobs:
           name: MnemoThera-ios-sim.zip
           path: ios/MnemoThera-ios-sim.zip
           if-no-files-found: error
+          retention-days: 14
+
+      # The delivery lane below is pull-request-only: its release `ios-pr-<N>` is per-pull-request and a
+      # push to ios carries no PR number (a post-merge push lane is deliberately not built yet). The
+      # job then shows as "skipped", which reads as green for branch protection.
+      - name: Why there is no iOS release on push
+        if: always() && github.event_name == 'push'
+        run: |
+          echo "::notice::No iOS release on push — ios-publish publishes per-pull-request (ios-pr-<N>) and runs on pull_request events only."
+
+  # Delivers the device build for on-device signing (SideStore). No computer exists in this project, so
+  # there is no CI signing: the unsigned IPA is stamped with a monotonic version (0.<PR>.<RUN_NUMBER> —
+  # SideStore compares source.json versions to offer updates, and nothing else bumps the bundle
+  # version), published as the per-PR release `ios-pr-<N>` with its sha256 and a QR of the Pages source
+  # page, and offered through a rolling SideStore source on GitHub Pages (pages-publish below). Secrets
+  # play no role here — there is nothing to skip on. Push to ios skips the lane on purpose: releases are
+  # per-PR (ios-pr-<N>) and a push has no PR number. Fork pull requests skip it too: their token cannot
+  # write releases.
+  ios-publish:
+    needs: macos-build
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: macos-15
+    timeout-minutes: 20
+    permissions:
+      contents: write
+      pull-requests: read
+    concurrency:
+      group: ios-publish-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    outputs:
+      version: ${{ steps.stamp.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download the unsigned IPA
+        uses: actions/download-artifact@v4
+        with:
+          name: MnemoThera-ios-unsigned.ipa
+
+      # The app is unsigned by construction (CODE_SIGNING_ALLOWED=NO), so editing its Info.plist breaks
+      # no signature — SideStore signs the whole bundle on the phone.
+      - name: Stamp the build version and hash the IPA
+        id: stamp
+        env:
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          VERSION="0.${PR}.${GITHUB_RUN_NUMBER}"
+          rm -rf unpack
+          mkdir unpack
+          ditto -x -k MnemoThera-ios-unsigned.ipa unpack
+          APP=unpack/Payload/MindVault.app
+          test -d "$APP"
+          PB=/usr/libexec/PlistBuddy
+          # Set fails when the key is absent; the Add fallback keeps that visible instead of silent.
+          "$PB" -c "Set :CFBundleShortVersionString $VERSION" "$APP/Info.plist" \
+            || "$PB" -c "Add :CFBundleShortVersionString string $VERSION" "$APP/Info.plist"
+          "$PB" -c "Set :CFBundleVersion $VERSION" "$APP/Info.plist" \
+            || "$PB" -c "Add :CFBundleVersion string $VERSION" "$APP/Info.plist"
+          echo "stamped version $VERSION: $("$PB" -c 'Print :CFBundleShortVersionString' "$APP/Info.plist")"
+          # ditto keeps the symlinks (a zip -r dereference breaks the first dynamic framework)
+          ditto -c -k --sequesterRsrc --keepParent unpack/Payload MnemoThera-ios-unsigned.ipa
+          # The sha256 pair in the house style (ci.yml release-pr); shasum because this runs on macOS
+          shasum -a 256 MnemoThera-ios-unsigned.ipa > MnemoThera-ios-unsigned.ipa.sha256
+          cat MnemoThera-ios-unsigned.ipa.sha256
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: QR of the Pages source page
+        env:
+          OWNER: ${{ github.repository_owner }}
+        run: |
+          set -euo pipefail
+          BASE="https://$(printf '%s' "$OWNER" | tr '[:upper:]' '[:lower:]').github.io/${GITHUB_REPOSITORY#*/}"
+          # export, not $GITHUB_ENV: a GITHUB_ENV write is invisible to the step that writes it,
+          # and this step's heredoc is the only reader.
+          export BASE
+          python3 -m venv qrvenv
+          qrvenv/bin/pip install --quiet "qrcode[pil]"
+          qrvenv/bin/python - <<'EOF'
+          import os, qrcode
+          q = qrcode.QRCode(border=4, box_size=8)
+          q.add_data(os.environ["BASE"] + "/")
+          q.make(fit=True)
+          q.make_image().save("MnemoThera-ios-source-qr.png")
+          EOF
+
+      - name: Replace the pull request's iOS release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          VERSION: ${{ steps.stamp.outputs.version }}
+        run: |
+          set -euo pipefail
+          # A run that ends after the pull request closed must not bring its release back (the cleanup has already run).
+          state="$(gh pr view "$PR" --json state -q .state)"
+          if [[ "$state" != OPEN ]]; then echo "#$PR is $state: nothing published"; exit 0; fi
+          # Idempotent publish, delete first: the workflow-level concurrency may cancel a run between these
+          # two steps; that leaves no release at all, and the next run deletes a nothing and recreates it whole.
+          gh release delete "ios-pr-$PR" --cleanup-tag --yes 2>/dev/null || true
+          notes="Unsigned device build of pull request #${PR} at commit ${HEAD_SHA::7}, for on-device signing (SideStore — no computer exists here to sign in CI).
+
+          Version: $VERSION
+          Commit: ${HEAD_SHA::7}
+
+          - MnemoThera-ios-unsigned.ipa: the build; SideStore signs it on the phone.
+          - MnemoThera-ios-unsigned.ipa.sha256: checksum to verify the download.
+          - MnemoThera-ios-source-qr.png: QR of the SideStore source page on GitHub Pages.
+
+          Replaced on every push to the pull request and deleted when it closes. Check the pull request's CI before trusting it."
+          gh release create "ios-pr-$PR" \
+            MnemoThera-ios-unsigned.ipa \
+            MnemoThera-ios-unsigned.ipa.sha256 \
+            MnemoThera-ios-source-qr.png \
+            --target "$HEAD_SHA" \
+            --prerelease \
+            --title "PR #${PR} (iOS device build): ${PR_TITLE}" \
+            --notes "$notes"
+
+  # Deploys the rolling SideStore source and the landing page to GitHub Pages (anonymous HTTPS, stable
+  # URL — the phone talks to it from SideStore, not only Safari). The source is rebuilt from every
+  # still-open iOS pull request's release and offers the newest build: the version stamp
+  # 0.<PR>.<RUN_NUMBER> is monotonic across pull requests, so the one com.therapylocal.app entry is
+  # always the latest. A Pages deploy replaces the whole site; every deploy recomputes the same state,
+  # so concurrent PR deploys converge instead of clobbering. continue-on-error: a Pages gap must not
+  # fail the lane — the release and the comment still go out, and the comment carries the manual fix
+  # (Settings → Pages → Source: GitHub Actions, doable from the phone's browser).
+  pages-publish:
+    needs: ios-publish
+    if: always() && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: github-pages
+    continue-on-error: true
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+      pull-requests: read
+    concurrency:
+      group: pages-publish-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    outputs:
+      ok: ${{ steps.probe.outputs.ok }}
+      reason: ${{ steps.probe.outputs.reason }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the rolling SideStore source (newest build of every open iOS PR)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          OWNER: ${{ github.repository_owner }}
+        run: |
+          set -euo pipefail
+          BASE="https://$(printf '%s' "$OWNER" | tr '[:upper:]' '[:lower:]').github.io/${GITHUB_REPOSITORY#*/}"
+          mkdir -p pages
+          : > source-facts.tsv
+          for tag in $(gh release list --limit 200 --json tagName -q '.[].tagName' | grep -E '^ios-pr-[0-9]+$' || true); do
+            n=${tag#ios-pr-}
+            state="$(gh pr view "$n" --json state -q .state 2>/dev/null || echo UNKNOWN)"
+            if [[ "$state" != OPEN ]]; then continue; fi
+            # Version and commit are the standalone lines ios-publish writes into every release body.
+            version="$(gh release view "$tag" --json body -q .body | sed -n 's/^Version: //p' | head -1)"
+            commit="$(gh release view "$tag" --json body -q .body | sed -n 's/^Commit: //p' | head -1)"
+            date="$(gh release view "$tag" --json createdAt -q .createdAt)"
+            title="$(gh pr view "$n" --json title -q .title)"
+            read -r size url <<<"$(gh api "repos/$GH_REPO/releases/tags/$tag" --jq '.assets[] | select(.name == "MnemoThera-ios-unsigned.ipa") | "\( .size ) \( .browser_download_url )"' | head -1)"
+            if [[ -z "$version" || -z "$size" || -z "$url" ]]; then
+              echo "::warning::release $tag lacks the expected version line or IPA asset — skipped from the source"
+              continue
+            fi
+            printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\n' "$n" "$version" "$commit" "$date" "$size" "$url" "$title" >> source-facts.tsv
+          done
+          python3 scripts/build-sidestore-source.py \
+            --facts source-facts.tsv \
+            --out pages/sidestore.json \
+            --source-url "$BASE/sidestore.json"
+          cp pages-src/index.html pages/index.html
+          cat pages/sidestore.json
+      - name: Enable Pages for the repository if it is off
+        id: enable
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          if gh api "repos/$GH_REPO/pages" >/dev/null 2>&1; then
+            echo "Pages is already enabled"
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "Pages is off — trying to create it (build_type=workflow)"
+          # The GITHUB_TOKEN cannot hold the administration permission this endpoint asks for, so this
+          # is expected to fail; the failure is contained and the comment carries the manual fix.
+          if gh api -X POST "repos/$GH_REPO/pages" -f build_type=workflow >created.json 2>create.err; then
+            cat created.json
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::Could not enable Pages via the API: $(tr -d '\n' <create.err | head -c 200). Enable it by hand: Settings → Pages → Build and deployment → Source: GitHub Actions."
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/upload-pages-artifact@v3
+        if: steps.enable.outputs.enabled == 'true'
+        with:
+          path: pages
+      - uses: actions/deploy-pages@v4
+        if: steps.enable.outputs.enabled == 'true'
+      - name: Probe the deployed URLs
+        id: probe
+        if: steps.enable.outputs.enabled == 'true'
+        env:
+          OWNER: ${{ github.repository_owner }}
+        run: |
+          set -euo pipefail
+          BASE="https://$(printf '%s' "$OWNER" | tr '[:upper:]' '[:lower:]').github.io/${GITHUB_REPOSITORY#*/}"
+          ok=false
+          for _ in 1 2 3 4 5 6; do
+            if curl -fsS -o /dev/null --max-time 15 "$BASE/" && curl -fsS -o /dev/null --max-time 15 "$BASE/sidestore.json"; then ok=true; break; fi
+            sleep 10
+          done
+          if [[ "$ok" != true ]]; then
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+            echo "reason=deployed, but the source is not reachable yet" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "ok=true" >> "$GITHUB_OUTPUT"
+          ct="$(curl -fsSI --max-time 15 "$BASE/sidestore.json" | tr -d '\r' | sed -n 's/^[Cc]ontent-[Tt]ype: *//p' | head -1 || true)"
+          echo "source content-type: ${ct:-<none>}"
+          if [[ "$ct" != *json* ]]; then
+            echo "::warning::sidestore.json is served as '${ct:-none}', not JSON — SideStore may refuse it"
+            echo "reason=source content-type is '${ct:-none}', not JSON" >> "$GITHUB_OUTPUT"
+          else
+            echo "reason=" >> "$GITHUB_OUTPUT"
+          fi
+
+  # One sticky comment per pull request that says how to get the build onto the phone without a
+  # computer: the SideStore source route, the vault rules around the Apple ID, the direct-IPA
+  # fallback, and the GitHub Pages state. Runs for every outcome (success, failure, skipped build)
+  # so each run answers on the PR. The comment marker is still `<!-- ios-ota` — the legacy name keeps
+  # the sticky update finding the comment the first run posted.
+  ios-comment:
+    needs: [ios-publish, pages-publish]
+    if: always() && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: write
+    concurrency:
+      group: ios-comment-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    steps:
+      - uses: actions/checkout@v4
+      - name: Post or update the iOS install comment
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          VERSION: ${{ needs.ios-publish.outputs.version }}
+          PUBLISH_RESULT: ${{ needs.ios-publish.result }}
+          PAGES_OK: ${{ needs.pages-publish.outputs.ok }}
+          PAGES_REASON: ${{ needs.pages-publish.outputs.reason }}
+        run: |
+          set -euo pipefail
+          # A closed pull request gets no new comment (its release is being deleted by pr-ios-release-cleanup.yml).
+          state="$(gh pr view "$PR" --json state -q .state)"
+          if [[ "$state" != OPEN ]]; then echo "#$PR is $state: no comment"; exit 0; fi
+          python3 scripts/ios-publish-comment.py --out comment.md
+          # Sticky, in place: the single comment carrying the marker is updated, not re-posted (the AD-15 pattern).
+          existing="$(gh api --paginate "repos/$GH_REPO/issues/$PR/comments?per_page=100" \
+            --jq '.[] | select(.user.login == "github-actions[bot]") | select(.body | startswith("<!-- ios-ota")) | .id' | head -1)"
+          if [[ -n "$existing" ]]; then
+            gh api -X PATCH "repos/$GH_REPO/issues/comments/$existing" -F "body=@comment.md" --jq .html_url
+          else
+            gh api -X POST "repos/$GH_REPO/issues/$PR/comments" -F "body=@comment.md" --jq .html_url
+          fi
+
+  # App screenshots for Android/iOS parity (lane A2b, issue #133; feeds R1 #127).
+  # Builds the simulator app and walks the DEBUG-only -MVShot harness
+  # (ios/Sources/MindVault/App/ScreenshotHarness.swift) through every screen, one PNG
+  # each, on one iPhone. Additive: it does not gate the build. The Android half is
+  # scratchpad/parity/android-shots.sh, and the comparison is a vision pass over both
+  # sets (scratchpad/parity/README.md).
+  screenshots:
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        run: xcodegen generate
+        working-directory: ios
+
+      - name: Build (iOS Simulator, Debug)
+        run: >
+          xcodebuild -project MindVault.xcodeproj -scheme MindVault
+          -configuration Debug -destination 'generic/platform=iOS Simulator'
+          CODE_SIGNING_ALLOWED=NO -derivedDataPath build/sim-shots build
+        working-directory: ios
+
+      - name: Boot an iPhone simulator (create one if the runner has none)
+        run: |
+          set -euo pipefail
+          UDID=$(xcrun simctl list devices available -j | python3 -c "import json,sys; d=json.load(sys.stdin)['devices']; i=[x for r in d.values() for x in r if x.get('isAvailable') and x['name'].startswith('iPhone')]; print(i[0]['udid'] if i else '')")
+          if [[ -z "$UDID" ]]; then
+            RUNTIME=$(xcrun simctl list runtimes available -j | python3 -c "import json,sys; r=[x for x in json.load(sys.stdin)['runtimes'] if x.get('isAvailable') and x['identifier'].startswith('com.apple.CoreSimulator.SimRuntime.iOS')]; print(r[-1]['identifier'] if r else '')")
+            TYPE=$(xcrun simctl list devicetypes -j | python3 -c "import json,sys; t=[x for x in json.load(sys.stdin)['devicetypes'] if x['identifier'].startswith('com.apple.CoreSimulator.SimDeviceType.iPhone')]; print(t[-1]['identifier'] if t else '')")
+            if [[ -z "$RUNTIME" || -z "$TYPE" ]]; then
+              echo "::error::no iPhone runtime or device type to create a simulator from"
+              exit 1
+            fi
+            UDID=$(xcrun simctl create "MVShots-$GITHUB_RUN_ID" "$TYPE" "$RUNTIME")
+          fi
+          echo "Simulator: $(xcrun simctl list devices | grep "$UDID" | sed 's/^ *//')"
+          echo "SIM_UDID=$UDID" >> "$GITHUB_ENV"
+          # A fresh install: no old app, no old vault, an untouched keychain.
+          xcrun simctl shutdown "$UDID" 2>/dev/null || true
+          xcrun simctl erase "$UDID" || true
+          xcrun simctl boot "$UDID"
+          xcrun simctl bootstatus "$UDID" -b
+          # Same status bar in every shot, so parity compares the app, not the clock.
+          xcrun simctl status_bar "$UDID" override \
+            --time "9:41" --dataNetwork wifi --wifiMode active --wifiBars 3 \
+            --cellularMode active --cellularBars 4 --batteryState charged --batteryLevel 100
+
+      - name: Capture every screen
+        run: |
+          set -euo pipefail
+          APP=ios/build/sim-shots/Build/Products/Debug-iphonesimulator/MindVault.app
+          test -d "$APP" || { echo "::error::simulator app not found at $APP"; exit 1; }
+          xcrun simctl install "$SIM_UDID" "$APP"
+          mkdir -p ios/screenshots
+          # The capture list is parsed out of ScreenshotHarness.Screen itself — one
+          # source of truth (review nit): a case added there is captured here without
+          # touching this job. The guard fails the job if the enum layout changes so
+          # the sed no longer matches, instead of silently capturing nothing.
+          SCREENS=($(sed -nE 's/^ +case [a-zA-Z]+ = "([^"]+)".*/\1/p' ios/Sources/MindVault/App/ScreenshotHarness.swift))
+          if [[ ${#SCREENS[@]} -lt 10 ]]; then
+            echo "::error::parsed ${#SCREENS[@]} screens from ScreenshotHarness.Screen — the enum layout changed; fix this parser"
+            exit 1
+          fi
+          echo "Capturing ${#SCREENS[@]} screens: ${SCREENS[*]}"
+          for screen in "${SCREENS[@]}"; do
+            xcrun simctl terminate "$SIM_UDID" com.therapylocal.app 2>/dev/null || true
+            xcrun simctl launch "$SIM_UDID" com.therapylocal.app -MVShot "$screen"
+            sleep 5
+            xcrun simctl io "$SIM_UDID" screenshot "ios/screenshots/$screen.png"
+          done
+          # A zero-byte or plain-background PNG is a failed capture, not a screenshot.
+          for file in ios/screenshots/*.png; do
+            bytes=$(stat -f%z "$file")
+            echo "$file $bytes bytes"
+            if [[ "$bytes" -lt 12000 ]]; then
+              echo "::error::$file looks blank ($bytes bytes)"
+              exit 1
+            fi
+          done
+
+      - name: Upload screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-screenshots
+          path: ios/screenshots/*.png
+          if-no-files-found: warn
           retention-days: 14

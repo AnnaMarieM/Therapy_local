@@ -19,8 +19,8 @@ final class ClientTests: XCTestCase {
 
     func testSessionFormatting() {
         let session = Session(
-            clientID: Fixtures.georgeID,
-            externalID: "georgem_20261009-140000",
+            clientID: Fixtures.anaID,
+            externalID: "ana_20260101-000000",
             duration: 1_200,
             chunkCount: 2
         )

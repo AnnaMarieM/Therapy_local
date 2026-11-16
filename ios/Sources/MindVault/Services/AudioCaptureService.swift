@@ -22,6 +22,14 @@ final class AudioCaptureService: ObservableObject {
     @Published private(set) var startedAt: Date?
     @Published private(set) var sessionID: UUID?
     @Published private(set) var savedChunkCount = 0
+
+    #if DEBUG
+    /// Pins the level meter for the CI screenshot harness (issue #133), with
+    /// no real capture running. Never called outside the DEBUG harness.
+    func screenshotSeedLevel(_ value: Float) {
+        level = value
+    }
+    #endif
     @Published private(set) var interruptionActive = false
     @Published private(set) var lastError: String?
 

@@ -22,6 +22,21 @@ final class SessionCoordinator: ObservableObject {
     @Published private(set) var cues: [MemoryCue] = []
     @Published var consentConfirmed = false
 
+    #if DEBUG
+    /// Seeds a recording-in-progress for the CI screenshot harness (issue #133),
+    /// without starting the ticker or any audio: the screen must stay static.
+    /// Never called outside the DEBUG harness.
+    func screenshotSeed(client: Client, elapsed: TimeInterval, cues: [MemoryCue], transcript: String) {
+        self.client = client
+        sessionID = UUID()
+        startedAt = Date().addingTimeInterval(-elapsed)
+        self.elapsed = elapsed
+        phase = .recording
+        self.cues = cues
+        liveTranscript = transcript
+    }
+    #endif
+
     private let repository: any VaultRepository
     private let clock: any Clock
     private let audio: AudioCaptureService

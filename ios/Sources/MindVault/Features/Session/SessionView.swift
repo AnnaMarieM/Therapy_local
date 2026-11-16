@@ -52,6 +52,22 @@ struct SessionView: View {
             }
         }
         .accessibilityIdentifier("session.screen")
+        .task {
+            #if DEBUG
+            ScreenshotHarness.seedSession(
+                record: {
+                    coordinator.screenshotSeed(
+                        client: client,
+                        elapsed: 1_325,
+                        cues: ScreenshotHarness.recordingCue().map { [$0] } ?? [],
+                        transcript: ""
+                    )
+                    audio.screenshotSeedLevel(0.45)
+                },
+                showDiscard: { showingDiscardConfirm = true }
+            )
+            #endif
+        }
     }
 
     private var topBar: some View {
@@ -77,8 +93,13 @@ struct SessionView: View {
                 LabelText("Session")
             }
             Spacer()
-            PrivacyBanner(compact: true)
-                .frame(width: 44)
+            // A compact banner cannot fit the 44 pt slot here: its label wraps letter by
+            // letter (visible in the CI screenshots, issue #133). The lock alone says it.
+            Image(systemName: "lock.shield")
+                .font(.system(size: 16, weight: .medium))
+                .foregroundStyle(Color.inkSoft)
+                .frame(width: 44, height: 44)
+                .accessibilityLabel("On-device · encrypted")
         }
     }
 

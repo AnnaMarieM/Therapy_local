@@ -26,6 +26,18 @@ final class ProfileViewModel: ObservableObject {
         self.repository = repository
         self.searchService = searchService
         self.notices = notices
+        #if DEBUG
+        // CI screenshots (issue #133): the profile is built by its view before
+        // the harness can drive it, so its states seed here. The search query
+        // re-runs with the load (below), since no onChange fires for a value
+        // the model already carries.
+        if ScreenshotHarness.screen == .profileSearch {
+            query = "running"
+        }
+        if ScreenshotHarness.screen == .profileDelete {
+            showingDeleteConfirm = true
+        }
+        #endif
     }
 
     func load() async {
@@ -34,6 +46,11 @@ final class ProfileViewModel: ObservableObject {
             client = document.client(id: clientID)
             sessions = document.sessions(for: clientID)
             facts = document.facts(for: clientID)
+            // A query carried in (the screenshot harness seeds it before the
+            // view appears) gets its results with the load.
+            if !query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                await search()
+            }
         } catch {
             notices.error(error.localizedDescription)
         }
