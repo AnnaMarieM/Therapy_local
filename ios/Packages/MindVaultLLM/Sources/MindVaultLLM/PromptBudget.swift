@@ -2,8 +2,9 @@ import Foundation
 
 /// How many tokens of context an LLM call needs, counted before the model is loaded:
 /// the prompt (instructions and the text in it), the chat template and the reply all
-/// share the engine's context, so a context that is too small silently cuts the reply
-/// short.
+/// share the engine's context. A context that is too small does not trim an over-long
+/// prompt (`ask` throws `decodeFailed(-1)`); it only stops the reply at the context
+/// edge.
 ///
 /// The tokenizer is not reachable from here, so tokens are estimated from the
 /// characters, on the safe side. Measured on the phone with Gemma 4: Czech is about
