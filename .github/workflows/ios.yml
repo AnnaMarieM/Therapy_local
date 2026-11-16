@@ -236,16 +236,15 @@ jobs:
         run: |
           set -euo pipefail
           BASE="https://$(printf '%s' "$OWNER" | tr '[:upper:]' '[:lower:]').github.io/${GITHUB_REPOSITORY#*/}"
-          {
-            echo "PAGES_BASE=$BASE"
-            echo "SOURCE_URL=$BASE/sidestore.json"
-          } >> "$GITHUB_ENV"
+          # export, not $GITHUB_ENV: a GITHUB_ENV write is invisible to the step that writes it,
+          # and this step's heredoc is the only reader.
+          export BASE
           python3 -m venv qrvenv
           qrvenv/bin/pip install --quiet "qrcode[pil]"
           qrvenv/bin/python - <<'EOF'
           import os, qrcode
           q = qrcode.QRCode(border=4, box_size=8)
-          q.add_data(os.environ["PAGES_BASE"] + "/")
+          q.add_data(os.environ["BASE"] + "/")
           q.make(fit=True)
           q.make_image().save("MnemoThera-ios-source-qr.png")
           EOF

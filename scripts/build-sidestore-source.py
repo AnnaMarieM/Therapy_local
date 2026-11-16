@@ -8,7 +8,8 @@
 the newest build — the version stamp 0.<PR>.<RUN_NUMBER> is monotonic across pull requests, so
 max(version) is the latest. Plain AltStore v1 shape only, with exactly the fields SideStore's strict
 decoding accepts (SideStore #735): bundleIdentifier, name, developerName, version, versionDate,
-versionDescription, downloadURL, size. No checksums, no extra fields.
+versionDescription, downloadURL, size. No checksums, no extra fields. With no usable release at all
+it publishes the source with an empty apps list, so the stable URL stays live.
 """
 import argparse
 import json
@@ -44,31 +45,40 @@ def main():
             newest = {"pr": pr, "version": version, "commit": commit, "date": date,
                       "size": size, "url": url, "title": title}
     if newest is None:
-        raise SystemExit("no usable ios-pr-* release found — refusing to publish a source without an app")
+        # An empty source (apps: []) keeps the URL live while no open pull request has a
+        # new-format release yet — the next run that publishes one fills it. Better than a 404.
+        print(f"no usable ios-pr-* release found — publishing an empty source -> {o.out}")
+        source = {
+            "name": "Therapy_local iOS builds",
+            "identifier": "com.therapylocal.app.source",
+            "sourceURL": o.source_url,
+            "apps": [],
+        }
+    else:
+        app = {
+            "bundleIdentifier": APP_ID,
+            "name": APP_NAME,
+            "developerName": DEVELOPER,
+            "version": newest["version"],
+            "versionDate": newest["date"],
+            "versionDescription": (
+                f"Build of pull request #{newest['pr']} ({newest['title']}) at commit {newest['commit']} "
+                "— unsigned device build, signed on the phone by SideStore."
+            ),
+            "downloadURL": newest["url"],
+            "size": int(newest["size"]),
+        }
+        source = {
+            "name": "Therapy_local iOS builds",
+            "identifier": "com.therapylocal.app.source",
+            "sourceURL": o.source_url,
+            "apps": [app],
+        }
+        print(f"source offers version {newest['version']} (PR #{newest['pr']}) -> {o.out}")
 
-    app = {
-        "bundleIdentifier": APP_ID,
-        "name": APP_NAME,
-        "developerName": DEVELOPER,
-        "version": newest["version"],
-        "versionDate": newest["date"],
-        "versionDescription": (
-            f"Build of pull request #{newest['pr']} ({newest['title']}) at commit {newest['commit']} "
-            "— unsigned device build, signed on the phone by SideStore."
-        ),
-        "downloadURL": newest["url"],
-        "size": int(newest["size"]),
-    }
-    source = {
-        "name": "Therapy_local iOS builds",
-        "identifier": "com.therapylocal.app.source",
-        "sourceURL": o.source_url,
-        "apps": [app],
-    }
     with open(o.out, "w", encoding="utf-8") as fh:
         json.dump(source, fh, ensure_ascii=False, indent=2)
         fh.write("\n")
-    print(f"source offers version {newest['version']} (PR #{newest['pr']}) -> {o.out}")
 
 
 if __name__ == "__main__":
