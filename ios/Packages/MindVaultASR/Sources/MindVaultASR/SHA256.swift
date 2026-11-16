@@ -2,8 +2,15 @@ import Foundation
 
 /// Pure Swift SHA-256 (FIPS 180-4), no imports beyond Foundation, so it runs
 /// everywhere including Linux — the whole-file checksum the transfer verifies
-/// before a model is moved into place. Vector-tested.
-public struct SHA256 {
+/// before a model is moved into place. Vector-tested (SHA256VectorTests,
+/// vectors computed with sha256sum + hashlib, both implementations agree).
+///
+/// Internal on purpose: MindVaultCore owns the public `SHA256` contract
+/// (CONTRACTS.md shared-contracts rule — this package must not export a second
+/// one with the same name). This is the downloader's internal *streaming*
+/// implementation; core's is one-shot only, so a dedupe needs a streaming API
+/// added to core first (follow-up on card #122).
+struct SHA256 {
     private var h: [UInt32] = [
         0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a,
         0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19,
@@ -11,18 +18,18 @@ public struct SHA256 {
     private var buffer: [UInt8] = []
     private var lengthBits: UInt64 = 0
 
-    public init() {}
+    init() {}
 
-    public static let digestLength = 32
+    static let digestLength = 32
 
-    public static func digest(_ data: Data) -> [UInt8] {
+    static func digest(_ data: Data) -> [UInt8] {
         var hasher = SHA256()
         hasher.update(data)
         return hasher.finish()
     }
 
     /// Lowercase hex of the digest, the form the registry pins.
-    public static func hexDigest(_ data: Data) -> String {
+    static func hexDigest(_ data: Data) -> String {
         digestBytes(data).map { String(format: "%02x", $0) }.joined()
     }
 
@@ -32,17 +39,24 @@ public struct SHA256 {
         return hasher.finish()
     }
 
-    public mutating func update(_ data: Data) {
+    mutating func update(_ data: Data) {
         lengthBits += UInt64(data.count) * 8
         buffer.append(contentsOf: data)
         let full = buffer.count - buffer.count % 64
+        var offset = 0
+        // One `process` call compresses exactly one 64-byte block, so every
+        // full block must go through the loop — feeding `prefix(full)` to a
+        // single call silently dropped every block after the first.
+        while offset < full {
+            process(buffer[offset..<(offset + 64)])
+            offset += 64
+        }
         if full > 0 {
-            process(buffer.prefix(full))
             buffer.removeFirst(full)
         }
     }
 
-    public mutating func finish() -> [UInt8] {
+    mutating func finish() -> [UInt8] {
         var padding = buffer
         // 0x80 then zeros then the 64-bit big endian bit length.
         padding.append(0x80)
@@ -52,7 +66,12 @@ public struct SHA256 {
         var lengthBE = lengthBits.bigEndian
         withUnsafeBytes(of: &lengthBE) { padding.append(contentsOf: $0) }
         buffer = []
-        process(padding[padding.startIndex...])
+        var offset = 0
+        // Padding is 64 or 128 bytes; both blocks must be compressed.
+        while offset < padding.count {
+            process(padding[offset..<(offset + 64)])
+            offset += 64
+        }
         var out = [UInt8]()
         out.reserveCapacity(32)
         for word in h {

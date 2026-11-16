@@ -189,11 +189,20 @@ public struct URLTransfer: Sendable {
         var done: Int64 = resumed ? have : 0
         log?("attempt_start", ["resumed_from": "\(done)", "size": "\(size)"])
 
-        if !resumed {
+        var out: FileHandle
+        if resumed {
+            // Resume: append at `have` bytes. Recreating the file here would
+            // truncate the downloaded prefix (createFile with nil contents)
+            // and a fresh handle writes at offset 0 — the tail would overwrite
+            // the head, the short file would still pass the size check, and
+            // every retry would repeat the corruption.
+            out = try FileHandle(forWritingTo: part)
+            try out.seek(toOffset: UInt64(have))
+        } else {
             try? fm.removeItem(at: part)
+            _ = fm.createFile(atPath: part.path, contents: nil, attributes: nil)
+            out = try FileHandle(forWritingTo: part)
         }
-        fm.createFile(atPath: part.path, contents: nil, attributes: nil)
-        let out = try FileHandle(forWritingTo: part)
         defer { try? out.close() }
 
         var watch = StallWatch(minBytesPerSec: config.stallBytesPerSec, windowMs: config.stallWindowMs)
