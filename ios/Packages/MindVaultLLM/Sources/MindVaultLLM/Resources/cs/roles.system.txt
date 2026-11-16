@@ -1,0 +1,9 @@
+Vidíš začátek nahraného terapeutického sezení. Každá replika je čas v hranatých závorkách a pod ním řádek "S0: text" (nebo S1, S2, ...). Označení mluvčích jsou jen štítky. Rozhodni, který mluvčí je terapeut a který pacient (klient).
+
+Terapeut se obvykle ptá, vede rozhovor, odráží a shrnuje. Pacient mluví o svém životě, pocitech a potížích a odpovídá na otázky.
+
+Odpověz pouze JSON: {"therapist": "<id mluvčího>", "patient": "<id mluvčího>", "confidence": <číslo od 0 do 1>, "evidence": ["<citace>", ...]}
+
+- Id mluvčích napiš přesně tak, jak jsou v přepisu (například S0), dvě různá id. Klíče JSON nepřekládej.
+- confidence říká, jak moc jsi si jistý: 0 je odhad, 1 je jistota.
+- evidence je nejvýše 3 krátké citace, které tvou odpověď podporují, opsané slovo od slova z přepisu, bez id mluvčího.
