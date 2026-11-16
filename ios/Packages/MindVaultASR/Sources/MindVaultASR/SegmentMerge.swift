@@ -19,13 +19,18 @@ public struct TimedSegment: Equatable, Sendable, Hashable {
 ///
 /// Every chunk is transcribed on its own, so the words in the overlap are
 /// recognized twice, usually a little differently. The overlap is removed by the
-/// same word alignment the Android `data/TranscriptMerge.kt` stitch uses — the
-/// tuning that was measured on the recordings (window 45 words, match +2,
-/// mismatch/gap -1, minimum score 6, minimum 3 matches, cut in the middle of the
-/// alignment) — but on timed words: each word keeps its interpolated time from
-/// its whisper segment, and what survives becomes timed segments again.
-/// (MindVaultCore `TranscriptMerge` merges untimed chunk texts; the app may use
-/// either — see INTEGRATION.md. Pure logic, Linux-tested.)
+/// same word alignment the Android `data/TranscriptMerge.kt` stitch uses, and in
+/// the same structure: ONE accumulated word list mutated at every boundary
+/// (drop the aligned tail, append the next chunk from its cut), the window is
+/// the last/first 45 words with no time cap, match +2, mismatch/gap -1,
+/// minimum score 6, minimum 3 matches, cut in the middle of the alignment —
+/// the tuning measured on the recordings. A time cap derived from word timings
+/// (an earlier draft) duplicated the overlap at 37% of randomized boundaries:
+/// whisper's word times drift, so the capped window misses the aligned run and
+/// both chunks join whole. On timed words: each word keeps its interpolated
+/// time from its whisper segment, and what survives becomes timed segments
+/// again. (MindVaultCore `TranscriptMerge` merges untimed chunk texts; the app
+/// may use either — see INTEGRATION.md. Pure logic, Linux-tested.)
 public enum SegmentMerge {
     /// Word count of the alignment window at a chunk boundary.
     static let maxWords = 45
@@ -52,7 +57,11 @@ public enum SegmentMerge {
     public struct Result: Equatable, Sendable {
         /// The merged timeline: timed segments in order, no duplicated overlap.
         public let segments: [TimedSegment]
-        /// Words removed per chunk (end-trimmed + start-trimmed), for the trace.
+        /// Words removed at each append, Android's `removedWords`: for chunk i,
+        /// the tail dropped from the accumulated words plus the head dropped
+        /// from chunk i itself (0 if no overlap was found or the chunk is the
+        /// first). The tail drop may span more than one earlier chunk when an
+        /// earlier chunk contributed few words.
         public let removedWords: [Int]
     }
 
@@ -76,61 +85,70 @@ public enum SegmentMerge {
     /// Merges the per-chunk segment lists (chunk i covers
     /// `[i*stepMs, i*stepMs + chunkMs)`, so chunk i+1's first `overlapMs`
     /// re-hear chunk i's last `overlapMs`). Chunks with no text pass through
-    /// untouched.
+    /// untouched. The chunk times must be recording-absolute (the caller
+    /// offsets chunk-local whisper times before merging).
+    ///
+    /// Android `TranscriptMerge.merge` structure: one accumulated word list,
+    /// mutated at every boundary — the stitch's `dropFromEnd` words are removed
+    /// from the accumulated tail (which may span several earlier chunks, e.g.
+    /// after an empty chunk) and the next chunk's words are appended from its
+    /// own `dropFromStart`. The stitch aligns against everything so far, not
+    /// just the previous chunk, so an empty chunk cannot break the next
+    /// boundary's alignment.
     public static func merge(chunks: [[TimedSegment]], overlapMs: Int64) -> Result {
-        // Flatten every chunk into timed words, remembering each word's segment.
-        let allWords = chunks.map { chunk -> [TimedWord] in
-            chunk.enumerated().flatMap { i, segment in timedWords(segment, segmentIndex: i) }
-        }
-
-        // Per boundary: how many words to drop from the end of the earlier chunk
-        // and from the start of the later one.
-        var dropEnd = [Int](repeating: 0, count: chunks.count)
-        var dropStart = [Int](repeating: 0, count: chunks.count)
-
-        for i in 1..<allWords.count {
-            let prev = allWords[i - 1]
-            let next = allWords[i]
-            guard !prev.isEmpty, !next.isEmpty else { continue }
-            if let stitch = stitch(accumulated: prev, next: next, overlapMs: overlapMs) {
-                dropEnd[i - 1] = stitch.dropFromEnd
-                dropStart[i] = stitch.dropFromStart
-            }
-        }
-
-        // Rebuild: surviving words of each chunk, grouped back into segments.
-        var segments: [TimedSegment] = []
+        // (chunk, segmentIndex) per accumulated word, so survivors group back
+        // into the segments the model produced.
+        var words: [TimedWord] = []
+        var origins: [(chunk: Int, segmentIndex: Int)] = []
         var removed: [Int] = []
-        for i in 0..<chunks.count {
-            let words = allWords[i]
-            let from = dropStart[i]
-            let to = words.count - dropEnd[i]
-            removed.append(max(0, dropEnd[i]) + max(0, dropStart[i]))
-            guard from < to else { continue }
-            var group: [TimedWord] = []
-            var flush: () -> Void = {}
-            flush = {
-                if !group.isEmpty {
-                    segments.append(
-                        TimedSegment(
-                            startMs: group.first!.startMs,
-                            endMs: group.last!.endMs,
-                            text: group.map(\.text).joined(separator: " ")
-                        )
-                    )
-                    group = []
+
+        for (i, chunk) in chunks.enumerated() {
+            let next = chunk.enumerated().flatMap { si, segment in timedWords(segment, segmentIndex: si) }
+            // `cut`, not `stitch`: a local named `stitch` would shadow the
+            // stitch function inside its own initializer.
+            let cut = words.isEmpty ? nil : stitch(accumulated: words.map(\.text), next: next.map(\.text))
+            if let cut {
+                if cut.dropFromEnd > 0 {
+                    words.removeLast(cut.dropFromEnd)
+                    origins.removeLast(cut.dropFromEnd)
                 }
-            }
-            for j in from..<to {
-                let w = words[j]
-                // A boundary inside one original segment (consecutive words with
-                // the same segment index) stays one segment; otherwise split.
-                if let last = group.last, last.segmentIndex != w.segmentIndex {
-                    flush()
+                for w in next.dropFirst(cut.dropFromStart) {
+                    words.append(w)
+                    origins.append((chunk: i, segmentIndex: w.segmentIndex))
                 }
-                group.append(w)
+                removed.append(cut.dropFromEnd + cut.dropFromStart)
+            } else {
+                for w in next {
+                    words.append(w)
+                    origins.append((chunk: i, segmentIndex: w.segmentIndex))
+                }
+                removed.append(0)
             }
-            flush()
+        }
+
+        // Survivors group back into timed segments: consecutive runs of the
+        // same (chunk, segmentIndex). Drops only ever take a suffix of the
+        // accumulated list and a prefix of the appended chunk, so every run is
+        // contiguous — the timed analogue of Android's kept ranges.
+        var segments: [TimedSegment] = []
+        var runStart = 0
+        while runStart < words.count {
+            var runEnd = runStart + 1
+            while runEnd < words.count,
+                  origins[runEnd].chunk == origins[runStart].chunk,
+                  origins[runEnd].segmentIndex == origins[runStart].segmentIndex
+            {
+                runEnd += 1
+            }
+            let run = words[runStart..<runEnd]
+            segments.append(
+                TimedSegment(
+                    startMs: run.first!.startMs,
+                    endMs: run.last!.endMs,
+                    text: run.map(\.text).joined(separator: " ")
+                )
+            )
+            runStart = runEnd
         }
         return Result(segments: segments, removedWords: removed)
     }
@@ -140,36 +158,15 @@ public enum SegmentMerge {
         let dropFromStart: Int
     }
 
-    /// The Android `TranscriptMerge.stitch` alignment, on timed words: align the
-    /// tail of the accumulated words against the head of the next chunk's words
-    /// and cut both in the middle of the aligned run. The window is capped to the
-    /// words that can lie in the overlap on either side, so a long silence at a
-    /// boundary cannot pull unrelated text into the match.
-    static func stitch(accumulated: [TimedWord], next: [TimedWord], overlapMs: Int64) -> Stitch? {
-        // Words that plausibly sit inside the overlap: at most overlapMs worth of
-        // audio, at least one.
-        func overlapCount(_ words: [TimedWord], trailing: Bool) -> Int {
-            guard overlapMs > 0, !words.isEmpty else { return trailing ? min(1, words.count) : min(1, words.count) }
-            let boundary = trailing ? words.last!.endMs : words.first!.startMs
-            var count = 0
-            if trailing {
-                for w in words.reversed() {
-                    if boundary - w.startMs > overlapMs { break }
-                    count += 1
-                    if count >= maxWords { break }
-                }
-            } else {
-                for w in words {
-                    if w.endMs - boundary > overlapMs { break }
-                    count += 1
-                    if count >= maxWords { break }
-                }
-            }
-            return max(1, min(count, maxWords))
-        }
-
-        let a = accumulated.suffix(overlapCount(accumulated, trailing: true)).map(\.text)
-        let b = next.prefix(overlapCount(next, trailing: false)).map(\.text)
+    /// The Android `TranscriptMerge.stitch` alignment: the tail of the words so
+    /// far against the head of the next chunk's words. The window is the
+    /// last/first 45 words ONLY — no time cap. Whisper's word times drift, so a
+    /// window capped by `overlapMs` of audio missed the aligned run at 37% of
+    /// randomized boundaries (review: both chunks then joined whole and the
+    /// overlap was duplicated); the word-count window measured 0 wrong.
+    static func stitch(accumulated: [String], next: [String]) -> Stitch? {
+        let a = accumulated.suffix(maxWords).map(normalize)
+        let b = next.prefix(maxWords).map(normalize)
         guard !a.isEmpty, !b.isEmpty else { return nil }
 
         let n = a.count
@@ -187,7 +184,8 @@ public enum SegmentMerge {
         if n > 0 {
             for i in 1...n {
                 for j in 1...m {
-                    let same = similar(normalize(a[i - 1]), normalize(b[j - 1]))
+                    // a/b are normalized above once, like Kotlin line 99 (no re-norm per cell).
+                    let same = similar(a[i - 1], b[j - 1])
                     let diag = score[i - 1][j - 1] + (same ? matchScore : mismatchScore)
                     let upScore = score[i - 1][j] + gapScore
                     let leftScore = score[i][j - 1] + gapScore
