@@ -42,6 +42,17 @@ struct PcmTests {
         #expect(floats[1] == Float(-1) / 32768.0)
         #expect(floats[2] == Float(-32768) / 32768.0)
     }
+
+    /// The decode is little endian by construction, not by host byte order:
+    /// 0x4000 in LE is +16384 (0.5), the same byte pair read big endian would be
+    /// +64. A trailing odd byte is not a sample and is dropped.
+    @Test func decodeIsExplicitlyLittleEndian() {
+        #expect(Pcm.floatsFromLittleEndianData(Data([0x00, 0x40])) == [0.5])
+        #expect(Pcm.floatsFromLittleEndianData(Data([0x40, 0x00])) == [Float(64) / 32768.0])
+        #expect(Pcm.floatsFromLittleEndianData(Data([0xFF, 0x7F])) == [Float(32767) / 32768.0])
+        #expect(Pcm.floatsFromLittleEndianData(Data()) == [])
+        #expect(Pcm.floatsFromLittleEndianData(Data([0x00, 0x40, 0x7F])) == [0.5])
+    }
 }
 
 @Suite("WhisperClean (CONTRACTS cleaning, whisper side)")
@@ -450,5 +461,60 @@ struct URLTransferTests {
         #expect(!first)
         first = watch.stalled(n: 10_000, now: 1.5)
         #expect(!first)
+    }
+
+    /// The finished download is put in place with one `rename(2)` in the same
+    /// directory: the destination holds the old file or the new one, never
+    /// neither. (The old code removed the destination and then moved.)
+    @Test func verifiedFileReplacesInOneStep() throws {
+        let fm = FileManager.default
+        let dir = fm.temporaryDirectory.appendingPathComponent("mindvault-atomic-\(UUID().uuidString)")
+        try fm.createDirectory(at: dir, withIntermediateDirectories: true)
+        defer { try? fm.removeItem(at: dir) }
+
+        let part = dir.appendingPathComponent("model.bin.part")
+        let destination = dir.appendingPathComponent("model.bin")
+        try fm.createDirectory(at: dir, withIntermediateDirectories: true)
+        try Data("new verified bytes".utf8).write(to: part)
+        try Data("old stale model".utf8).write(to: destination)
+
+        try URLTransfer.replaceAtomically(part, destination)
+
+        #expect(try Data(contentsOf: destination) == Data("new verified bytes".utf8))
+        #expect(!fm.fileExists(atPath: part.path), "the .part must be gone (renamed, not copied)")
+        #expect(try fm.contentsOfDirectory(atPath: dir.path).sorted() == ["model.bin"],
+                "no backup or leftover files in the model directory")
+    }
+
+    @Test func replaceFailsLoudlyWhenTheDirectoryIsGone() {
+        let missing = FileManager.default.temporaryDirectory
+            .appendingPathComponent("mindvault-absent-\(UUID().uuidString)/x.part")
+        let destination = FileManager.default.temporaryDirectory
+            .appendingPathComponent("mindvault-absent-\(UUID().uuidString)/x")
+        #expect(throws: URLTransferError.self) {
+            try URLTransfer.replaceAtomically(missing, destination)
+        }
+    }
+
+    /// A failure log names the file being fetched, without the query string —
+    /// that is where a pre-signed model URL keeps its signature.
+    @Test func failureLogURLDropsTheQuery() {
+        #expect(URLTransfer.logURL("https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-large-v3-turbo-q8_0.bin")
+            == "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-large-v3-turbo-q8_0.bin")
+        #expect(URLTransfer.logURL("https://example.test/a.bin?X-Amz-Signature=deadbeef&X-Amz-Credential=sekrit#frag")
+            == "https://example.test/a.bin")
+        #expect(URLTransfer.logURL("not a url") == "not a url")
+    }
+
+    /// An oversize body is not a short download; both numbers are reported.
+    @Test func oversizeBodyStatesTheExpectation() {
+        let error = URLTransferError.oversizeBody(received: 1_005_000, expected: 1_000_000)
+        #expect(error != URLTransferError.shortDownload(have: 1_005_000, expected: 1_000_000))
+        if case let .oversizeBody(received, expected) = error {
+            #expect(received == 1_005_000)
+            #expect(expected == 1_000_000)
+        } else {
+            Issue.record("expected .oversizeBody")
+        }
     }
 }

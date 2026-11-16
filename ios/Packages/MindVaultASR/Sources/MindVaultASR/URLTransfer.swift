@@ -2,6 +2,11 @@ import Foundation
 #if canImport(FoundationNetworking)
 import FoundationNetworking
 #endif
+#if canImport(Darwin)
+import Darwin
+#elseif canImport(Glibc)
+import Glibc
+#endif
 
 /// Notices a connection that is up but not delivering: fewer than
 /// `minBytesPerSec` bytes on average over a `windowMs` window. A read that
@@ -39,10 +44,16 @@ public enum URLTransferError: Error, Equatable {
     case stalled
     /// The connection closed before the pinned byte size was reached.
     case shortDownload(have: Int64, expected: Int64)
+    /// The body was longer than the pinned byte size. Not a short download: the
+    /// server (or a proxy) is wrong about the file, so the value is stated
+    /// instead of being folded into `shortDownload`.
+    case oversizeBody(received: Int64, expected: Int64)
     /// The server ignored the Range request, or the partial file does not fit.
     case resumeUnsupported
     /// The sha256 of the downloaded file does not match the pin.
     case checksumMismatch(expected: String, actual: String)
+    /// The verified file could not be moved onto its final name (`errno`).
+    case renameFailed(code: Int32)
 }
 
 /// Downloads a model file over a connection that drops all the time, and puts
@@ -101,12 +112,32 @@ public struct URLTransfer: Sendable {
             log?("checksum_mismatch", ["actual": actual])
             throw URLTransferError.checksumMismatch(expected: expected, actual: actual)
         }
-        let fm = FileManager.default
-        if fm.fileExists(atPath: destination.path) {
-            try fm.removeItem(at: destination)
-        }
-        try fm.moveItem(at: part, to: destination)
+        try Self.replaceAtomically(part, destination)
         log?("verified", ["size": "\(size)"])
+    }
+
+    /// Puts the verified `.part` file in place with one `rename(2)`.
+    ///
+    /// Same directory, so the rename is atomic: the destination is either the
+    /// old file or the new one, never absent. (Removing it first and then
+    /// moving — what this used to do — loses an already-verified model if the
+    /// process dies in between.)
+    static func replaceAtomically(_ part: URL, _ destination: URL) throws {
+        guard rename(part.path, destination.path) == 0 else {
+            throw URLTransferError.renameFailed(code: errno)
+        }
+    }
+
+    /// The URL as it belongs in a log line: scheme, host and path, without the
+    /// query or fragment — a pre-signed model URL keeps its signature there.
+    /// Android logs `IOException.message`, which carries the whole URL for
+    /// `HttpURLConnection`; this is the same information minus anything secret.
+    static func logURL(_ raw: String) -> String {
+        guard var components = URLComponents(string: raw),
+              components.scheme != nil, components.host != nil else { return raw }
+        components.query = nil
+        components.fragment = nil
+        return components.string ?? raw
     }
 
     /// The resumable fetch itself: `part` ends up holding exactly `size` bytes.
@@ -139,10 +170,19 @@ public struct URLTransfer: Sendable {
             } catch {
                 // Progress resets the failure counter, like on Android: an
                 // attempt that moved bytes is bad luck, one that moved nothing
-                // counts toward giving up.
+                // counts toward giving up. An attempt that overshot the pinned
+                // size does not count as progress — those bytes are dropped at
+                // the top of the loop, so resetting the counter would retry a
+                // wrong-sized file forever.
                 let after = fileSize(of: part)
-                failures = after > before ? 1 : failures + 1
-                log?("attempt_failed", ["err": "\(error)", "have": "\(after)", "failures": "\(failures)"])
+                let overshot = after > size
+                failures = (after > before && !overshot) ? 1 : failures + 1
+                log?("attempt_failed", [
+                    "err": "\(error)",
+                    "url": Self.logURL(url),
+                    "have": "\(after)",
+                    "failures": "\(failures)",
+                ])
                 if failures > config.maxFailuresWithoutProgress {
                     throw error
                 }
@@ -224,6 +264,12 @@ public struct URLTransfer: Sendable {
         }
         if let failure = connection.failure {
             throw failure
+        }
+        if done > size {
+            // Longer than the pin: say so, with both numbers. `have` is what
+            // arrived and `expected` what the registry pins; the extra bytes are
+            // dropped with the partial file on the next pass.
+            throw URLTransferError.oversizeBody(received: done, expected: size)
         }
         if done != size {
             throw URLTransferError.shortDownload(have: done, expected: size)

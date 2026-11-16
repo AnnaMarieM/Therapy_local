@@ -27,11 +27,21 @@ public enum Pcm {
     }
 
     /// Reads a 16 kHz mono PCM16 file body (raw samples, no WAV header) into floats.
-    /// Little endian, matching what Android records and what `Pcm.toFloats` widens.
+    ///
+    /// Little endian is decoded explicitly, byte by byte, not by reinterpreting
+    /// the buffer in host byte order: Android records and reads PCM16 little
+    /// endian (`ByteBuffer.order(LITTLE_ENDIAN)`), so the same bytes must widen
+    /// to the same floats on any host. A trailing odd byte is ignored — it is
+    /// not a sample.
     public static func floatsFromLittleEndianData(_ data: Data) -> [Float] {
-        var ints = [Int16](repeating: 0, count: data.count / 2)
-        ints.withUnsafeMutableBytes { raw in
-            data.copyBytes(to: raw.bindMemory(to: UInt8.self))
+        let count = data.count / 2
+        guard count > 0 else { return [] }
+        let bytes = [UInt8](data)
+        var ints = [Int16](repeating: 0, count: count)
+        for i in 0..<count {
+            let lo = UInt16(bytes[2 * i])
+            let hi = UInt16(bytes[2 * i + 1])
+            ints[i] = Int16(bitPattern: lo | (hi << 8))
         }
         return toFloats(ints)
     }
