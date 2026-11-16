@@ -14,19 +14,26 @@ this package changed to build it with SwiftPM.
 | Same commit as | Android `tools/whisper-android/build.sh:13` (`WHISPER_COMMIT`) |
 | Files | 124, 5 MB — `include/`, `src/`, `ggml/{include,src}`; no `examples/`, `tests/`, `models/`, no `.build` |
 
-## Touched files: none
+## Touched files: none; one added file
 
-Every file under `Vendored/whisper/` is byte-identical to upstream at that
-commit, including the three files that SwiftPM needs in their own directory
+Every upstream file under `Vendored/whisper/` is byte-identical to the pin,
+including the three files that SwiftPM needs in their own directory
 (`ggml/src/registry/`: `ggml-backend-reg.cpp`, `ggml-backend-dl.cpp`,
 `ggml-backend-dl.h` — moved, not edited, because a SwiftPM target owns exactly
 one directory).
 
+One file was **added** (ours, not upstream):
+`ggml/src/ggml-cpu/arm-repack-shim.cpp` — SwiftPM manifests have no arch
+conditions, so the shim includes `arch/arm/repack.cpp` only under upstream's
+own ARM macros; compiled unconditionally it redefined 27 repack kernels on
+x86_64 and the link failed. See the file header and `Package.swift` (CGgmlCpu).
+
 Upstream's CMake is not vendored; `Package.swift` restates the target set by
 hand (`CGgmlBase`, `CGgmlCpu`, `CGgmlMetal`, `CGgmlRegistry`, `CWhisperCore`,
 `CWhisper`), mirroring `ggml/CMakeLists.txt` and `ggml/src/ggml-metal/CMakeLists.txt`.
-To bump the pin: replace the tree, then re-check the target `sources:` lists
-against the upstream CMake, and copy the Metal kernels again (see below).
+To bump the pin: replace the tree (re-add the shim), then re-check the target
+`sources:` lists against the upstream CMake, and copy the Metal kernels again
+(see below).
 
 ## The Metal kernels exist twice on purpose
 
