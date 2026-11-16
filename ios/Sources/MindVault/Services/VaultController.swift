@@ -182,11 +182,13 @@ final class VaultController: ObservableObject {
     static func preview(state: State) -> VaultController {
         let keyBox = VaultKeyBox()
         try? keyBox.set(Data(repeating: 7, count: 32))
+        // A locked vault needs a stored credential to have been set up; a first run has none.
+        let credentialData: Data? = (state == .unlocked || state == .locked) ? Data(repeating: 1, count: 1) : nil
         return VaultController(
             paths: .preview(),
             keyBox: keyBox,
             dekStore: InMemoryVaultKeyStore(data: Data(repeating: 7, count: 32)),
-            credentialStore: InMemoryVaultKeyStore(data: state == .unlocked || state == .locked ? Data(repeating: 1, count: 1) : Data()),
+            credentialStore: InMemoryVaultKeyStore(data: credentialData),
             authenticator: LocalAuthenticator(),
             clock: SystemClock(),
             logger: NoopLogger(),
