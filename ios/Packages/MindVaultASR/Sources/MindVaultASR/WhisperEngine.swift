@@ -1,6 +1,3 @@
-#if canImport(Metal)
-import Metal
-#endif
 import CWhisper
 import Foundation
 
@@ -57,6 +54,10 @@ public struct WhisperRunResult: Equatable, Sendable {
 public enum WhisperEngineError: Error, Equatable {
     /// The model file could not be loaded (the JNI `nativeInit` returned 0).
     case loadFailed(path: String)
+    /// `useGPU` was requested and the GPU backend did not initialise, so the run
+    /// would have silently fallen back to the CPU. Never thrown when the caller
+    /// asked for the CPU (`useGPU: false`).
+    case gpuUnavailable(systemInfo: String, detail: String)
     /// The engine was freed.
     case freed
     /// `whisper_full` failed on this audio.
@@ -73,6 +74,11 @@ public enum WhisperEngineError: Error, Equatable {
 /// and the KV cache run on the GPU, the decoder on the CPU — whisper.cpp's own
 /// split), CPU only on Linux.
 ///
+/// The GPU is not taken on trust: `init` points ggml at the bundled Metal kernel
+/// sources, initialises the GPU device and fails with `.gpuUnavailable` when it
+/// does not come up. A silent CPU fallback is the bug this replaces — the app
+/// chooses the CPU explicitly with `useGPU: false` and logs that choice.
+///
 /// Not thread safe: like on Android, one call per turn from one caller. `run`
 /// and `free` are guarded by a lock so an accidental second caller blocks
 /// instead of corrupting the context.
@@ -80,6 +86,10 @@ public final class WhisperEngine: @unchecked Sendable {
     private let lock = NSLock()
     private var context: OpaquePointer?
     public let modelPath: String
+    /// The `useGPU` this engine was opened with.
+    public let requestedUseGPU: Bool
+    /// Who does the work: the GPU backend proven at open, or the CPU.
+    public let gpu: WhisperGPUDiagnosis
 
     /// Metal on Apple, CPU elsewhere (Linux tests, CI). The explicit `useGPU`
     /// argument overrides it for measurements.
@@ -91,11 +101,43 @@ public final class WhisperEngine: @unchecked Sendable {
         #endif
     }
 
-    /// Loads the model. Returns nil when whisper.cpp cannot load the file — the
-    /// same "handle or 0" the JNI `nativeInit` gives, so the caller's ladder
-    /// (load, self-test, free on failure) maps one to one.
-    public init?(path: String, useGPU: Bool = WhisperEngine.defaultUseGPU) {
+    /// The GPU backend as it is right now: devices registered, and whether a
+    /// GPU one actually initialises. On Apple this compiles the Metal kernels (a
+    /// few seconds the first time, cached on the device afterwards); on Linux it
+    /// reports the CPU only. Pure C API, so CI can assert the CPU-only answer.
+    public static func gpuDiagnosis(requested: Bool = true) -> WhisperGPUDiagnosis {
+        WhisperLog.install()
+        return GPUDiagnostic.probe(requested: requested)
+    }
+
+    /// Loads the model. Throws `.loadFailed` when whisper.cpp cannot load the
+    /// file — the same "handle or 0" the JNI `nativeInit` gives, so the caller's
+    /// ladder (load, self-test, free on failure) maps one to one — and
+    /// `.gpuUnavailable` when `useGPU` was requested but Metal did not come up.
+    public init(path: String, useGPU: Bool = WhisperEngine.defaultUseGPU) throws {
+        WhisperLog.install()
         self.modelPath = path
+        self.requestedUseGPU = useGPU
+
+        if useGPU {
+            // ggml reads GGML_METAL_PATH_RESOURCES when the Metal device
+            // initialises: process-wide, set-once, and only effective before the
+            // first whisper init. Point it at the bundled kernel sources, then
+            // prove the backend starts.
+            let install = MetalKernels.install()
+            WhisperLog.note("metal_kernels \(install)")
+            let diagnosis = GPUDiagnostic.probe(requested: true)
+            self.gpu = diagnosis
+            guard diagnosis.usable else {
+                let info = String(cString: whisper_print_system_info())
+                    .trimmingCharacters(in: .whitespacesAndNewlines)
+                WhisperLog.note("gpu_unavailable \(diagnosis.detail) | \(info)")
+                throw WhisperEngineError.gpuUnavailable(systemInfo: info, detail: diagnosis.detail)
+            }
+        } else {
+            self.gpu = GPUDiagnostic.probe(requested: false)
+        }
+
         var params = whisper_context_default_params()
         params.use_gpu = useGPU
         params.flash_attn = false
@@ -105,7 +147,8 @@ public final class WhisperEngine: @unchecked Sendable {
             buf.initialize(from: src.baseAddress!, count: src.count)
         }
         guard let context = whisper_init_from_file_with_params(buf, params) else {
-            return nil
+            WhisperLog.note("load_failed \(path)")
+            throw WhisperEngineError.loadFailed(path: path)
         }
         self.context = context
     }
@@ -151,8 +194,11 @@ public final class WhisperEngine: @unchecked Sendable {
         params.print_realtime = false
         params.print_special = false
         params.print_timestamps = false
-        params.no_context = true
-        params.suppress_blank = false
+        // Deliberately NOT set, matching `tools/whisper-android/whisper_jni.cpp`:
+        // whisper's defaults (context carried between segments inside one call,
+        // blank suppressed) are the configuration the Android WER numbers were
+        // measured on. Setting `no_context`/`suppress_blank` here would decode
+        // the same audio differently from the engine those numbers describe.
         if beam > 1 { params.beam_search.beam_size = Int32(beam) }
 
         // The C strings must outlive the call: own allocations, freed after

@@ -15,6 +15,21 @@ import PackageDescription
 // The `CGgmlMetal` target is referenced only through
 // `.when(platforms: [.macOS, .iOS])` conditions and belongs to no product, so
 // Linux toolchains skip it entirely (verified on aarch64 Linux with Swift 6.3.3).
+//
+// Metal kernels. Upstream CMake either compiles `kernels/*.metal` with
+// `xcrun metal` into `default.metallib` or embeds the sources as ASM
+// (`GGML_METAL_EMBED_LIBRARY`); SwiftPM can do neither, so the Metal kernels
+// ship as *sources* in the Swift target's resource bundle and
+// `WhisperEngine` points the loader at them with `setenv(GGML_METAL_PATH_RESOURCES)`
+// before the first whisper init. The bundle layout is the one
+// `ggml_metal_library_init` walks:
+//     <bundle>/kernels/<kind>.metal   (+ kernels/common.h, dequantize.h, …)
+//     <bundle>/ggml-metal-impl.h      (from kernels/common.h)
+//     <bundle>/ggml-common.h          (from kernels/dequantize.h, quantize.h)
+// `kernels`, `ggml-metal-impl.h` and `ggml-common.h` at the target root are
+// byte-identical copies of the vendored files (a test fails the build if they
+// drift — SwiftPM cannot reference files outside a target's directory).
+// `.copy("kernels")` keeps the directory name, so it lands at the bundle root.
 let package = Package(
     name: "MindVaultASR",
     platforms: [
@@ -94,7 +109,13 @@ let package = Package(
         ),
 
         // Metal backend. Apple only; kept out of every product and referenced
-        // only through platform-conditional dependencies.
+        // only through platform-conditional dependencies. No `resources:` here:
+        // a resource of a C target lands in `<Package>_CGgmlMetal.bundle`, which
+        // the vendored loader cannot find (`#ifdef SWIFT_PACKAGE` /
+        // `SWIFTPM_MODULE_BUNDLE` are not defined for Clang targets, and
+        // `pathForResource:@"kernels/x"` does not resolve a path). The kernel
+        // *sources* are resources of the Swift target instead — see the header
+        // comment above.
         .target(
             name: "CGgmlMetal",
             dependencies: ["CWhisper", "CGgmlBase"],
@@ -106,7 +127,6 @@ let package = Package(
                 "ggml-metal-common.h", "ggml-metal-context.h", "ggml-metal-device.h",
                 "ggml-metal-fusion.h", "ggml-metal-impl.h", "ggml-metal-ops.h", "ggml-metal-tuning.h",
             ],
-            resources: [.copy("kernels")],
             publicHeadersPath: ".",
             cSettings: [
                 .headerSearchPath("."),
@@ -169,6 +189,9 @@ let package = Package(
         ),
 
         // The Swift API (mirrors the JNI contract) and the pure logic.
+        // `kernels/` + `ggml-metal-impl.h` + `ggml-common.h` are the Metal kernel
+        // sources (see the header comment); they are compiled by ggml at Metal
+        // device init, on the device, not by SwiftPM.
         .target(
             name: "MindVaultASR",
             dependencies: [
@@ -176,7 +199,12 @@ let package = Package(
                 "CWhisperCore",
                 .target(name: "CGgmlMetal", condition: .when(platforms: [.macOS, .iOS])),
             ],
-            path: "Sources/MindVaultASR"
+            path: "Sources/MindVaultASR",
+            resources: [
+                .copy("kernels"),
+                .copy("ggml-metal-impl.h"),
+                .copy("ggml-common.h"),
+            ]
         ),
 
         .testTarget(
