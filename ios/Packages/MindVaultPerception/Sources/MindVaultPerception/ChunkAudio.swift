@@ -38,6 +38,15 @@ public struct AudioChunk: Sendable {
     }
 }
 
+/// The input errors [ChunkAudio.slice] can raise.
+public enum ChunkAudioError: Error, Equatable {
+    /// The span is longer than one PCM16 array can hold (Android's `.toInt()` cannot
+    /// express more than `Int32.max` samples either; there the same input surfaced as a
+    /// catchable `NegativeArraySizeException`). Here it is an error, not a runtime
+    /// arithmetic abort or a multi-gigabyte allocation.
+    case spanTooLong(ms: Int64, maxMs: Int64)
+}
+
 /// The audio of one recording as a single timeline, read from its saved chunks. Consecutive chunks
 /// share their overlap, so each chunk after the first contributes only the audio after its own
 /// [ChunkRow.overlapMs]. Times are the chunks' own (milliseconds from the start of the recording),
@@ -64,7 +73,16 @@ public final class ChunkAudio {
     public func slice(startMs: Int64, endMs: Int64) throws -> [Int16] {
         let rate = Int64(PerceptionConfig.samplesPerMs)
         let from = max(startMs, 0)
-        var out = [Int16](repeating: 0, count: Int((max(endMs, from) - from) * rate))
+        let spanMs = max(endMs, from) - from
+        // One output array must stay inside what Android's wrapped `.toInt()` can express
+        // (`Int32.max` samples ≈ 37 h at 16 kHz): past that, Android threw catchably
+        // (NegativeArraySizeException) and here the naive size crashed with an arithmetic
+        // overflow (Int64.max) or attempted a multi-GB allocation (Int(count) trap).
+        let maxSpanMs = Int64(Int32.max) / rate
+        guard spanMs <= maxSpanMs else {
+            throw ChunkAudioError.spanTooLong(ms: spanMs, maxMs: maxSpanMs)
+        }
+        var out = [Int16](repeating: 0, count: Int(spanMs * rate))
         for row in sorted {
             let own = row.idx == firstIdx ? row.startMs : row.startMs + row.overlapMs
             let a = max(from, own)

@@ -10,10 +10,16 @@ import MindVaultPerception
 /// `sherpa-onnx` SwiftPM package, pinned in Package.swift) is the only native import in the
 /// package; everything else stays pure and Linux-testable.
 ///
-/// The diarizer is not re-entrant: one call at a time, the way Android serializes with a mutex.
+/// The diarizer is not re-entrant: one call at a time, enforced here with a lock the
+/// same way Android serializes with a mutex (the type is `@unchecked Sendable`, so
+/// without the lock two concurrent `diarize` calls would race `setConfig` + `process`
+/// on one native handle).
 /// Calls that fail leave the object usable only when [DiarizerError] is one of the input errors;
 /// the caller re-creates the diarizer after a runtime failure, like the Android pool does.
 public final class SherpaOnnxDiarizer: Diarizing, @unchecked Sendable {
+    /// Serializes `setConfig` + `process` on the shared native handle (not re-entrant).
+    private let lock = NSLock()
+
     public enum DiarizerError: Error, Equatable {
         /// A model file is missing or has another byte size than [ModelRegistry.diarization] pins:
         /// sherpa-onnx can abort natively on a missing or cut-off model, which no catch sees.
@@ -77,6 +83,12 @@ public final class SherpaOnnxDiarizer: Diarizing, @unchecked Sendable {
             segmentationPath: segmentationPath, embeddingPath: embeddingPath, provider: provider,
             numClusters: speakerHint > 0 ? speakerHint : -1
         )
+        // Serialized like Android's mutex: `setConfig` mutates the shared native handle
+        // and `process` runs on it — two concurrent calls would apply one call's speaker
+        // hint to the other or corrupt the ONNX heap. Held across both, released on
+        // every path (defer).
+        lock.lock()
+        defer { lock.unlock() }
         wrapper.setConfig(config: &config)
         return Self.toTurns(wrapper.process(samples: samples))
     }

@@ -152,8 +152,10 @@ The seam is `TextEmbedding` (the app contract `EmbeddingProviding`, the Android
 `CueEmbedder` seam). The app provides the implementation; the package guarantees the
 shape and the fallback:
 
-- `modelID` — vectors are only ever compared within one model id; the id is stored on
-  every row.
+- `modelID` — vectors are only ever compared within one model id. The id is **not** stored
+  per row: the app derives it at runtime (NL available → `system-sentence-embedding`, else
+  `hashing-768`) and the vault keeps one global model setting — stored vectors are bare
+  blobs with no id column.
 - `isSemantic` — `false` for the hashing fallback, and the app must say so (CONTRACTS.md:
   capability gaps are visible, search quality is not pretended).
 - `embed(text:query:)` — normalized, so cosine == dot product. Queries and documents are
@@ -163,10 +165,20 @@ shape and the fallback:
 - `embedAudio(pcm:)` — may return nil; the iOS baseline keeps it nil.
 
 **iOS baseline** (what the app ships first): the existing `SystemEmbeddingService`
-(NLEmbedding sentence embedding, `modelID = "system-sentence-embedding"`) with the
-package's `HashingTextEmbedder` (`modelID = "hashing-768"`) as the deterministic
-fallback when NL is unavailable. Both are dimension-compatible with EmbeddingGemma's
-768-d space, so stores keep working when a semantic model arrives.
+(NLEmbedding sentence embedding, `modelID = "system-sentence-embedding"`, **512-d**,
+English) with the package's `HashingTextEmbedder` (`modelID = "hashing-768"`) as the
+deterministic fallback when NL is unavailable. These are **different vector spaces**
+from each other and from EmbeddingGemma's 768-d — never mixed in one comparison.
+
+Because the model id is not stored per row, a model change **orphans** the old vectors
+instead of mixing them: `VectorMath.topK`/`cosine` skip or return nothing for a vector
+whose size differs, so every chunk embedded under the old model silently drops out of
+search (it is not deleted, just never ranked). Changing the embedding model therefore
+requires a **reindex** (re-embed all chunks, or block the model flip until reindexed);
+the wiring lane owns that decision. A latent app-side hazard to handle there: today
+`SystemEmbeddingService.embed` falls back to the 768-d hashing vector inside `embed()`
+when NL's `vector(for:)` returns nil while its `modelID` still says
+`system-sentence-embedding` — a 768-d vector published under the NL id.
 
 **The real model**: EmbeddingGemma 2 740M. Android runs the LiteRT-LM build
 (`embeddinggemma-2-740m.litertlm`, text + audio into one 768-d space) — no litertlm

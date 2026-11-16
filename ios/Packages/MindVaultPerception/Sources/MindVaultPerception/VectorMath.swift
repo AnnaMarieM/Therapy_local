@@ -39,11 +39,13 @@ public enum VectorMath {
         var na = 0.0
         var nb = 0.0
         for i in a.indices {
-            let x = Double(a[i])
-            let y = Double(b[i])
-            dot += x * y
-            na += x * x
-            nb += y * y
+            // Kotlin accumulates each Float product widened to Double
+            // (`dot += a[i] * b[i]`): the multiply rounds in Float first.
+            // Widening first and multiplying in Double drifts by 1 ULP on
+            // ~42% of random 768-d pairs (measured vs the JVM).
+            dot += Double(a[i] * b[i])
+            na += Double(a[i] * a[i])
+            nb += Double(b[i] * b[i])
         }
         if na == 0.0 || nb == 0.0 { return 0 }
         return Float(dot / (na.squareRoot() * nb.squareRoot()))

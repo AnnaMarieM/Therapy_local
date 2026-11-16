@@ -110,6 +110,10 @@ final class TurnPlannerTests: XCTestCase {
         }
     }
 
+    /// Invariants only, not parity: `SeededGenerator` is xorshift while Kotlin's
+    /// `Random(7)` is `XorWowRandom` with a different bounded-int algorithm, so these
+    /// 500 cases are NOT the JVM's cases — what must hold everywhere is the invariant
+    /// set below, and it does on both.
     func testRandomInputKeepsTheInvariants() {
         var rng = SeededGenerator(seed: 7)
         for _ in 0..<500 {

@@ -64,13 +64,15 @@ public enum TranscriptPath {
     }
 
     /// The pieces of a diarized recording whose turns have text, for [UtteranceBuilder.build].
+    /// Android builds these from the turns themselves (`it.text.orEmpty()`), so a missing text
+    /// cannot exist there and nothing traps; a caller bug here must not abort the process at
+    /// `-O` either — a turn past the end of [texts] pads with `""`, like `orEmpty()`.
     public static func pieces(turns: [TimedTurn], texts: [String], english: [String?] = []) -> [Piece] {
-        precondition(texts.count == turns.count, "one text per turn")
         return turns.indices.map { i in
             Piece(
                 startMs: turns[i].startMs,
                 endMs: turns[i].endMs,
-                text: texts[i],
+                text: i < texts.count ? texts[i] : "",
                 speaker: turns[i].speaker,
                 textEn: english.indices.contains(i) ? english[i] : nil
             )

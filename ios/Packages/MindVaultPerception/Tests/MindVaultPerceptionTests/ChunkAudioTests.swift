@@ -53,4 +53,23 @@ final class ChunkAudioTests: XCTestCase {
         XCTAssertEqual(7, Int(s[20_000]))
         XCTAssertEqual(0, Int(s[40_000]))
     }
+
+    /// An absurd span must throw a catchable error, not abort: `Int64.max` used to crash
+    /// with an arithmetic overflow and `5e12` with an allocation failure (Android's
+    /// wrapped `.toInt()` surfaces the same input as a catchable NegativeArraySizeException).
+    func testAnAbsurdSpanThrowsCatchably() {
+        XCTAssertThrowsError(try audio.slice(startMs: 0, endMs: Int64.max)) { error in
+            guard case ChunkAudioError.spanTooLong(let ms, let maxMs) = error else {
+                return XCTFail("wrong error: \(error)")
+            }
+            XCTAssertEqual(Int64.max, ms)
+            XCTAssertEqual(Int64(Int32.max) / 16, maxMs)
+        }
+        XCTAssertThrowsError(try audio.slice(startMs: 0, endMs: 5_000_000_000_000))
+        // Just past the bound is caught too (bound ms + 1). Just INSIDE the bound is not
+        // asserted: slice materializes the whole span as silence, and the bound itself is
+        // a ~4 GB array — the same allocation Android would attempt there, so throwing on
+        // it here is the API's existing behavior, not something this test can afford.
+        XCTAssertThrowsError(try audio.slice(startMs: 0, endMs: Int64(Int32.max) / 16 + 1))
+    }
 }

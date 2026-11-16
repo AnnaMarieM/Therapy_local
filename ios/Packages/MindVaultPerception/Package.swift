@@ -8,7 +8,12 @@ let package = Package(
         .macOS(.v15)
     ],
     products: [
-        .library(name: "MindVaultPerception", targets: ["MindVaultPerception"])
+        .library(name: "MindVaultPerception", targets: ["MindVaultPerception"]),
+        // The diarization wrapper is its own product: the app links it by product name
+        // (`import MindVaultPerceptionSherpa`), and a target without a product does not
+        // appear in Xcode's product list at all (review blocker: the app build would
+        // fail with "no such module" even with the target declared).
+        .library(name: "MindVaultPerceptionSherpa", targets: ["MindVaultPerceptionSherpa"])
     ],
     dependencies: [
         // The diarization runtime for iOS/macOS: sherpa-onnx prebuilt xcframeworks, v2.0.0 to match

@@ -11,12 +11,14 @@ final class ModelRegistryTests: XCTestCase {
             ["diarization-pyannote3-wespeaker", "embeddinggemma-2-740m", "embeddinggemma-2-740m-onnx"],
             ModelRegistry.all.map(\.id)
         )
-        XCTAssertEqual(
-            ModelRegistry.diarization,
-            ModelRegistry.byId("diarization-pyannote3-wespeaker")
-        )
-        XCTAssertEqual(ModelRegistry.embed, ModelRegistry.byId("embeddinggemma-2-740m"))
-        XCTAssertEqual(ModelRegistry.embedOnnx, ModelRegistry.byId("embeddinggemma-2-740m-onnx"))
+        // byId must resolve the exact id strings Android's ModelSpec.kt uses. The file
+        // counts (2/1/3) distinguish the three models from one another without echoing
+        // the implementation; the pinned-bytes tests below prove the right model is
+        // behind each id (the old asserts compared byId's result with the same model
+        // object it is implemented to return — a tautology that pinned nothing).
+        XCTAssertEqual(2, ModelRegistry.byId("diarization-pyannote3-wespeaker")?.files.count)
+        XCTAssertEqual(1, ModelRegistry.byId("embeddinggemma-2-740m")?.files.count)
+        XCTAssertEqual(3, ModelRegistry.byId("embeddinggemma-2-740m-onnx")?.files.count)
         XCTAssertNil(ModelRegistry.byId("nope"))
     }
 
@@ -32,9 +34,18 @@ final class ModelRegistryTests: XCTestCase {
                 )
                 XCTAssertGreaterThan(file.size, 0, "\(model.id)/\(file.name)")
                 XCTAssertTrue(file.url.hasPrefix("https://"), "\(model.id)/\(file.name)")
-                XCTAssertEqual(model.totalBytes, model.files.map(\.size).reduce(0, +))
             }
         }
+    }
+
+    /// The byte totals as literals — the numbers a person can diff against
+    /// Android's ModelSpec.kt (5,992,913 + 26,530,550; 484,622,336;
+    /// 490,742 + 174,028,800 + 32,170,510). The old check re-derived
+    /// `totalBytes` from the very reduce it is defined by, which pinned nothing.
+    func testTotalBytesArePinnedLiterals() {
+        XCTAssertEqual(32_523_463, ModelRegistry.diarization.totalBytes)
+        XCTAssertEqual(484_622_336, ModelRegistry.embed.totalBytes)
+        XCTAssertEqual(206_690_052, ModelRegistry.embedOnnx.totalBytes)
     }
 
     /// Same names Android downloads under, so a shared model directory could even be reused.

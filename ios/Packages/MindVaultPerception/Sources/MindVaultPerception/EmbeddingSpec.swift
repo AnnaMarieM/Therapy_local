@@ -69,9 +69,13 @@ public enum EmbeddingSpec {
     }
 
     /// Defensive re-normalise so cosine == dot product whatever the runtime did (EmbedRunner.finish).
+    /// Kotlin-faithful: the sum of squares is a Float product widened to Double per term, the
+    /// root is Double, the norm becomes a **Float** — and the divide happens in Float
+    /// (`FloatArray(v.size) { v[it] / norm }`). Dividing in Double drifts 1 ULP on most
+    /// components, which changes the stored bytes vs Android.
     public static func normalized(_ v: [Float]) -> [Float] {
-        let norm = v.reduce(0.0) { $0 + Double($1) * Double($1) }.squareRoot()
-        guard norm > 0, abs(norm - 1.0) > 1e-3 else { return v }
-        return v.map { Float(Double($0) / norm) }
+        let norm = Float(v.reduce(0.0) { $0 + Double($1 * $1) }.squareRoot())
+        guard norm > 0, abs(norm - 1) > 1e-3 else { return v }
+        return v.map { $0 / norm }
     }
 }
