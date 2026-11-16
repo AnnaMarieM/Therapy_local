@@ -130,8 +130,9 @@ public final class WhisperEngine: @unchecked Sendable {
             guard diagnosis.usable else {
                 let info = String(cString: whisper_print_system_info())
                     .trimmingCharacters(in: .whitespacesAndNewlines)
-                WhisperLog.note("gpu_unavailable \(diagnosis.detail) | \(info)")
-                throw WhisperEngineError.gpuUnavailable(systemInfo: info, detail: diagnosis.detail)
+                let reason = "\(diagnosis.detail); metal_kernels \(install)"
+                WhisperLog.note("gpu_unavailable \(reason) | \(info)")
+                throw WhisperEngineError.gpuUnavailable(systemInfo: info, detail: reason)
             }
         } else {
             self.gpu = GPUDiagnostic.probe(requested: false)
