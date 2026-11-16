@@ -337,6 +337,11 @@ struct NoticeHost: View {
         .animation(.spring(response: 0.3, dampingFraction: 0.9), value: center.current)
         .task(id: center.current?.id) {
             guard center.current != nil else { return }
+            #if DEBUG
+            // The CI screenshot harness holds the banner up: the capture job
+            // sleeps past the 3 s auto-dismiss before it screenshots (issue #133).
+            if ScreenshotHarness.screen == .notice { return }
+            #endif
             try? await Task.sleep(for: .seconds(3))
             center.dismiss()
         }

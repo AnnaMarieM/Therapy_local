@@ -63,6 +63,10 @@ captured and reported as differences — that is the point of the pass.
   is a card list (Martin's call pending on which IA wins — see the compare on #133).
 - **Date labels:** iOS renders `2026-01-15` (ISO), Android's tour composes `Jan 15` status
   strings. Fixture instants are identical (Android `DAY_1` = 2026-01-01 00:00 UTC).
+- **Dialog backdrops:** the iOS `PaperConfirmDialog` dims the page behind it to an even tone
+  (the underlying page is not legible), Android's dialogs keep the page visible under the scrim.
+  Consistent across `erase-vault`, `profile-delete`, `session-discard` — a design difference for
+  the compare to weigh, not a capture artifact.
 
 ## iOS half (CI, no device needed)
 
